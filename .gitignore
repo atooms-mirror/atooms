@@ -1,0 +1,12 @@
+# Ignore compilation objects
+*.pyc
+
+atooms/reference
+
+# Ignore version file in package.
+# It will be updated upon build/install
+atooms/_version.py
+
+dist
+build
+MANIFEST
