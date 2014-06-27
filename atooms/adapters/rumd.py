@@ -37,7 +37,7 @@ class Simulation(simulation.Simulation):
     _WRITER_THERMO = WriterThermo
     STORAGE = 'directory'
 
-    def __init__(self, sim, dir_output):
+    def __init__(self, sim, dir_output, base_output='config.xyz'):
         self._sim = sim
         self._sim.sample.SetOutputDirectory(dir_output)
         self._sim.SetMomentumResetInterval(10)
@@ -45,7 +45,7 @@ class Simulation(simulation.Simulation):
         self.__set_verbosity(0)
         self._initialize_output = True
         self.dir_output = dir_output
-        self.trajectory = Trajectory(os.path.join(dir_output, 'config.xyz'), 'w')
+        self.trajectory = Trajectory(os.path.join(dir_output, base_output), 'w')
         mkdir(self.dir_output)
 
     # Temporarily use a different method
@@ -228,14 +228,35 @@ class System(object):
         return self.sample.GetPotentialEnergy()
 
     def kinetic_energy(self):
+        # TODO: use double IntegratorNVT::GetKineticEnergy(bool copy) const{
         return ekin
+
+    def __get_mass(self):
+        # TODO: cache it (but what if masses change?)
+        npart = self.sample.GetNumberOfParticles()
+        nsp = self.sample.GetNumberOfTypes()
+        mass = numpy.ndarray(npart, dtype=float)
+        ii = 0
+        for i in range(nsp):
+            ni = self.sample.GetNumberThisType(i)
+            try:
+                # This will work with rumd <= 2.0.1 I think
+                # meta = self.sample.GetTrajectoryConfMetaData()
+                # then get meta.GetMassOfType(i)
+                mi = self.sample.GetMass(i)
+            except:
+                logging.warning('cannot get mass from RUMD interface, setting to 1.0')
+                mi = 1.0
+            mass[ii:ii+ni] = mi
+            ii += ni
+        return mass
 
     def temperature(self):
         npart = self.sample.GetNumberOfParticles()
+        ndof = self.sample.GetNumberOfDOFs()
         vel = self.sample.GetVelocities()
-        # TODO: missing masses in T !
-        T = sum(sum(vel**2.0))/(3*npart - 3)
-        return T
+        mass = self.__get_mass()
+        return 2 * numpy.sum(mass * numpy.sum(vel**2.0, 1))/ndof
 
     def mean_square_displacement(self, reference):
         """ Compute the mean square displacement between actual sample and the reference sample """
@@ -263,23 +284,19 @@ class System(object):
     @property
     def particle(self):
         nmap = ['A', 'B', 'C', 'D']
-        # TODO: get mass from rumd!
-        #meta = self.sample.GetTrajectoryConfMetaData()
         n = self.sample.GetNumberOfParticles()
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
         nsp = self.sample.GetNumberOfTypes()
+        mass = self.__get_mass()
         spe = numpy.ndarray(n, dtype=int)
         name = numpy.ndarray(n, dtype='|S1')
-        mass = numpy.ndarray(n, dtype=float)
         ii = 0
         for i in range(nsp):
             ni = self.sample.GetNumberThisType(i)
-            #mi = meta.GetMassOfType(i)
-            mi = 1.0
             spe[ii:ii+ni] = i+1
             name[ii:ii+ni] = nmap[i]
-            mass[ii:ii+ni] = mi
+            ii += ni
         p = [Particle(s, n, m, p, v) for s, n, m, p, v in zip(spe, name, mass, pos, vel)]
         return p
 
@@ -300,7 +317,8 @@ class Trajectory(object):
     def write_sample(self, system, step, sample):
         f = self.filename 
         if step:
-            f += '_%011d' % step
+            base, ext = os.path.splitext(f)
+            f = base + '_%011d' % step + ext
         system.sample.WriteConf(f, self.mode)
 
         # Next time we append

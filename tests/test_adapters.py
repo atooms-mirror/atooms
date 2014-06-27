@@ -9,11 +9,12 @@ from rumdSimulation import rumdSimulation
 from atooms.adapters.rumd import Simulation, System, Trajectory
 
 xyz = """\
-     3
-ioformat=1 dt=0.005000000 boxLengths=6.34960421,6.34960421,6.34960421 numTypes=1 Nose-Hoover-Ps=-0.027281716 Barostat-Pv=0.000000000 mass=1.000000000 columns=type,x,y,z
-0       -3.159757      3.145206     -3.145651
-0       -2.986284      3.045374     -2.362755
-0       -2.813011      2.380848     -1.037014
+     4
+ioformat=1 dt=0.005000000 boxLengths=6.34960421,6.34960421,6.34960421 numTypes=2 Nose-Hoover-Ps=-0.027281716 Barostat-Pv=0.000000000 mass=1.0000000,2.000000000 columns=type,x,y,z,vx,vy,vz
+0       -3.159757      3.145206     -3.145651 1.0 0.0 1.0
+0       -2.986284      3.045374     -2.362755 0.0 1.0 1.0
+0       -2.813011      2.380848     -1.037014 0.0 1.0 1.0
+1       -2.813011      2.380848     -1.037014 1.0 1.0 0.0
 """
 
 # TODO: make test_adapters a package
@@ -45,13 +46,17 @@ class TestAdaptersRUMD(unittest.TestCase):
         U = system.potential_energy()
         T = system.temperature()
         Uref = 36.9236726612
+        Tref = 20.0/9
         self.assertLess(abs((U-Uref)/Uref), 0.001)
+        self.assertLess(abs((T-Tref)/Tref), 1e-9)
 
     def test_particle(self):
         system = System(self.s)
         p = system.particle
-        ref = numpy.array([-3.1597569, 3.14520597, -3.1456511 ])
+        ref = numpy.array([-3.1597569, 3.14520597, -3.1456511])
+        mref = numpy.array([1.,1.,1.,2.])
         self.assertLess(max(abs(p[0].position - ref)), 1e-6)
+        self.assertLess(max(abs([pi.mass for pi in p] - mref)), 1e-6)
 
     def test_trajectory(self):
         t = Trajectory(self.fout, 'w')
