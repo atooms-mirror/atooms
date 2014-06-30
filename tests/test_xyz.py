@@ -33,46 +33,44 @@ A -2.8 2.8 0.0
 
     def test_xyz_indexed(self):
         r_ref = [[1., -1., 0.], [2.9, -2.9, 0.]]
-        t = trajectory.TrajectoryXYZIndexed(self.finp)
-        self.assertEqual(t.samples, [0, 1, 2, 3])
+        t = trajectory.TrajectoryXYZ(self.finp)
         self.assertEqual(t.steps, [1, 2, 3, 4])
-        self.assertEqual(r_ref[0], list(t.read_sample(0).particle[0].position))
-        self.assertEqual(r_ref[1], list(t.read_sample(0).particle[1].position))
+        self.assertEqual(r_ref[0], list(t[0].particle[0].position))
+        self.assertEqual(r_ref[1], list(t[0].particle[1].position))
 
     def test_xyz_indexed_unfolded(self):
-        t1 = trajectory.TrajectoryXYZIndexed(self.finp)
+        t1 = trajectory.TrajectoryXYZ(self.finp)
         t = trajectory.Unfolded(t1)
-        t.read_initial_state()
-        t.read_sample(0)
-        t.read_sample(1)
-        self.assertEqual(list(t.read_sample(2).particle[1].position), [3.1, -3.1, 0.0])
-        self.assertEqual(list(t1.read_sample(2).particle[1].position), [-2.9, 2.9, 0.0])
+        t[0]
+        t[1]
+        self.assertEqual(list(t[2].particle[1].position), [3.1, -3.1, 0.0])
+        self.assertEqual(list(t1[2].particle[1].position), [-2.9, 2.9, 0.0])
         t1.close()
         t.close()
 
     def test_xyz_indexed_unfolded_skip(self):
         """Test that unfolded trajectories can skip samples"""
-        t1 = trajectory.TrajectoryXYZIndexed(self.finp)
-
         # Here we read all samples
+        t1 = trajectory.TrajectoryXYZ(self.finp)
         t = trajectory.Unfolded(t1)
-        t.read_initial_state()
-        t.read_sample(0)
-        t.read_sample(1)
-        t.read_sample(2)
-        s = t.read_sample(3)
+        t[0]
+        t[1]
+        t[2]
+        s = t[3]
+        t1.close()
+        t.close()
 
         # Here we skip one sample
+        t1 = trajectory.TrajectoryXYZ(self.finp)
         t1 = trajectory.Unfolded(t1)
-        t1.read_initial_state()
-        t1.read_sample(0)
-        s1 = t1.read_sample(3)
+        t1[0]
+        s1 = t1[3]
+        t1.close()
+        t.close()
 
         self.assertEqual(list(s.particle[0].position), list(s1.particle[0].position))
         self.assertEqual(list(s.particle[1].position), list(s1.particle[1].position))
 
-        t1.close()
-        t.close()
 
     @unittest.skip('ikeda2 does not work')
     def test_ikeda2_indexed(self):
@@ -89,8 +87,25 @@ A -2.8 2.8 0.0
 """)
         t = trajectory.TrajectoryXYZIkeda2Indexed(f)
         self.assertEqual(t.steps, [5005000, 5010000])
-        #self.assertEqual(list(t.read_sample(1).particle[0].position), [1.1, 1.2, 1.3])
-        #self.assertEqual(list(t.read_sample(1).particle[1].position), [-1.1, -1.2, -1.3])
+
+    def test_xyz_with(self):
+        r_ref = [[1., -1., 0.], [2.9, -2.9, 0.]]
+        with trajectory.TrajectoryXYZ(self.finp) as t:
+            self.assertEqual(r_ref[0], list(t[0].particle[0].position))
+            self.assertEqual(r_ref[1], list(t[0].particle[1].position))
+
+        with trajectory.TrajectoryXYZ(self.finp + '.out', 'w') as to:
+            with trajectory.TrajectoryXYZ(self.finp) as t:
+                to.write(t[0], 0)
+                
+        with trajectory.TrajectoryXYZ(self.finp + '.out') as to:
+            self.assertEqual(r_ref[0], list(to[0].particle[0].position))
+
+    def test_xyz_iter(self):
+        with trajectory.TrajectoryXYZ(self.finp) as t:
+            for s in t:
+                s.particle
+            t[-1]
         
 if __name__ == '__main__':
     unittest.main(verbosity=0)

@@ -12,12 +12,13 @@ class TestMeanSquareDisplacement(unittest.TestCase):
     # TODO: speed up this test
     def test_msd(self):
         f = 'atooms/reference/kalj-matrix.h5'
-        t = trajectory.TrajectoryHDF5(f)
-        p = postprocessing.MeanSquareDisplacement(t, [0.0, 1.0, 10.0, 100.0], 1, 1.0)
+        t = trajectory.Sliced(trajectory.TrajectoryHDF5(f), slice(0,1000,1))
+        p = postprocessing.MeanSquareDisplacement(t, [0.0, 1.0, 10.0, 100.0])
         p.do()
         ref_grid = numpy.array([0, 0.992, 9.976, 100])
-        ref_value = numpy.array([0, 0.0812282, 0.324511, 2.52756])
-        self.assertLess(deviation(p.value, ref_value), 1e-3)
+        ref_value = numpy.array([0.0, 0.080864, 0.325229, 2.5653])
+        self.assertLess(deviation(p.grid, ref_grid), 1e-2)
+        self.assertLess(deviation(p.value, ref_value), 1e-2)
 
 class TestFourierSpace(unittest.TestCase):
 
@@ -44,11 +45,12 @@ class TestFourierSpace(unittest.TestCase):
 
 class TestOverlap(unittest.TestCase):
 
-    t = trajectory.TrajectoryHDF5('atooms/reference/kalj_rumd_pinned.h5')
-    p = postprocessing.OverlapDistribution(t, [20], skip=1)
-    p.do()
-    print p.grid
-    print p.value
+    def test_overlap_pinned(self):
+        t = trajectory.TrajectoryHDF5('atooms/reference/kalj_rumd_pinned.h5')
+        p = postprocessing.OverlapDistribution(t, [20], skip=100)
+        p.do()
+        p.grid
+        p.value
 
 
 if __name__ == '__main__':
