@@ -142,29 +142,12 @@ class TrajectoryBase(object):
     @property
     def block_period(self):
         if self._block_period is None:
-            period = self.read_blockperiod()
-
-        if period is None:
+            self._block_period = self.read_blockperiod()
+        if self._block_period is None:
             # If period is still None (read_blockperiod is not
             # implemented) we determine it dynamically
-            if len(self.steps) < 2:
-                return 1
-            delta_old = 0
-            delta_one = self.steps[1] - self.steps[0]
-            iold = self.steps[0]
-            period = 0
-            for ii in range(1, len(self.steps)):
-                i = self.steps[ii]
-                delta = i-iold
-                if delta < delta_old and delta == delta_one and abs(delta-delta_old)>2:
-                    return period
-                else:
-                    period += 1
-                    iold = i
-                    delta_old = delta
-        else:
-            # We got something meaningful from read_blockperiod
-            return period
+            self._block_period = get_period(self.steps)
+        return self._block_period
 
     @block_period.setter
     def block_period(self, value):
@@ -172,7 +155,7 @@ class TrajectoryBase(object):
         self.write_blockperiod(value)
 
     def _check_block_period(self):
-        """Perform some consistency checks on peridicity of non linear sampling."""
+        """Perform some consistency checks on periodicity of non linear sampling."""
         if self.block_period == 1:
             return
         block = self.steps[0:self.block_period]
@@ -263,6 +246,24 @@ class TrajectoryBase(object):
     #     for i, p in zip(self.samples, _pbc_unfold(pos, self._system.cell.side)):
     #         self._pos_unf[i] = p
 
+
+def get_period(data):
+    if len(data) < 2:
+        return 1
+    delta_old = 0
+    delta_one = data[1] - data[0]
+    iold = data[0]
+    period = 0
+    for ii in range(1, len(data)):
+        i = data[ii]
+        delta = i-iold
+        if delta < delta_old and delta == delta_one and abs(delta-delta_old)>2:
+            return period
+        else:
+            period += 1
+            iold = i
+            delta_old = delta
+    return 1
 
 # Useful functions to manipulate trajectories
 
