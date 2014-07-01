@@ -273,7 +273,7 @@ class TrajectoryBase(object):
                 filename = '%s-%09i%s' % (base, sample, ext)
             else:
                 raise ValueError('unknown option %s' % index)
-            t = self.__class__(filename, action='w')
+            t = self.__class__(filename, mode='w')
             t.write_initial_state(self.read_initial_state())
             t.write_sample(self.read_sample(sample), step, sample)
             t.copy_sample(self, step, sample)
@@ -294,7 +294,7 @@ class TrajectoryBase(object):
         # as in deprecated convert()
 
         filename = os.path.splitext(self.filename)[0] + tag + '.' + self.suffix
-        conv = fmt(filename, action='w')
+        conv = fmt(filename, mode='w')
         conv.write_initial_state(self.read_initial_state())
         conv.write_timestep(self.timestep)
         conv.write_blockperiod(self.block_period)
@@ -327,11 +327,11 @@ class TrajectoryBase(object):
             filename = os.path.splitext(self.filename)[0] + tag + '.' + fmt
             if filename == self.filename:
                 raise ValueError('Trying to convert a file into itself')
-            conv = Trajectory(filename, action='w', fmt=fmt)
+            conv = Trajectory(filename, mode='w', fmt=fmt)
         else:
             # This must be some subclass of Trajectory
             filename = os.path.splitext(self.filename)[0] + tag + '.' + fmt.suffix
-            conv = fmt(filename, action='w')
+            conv = fmt(filename, mode='w')
         conv.write_initial_state(self.read_initial_state())
         # If file has no samples we write the initial state as a sample
         # this should be improved when initial state will be abandoned
@@ -365,9 +365,9 @@ class SuperTrajectory(TrajectoryBase):
     # The approach is inefficient for large number of
     # subtrajectories (init takes some time)
 
-    def __init__(self, subtrajectories, action='r', timestep=1.0, variable=False):
+    def __init__(self, subtrajectories, mode='r', timestep=1.0, variable=False):
         f = os.path.dirname(subtrajectories[0].filename) + '/'
-        super(SuperTrajectory, self,).__init__(f, action)
+        super(SuperTrajectory, self,).__init__(f, mode)
         # By default we get info from the first trajectory in list
         #self.trajectory = subtrajectories[0]
         self.subtrajectories = subtrajectories
@@ -449,9 +449,9 @@ except:
 
 # def Trajectory(filename, fmt=None, **kwargs):
 # Make interface consistent with base, fmt is specified thorugh extension only
-# It should be called Trajectory(fname, action='w', fmt='h5') or
+# It should be called Trajectory(fname, mode='w', fmt='h5') or
 # Trajectory(fname, 'w', fmt='h5')
-def Trajectory(filename, action='r', fmt='' ): #, *args, **kwargs):
+def Trajectory(filename, mode='r', fmt='' ): #, *args, **kwargs):
     """ Factory class shortcut """
     suffix = os.path.splitext(filename)[-1].replace('.', '')
     if not suffix in __factory_map:
