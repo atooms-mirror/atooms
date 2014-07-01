@@ -34,18 +34,14 @@ A -2.8 2.8 0.0
         fname = '/tmp/test.tgz'
         txyz = trajectory.TrajectoryXYZ(self.finp)
 
-        t = trajectory.TrajectoryHOOMDXML(fname, 'w:gz')
-        t.write_sample(txyz.read_sample(0), 0, 0)
-        t.close()
-        t = trajectory.TrajectoryHOOMDXML(fname, 'r')
-        
-        self.assertEqual(t.read_sample(0).particle[0].position[1], 
-                             txyz.read_sample(0).particle[0].position[1])
+        with trajectory.TrajectoryHOOMD(fname, 'w:gz') as t:
+            t.write(txyz[0], 0)
 
-        self.assertEqual(t.read_sample(0).cell.side[1], 
-                             txyz.read_sample(0).cell.side[1])
+        with trajectory.TrajectoryHOOMD(fname, 'r') as t:
+            self.assertEqual(t[0].particle[0].position[1], 
+                             txyz[0].particle[0].position[1])
 
-        t.close()
+            self.assertEqual(t[0].cell.side[1], txyz[0].cell.side[1])
 
         txyz.close()
 
