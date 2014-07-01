@@ -97,7 +97,6 @@ class TrajectoryBase(object):
         # Step is added last, sample index starts from 0 by default
         self.steps.append(step)
 
-    # These methods must be implemented by subclasses
     def read_init(self):
         """It may setup data structures need by the trajectory. Need not be implemented."""
         self._initialized_read = True
@@ -106,6 +105,7 @@ class TrajectoryBase(object):
         """It may setup data structures need by the trajectory. Need not be implemented."""
         self._initialized_write = True
 
+    # These methods must be implemented by subclasses
     def read_sample(self, index): 
         """It must return the sample (system) with the given index"""
         raise NotImplementedError()
@@ -114,20 +114,19 @@ class TrajectoryBase(object):
         """It must write a sample (system) to disk. Noting to return."""
         raise NotImplementedError()
 
-    # To read/write timestep and block period sublcasses must
-    # implement these methods. They must set the private variable
-    # _timestep and _block_period since these properties are cached.
+    # To read/write timestep and block period sublcasses may implement
+    # these methods. The default is dt=1 and blockperiod determined dynamically.
     def read_timestep(self): 
-        raise NotImplementedError()
+        return 1.0
 
     def write_timestep(self, value): 
-        raise NotImplementedError()
+        pass
 
     def read_blockperiod(self): 
-        raise NotImplementedError()
+        return None
 
     def write_blockperiod(self, value): 
-        raise NotImplementedError()
+        pass
 
     @property
     def timestep(self):
@@ -136,35 +135,39 @@ class TrajectoryBase(object):
         return self._timestep
 
     @timestep.setter
-    def set_timestep(self, value):
+    def timestep(self, value):
         self.write_timestep(value)
         self._timestep = value
 
     @property
     def block_period(self):
-        # Block period is cached
-        if not self._block_period is None:
-            return self._block_period
+        if self._block_period is None:
+            period = self.read_blockperiod()
 
-        if len(self.steps) < 2:
-            return 1
-        delta_old = 0
-        delta_one = self.steps[1] - self.steps[0]
-        iold = self.steps[0]
-        period = 0
-        for ii in range(1, len(self.steps)):
-            i = self.steps[ii]
-            delta = i-iold
-            if delta < delta_old and delta == delta_one and abs(delta-delta_old)>2:
-                return period
-            else:
-                period += 1
-                iold = i
-                delta_old = delta
-        return 1
+        if period is None:
+            # If period is still None (read_blockperiod is not
+            # implemented) we determine it dynamically
+            if len(self.steps) < 2:
+                return 1
+            delta_old = 0
+            delta_one = self.steps[1] - self.steps[0]
+            iold = self.steps[0]
+            period = 0
+            for ii in range(1, len(self.steps)):
+                i = self.steps[ii]
+                delta = i-iold
+                if delta < delta_old and delta == delta_one and abs(delta-delta_old)>2:
+                    return period
+                else:
+                    period += 1
+                    iold = i
+                    delta_old = delta
+        else:
+            # We got something meaningful from read_blockperiod
+            return period
 
     @block_period.setter
-    def set_block_period(self, value):
+    def block_period(self, value):
         self._block_period = value
         self.write_blockperiod(value)
 
@@ -273,11 +276,19 @@ def convert(inp, out, tag='', ignore=[]):
     Return: name of converted trajectory file
     """
     filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix
+
     with out(filename, 'w') as conv:
         conv.timestep = inp.timestep
         conv.block_period = inp.block_period
-        for system, step in zip(inp, inp.steps):
-            conv.write(system, step, ignore=ignore)
+        # In python <3 zip returns a list, not a generator! Therefore this
+        # for system, step in zip(inp, inp.steps):
+        #     conv.write(system, step, ignore=ignore)
+        # will use a lot of RAM! Workarounds (in order of personal preference)
+        # 1. zip is a generator in python 3
+        # 2. use enumerate instead and grab the step from inp.steps[i]
+        # 3. add an attribute system.step for convenience
+        for i, system in enumerate(inp):
+            conv.write(system, inp.steps[i], ignore=ignore)
 
     return filename
 
