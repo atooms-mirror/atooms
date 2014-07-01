@@ -106,4 +106,4 @@ class SuperTrajectoryRUMD(SuperTrajectory):
         if not os.path.isdir(inp):
             raise IOError("We expected this to be a dir (%s)" % inp)
         f_all = glob.glob(inp + '/%s*gz' % basename)
-        return SuperTrajectory([TrajectoryXYZRUMD(f, basename=basename) for f in f_all])
+        return SuperTrajectory([TrajectoryRUMD(f, basename=basename) for f in f_all])

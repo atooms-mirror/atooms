@@ -202,7 +202,7 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory.create_group_safe('/trajectory/cell/sidebox')
             self.trajectory['/trajectory/cell/sidebox' + csample] = [system.cell.side]
 
-    def read_init(self, system=None):
+    def read_init(self):
         name = 'Unknown'
 
         # read particles
@@ -240,11 +240,7 @@ class TrajectoryHDF5(TrajectoryBase):
             matrix = [ Particle(spe[i],ele[i],mas[i],pos[i,:]) for i in range(len(spe)) ] 
             self._system.add_porous_matrix(matrix)
 
-        if system:
-            system.copy(self._system, other)
-            return system
-        else:
-            return self._system
+        return self._system
 
     def read_interaction(self):
         # read interaction terms
@@ -283,7 +279,8 @@ class TrajectoryHDF5(TrajectoryBase):
         group = self.trajectory['/trajectory/particle']
         if unfolded:
             if not 'position_unfolded' in group:
-                self._unfold()
+                raise NotImplementedError('cannot unfold like this, use decorator instead')
+                # self._unfold()
                 # TODO: fix it since sample may not be [0,1,2,...]
                 #print sample, len(self._pos_unf)
                 pos = self._pos_unf[sample]

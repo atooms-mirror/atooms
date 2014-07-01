@@ -110,7 +110,7 @@ class TrajectoryBase(object):
         """It must return the sample (system) with the given index"""
         raise NotImplementedError()
         
-    def write_sample(self, system, step):
+    def write_sample(self, system, step, ignore=[]):
         """It must write a sample (system) to disk. Noting to return."""
         raise NotImplementedError()
 
@@ -136,7 +136,7 @@ class TrajectoryBase(object):
         return self._timestep
 
     @timestep.setter
-    def timestep(self, value):
+    def set_timestep(self, value):
         self.write_timestep(value)
         self._timestep = value
 
@@ -164,7 +164,7 @@ class TrajectoryBase(object):
         return 1
 
     @block_period.setter
-    def block_period(self, value):
+    def set_block_period(self, value):
         self._block_period = value
         self.write_blockperiod(value)
 
@@ -239,9 +239,9 @@ class TrajectoryBase(object):
         """
         raise NotImplementedError('time_when_msd_is is broken')
         # TODO: when using decorators, this will introduce a diamond, let's move it to a generic function in post processing 
-        self._unfold()
-        msd_total = numpy.sum((self._pos_unf[-1] - self._pos_unf[0])**2) / self._pos_unf[0].shape[0]
-        return min(1.0, msd_target * sigma**2 / msd_total) * self.steps[-1] * self.timestep
+        # self._unfold()
+        # msd_total = numpy.sum((self._pos_unf[-1] - self._pos_unf[0])**2) / self._pos_unf[0].shape[0]
+        # return min(1.0, msd_target * sigma**2 / msd_total) * self.steps[-1] * self.timestep
 
     # def _unfold(self):
     #     # unfold should be handled only via the decorator.
@@ -260,100 +260,6 @@ class TrajectoryBase(object):
     #     for i, p in zip(self.samples, _pbc_unfold(pos, self._system.cell.side)):
     #         self._pos_unf[i] = p
 
-    def split(self, selection=slice(None), index='step', archive=False):
-        """Split the trajectory into independent trajectory files, one per sample."""
-        if archive:
-            tar = tarfile.open(self.filename + '.tar.gz', "w:gz")
-        base, ext = os.path.splitext(self.filename)
-
-        for sample, step in zip(self.samples[selection], self.steps[selection]):
-            if index == 'step':
-                filename = '%s-%09i%s' % (base, step, ext)
-            elif index == 'sample':
-                filename = '%s-%09i%s' % (base, sample, ext)
-            else:
-                raise ValueError('unknown option %s' % index)
-            t = self.__class__(filename, mode='w')
-            t.write_initial_state(self.read_initial_state())
-            t.write_sample(self.read_sample(sample), step, sample)
-            t.copy_sample(self, step, sample)
-            t.close()
-            if archive:
-                tar.add(filename)
-                os.remove(filename)
-                
-        if archive:
-            tar.close()
-
-    # TODO: which one is the good convert()?
-
-    def _convert(self, input_trj, tag=''):
-        """Convert trajectory *input_trj* to a different format."""
-        # Design: avoid extension driven conversion, only rely on classes.
-        # We might pass a prefix or tag to be prepended to self.suffix
-        # as in deprecated convert()
-
-        filename = os.path.splitext(self.filename)[0] + tag + '.' + self.suffix
-        conv = fmt(filename, mode='w')
-        conv.write_initial_state(self.read_initial_state())
-        conv.write_timestep(self.timestep)
-        conv.write_blockperiod(self.block_period)
-        # Careful here: the sample index for writing is not necessarily the same
-        # as the one in the inut file, since we might have pruned some cfgs.
-        # The initial state is included as the first sample (sample=0)
-        for sample, step in zip(self.samples[traj_slice], self.steps[traj_slice]):
-            conv.write_sample(self.read_sample(sample), step, sample, ignore=ignore)
-        conv.close()
-        
-        # Return the trajectory object we just closed. 
-        # This way we allow post hooks in close().
-        # This may slow down things a bit (with xyz format conversion)
-        return fmt(filename)
-        
-    def convert(self, fmt, traj_slice=slice(None), tag='', ignore=[]):
-        """
-        Convert trajectory object to a different format. 
-        *tag* is a prefix to be added before .xyz
-        """
-        # TODO: convert should not return the converted object. This is meant just to convert the files. 
-        # As long as the trajectories implement the interface, all of them should be interchangeable.
-
-        if len(tag)>0:
-            tag = '.' + tag
-
-        if isinstance(fmt, str):
-            filename = os.path.splitext(self.filename)[0] + tag + '.' + fmt
-            if filename == self.filename:
-                raise ValueError('Trying to convert a file into itself')
-            conv = Trajectory(filename, mode='w', fmt=fmt)
-        else:
-            # This must be some subclass of Trajectory
-            filename = os.path.splitext(self.filename)[0] + tag + '.' + fmt.suffix
-            conv = fmt(filename, mode='w')
-
-        # If file has no samples we write the initial state as a sample
-        # this should be improved when initial state will be abandoned
-        # in favor of some write metadata + write sample.
-        if len(self.samples) == 0:
-            conv.write_sample(self.read_initial_state(), 0, 0, ignore=ignore)
-            
-        conv.write_timestep(self.timestep)
-        conv.write_blockperiod(self.block_period)
-        # Careful here: the sample index for writing is not necessarily the same
-        # as the one in the inut file, since we might have pruned some cfgs.
-        # The initial state is included as the first sample (sample=0)
-        for sample, step in zip(self.samples[traj_slice], self.steps[traj_slice]):
-            s = self.read_sample(sample)
-            conv.write_sample(s, step, sample, ignore=ignore)
-        conv.close()
-        
-        # Return the trajectory object we just closed. 
-        # This way we allow post hooks in close().
-        # This may slow down things a bit (with xyz format conversion)
-        if isinstance(fmt, str):
-            return Trajectory(filename, fmt=fmt)
-        else:
-            return fmt(filename)
 
 # Useful functions to manipulate trajectories
 
@@ -369,12 +275,33 @@ def convert(inp, out, tag='', ignore=[]):
     filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix
     with out(filename, 'w') as conv:
         conv.timestep = inp.timestep
-        conv.blockperiod = inp.block_period
+        conv.block_period = inp.block_period
         for system, step in zip(inp, inp.steps):
             conv.write(system, step, ignore=ignore)
 
     return filename
 
+def split(inp, selection=slice(None), index='step', archive=False):
+    """Split the trajectory into independent trajectory files, one per sample."""
+    if archive:
+        tar = tarfile.open(inp.filename + '.tar.gz', "w:gz")
+    base, ext = os.path.splitext(inp.filename)
+
+    for system, step, sample in zip(inp, inp.steps, inp.samples):
+        if index == 'step':
+            filename = '%s-%09i%s' % (base, step, ext)
+        elif index == 'sample':
+            filename = '%s-%09i%s' % (base, sample, ext)
+        else:
+            raise ValueError('unknown option %s' % index)
+        with inp.__class__(filename, 'w') as t:
+            t.write(system, step)
+        if archive:
+            tar.add(filename)
+            os.remove(filename)
+
+    if archive:
+        tar.close()
 
 class SuperTrajectory(TrajectoryBase):
 
