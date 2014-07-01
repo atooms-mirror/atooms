@@ -88,12 +88,12 @@ class TrajectoryBase(object):
             self.read_init()
         return self.read_sample(index)
 
-    def write(self, system, step):
+    def write(self, system, step, ignore=[]):
         if self.mode == 'r':
             raise IOError('trajectory file not open for writing')
         if not self._initialized_write:
             self.write_init(system)
-        self.write_sample(system, step)
+        self.write_sample(system, step, ignore)
         # Step is added last, sample index starts from 0 by default
         self.steps.append(step)
 
@@ -311,12 +311,10 @@ class TrajectoryBase(object):
         return fmt(filename)
         
     def convert(self, fmt, traj_slice=slice(None), tag='', ignore=[]):
-
         """
         Convert trajectory object to a different format. 
         *tag* is a prefix to be added before .xyz
         """
-
         # TODO: convert should not return the converted object. This is meant just to convert the files. 
         # As long as the trajectories implement the interface, all of them should be interchangeable.
 
@@ -332,7 +330,7 @@ class TrajectoryBase(object):
             # This must be some subclass of Trajectory
             filename = os.path.splitext(self.filename)[0] + tag + '.' + fmt.suffix
             conv = fmt(filename, mode='w')
-        conv.write_initial_state(self.read_initial_state())
+
         # If file has no samples we write the initial state as a sample
         # this should be improved when initial state will be abandoned
         # in favor of some write metadata + write sample.
@@ -356,6 +354,26 @@ class TrajectoryBase(object):
             return Trajectory(filename, fmt=fmt)
         else:
             return fmt(filename)
+
+# Useful functions to manipulate trajectories
+
+def convert(inp, out, tag='', ignore=[]):
+    """Convert trajectory into a different format.
+
+    inp: input trajectory object
+    out: output trajectory class
+    tag: optional string to be prepended before the output suffix
+
+    Return: name of converted trajectory file
+    """
+    filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix
+    with out(filename, 'w') as conv:
+        conv.timestep = inp.timestep
+        conv.blockperiod = inp.block_period
+        for system, step in zip(inp, inp.steps):
+            conv.write(system, step, ignore=ignore)
+
+    return filename
 
 
 class SuperTrajectory(TrajectoryBase):
