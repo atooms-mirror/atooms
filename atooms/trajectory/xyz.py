@@ -109,6 +109,7 @@ class TrajectoryXYZ(TrajectoryBase):
     def _parse_cell(self):
         """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
         # This is schizophrenic, move everything related to cell search here
+        cell = None
         if self._index_cell:
             self.trajectory.seek(self._index_cell)
             side = numpy.fromstring(self.trajectory.readline(), sep=' ')
