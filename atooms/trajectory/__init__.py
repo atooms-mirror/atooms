@@ -353,16 +353,9 @@ class SuperTrajectory(TrajectoryBase):
 
         # TODO: fix last block getting trimmed by check_block_period with rumd
 
-        # Redefine samples 
-        self.samples = range(len(self.steps))
-
         # Now it's better check the block period
         self._check_block_period()
 
-    def read_initial_state(self):
-        i, j = self._map[0]
-        return self.subtrajectories[i].read_sample(j)
-                     
     def read_sample(self, sample):
         i, j = self._map[sample]
         return self.subtrajectories[i].read_sample(j)

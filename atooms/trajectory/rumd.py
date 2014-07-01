@@ -29,19 +29,23 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
         super(TrajectoryRUMD, self,).__init__(filename, mode)
         
-        # Redefine samples and steps to make sure these are the absolute steps and samples
-        # This is important when trajectories are written in blocks.
-        # To extract the block index we look at the filename indexing.
-        # If the name is different the block index is set to zero and steps have no offset
-        s = re.search(r'%s(\d*)' % basename, filename)
-        if s:
-            iblock = int(s.group(1))
+        if basename == 'block':
+            # Redefine samples and steps to make sure these are the absolute steps and samples
+            # This is important when trajectories are written in blocks.
+            # To extract the block index we look at the filename indexing.
+            # If the name is different the block index is set to zero and steps have no offset
+            s = re.search(r'%s_(\d*)' % basename, filename)
+            if s:
+                iblock = int(s.group(1))
+                # Redefine available steps to account for block offset
+                dt = self.steps[-1]
+                self.steps = [i+dt*iblock for i in self.steps]
         else:
-            return
-
-        # Redefine available steps to account for block offset
-        dt = self.steps[-1]
-        self.steps = [i+dt*iblock for i in self.steps]
+            # In case of non native RUMD filename, we assume the step
+            # is written after the basename.
+            s = re.search(r'%s_(\d*)' % basename, filename)
+            if s:
+                self.steps = [int(s.group(1))]
 
     def _parse_step(self, data):
         s = re.search(r'timeStepIndex=(\d*)', data)
