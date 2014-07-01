@@ -460,5 +460,5 @@ def Trajectory(filename, mode='r', fmt='' ): #, *args, **kwargs):
         suffix = 'h5'
         #raise ValueError('unknown file type %s' % suffix)
         
-    return __factory_map.get(suffix)(filename, action)
+    return __factory_map.get(suffix)(filename, mode)
 #    return __factory_map.get(suffix)(filename, **kwargs)
