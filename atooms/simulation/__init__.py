@@ -69,7 +69,7 @@ class Target(object):
 
     def __call__(self, sim):
         x = float(getattr(sim, self.name))
-        logging.debug('targeting %s to %g [%d]' % (self.name, x, float(x) / self.target * 100))
+        logging.debug('targeting %s to %g [%d]' % (self.name, x, int(float(x) / self.target * 100)))
         if x >= self.target:
             raise SimulationEnd('target %s achieved' % self.name)
 

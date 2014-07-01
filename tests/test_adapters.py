@@ -9,12 +9,20 @@ from rumdSimulation import rumdSimulation
 from atooms.adapters.rumd import Simulation, System, Trajectory
 
 xyz = """\
+     3
+ioformat=1 dt=0.005000000 boxLengths=6.34960421,6.34960421,6.34960421 numTypes=1 Nose-Hoover-Ps=-0.027281716 Barostat-Pv=0.000000000 mass=1.0000000 columns=type,x,y,z,vx,vy,vz
+0       -3.159757      3.145206     -3.145651 1.0 0.0 -1.0
+0       -2.986284      3.045374     -2.362755 0.0 1.0 0.0
+0       -2.813011      2.380848     -1.037014 -1.0 -1.0 1.0
+"""
+
+xyz_2 = """\
      4
 ioformat=1 dt=0.005000000 boxLengths=6.34960421,6.34960421,6.34960421 numTypes=2 Nose-Hoover-Ps=-0.027281716 Barostat-Pv=0.000000000 mass=1.0000000,2.000000000 columns=type,x,y,z,vx,vy,vz
 0       -3.159757      3.145206     -3.145651 1.0 0.0 1.0
 0       -2.986284      3.045374     -2.362755 0.0 1.0 1.0
 0       -2.813011      2.380848     -1.037014 0.0 1.0 1.0
-1       -2.813011      2.380848     -1.037014 1.0 1.0 0.0
+1       -1.813011      1.380848     -0.037014 1.0 1.0 0.0
 """
 
 # TODO: make test_adapters a package
@@ -25,9 +33,8 @@ class TestAdaptersRUMD(unittest.TestCase):
         self.fout = '/tmp/test_adapter_rumd_out.xyz.gz'
         self.dout = '/tmp/test_adapter_rumd_out'
         self.finp = '/tmp/test_adapter_rumd_in.xyz'
-        fh = open(self.finp, 'w')
-        fh.write(xyz)
-        fh.close()
+        with open(self.finp, 'w') as fh:
+            fh.write(xyz)
 
         self.s = rumdSimulation(self.finp, verbose=False)
         self.s.SetOutputScheduling("energies", "none")
@@ -41,21 +48,36 @@ class TestAdaptersRUMD(unittest.TestCase):
         i = rumd.IntegratorNVT(targetTemperature=2.0, timeStep=0.002)
         self.s.SetIntegrator(i)
 
+        self.finp2 = '/tmp/test_adapter_rumd_in2.xyz'
+        with open(self.finp2, 'w') as fh:
+            fh.write(xyz_2)
+        self.s2 = rumdSimulation(self.finp2, verbose=False)
+
     def test_system(self):
         system = System(self.s)
         U = system.potential_energy()
         T = system.temperature()
         Uref = 36.9236726612
-        Tref = 20.0/9
+        Tref = 2*6.0/6
         self.assertLess(abs((U-Uref)/Uref), 0.001)
+        self.assertLess(abs((T-Tref)/Tref), 1e-9)
+
+    def test_temperature_mass(self):
+        system = System(self.s2)
+        T = system.temperature()
+        Tref = 20.0/9 # if we don't have the right masses this will fail
         self.assertLess(abs((T-Tref)/Tref), 1e-9)
 
     def test_particle(self):
         system = System(self.s)
         p = system.particle
         ref = numpy.array([-3.1597569, 3.14520597, -3.1456511])
-        mref = numpy.array([1.,1.,1.,2.])
         self.assertLess(max(abs(p[0].position - ref)), 1e-6)
+
+    def test_particle_mass(self):
+        system = System(self.s2)
+        p = system.particle
+        mref = numpy.array([1.,1.,1.,2.])
         self.assertLess(max(abs([pi.mass for pi in p] - mref)), 1e-6)
 
     def test_trajectory(self):
@@ -97,6 +119,8 @@ class TestAdaptersRUMD(unittest.TestCase):
         import shutil
         if os.path.exists(self.finp):
             os.remove(self.finp)
+        if os.path.exists(self.finp2):
+            os.remove(self.finp2)
         if os.path.exists(self.fout):
             os.remove(self.fout)
         if os.path.exists(self.dout):

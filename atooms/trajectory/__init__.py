@@ -152,7 +152,7 @@ class TrajectoryBase(object):
         delta_one = self.steps[1] - self.steps[0]
         iold = self.steps[0]
         period = 0
-        for ii in range(1,len(self.steps)):
+        for ii in range(1, len(self.steps)):
             i = self.steps[ii]
             delta = i-iold
             if delta < delta_old and delta == delta_one and abs(delta-delta_old)>2:
@@ -317,7 +317,8 @@ class TrajectoryBase(object):
         *tag* is a prefix to be added before .xyz
         """
 
-        # TODO: convert should not return the converted object. This is meant just to convert the files. As long as the trajectories implement the interface, all of them should be interchangeable.
+        # TODO: convert should not return the converted object. This is meant just to convert the files. 
+        # As long as the trajectories implement the interface, all of them should be interchangeable.
 
         if len(tag)>0:
             tag = '.' + tag
@@ -423,25 +424,28 @@ class SuperTrajectory(TrajectoryBase):
 
 
 # Factory method which mimics an abstract factory class
+__factory_map = {}
 
-from xyz import *
-from others import *
+from xyz import TrajectoryXYZ, TrajectoryPDB, TrajectoryNeighbors, TrajectoryXYZIkeda2
+__factory_map['xyz'] = TrajectoryXYZ
+__factory_map['pdb'] = TrajectoryPDB
+
+from hoomd import TrajectoryHOOMD
+__factory_map['tgz'] = TrajectoryHOOMD
+
+from rumd import TrajectoryRUMD, SuperTrajectoryRUMD
+from lammps import TrajectoryLAMMPS
+
 try:
-    from h5 import *
+    from hdf5 import TrajectoryHDF5
+    __factory_map['h5'] = TrajectoryHDF5
+    __factory_map['dat'] = TrajectoryHDF5
 except:
-    TrajectoryHDF5 = None
-
-# TODO; if h5 is not there we get an ImportError, we should be more tolerant here and check that h5 is there in the hdf5 class
+    pass
 
 # TODO: trajectories should implement a method to check if a file
 # is of their own format or not, to avoid relying on suffix
 # check out http://stackoverflow.com/questions/456672/class-factory-in-python
-
-__factory_map = {
-    'xyz' : TrajectoryXYZ,
-    'tgz' : TrajectoryHOOMDXML,
-    'h5'  : TrajectoryHDF5,
-    'dat' : TrajectoryHDF5}
 
 # def Trajectory(filename, fmt=None, **kwargs):
 # Make interface consistent with base, fmt is specified thorugh extension only
