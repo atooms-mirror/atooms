@@ -7,33 +7,18 @@ from particle import position_cm, velocity_cm, fix_cm, total_kinetic_energy
 
 class System(object):
 
-    """
-    System class
-    """
+    """System class."""
 
-    def __init__(self,name='Unknown',particle=[],cell=None,interaction=None,matrix=None,thermostat=None):
-        self.name     = name
+    def __init__(self,particle=[],cell=None,interaction=None,matrix=None,thermostat=None):
         self.particle = particle
         self.interaction = interaction
         self.cell     = cell
         self.matrix   = matrix
         self.thermostat = thermostat
 
-    # TODO: drop copy(), use deepcopy directly
-    def copy(self, other):
-        """ Copy instance variables of an object to another """
-        # TODO: copy attributes pythonically
-        self.name     = copy.deepcopy(other.name)
-        self.particle = copy.deepcopy(other.particle)
-        self.interaction = copy.deepcopy(other.interaction)
-        self.cell     = copy.deepcopy(other.cell)
-        self.matrix   = copy.deepcopy(other.matrix)
-        self.thermostat = copy.deepcopy(other.thermostat)
-
     @property
     def number_of_dimensions(self):
         return len(self.particle[0].position)
-        #len(self.cell.side)
 
     @property
     def number_of_species(self):
@@ -42,9 +27,12 @@ class System(object):
     def add_porous_matrix(self,matrix):
         self.matrix = copy.deepcopy(matrix)
 
-    def temperature(self):
-        # TODO: add translation invariance check 
-        ndf = (len(self.particle)-1) * len(self.particle[0].position)
+    def temperature(self, ndof=None):
+        # The n. of degrees of freedom can be passed to this method
+        # This way we can correct for missing translational invariance.
+        # Ideally, one could determine this via some additional attribute.
+        if ndof is None:
+            ndof = (len(self.particle)-1) * self.number_of_dimensions
         return 2.0 / ndf * total_kinetic_energy(self.particle) 
 
     def kinetic_energy(self):
@@ -52,16 +40,13 @@ class System(object):
 
     @property
     def velocity_cm(self):
-        # Wrapper to particle method
         return velocity_cm(self.particle)
 
     @property
     def position_cm(self):
-        # Wrapper to particle method
         return position_cm(self.particle)
 
     def fix_cm(self):
-        # Wrapper to particle method
         fix_cm(self.particle)
         
     def maxwellian(self, T):

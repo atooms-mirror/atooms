@@ -60,12 +60,13 @@ class ReplicaExchange(object):
     # TODO: update state as soon as we swap
     @property
     def state(self):
+        # TODO: make state a private list. Done this way is unsafe
+        # because python will not raise an attribute error if we try
+        # to modify an item of the list!
         s = [0] * self.nr
         for i in range(self.nr):
             s[self.replica[i]] = i
         return s
-
-    import copy
 
     def acceptance(self, state):
         if self.attempts[state] > 0:
@@ -351,7 +352,9 @@ class ParallelTempering(Simulation):
         mkdir(self.output + '/state')
         mkdir(self.output + '/replica')
         self.file_log = self.output + '/pt.log'
+        # For each thermodynamic state, info on the replica which has it
         self.file_state_out = [self.output + '/state/%d.out' % i for i in range(self.rx.nr)]
+        # For each physical replica, info on the state in which it is
         self.file_replica_out = [self.output + '/replica/%d.out' % i for i in range(self.rx.nr)]
 
     def clean_files(self):
@@ -379,7 +382,6 @@ class ParallelTempering(Simulation):
         # TODO: we could write_state operate atomtically, which would allow parallelization
         # Loop over states       
         for i in range(self.rx.nr):
-            logging.info('write_state %d' % step[i])
             with open(self.file_state_out[i], 'a') as fh:
                 # Which replica is in state i? What is its energy?
                 fh.write('%d %d %d %g\n' % (step[i], i, self.rx.replica[i], u[self.rx.replica[i]])) #, self.acceptance(i)))
@@ -393,10 +395,15 @@ class ParallelTempering(Simulation):
     #         self.replica[i], steps = self.trajectory[i].read_checkpoint()
 
     def write_checkpoint(self):
+        """Checkpoint replicas via simulation backends as well as the
+        thermodynamic states in which the replicas found themselves.
+        """
         logging.debug('write checkpoint %d' % self.steps)
         for i in self.rx.my_replica:
-            with open(self.file_state_out[i] + '.chk', 'w') as fh:
+            with open(self.file_replica_out[i] + '.chk', 'w') as fh:
+                # This is the state of replica i
                 fh.write('%d\n' % self.rx.state[i])
+                # Steps is redundant, since this amounts to blocks
                 fh.write('%d\n' % self.steps)
             self.sim[i].write_checkpoint()
 
@@ -407,13 +414,15 @@ class ParallelTempering(Simulation):
             # TODO: steps should all be equal, we should check
             for i in self.rx.my_replica:
                 # This is basically a read_checkpoint()
-                f = self.file_state_out[i] + '.chk'
+                f = self.file_replica_out[i] + '.chk'
                 if os.path.exists(f):
                     with open(f, 'r') as fh:
-                        self.rx.state[i] = int(fh.readline())
+                        self.rx.replica[int(fh.readline())] = i
                         self.steps = int(fh.readline())
-                    logging.debug('restarting replica %d from step %d' % (i, self.steps))
+                    logging.debug('restarting replica %d at state %d from step %d' % 
+                                  (i, self.rx.state[i], self.steps))
                 irx = self.rx.state[i]
+
                 # Set restart in child simulations
                 self.sim[irx].restart = True
 
@@ -431,7 +440,7 @@ class ParallelTempering(Simulation):
     def run_until(self, n):
         # Evolve all replicas. Loop is actually over states 
         # but we pick the current replica using replica list. 
-        logging.info('n')
+        logging.info('run until %d' % n)
         for i in self.rx.my_replica:
             logging.debug('evolve %d' % i)
             # This will evolve state i, thus replica[i]

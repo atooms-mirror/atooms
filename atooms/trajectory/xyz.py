@@ -163,8 +163,7 @@ class TrajectoryXYZ(TrajectoryBase):
         for pi in p:
             pi.id = self._map_id.index(pi.name)
 
-        # TODO: I think the name of the system is irrelevant, move it to last parameter
-        return System('unknown', p, self._cell)
+        return System(p, self._cell)
 
     def _comment_header(self, step, system):
         return "Step: %d\n" % step
@@ -282,7 +281,7 @@ class TrajectoryXYZIkeda2(TrajectoryXYZ):
             d = self.trajectory.readline().split()
             r = numpy.array(d[1:4], dtype=float)
             p.append(Particle(name='A', id=1, position=r)) #- self._cell.side/2.0)))
-        return System('unknown', p, self._cell)
+        return System(p, self._cell)
 
 
 

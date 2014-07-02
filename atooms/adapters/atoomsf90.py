@@ -8,6 +8,7 @@ We rely on command line tools
 """
 
 import os
+import copy
 import subprocess
 from atooms import trajectory
 from atooms import simulation
@@ -32,7 +33,7 @@ class System(system.System):
             except:
                 print 'error with ', filename
                 raise
-            super(System, self).__init__(s.name, s.particle, s.cell, s.interaction, matrix=s.matrix, thermostat=s.thermostat)
+            super(System, self).__init__(s.particle, s.cell, s.interaction, matrix=s.matrix, thermostat=s.thermostat)
         else:
             super(System, self).__init__()
 
@@ -129,8 +130,8 @@ class Simulation(simulation.Simulation):
         cmd += ' %s' % self.file_output_tmp
         out = subprocess.check_output(cmd, shell=True)
 
-        # Update internal system reference system
-        self.system.copy(System(self.file_output_tmp))
+        # Update internal reference system
+        self.system = copy.deepcopy(System(self.file_output_tmp))
 
         # Next time we run we'll restart from the current tmp config file
         if '--initial-state' in self.opts:

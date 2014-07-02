@@ -51,6 +51,11 @@ def total_kinetic_energy(particle):
         ekin += p.mass * numpy.dot(p.velocity, p.velocity)
     return 0.5 * ekin
 
+def temperature(particle, ndof=None):
+    if ndof is None:
+        ndof = ndim * (len(particle) - 1)
+    return 2 * total_kinetic_energy(particle) / ndof
+
 class Particle(object):
 
     """

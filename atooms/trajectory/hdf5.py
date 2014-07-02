@@ -203,8 +203,6 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory['/trajectory/cell/sidebox' + csample] = [system.cell.side]
 
     def read_init(self):
-        name = 'Unknown'
-
         # read particles
         group = self.trajectory['/initialstate/particle']
         n = self.trajectory['/initialstate/particle/number_of_particles'].value[0]
@@ -227,7 +225,7 @@ class TrajectoryHDF5(TrajectoryBase):
         interaction = Interaction('', [])
 
         # build system
-        self._system = System(name, particle, cell, interaction)
+        self._system = System(particle, cell, interaction)
 
         # read matrix
         if 'matrix' in  self.trajectory['/initialstate']:
@@ -322,4 +320,4 @@ class TrajectoryHDF5(TrajectoryBase):
             self._system.interaction.total_virial = group['virial' + csample][0]
             self._system.interaction.total_stress = group['stress' + csample][:]
         
-        return System('', p, self._system.cell, self._system.interaction)
+        return System(p, self._system.cell, self._system.interaction)
