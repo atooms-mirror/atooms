@@ -29,6 +29,9 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
         super(TrajectoryRUMD, self,).__init__(filename, mode)
         
+        # The minimum id for RUMD is 0
+        self._min_id = 0
+        
         if basename == 'block':
             # Redefine samples and steps to make sure these are the absolute steps and samples
             # This is important when trajectories are written in blocks.

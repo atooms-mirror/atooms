@@ -86,6 +86,7 @@ class TrajectoryBase(object):
     def read(self, index):
         if not self._initialized_read:
             self.read_init()
+            self._initialized_read = True
         return self.read_sample(index)
 
     def write(self, system, step, ignore=[]):
@@ -93,17 +94,18 @@ class TrajectoryBase(object):
             raise IOError('trajectory file not open for writing')
         if not self._initialized_write:
             self.write_init(system)
+            self._initialized_write = True
         self.write_sample(system, step, ignore)
         # Step is added last, sample index starts from 0 by default
         self.steps.append(step)
 
     def read_init(self):
         """It may setup data structures need by the trajectory. Need not be implemented."""
-        self._initialized_read = True
+        pass
 
     def write_init(self, system):
         """It may setup data structures need by the trajectory. Need not be implemented."""
-        self._initialized_write = True
+        pass
 
     # These methods must be implemented by subclasses
     def read_sample(self, index): 
@@ -324,7 +326,7 @@ class SuperTrajectory(TrajectoryBase):
 
     def __init__(self, subtrajectories, mode='r', timestep=1.0, variable=False):
         f = os.path.dirname(subtrajectories[0].filename) + '/'
-        super(SuperTrajectory, self,).__init__(f, mode)
+        super(SuperTrajectory, self).__init__(f, mode)
         # By default we get info from the first trajectory in list
         #self.trajectory = subtrajectories[0]
         self.subtrajectories = subtrajectories

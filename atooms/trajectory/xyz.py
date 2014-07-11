@@ -4,6 +4,7 @@
 import os
 import gzip
 import numpy
+import re
 
 from atooms.trajectory  import TrajectoryBase
 from atooms.system.particle import Particle
@@ -21,6 +22,7 @@ class TrajectoryXYZ(TrajectoryBase):
         self._timestep = 1.0
         self._cell = None
         self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
+        self._min_id = 1 # minimum integer for ids, can be modified by subclasses
 
         if self.mode == 'w':
             self.trajectory = open(self.filename, 'w')
@@ -101,10 +103,17 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def _parse_step(self, data):
         """Internal xyz method to grab the step index. Can be overwritten in subclasses."""
-        try:
-            return int(data.split()[-1])
-        except:
-            return None
+        p = re.compile(r'step\w*[=:](\d*)\w', re.IGNORECASE)
+        s = p.search(data)
+        if s is None:
+            try:
+                n = int(data.split()[-1])
+            except:
+                self._step += 1
+                n = self._step
+        else:
+            n = int(s.group(1))
+        return n
 
     def _parse_cell(self):
         """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
@@ -160,8 +169,9 @@ class TrajectoryXYZ(TrajectoryBase):
             p.append(Particle(name=name, id=None, position=r, velocity=v, tag=tag))
 
         # Assign ids to particles according to the updated database
+        # The minimum id is set by self._min_id
         for pi in p:
-            pi.id = self._map_id.index(pi.name)
+            pi.id = self._map_id.index(pi.name) + self._min_id
 
         return System(p, self._cell)
 
@@ -282,8 +292,3 @@ class TrajectoryXYZIkeda2(TrajectoryXYZ):
             r = numpy.array(d[1:4], dtype=float)
             p.append(Particle(name='A', id=1, position=r)) #- self._cell.side/2.0)))
         return System(p, self._cell)
-
-
-
-
-

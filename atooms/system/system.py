@@ -5,6 +5,8 @@ import copy
 import numpy
 from particle import position_cm, velocity_cm, fix_cm, total_kinetic_energy
 
+ndim = 3
+
 class System(object):
 
     """System class."""

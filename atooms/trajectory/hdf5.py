@@ -3,8 +3,8 @@
 
 import numpy
 import h5py
-from atooms import ndim
 from atooms.trajectory import TrajectoryBase
+from atooms.system import ndim
 from atooms.system import System
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
