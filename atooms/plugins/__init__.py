@@ -11,15 +11,5 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-"""
-atooms - Atomistic object-oriented modeling and simulations
-"""
-
-__author__ = "Daniele Coslovich <daniele.coslovich@um2.fr>"
-
-try:
-    from _version import __version__
-except ImportError:
-    __version__ = "unknown"
-
-ndim = 3
+from pkgutil import extend_path
+__path__ = extend_path(__path__, __name__)
