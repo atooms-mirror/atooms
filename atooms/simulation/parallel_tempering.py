@@ -36,15 +36,18 @@ class ReplicaExchange(object):
         self.variables = variables
         self.nr = len(params)
         self.replica = range(self.nr)
+        # TODO: remember to checkpoint them
         self.accepted = [0.0 for i in range(self.nr)]
         self.attempts = [0.0 for i in range(self.nr)]
         # This is used to swap odd/even replicas in turn
         self.offset = 0
 
-        # For parallel
-        # TODO: use switch or something
+        # Distribute physical replicas in parallel.
+        # Each process gets a bunch of replicas to evolve
+        # my_replica contains their state id's.
+        # We could as well distributes states, which would allow
+        # for other optimizations.
         self._thermostat = None
-        self.states = range(self.nr)
         np = self.nr / size
         ni = rank * np
         nf = (rank+1) * np
@@ -319,7 +322,7 @@ class ParallelTempering(Simulation):
         self.trajectory = [s.trajectory for s in self.sim]
         random.seed(self.seed)
 
-        # Get system objects from simulations
+        # Get physical replicas (systems) from simulation instances.
         # These are references: they'll follow the simulations 
         self.replica = [s.system for s in sim]
         # We also need a system, to adhere to the simulation interface
@@ -328,19 +331,23 @@ class ParallelTempering(Simulation):
         # a list might break other things in base class, it should be checked
         # Perhaps just the log, which should be encapsulated and would be
         # overridden here
+        # TODO: potential bug here. If the initial system is different for each replica, the RMSD will be wrong
+        # We should outsource rmsd or overwrite.
         self.system = self.replica[0]
 
         self.rx = ReplicaExchange(params, variables)
 
-        # Listify steps per block
+        # Listify steps per block.
+        # Note that this is per state. If we set it in the sim instances
+        # We should update them all the time.
         if not type(swap_period) is list:
             self.steps_block = [swap_period] * self.rx.nr
 
         # We setup target steps here, then run_batch will use it
         # In principle, this could be controlled by the user from outside
         # and we could drop swap_period and steps_block completely
-        for s, steps in zip(self.sim, self.steps_block):
-            s.setup(target_steps=steps)
+        # for s, steps in zip(self.sim, self.steps_block):
+        #     s.setup(target_steps=steps)
 
         # Replica verbosity
         # TODO: handle list / scalar verbosities for RX
@@ -381,6 +388,8 @@ class ParallelTempering(Simulation):
         """ Dump output info on a thermodynamic state """
         # TODO: we could write_state operate atomtically, which would allow parallelization
         # Loop over states       
+        logging.debug('rx step=%s replicas(state)=%s' % (step[0], self.rx.replica))
+
         for i in range(self.rx.nr):
             with open(self.file_state_out[i], 'a') as fh:
                 # Which replica is in state i? What is its energy?
@@ -398,6 +407,7 @@ class ParallelTempering(Simulation):
         """Checkpoint replicas via simulation backends as well as the
         thermodynamic states in which the replicas found themselves.
         """
+        # TODO: checkpoint is wrong in parallel!
         logging.debug('write checkpoint %d' % self.steps)
         for i in self.rx.my_replica:
             with open(self.file_replica_out[i] + '.chk', 'w') as fh:
@@ -405,6 +415,8 @@ class ParallelTempering(Simulation):
                 fh.write('%d\n' % self.rx.state[i])
                 # Steps is redundant, since this amounts to blocks
                 fh.write('%d\n' % self.steps)
+                # Offset is redundant, since it is global
+                fh.write('%d\n' % self.rx.offset)
             self.sim[i].write_checkpoint()
 
     def run_pre(self):
@@ -412,6 +424,7 @@ class ParallelTempering(Simulation):
 
         if self.restart:
             # TODO: steps should all be equal, we should check
+            # TODO: this must be done by everybody or not?
             for i in self.rx.my_replica:
                 # This is basically a read_checkpoint()
                 f = self.file_replica_out[i] + '.chk'
@@ -419,6 +432,7 @@ class ParallelTempering(Simulation):
                     with open(f, 'r') as fh:
                         self.rx.replica[int(fh.readline())] = i
                         self.steps = int(fh.readline())
+                        self.rx.offset = int(fh.readline())
                     logging.debug('restarting replica %d at state %d from step %d' % 
                                   (i, self.rx.state[i], self.steps))
                 irx = self.rx.state[i]
@@ -438,13 +452,14 @@ class ParallelTempering(Simulation):
             self.clean_files()
 
     def run_until(self, n):
-        # Evolve all replicas. Loop is actually over states 
-        # but we pick the current replica using replica list. 
+        # Evolve over my physical replicas.
         logging.info('run until %d' % n)
         for i in self.rx.my_replica:
             logging.debug('evolve %d' % i)
-            # This will evolve state i, thus replica[i]
-            n = (self.steps+1) * self.sim[i].target_steps
+            # This will evolve physical replica[i] for the number
+            # of steps prescribed for its state 
+            n = self.sim[i].steps + self.steps_block[self.rx.state[i]]
+            #n = (self.steps+1) * self.sim[i].target_steps
             self.sim[i].run_until(n)
 
         # Attempt to exchange replicas.

@@ -59,7 +59,7 @@ class TrajectoryBase(object):
             return self.read(key)
 
         else:
-            raise TypeError("Invalid argument type")
+            raise TypeError("Invalid argument type [%s]" % type(key))
 
     def close(self):
         pass
@@ -324,7 +324,7 @@ class SuperTrajectory(TrajectoryBase):
     # The approach is inefficient for large number of
     # subtrajectories (init takes some time)
 
-    def __init__(self, subtrajectories, mode='r', timestep=1.0, variable=False):
+    def __init__(self, subtrajectories, mode='r', timestep=1.0, variable=False, periodic=True):
         f = os.path.dirname(subtrajectories[0].filename) + '/'
         super(SuperTrajectory, self).__init__(f, mode)
         # By default we get info from the first trajectory in list
@@ -368,7 +368,9 @@ class SuperTrajectory(TrajectoryBase):
         # TODO: fix last block getting trimmed by check_block_period with rumd
 
         # Now it's better check the block period
-        self._check_block_period()
+        # Only check that if sampling is expected to be periodic.
+        if periodic:
+            self._check_block_period()
 
     def read_sample(self, sample):
         i, j = self._map[sample]

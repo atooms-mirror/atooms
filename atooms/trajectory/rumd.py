@@ -63,18 +63,22 @@ class TrajectoryRUMD(TrajectoryXYZ):
         self.trajectory.seek(0)
         self.trajectory.readline()
         data = self.trajectory.readline()
-        s = re.search(r'boxLengths=(\S*)', data)
-        # Fix compatibility issue with more recent file format
-        if s is None:
-            s = re.search(r'sim_box=(\S*)', data)
-        side = s.group(1)
         # TODO: improve parsing of timestep dt in xyz indexed files, we put it into _parse_cell() for the moment. We could have a parse metadata that returns a dict.
         s = re.search(r'dt=(\S*)', data)
         if s is None:
             self._timestep = 1.0
         else:
             self._timestep = float(s.group(1))
-        return Cell(numpy.array(side.split(',')[1:], dtype=float))
+        # Parse cell side. We take care of string in old format,
+        # in which case the whole string is returned. After sim_box
+        # there is a keyword for the box type which must be ignored
+        s = re.search(r'boxLengths=(\S*)', data)
+        if s is None:
+            s = re.search(r'sim_box=(\S*)', data)
+            side = s.group(1).split(',')[1:]
+        else:
+            side = s.group(1).split(',')
+        return Cell(numpy.array(side, dtype=float))
 
     def _comment_header(self, step, system):
 
@@ -108,9 +112,9 @@ import glob
 
 class SuperTrajectoryRUMD(SuperTrajectory):
     
-    def __new__(self, inp, basename='block'):
+    def __new__(self, inp, variable=False, periodic=True, basename='block'):
         """ Takes a directory as input and get all block*gz files in there """
         if not os.path.isdir(inp):
             raise IOError("We expected this to be a dir (%s)" % inp)
         f_all = glob.glob(inp + '/%s*gz' % basename)
-        return SuperTrajectory([TrajectoryRUMD(f, basename=basename) for f in f_all])
+        return SuperTrajectory([TrajectoryRUMD(f, basename=basename) for f in f_all], variable=variable, periodic=periodic)

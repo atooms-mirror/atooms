@@ -142,6 +142,8 @@ class Simulation(object):
 
     """Simulation abstract class using callback support"""
 
+    # TODO: write initial configuration as well
+
     # Comvoluted trick to allow subclass to use custom observers for
     # target and writer without overriding setup(): have class
     # variables to point to the default observer classes that may be
@@ -161,16 +163,18 @@ class Simulation(object):
         self.steps = 0
         self.target_steps = 0
         self.restart = False
+        self._initial_system = None # to compute rmsd
         self._callback = []
         self._scheduler = []
 
     @property
     def rmsd(self):
         if self.system:
-            return self.system.mean_square_displacement(self._initial_system)**0.5
-        else:
-            log.warn('system missing in simulation, rmsd is 0')
-            return 0.0
+            if self._initial_system:
+                return self.system.mean_square_displacement(self._initial_system)**0.5
+            else:
+                log.warn('self._initial_system missing in simulation, rmsd is 0')
+                return 0.0
 
     def add(self, callback, scheduler):
         """Add an observer (callback) to be called along a scheduler"""
@@ -261,8 +265,9 @@ class Simulation(object):
             logging.info('simulation started at %d' % self.steps)
             logging.info('targeted number of steps: %s' % self.target_steps)
             # Before entering the simulation, check if we can quit right away
-            # TODO: find a more elegant way to notify targeters only
+            # TODO: find a more elegant way to notify targeters only / order observers
             self.notify(lambda x : isinstance(x, Target))
+            self.notify(lambda x : not isinstance(x, Target))
 
             while True:
 #                if self.steps >= self.target_steps:
