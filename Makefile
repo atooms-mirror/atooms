@@ -7,7 +7,10 @@ test:
 	python -m unittest discover -s tests
 
 todo:
-	todo.py atooms
+	@todo.py -S|grep '^Open'
+
+todo_critical:
+	@todo.py -S|grep '!'
 
 dist_rumd:
 	python -m unittest discover -s tests -p '*adapter*'
