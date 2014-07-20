@@ -86,11 +86,6 @@ class ReplicaExchange(object):
         self.replica[state] = self.replica[nn_state]
         self.replica[nn_state] = tmp
 
-        # General method here?
-        tmp = system[r_i].thermostat
-        system[r_i].thermostat = system[r_j].thermostat
-        system[r_j].thermostat = tmp
-
     def _process_with(self, state):
         return self.process_with_replica[self.replica[state]]
 
@@ -137,7 +132,7 @@ class ReplicaExchange(object):
         # When swapping thermostats we imply the internal state should be swapped.
         # This is not the case in RUMD for now (we simply swap T), so we simply 
         # communicate the state and use a static mapping between states and temperatures.
-        # TODO: improve swapping of thermostat
+        # The internal state of the thermostat after each swap is reset to the initial one
         state_tmp = numpy.array(range(self.nr))
         state_new = numpy.array([self.state[r] for r in self.my_replica])
         if size > 1:
@@ -147,9 +142,7 @@ class ReplicaExchange(object):
         for i, s in enumerate(state_tmp):
             self.replica[s] = i
             system[i].thermostat = self._thermostat[s]
-#        self.fh.write("comm rank %d all gather tmp %s \n" % (rank, state_tmp))
 
-                    
     def __exchange_T_comm(self, my_state, nn_state, system):
 
         # TODO: add attempts
