@@ -1,4 +1,4 @@
-VERSION = $(shell git describe --abbrev=4 --dirty --always)
+VERSION = $$(git describe --abbrev=4 --dirty --always 2>/dev/null || echo 0)
 
 all: version
 
