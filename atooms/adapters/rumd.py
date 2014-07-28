@@ -40,7 +40,7 @@ class Simulation(simulation.Simulation):
     def __init__(self, sim, dir_output, base_output='config.xyz'):
         self._sim = sim
         self._sim.sample.SetOutputDirectory(dir_output)
-        self._sim.SetMomentumResetInterval(10)
+        #self._sim.SetMomentumResetInterval(10)
         simulation.Simulation.__init__(self, dir_output)
         self.__set_verbosity(0)
         self._initialize_output = True
@@ -84,7 +84,7 @@ class Simulation(simulation.Simulation):
         self._sim.sample.ReadConf(f)
         with open(f + '.step') as fh:
             self.steps = int(fh.read())
-        logging.info('restarting from %d' % self.steps)
+        logging.info('rumd restarting from %d' % self.steps)
 
     def __check_restart(self):
         self._ibl = None
@@ -188,7 +188,6 @@ class Simulation(simulation.Simulation):
             self.steps = n
 
     def run_end(self):
-        super(Simulation, self).run_end()
         # Make sure we write final.xyz.gz, this way we can avoid
         # restarting from the but to last block
         self._sim.WriteConf(self.dir_output + '/final.xyz.gz')
