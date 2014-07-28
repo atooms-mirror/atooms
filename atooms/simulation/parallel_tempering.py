@@ -462,7 +462,6 @@ class ParallelTempering(Simulation):
     def run_end(self):
         # Only close my files
         for i in self.rx.my_replica:
-            self.trajectory[self.rx.state[i]].close()
             self.sim[i].run_end()
         barrier()
         #t.stop()
