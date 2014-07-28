@@ -236,8 +236,9 @@ class WriterConfig(object):
         logging.debug('writer config')
         # TODO: see everything belongs to rx except the trajectory, yes but it's the simulation responsibility to define writers etc
         for i in e.rx.my_replica:
-            if e.rx_verbosity[e.rx.state[i]] > 0:
-                e.trajectory[e.rx.state[i]].write_sample(e.replica[i], e.steps*e.steps_block[i], e.steps)
+            irx = e.rx.state[i]
+            if e.rx_verbosity[irx] > 0:
+                e.trajectory[irx].write_sample(e.replica[i], e.steps, e.steps)
 
 class WriterCheckpoint(object):
 
@@ -379,7 +380,7 @@ class ParallelTempering(Simulation):
 
     def write_state(self, u, step):
         """ Dump output info on a thermodynamic state """
-        # TODO: we could write_state operate atomtically, which would allow parallelization
+        # TODO: CHECK THIS!! we could write_state operate atomtically, which would allow parallelization
         # Loop over states       
         logging.debug('rx step=%s replicas(state)=%s' % (step[0], self.rx.replica))
 
@@ -400,13 +401,12 @@ class ParallelTempering(Simulation):
         """Checkpoint replicas via simulation backends as well as the
         thermodynamic states in which the replicas found themselves.
         """
-        # TODO: checkpoint is wrong in parallel!
+        # TODO: checkpoint is wrong! of course, because trajectory is not swapped
         logging.debug('write checkpoint %d' % self.steps)
         for i in self.rx.my_replica:
             with open(self.file_replica_out[i] + '.chk', 'w') as fh:
                 # This is the state of replica i
                 fh.write('%d\n' % self.rx.state[i])
-                # Steps is redundant, since this amounts to blocks
                 fh.write('%d\n' % self.steps)
                 # Offset is redundant, since it is global
                 fh.write('%d\n' % self.rx.offset)
@@ -426,7 +426,7 @@ class ParallelTempering(Simulation):
                         self.rx.replica[int(fh.readline())] = i
                         self.steps = int(fh.readline())
                         self.rx.offset = int(fh.readline())
-                    logging.debug('restarting replica %d at state %d from step %d' % 
+                    logging.debug('pt restarting replica %d at state %d from step %d' % 
                                   (i, self.rx.state[i], self.steps))
                 irx = self.rx.state[i]
 
@@ -463,6 +463,7 @@ class ParallelTempering(Simulation):
         # Only close my files
         for i in self.rx.my_replica:
             self.trajectory[self.rx.state[i]].close()
+            self.sim[i].run_end()
         barrier()
         #t.stop()
 
