@@ -47,6 +47,8 @@ class Simulation(simulation.Simulation):
         self._initialize_output = True
         self.base_output = base_output
         self.dir_output = dir_output
+        self.trajectory = Trajectory(os.path.join(dir_output, base_output), 'w')
+        self.trajectory.close()
         mkdir(self.dir_output)
 
     # Temporarily use a different method
@@ -79,7 +81,6 @@ class Simulation(simulation.Simulation):
         with open(filename + '.step', 'w') as fh:
             fh.write('%d' % self.steps)
 
-#    def read_checkpoint(self, sim):
     def read_checkpoint(self, filename=None):
         if filename is None:
             filename = self.trajectory.filename + '.chk'

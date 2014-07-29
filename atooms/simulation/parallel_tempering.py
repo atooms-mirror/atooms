@@ -235,6 +235,8 @@ class WriterConfig(object):
     def __call__(self, e):
         logging.debug('writer config')
         # TODO: see everything belongs to rx except the trajectory, yes but it's the simulation responsibility to define writers etc
+        # TODO: trajectory should be opened and close right here
+        # TODO: update filenames after a swap!
         for i in e.rx.my_replica:
             irx = e.rx.state[i]
             if e.rx_verbosity[irx] > 0:
@@ -380,7 +382,7 @@ class ParallelTempering(Simulation):
 
     def write_state(self, u, step):
         """ Dump output info on a thermodynamic state """
-        # TODO: CHECK THIS!! we could write_state operate atomtically, which would allow parallelization
+        # TODO: CHECK THIS! we could write_state operate atomtically, which would allow parallelization
         # Loop over states       
         logging.debug('rx step=%s replicas(state)=%s' % (step[0], self.rx.replica))
 
@@ -401,16 +403,17 @@ class ParallelTempering(Simulation):
         """Checkpoint replicas via simulation backends as well as the
         thermodynamic states in which the replicas found themselves.
         """
-        # TODO: checkpoint is wrong! of course, because trajectory is not swapped
         logging.debug('write checkpoint %d' % self.steps)
         for i in self.rx.my_replica:
             with open(self.file_replica_out[i] + '.chk', 'w') as fh:
                 # This is the state of replica i
                 fh.write('%d\n' % self.rx.state[i])
+                # TODO: if swap period is variable this is not enough to restart!
                 fh.write('%d\n' % self.steps)
                 # Offset is redundant, since it is global
                 fh.write('%d\n' % self.rx.offset)
-            self.sim[i].write_checkpoint()
+            # TODO: write_checkpoint is not part of the official simulation interface, should it be?
+            self.sim[i].write_checkpoint(self.trajectory[self.rx.state[i]].filename)
 
     def run_pre(self):
         Simulation.run_pre(self)
@@ -423,19 +426,16 @@ class ParallelTempering(Simulation):
                 f = self.file_replica_out[i] + '.chk'
                 if os.path.exists(f):
                     with open(f, 'r') as fh:
-                        self.rx.replica[int(fh.readline())] = i
+                        istate = int(fh.readline())
+                        self.rx.replica[istate] = i
                         self.steps = int(fh.readline())
                         self.rx.offset = int(fh.readline())
                     logging.debug('pt restarting replica %d at state %d from step %d' % 
-                                  (i, self.rx.state[i], self.steps))
-                irx = self.rx.state[i]
-
-                # Set restart in child simulations
-                self.sim[irx].restart = True
-
+                                  (i, istate, self.steps))
+                
         for i in self.rx.my_replica:
-            irx = self.rx.state[i]
-            self.sim[irx].run_pre()
+            self.sim[i].restart = True
+            self.sim[i].run_pre()
         
         # Log RX info
         logging.info('rx with %d GPUs (rank=%d)' % (size, rank))
@@ -460,7 +460,7 @@ class ParallelTempering(Simulation):
         self.rx.exchange(self.replica)
             
     def run_end(self):
-        # Only close my files
+        # TODO: check how final is written, probably in the wrong directory
         for i in self.rx.my_replica:
             self.sim[i].run_end()
         barrier()
