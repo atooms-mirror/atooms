@@ -21,7 +21,9 @@ class WriterConfig(object):
 
     def __call__(self, e):
         logging.debug('write config %d' % e.steps)
-        e.trajectory.write_sample(e.system, e.steps, e.steps)
+        f = os.path.join(self.dir_output, self.file_base)
+        with Trajectory(f, 'a') as t:
+            t.write_sample(e.system, e.steps)
 
 class WriterThermo(object):
 
@@ -40,12 +42,11 @@ class Simulation(simulation.Simulation):
     def __init__(self, sim, dir_output, base_output='config.xyz'):
         self._sim = sim
         self._sim.sample.SetOutputDirectory(dir_output)
-        #self._sim.SetMomentumResetInterval(10)
         simulation.Simulation.__init__(self, dir_output)
         self.__set_verbosity(0)
         self._initialize_output = True
+        self.base_output = base_output
         self.dir_output = dir_output
-        self.trajectory = Trajectory(os.path.join(dir_output, base_output), 'w')
         mkdir(self.dir_output)
 
     # Temporarily use a different method
@@ -70,19 +71,20 @@ class Simulation(simulation.Simulation):
 
     system = property(_get_system, _set_system, 'System')
 
-    def write_checkpoint(self):
-        f = self.trajectory.filename + '.chk'
-        t = Trajectory(f, 'w')
-        t.write_sample(self.system, None, None)
-        t.close()
-        with open(f + '.step', 'w') as fh:
+    def write_checkpoint(self, filename=None):
+        if filename is None:
+            filename = self.trajectory.filename + '.chk'
+        with Trajectory(filename, 'w') as t:
+            t.write_sample(self.system, None)
+        with open(filename + '.step', 'w') as fh:
             fh.write('%d' % self.steps)
 
 #    def read_checkpoint(self, sim):
-    def read_checkpoint(self):
-        f = self.trajectory.filename + '.chk'
-        self._sim.sample.ReadConf(f)
-        with open(f + '.step') as fh:
+    def read_checkpoint(self, filename=None):
+        if filename is None:
+            filename = self.trajectory.filename + '.chk'
+        self._sim.sample.ReadConf(filename)
+        with open(filename + '.step') as fh:
             self.steps = int(fh.read())
         logging.info('rumd restarting from %d' % self.steps)
 
@@ -102,6 +104,9 @@ class Simulation(simulation.Simulation):
             self.restart = False
 
             # If we find our own checkpoint file, we ignore RUMD checkpoint
+            # TODO: we assume this is the name of the checkpoint! but we had introduced 
+            # an optional filename, which will be skipped here. One soultion is to be rigid
+            # but then it means that we swap trajectories in PT (need refactoring)
             f = self.trajectory.filename + '.chk'
             if os.path.exists(f):
                 # TODO: this shouldn't be necessary because we should write checkpoint also at the end
@@ -301,31 +306,21 @@ class System(object):
 
 class Trajectory(object):
 
-    def __init__(self, filename, mode='r'):
+    def __init__(self, filename, mode='w'):
         self.filename = filename
-        self.mode = 'w'
+        self.mode = mode
 
         # Remove the .gz extension from path. It will be added by rumd anyway
         base, ext = os.path.splitext(self.filename)
         if ext == '.gz':
             self.filename = base
 
-    def write_initial_state(self, system):
-        pass
-
-    def write_sample(self, system, step, sample):
+    def write_sample(self, system, step, ignore):
         f = self.filename 
         if step:
             base, ext = os.path.splitext(f)
             f = base + '_%011d' % step + ext
-        system.sample.WriteConf(f, self.mode)
-
-        # Next time we append
-        # if self.mode == 'w':
-        #     self.mode = 'a'
-
-    # def read_sample(self, system, sample):
-    #     return system.sample.ReadConf(self.filename)            
+        system.sample.WriteConf(f, 'w')
 
     def close(self):
         # Assuming something has been written, unzip the trajectory file
