@@ -29,218 +29,16 @@ def barrier():
     if size > 1:
         comm.barrier()
 
-class ReplicaExchange(object):
-    
-    def __init__(self, params, variables=['T']):
-        self.params = params
-        self.variables = variables
-        self.nr = len(params)
-        self.replica = range(self.nr)
-        # TODO: remember to checkpoint them
-        self.accepted = [0.0 for i in range(self.nr)]
-        self.attempts = [0.0 for i in range(self.nr)]
-        # This is used to swap odd/even replicas in turn
-        self.offset = 0
-
-        # Distribute physical replicas in parallel.
-        # Each process gets a bunch of replicas to evolve
-        # my_replica contains their state id's.
-        # We could as well distributes states, which would allow
-        # for other optimizations.
-        self._thermostat = None
-        np = self.nr / size
-        ni = rank * np
-        nf = (rank+1) * np
-        self.my_replica= range(ni, nf)
-        self.process_with_replica = numpy.array(range(self.nr))
-        for irank in range(size):
-            ni = irank * np
-            nf = (irank+1) * np
-            for nr in range(ni, nf):
-                self.process_with_replica[nr] = irank
-        barrier()
-
-    # TODO: update state as soon as we swap
-    @property
-    def state(self):
-        # TODO: make state a private list. Done this way is unsafe
-        # because python will not raise an attribute error if we try
-        # to modify an item of the list!
-        s = [0] * self.nr
-        for i in range(self.nr):
-            s[self.replica[i]] = i
-        return s
-
-    def acceptance(self, state):
-        if self.attempts[state] > 0:
-            return self.accepted[state] / self.attempts[state]
-        else:
-            return 0.0
-
-    def __repr__(self, state):
-        return 'state %d <-> %d, replicas %d <-> %d, [%d/%d], prob %.4f]' % \
-            (state, state+1, self.replica[state], self.replica[state+1], self.accepted[state], self.attempts[state], self.__prob)
-
-    def _swap(self, system, state, nn_state, r_i, r_j):
-        tmp = self.replica[state]
-        self.replica[state] = self.replica[nn_state]
-        self.replica[nn_state] = tmp
-
-    def _process_with(self, state):
-        return self.process_with_replica[self.replica[state]]
-
-    def exchange(self, system):
-        logging.debug("exchange rx")
-        if self.variables == ['T']:
-            if self._thermostat is None:
-                self._thermostat = [s.thermostat for s in system]
-            self.__exchange_T_parallel(system)
-            # if size == 1:
-            #     self.__exchange_T(system)
-            # else:
-            #     self.__exchange_T_parallel(system)
-        else:
-            raise ValueError(self.variables)
-
-    def __exchange_T_parallel(self, system):
-
-        # Loop over ALL states, find out which states are sending out messages
-        barrier()
-        sender = []
-        focused = []
-        for state in range(self.nr):
-            if self.replica[state] in self.my_replica:
-                focused.append(state)
-            else:
-                continue
-            if (state + self.offset) % 2 == 0:
-                sender.append(state)
-        
-        for state in range(self.nr):
-            if not state in focused:
-                continue
-            if state in sender:
-                if state < self.nr-1:
-                    self.__exchange_T_comm(state, state+1, system)
-            else:
-                if state > 0:
-                    self.__exchange_T_comm(state, state-1, system)
-
-        # Update offset
-        self.offset = (self.offset+1) % 2
-
-        # When swapping thermostats we imply the internal state should be swapped.
-        # This is not the case in RUMD for now (we simply swap T), so we simply 
-        # communicate the state and use a static mapping between states and temperatures.
-        # The internal state of the thermostat after each swap is reset to the initial one
-        state_tmp = numpy.array(range(self.nr))
-        state_new = numpy.array([self.state[r] for r in self.my_replica])
-        if size > 1:
-            comm.Allgather(state_new, state_tmp)
-        else:
-            state_tmp = state_new
-        for i, s in enumerate(state_tmp):
-            self.replica[s] = i
-            system[i].thermostat = self._thermostat[s]
-
-    def __exchange_T_comm(self, my_state, nn_state, system):
-
-        # TODO: add attempts
-        exchange_attempt = False
-        me = rank 
-        # Compute potential energy
-        r_i = self.replica[my_state]
-        r_j = self.replica[nn_state] # This should be up to date
-        u_i = numpy.array([system[r_i].potential_energy()])
-        # Get process that has my nearest neighboring state
-        nn = self._process_with(nn_state)
-#        print "* comm rank", rank, my_state, "(replica %d)" % r_i,"->", nn_state, "nn", nn
-#        self.fh.flush()
-#        self.fh.write('nn %d rank %d\n' % (nn, rank))
-
-        if nn == rank:
-            if my_state > nn_state:
-                return
-#            self.fh.write('comm rank %d on same rank %d -> %d\n' % (rank, my_state, nn_state))
-            u_j = numpy.array([system[r_j].potential_energy()])
-            ran = numpy.array([random.random()])
-        else:
-            if my_state < nn_state:
-#                self.fh.write('comm rank %d on /= rank %d -> %d\n' % (rank, my_state, nn_state))
-                # I am on the left, I send first.
-                u_j = numpy.array([0.0])
-                comm.Send(u_i, nn, 10)
-                comm.Recv(u_j, nn, 11)
-                ran = numpy.array([random.random()])
-                comm.Send(ran, nn, 12)
-            elif my_state > nn_state:
-#                self.fh.write('comm rank %d on /= rank %d <- %d\n' % (rank, my_state, nn_state))
-                # I am on the right I receive first
-                u_j = numpy.array([0.0])
-                comm.Recv(u_j, nn, 10)
-                comm.Send(u_i, nn, 11)
-                ran = numpy.array([0.0])
-                comm.Recv(ran, nn, 12)
-            else:
-                raise ValueError("my_state %d == nn_state %d" % (my_state, nn_state))
-
-        # Temperatures
-        T_i = self.params[my_state]
-        T_j = self.params[nn_state]
-        # Store current probability term
-#        self.fh.write("comm rank %d uj=%g uu=%g Ti=%g Tj=%g\n" % (rank,  u_j[0], u_i[0], T_i, T_j))
-        self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
-        # Test if we can swap states of replicas
-#        self.fh.write("comm rank %d sawpping ran %g prob %g => %s\n" % (rank,  ran[0], self.__prob, ran[0]<self.__prob,))
-        #logging.info("sawpping %g %g" % (self.__prob, ran[0]))
-        if (ran[0] < self.__prob):
-#            self.fh.write("comm rank %d sawpping successful \n" % (rank))
-            self._swap(system, my_state, nn_state, r_i, r_j)
-            # TODO: fix accepted counter
-
-    def __exchange_T(self, system):
-        """Simple non-parallel version"""
-        # Sanity check
-        if not len(system) == self.nr: raise ValueError
-
-        # Loop over states defined by self.params with a jump of 2
-        # The offset to swap only odd / even states at each attempt 
-        for state in range(self.offset, self.nr-1, 2):
-            self.attempts[state] += 1
-            self.attempts[state+1] += 1
-            # TODO: can we use thermostat temperatures directly here? Are params here just references to Ts? There is a sort duplication here no?
-            T_i = self.params[state]
-            T_j = self.params[state+1]
-            # Index of physical replicas having states to swap
-            r_i = self.replica[state]
-            r_j = self.replica[state+1]
-            # Get energies of replicas
-            u_i = system[r_i].potential_energy()
-            u_j = system[r_j].potential_energy()
-            # Store current probability term
-            self.__prob = math.exp(-(u_j-u_i)*(1/T_i-1/T_j))
-            ran = random.random()
-            # Test if we can swap states of replicas
-            if (ran < self.__prob):
-                self._swap(system, state, r_i, r_j)
-                self.accepted[state] += 1
-                self.accepted[state+1] += 1
-
-        # Update offset
-        self.offset = (self.offset+1) % 2
-
-
 class WriterConfig(object):
 
     def __call__(self, e):
         logging.debug('writer config')
-        # TODO: see everything belongs to rx except the trajectory, yes but it's the simulation responsibility to define writers etc
         # TODO: trajectory should be opened and close right here
         # TODO: update filenames after a swap!
-        for i in e.rx.my_replica:
-            irx = e.rx.state[i]
+        for i in e.my_replica:
+            irx = e.state[i]
             if e.rx_verbosity[irx] > 0:
-                e.trajectory[irx].write_sample(e.replica[i], e.steps, e.steps)
+                e.trajectory[irx].write_sample(e.replica[i], e.steps)
 
 class WriterCheckpoint(object):
 
@@ -254,13 +52,13 @@ class WriterThermo(object):
 
         # Since we grab steps from simulations, we must gather them first
         # We could have each process write down its replicas and make it more efficient, see write_state()
-        u = numpy.ndarray(e.rx.nr)
-        u_l = numpy.ndarray(len(e.rx.my_replica))
-        rmsd = numpy.ndarray(e.rx.nr)
-        rmsd_l = numpy.ndarray(len(e.rx.my_replica))
-        steps = numpy.ndarray(e.rx.nr, dtype=int)
-        steps_l = numpy.ndarray(len(e.rx.my_replica), dtype=int)
-        for i, ri in enumerate(e.rx.my_replica):
+        u = numpy.ndarray(e.nr)
+        u_l = numpy.ndarray(len(e.my_replica))
+        rmsd = numpy.ndarray(e.nr)
+        rmsd_l = numpy.ndarray(len(e.my_replica))
+        steps = numpy.ndarray(e.nr, dtype=int)
+        steps_l = numpy.ndarray(len(e.my_replica), dtype=int)
+        for i, ri in enumerate(e.my_replica):
             u_l[i] = e.replica[ri].potential_energy()
             rmsd_l[i] = e.sim[ri].rmsd
             steps_l[i] = e.sim[ri].steps
@@ -331,13 +129,37 @@ class ParallelTempering(Simulation):
         # We should outsource rmsd or overwrite.
         self.system = self.replica[0]
 
-        self.rx = ReplicaExchange(params, variables)
+        self.nr = len(params)
+        self.replica_id = range(self.nr)
+        # TODO: remember to checkpoint them
+        self.accepted = [0.0 for i in range(self.nr)]
+        self.attempts = [0.0 for i in range(self.nr)]
+        # This is used to swap odd/even replicas in turn
+        self.offset = 0
+
+        # Distribute physical replicas in parallel.
+        # Each process gets a bunch of replicas to evolve
+        # my_replica contains their state id's.
+        # We could as well distributes states, which would allow
+        # for other optimizations.
+        self._thermostat = None
+        np = self.nr / size
+        ni = rank * np
+        nf = (rank+1) * np
+        self.my_replica= range(ni, nf)
+        self.process_with_replica = numpy.array(range(self.nr))
+        for irank in range(size):
+            ni = irank * np
+            nf = (irank+1) * np
+            for nr in range(ni, nf):
+                self.process_with_replica[nr] = irank
+        barrier()
 
         # Listify steps per block.
         # Note that this is per state. If we set it in the sim instances
         # We should update them all the time.
         if not type(swap_period) is list:
-            self.steps_block = [swap_period] * self.rx.nr
+            self.steps_block = [swap_period] * self.nr
 
         # We setup target steps here, then run_batch will use it
         # In principle, this could be controlled by the user from outside
@@ -347,18 +169,18 @@ class ParallelTempering(Simulation):
 
         # Replica verbosity
         # TODO: handle list / scalar verbosities for RX
-        self.rx_verbosity = [1] + [0] * (self.rx.nr-1)
+        self.rx_verbosity = [1] + [0] * (self.nr-1)
         if verbosity:
-            self.rx_verbosity = [verbosity] * self.rx.nr
+            self.rx_verbosity = [verbosity] * self.nr
 
         # Define output files
         mkdir(self.output + '/state')
         mkdir(self.output + '/replica')
         self.file_log = self.output + '/pt.log'
         # For each thermodynamic state, info on the replica which has it
-        self.file_state_out = [self.output + '/state/%d.out' % i for i in range(self.rx.nr)]
+        self.file_state_out = [self.output + '/state/%d.out' % i for i in range(self.nr)]
         # For each physical replica, info on the state in which it is
-        self.file_replica_out = [self.output + '/replica/%d.out' % i for i in range(self.rx.nr)]
+        self.file_replica_out = [self.output + '/replica/%d.out' % i for i in range(self.nr)]
 
     def clean_files(self):
         for f in \
@@ -375,28 +197,28 @@ class ParallelTempering(Simulation):
     def write_replica(self, msd, step):
         """ Dump output info on a physical replica """
         # Loop over replicas
-        for i in range(self.rx.nr):
+        for i in range(self.nr):
             with open(self.file_replica_out[i], 'a') as fh:
                 # In which state is physical replica i ?
-                fh.write('%d %d %d %g\n' % (step[i], self.rx.replica[self.rx.state[i]], self.rx.state[i], msd[i]))
+                fh.write('%d %d %d %g\n' % (step[i], self.replica_id[self.state[i]], self.state[i], msd[i]))
 
     def write_state(self, u, step):
         """ Dump output info on a thermodynamic state """
         # TODO: CHECK THIS! we could write_state operate atomtically, which would allow parallelization
         # Loop over states       
-        logging.debug('rx step=%s replicas(state)=%s' % (step[0], self.rx.replica))
+        logging.debug('rx step=%s replicas(state)=%s' % (step[0], self.replica_id))
 
-        for i in range(self.rx.nr):
+        for i in range(self.nr):
             with open(self.file_state_out[i], 'a') as fh:
                 # Which replica is in state i? What is its energy?
-                fh.write('%d %d %d %g\n' % (step[i], i, self.rx.replica[i], u[self.rx.replica[i]])) #, self.acceptance(i)))
+                fh.write('%d %d %d %g\n' % (step[i], i, self.replica_id[i], u[self.replica_id[i]])) #, self.acceptance(i)))
 
     # def read_checkpoint(self):
     #     """ Checkpoint """
-    #     for i in self.rx.my_replica:
+    #     for i in self.my_replica:
     #         f = self.file_state_out[i] + '.chk'
     #         with open(f, 'r') as fh:
-    #             self.rx.state[i] = fh.read()
+    #             self.state[i] = fh.read()
     #         self.replica[i], steps = self.trajectory[i].read_checkpoint()
 
     def write_checkpoint(self):
@@ -404,16 +226,16 @@ class ParallelTempering(Simulation):
         thermodynamic states in which the replicas found themselves.
         """
         logging.debug('write checkpoint %d' % self.steps)
-        for i in self.rx.my_replica:
+        for i in self.my_replica:
             with open(self.file_replica_out[i] + '.chk', 'w') as fh:
                 # This is the state of replica i
-                fh.write('%d\n' % self.rx.state[i])
+                fh.write('%d\n' % self.state[i])
                 # TODO: if swap period is variable this is not enough to restart!
                 fh.write('%d\n' % self.steps)
                 # Offset is redundant, since it is global
-                fh.write('%d\n' % self.rx.offset)
+                fh.write('%d\n' % self.offset)
             # TODO: write_checkpoint is not part of the official simulation interface, should it be?
-            self.sim[i].write_checkpoint(self.trajectory[self.rx.state[i]].filename)
+            self.sim[i].write_checkpoint(self.trajectory[self.state[i]].filename)
 
     def run_pre(self):
         Simulation.run_pre(self)
@@ -421,19 +243,19 @@ class ParallelTempering(Simulation):
         if self.restart:
             # TODO: steps should all be equal, we should check
             # TODO: this must be done by everybody or not?
-            for i in self.rx.my_replica:
+            for i in self.my_replica:
                 # This is basically a read_checkpoint()
                 f = self.file_replica_out[i] + '.chk'
                 if os.path.exists(f):
                     with open(f, 'r') as fh:
                         istate = int(fh.readline())
-                        self.rx.replica[istate] = i
+                        self.replica_id[istate] = i
                         self.steps = int(fh.readline())
-                        self.rx.offset = int(fh.readline())
+                        self.offset = int(fh.readline())
                     logging.debug('pt restarting replica %d at state %d from step %d' % 
                                   (i, istate, self.steps))
                 
-        for i in self.rx.my_replica:
+        for i in self.my_replica:
             self.sim[i].restart = True
             self.sim[i].run_pre()
         
@@ -447,32 +269,187 @@ class ParallelTempering(Simulation):
     def run_until(self, n):
         # Evolve over my physical replicas.
         logging.info('run until %d' % n)
-        for i in self.rx.my_replica:
+        for i in self.my_replica:
             logging.debug('evolve %d' % i)
             # This will evolve physical replica[i] for the number
             # of steps prescribed for its state 
-            n = self.sim[i].steps + self.steps_block[self.rx.state[i]]
-            #n = (self.steps+1) * self.sim[i].target_steps
+            n = self.sim[i].steps + self.steps_block[self.state[i]]
             self.sim[i].run_until(n)
 
         # Attempt to exchange replicas.
         # When swapping we must exchange their thermostats.
-        self.rx.exchange(self.replica)
+        self.exchange(self.replica)
             
     def run_end(self):
         # TODO: check how final is written, probably in the wrong directory
-        for i in self.rx.my_replica:
+        for i in self.my_replica:
             self.sim[i].run_end()
         barrier()
-        #t.stop()
+
+    @property
+    def state(self):
+        # TODO: make state a private list. Done this way is unsafe
+        # because python will not raise an attribute error if we try
+        # to modify an item of the list!
+        s = [0] * self.nr
+        for i in range(self.nr):
+            s[self.replica_id[i]] = i
+        return s
+
+    def acceptance(self, state):
+        if self.attempts[state] > 0:
+            return self.accepted[state] / self.attempts[state]
+        else:
+            return 0.0
+
+    def __repr__(self, state):
+        return 'state %d <-> %d, replicas %d <-> %d, [%d/%d], prob %.4f]' % \
+            (state, state+1, self.replica_id[state], self.replica_id[state+1], self.accepted[state], self.attempts[state], self.__prob)
+
+    def _swap(self, system, state, nn_state, r_i, r_j):
+        tmp = self.replica_id[state]
+        self.replica_id[state] = self.replica_id[nn_state]
+        self.replica_id[nn_state] = tmp
+
+    def _process_with(self, state):
+        return self.process_with_replica[self.replica_id[state]]
+
+    def exchange(self, system):
+        logging.debug("exchange rx")
+        if self.variables == ['T']:
+            if self._thermostat is None:
+                self._thermostat = [s.thermostat for s in system]
+            self.__exchange_T_parallel(system)
+        else:
+            raise ValueError(self.variables)
+
+    def __exchange_T_parallel(self, system):
+        # Loop over ALL states, find out which states are sending out messages
+        barrier()
+        sender = []
+        focused = []
+        for state in range(self.nr):
+            if self.replica_id[state] in self.my_replica:
+                focused.append(state)
+            else:
+                continue
+            if (state + self.offset) % 2 == 0:
+                sender.append(state)
+        
+        for state in range(self.nr):
+            if not state in focused:
+                continue
+            if state in sender:
+                if state < self.nr-1:
+                    self.__exchange_T_comm(state, state+1, system)
+            else:
+                if state > 0:
+                    self.__exchange_T_comm(state, state-1, system)
+
+        # Update offset
+        self.offset = (self.offset+1) % 2
+
+        # When swapping thermostats we imply the internal state should be swapped.
+        # This is not the case in RUMD for now (we simply swap T), so we simply 
+        # communicate the state and use a static mapping between states and temperatures.
+        # The internal state of the thermostat after each swap is reset to the initial one
+        state_tmp = numpy.array(range(self.nr))
+        state_new = numpy.array([self.state[r] for r in self.my_replica])
+        if size > 1:
+            comm.Allgather(state_new, state_tmp)
+        else:
+            state_tmp = state_new
+        for i, s in enumerate(state_tmp):
+            self.replica_id[s] = i
+            system[i].thermostat = self._thermostat[s]
+
+    def __exchange_T_comm(self, my_state, nn_state, system):
+        # TODO: add attempts
+        exchange_attempt = False
+        me = rank 
+        # Compute potential energy
+        r_i = self.replica_id[my_state]
+        r_j = self.replica_id[nn_state] # This should be up to date
+        u_i = numpy.array([system[r_i].potential_energy()])
+        # Get process that has my nearest neighboring state
+        nn = self._process_with(nn_state)
+
+        if nn == rank:
+            if my_state > nn_state:
+                return
+            log.debug('comm rank %d on same rank %d -> %d\n' % (rank, my_state, nn_state))
+            u_j = numpy.array([system[r_j].potential_energy()])
+            ran = numpy.array([random.random()])
+        else:
+            if my_state < nn_state:
+                log.debug('comm rank %d on /= rank %d -> %d\n' % (rank, my_state, nn_state))
+                # I am on the left, I send first.
+                u_j = numpy.array([0.0])
+                comm.Send(u_i, nn, 10)
+                comm.Recv(u_j, nn, 11)
+                ran = numpy.array([random.random()])
+                comm.Send(ran, nn, 12)
+            elif my_state > nn_state:
+                log.debug('comm rank %d on /= rank %d <- %d\n' % (rank, my_state, nn_state))
+                # I am on the right I receive first
+                u_j = numpy.array([0.0])
+                comm.Recv(u_j, nn, 10)
+                comm.Send(u_i, nn, 11)
+                ran = numpy.array([0.0])
+                comm.Recv(ran, nn, 12)
+            else:
+                raise ValueError("my_state %d == nn_state %d" % (my_state, nn_state))
+
+        # Temperatures
+        T_i = self.params[my_state]
+        T_j = self.params[nn_state]
+        # Store current probability term
+        log.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g\n" % (rank,  u_j[0], u_i[0], T_i, T_j))
+        self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
+        # Test if we can swap states of replicas
+        log.debug("comm rank %d sawpping ran %g prob %g => %s\n" % (rank,  ran[0], self.__prob, ran[0]<self.__prob,))
+        if (ran[0] < self.__prob):
+            self._swap(system, my_state, nn_state, r_i, r_j)
+            # TODO: fix accepted counter
+
+    def __exchange_T(self, system):
+        """Simple non-parallel version"""
+        # Sanity check
+        if not len(system) == self.nr:
+            raise ValueError
+
+        # Loop over states defined by self.params with a jump of 2
+        # The offset to swap only odd / even states at each attempt 
+        for state in range(self.offset, self.nr-1, 2):
+            self.attempts[state] += 1
+            self.attempts[state+1] += 1
+            T_i = self.params[state]
+            T_j = self.params[state+1]
+            # Index of physical replicas having states to swap
+            r_i = self.replica_id[state]
+            r_j = self.replica_id[state+1]
+            # Get energies of replicas
+            u_i = system[r_i].potential_energy()
+            u_j = system[r_j].potential_energy()
+            # Store current probability term
+            self.__prob = math.exp(-(u_j-u_i)*(1/T_i-1/T_j))
+            ran = random.random()
+            # Test if we can swap states of replicas
+            if (ran < self.__prob):
+                self._swap(system, state, r_i, r_j)
+                self.accepted[state] += 1
+                self.accepted[state+1] += 1
+
+        # Update offset
+        self.offset = (self.offset+1) % 2
 
         # Final timer dump
 #         if rank == 0:
-#             fh = open(self.rx.file_log, 'a')
+#             fh = open(self.file_log, 'a')
 #             fh.write("# Timings\n")
 #             fh.write("\tNR \t NGPU \tTotal \tRun \tComm \tIO\n")
-# #            sys.stdout.write("CPU \t%d \t%d \t%.2f \t%.2f \t%.2f \t%.2f\n" % (self.rx.nr, size, t.cpu_time, t_run.cpu_time, t_com.cpu_time, t_io.cpu_time))
-#             fh.write("WALL  \t%d \t%d \t%.2f \t%.2f \t%.2f \t%.2f\n" % (self.rx.nr, size, t.wall_time, t_run.wall_time, t_com.wall_time, t_io.wall_time))
+# #            sys.stdout.write("CPU \t%d \t%d \t%.2f \t%.2f \t%.2f \t%.2f\n" % (self.nr, size, t.cpu_time, t_run.cpu_time, t_com.cpu_time, t_io.cpu_time))
+#             fh.write("WALL  \t%d \t%d \t%.2f \t%.2f \t%.2f \t%.2f\n" % (self.nr, size, t.wall_time, t_run.wall_time, t_com.wall_time, t_io.wall_time))
 #             fh.close()
 
 
