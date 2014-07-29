@@ -33,12 +33,13 @@ class WriterConfig(object):
 
     def __call__(self, e):
         logging.debug('writer config')
-        # TODO: trajectory should be opened and close right here
-        # TODO: update filenames after a swap!
         for i in e.my_replica:
             irx = e.state[i]
-            if e.rx_verbosity[irx] > 0:
-                e.trajectory[irx].write_sample(e.replica[i], e.steps)
+            # If the output directory for state irx is None
+            # we do not write configurations
+            if e.output[irx]:
+                with e.trajectory(e.output[irx], 'a') as t:
+                    t.write_sample(e.replica[i], e.steps)
 
 class WriterCheckpoint(object):
 
@@ -104,17 +105,30 @@ class ParallelTempering(Simulation):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpoint
 
-    def __init__(self, output, params, sim, swap_period, verbosity=None, variables=['T']):
+    def __init__(self, output_root, output, params, sim, swap_period, variables=['T']):
         Simulation.__init__(self) # super does not work???
         
+        self.output_root = output_root
         self.output = output
         self.params = params
         self.variables = variables
         self.sim = sim
         self.steps_block = swap_period
         self.seed = 10
-        self.trajectory = [s.trajectory for s in self.sim]
+        self.nr = len(params)
+        # The trajectory class is taken from the simulation backend
+        # For the moment, we assume that at least the first simulation 
+        # backend has a trajectory
+        self.trajectory = self.sim[0].trajectory.__class__
         random.seed(self.seed)
+
+        # If output is just one directory, we listify it padding it with None
+        if not isinstance(output, list):
+            self.output = self.output + None * (self.nr-1)
+
+        # Sanity check
+        if not (self.nr == len(self.output) == len(sim)):
+            raise ValueError('params and sim must have the same len')
 
         # Get physical replicas (systems) from simulation instances.
         # These are references: they'll follow the simulations 
@@ -129,7 +143,6 @@ class ParallelTempering(Simulation):
         # We should outsource rmsd or overwrite.
         self.system = self.replica[0]
 
-        self.nr = len(params)
         self.replica_id = range(self.nr)
         # TODO: remember to checkpoint them
         self.accepted = [0.0 for i in range(self.nr)]
@@ -167,20 +180,14 @@ class ParallelTempering(Simulation):
         # for s, steps in zip(self.sim, self.steps_block):
         #     s.setup(target_steps=steps)
 
-        # Replica verbosity
-        # TODO: handle list / scalar verbosities for RX
-        self.rx_verbosity = [1] + [0] * (self.nr-1)
-        if verbosity:
-            self.rx_verbosity = [verbosity] * self.nr
-
         # Define output files
-        mkdir(self.output + '/state')
-        mkdir(self.output + '/replica')
-        self.file_log = self.output + '/pt.log'
+        mkdir(self.output_root + '/state')
+        mkdir(self.output_root + '/replica')
+        self.file_log = self.output_root + '/pt.log'
         # For each thermodynamic state, info on the replica which has it
-        self.file_state_out = [self.output + '/state/%d.out' % i for i in range(self.nr)]
+        self.file_state_out = [self.output_root + '/state/%d.out' % i for i in range(self.nr)]
         # For each physical replica, info on the state in which it is
-        self.file_replica_out = [self.output + '/replica/%d.out' % i for i in range(self.nr)]
+        self.file_replica_out = [self.output_root + '/replica/%d.out' % i for i in range(self.nr)]
 
     def clean_files(self):
         for f in \
@@ -234,7 +241,7 @@ class ParallelTempering(Simulation):
                 fh.write('%d\n' % self.steps)
                 # Offset is redundant, since it is global
                 fh.write('%d\n' % self.offset)
-            # TODO: write_checkpoint is not part of the official simulation interface, should it be?
+            # TODO: write_checkpoint is not part of the official simulation interface, should it?
             self.sim[i].write_checkpoint(self.trajectory[self.state[i]].filename)
 
     def run_pre(self):

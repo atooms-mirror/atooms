@@ -52,10 +52,6 @@ class TestReplicaExchange(unittest.TestCase):
             return pot
 
         def rx(Tl, dir_root, input_file, nsteps, swap_period):
-            file_log = dir_root + '/rx.log'
-            file_state_config = [dir_root + '/rx.s%d.xyz' % i for i in range(len(Tl))]
-            file_replica_out = [dir_root + '/rx.r%d.out'    % i for i in range(len(Tl))]
-            dir_state_out = [dir_root + '/rx.r%d'    % i for i in range(len(Tl))]
             
             # Create simulation and integrators
             sim = [rumdSimulation(f) for f in input_file]
@@ -64,8 +60,9 @@ class TestReplicaExchange(unittest.TestCase):
                 s.AddPotential(potential())
                 s.SetIntegrator(i)
 
+            dir_state_out = [dir_root + '/rx.r%d' % i for i in range(len(Tl))]
             sim_adapter = [Simulation(s, d) for s, d in zip(sim, dir_state_out)]
-            rx_sim = ParallelTempering(dir_root, Tl, sim_adapter, swap_period)
+            rx_sim = ParallelTempering(dir_root, dir_state_out, Tl, sim_adapter, swap_period)
             rx_sim.setup(target_steps = nsteps,
                          thermo_period = 1,
                          config_period = 1)
