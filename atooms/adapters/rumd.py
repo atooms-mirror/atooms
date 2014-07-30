@@ -316,7 +316,13 @@ class Trajectory(object):
         if ext == '.gz':
             self.filename = base
 
-    def write_sample(self, system, step, ignore):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def write_sample(self, system, step, ignore=None):
         f = self.filename 
         if step:
             base, ext = os.path.splitext(f)
@@ -324,8 +330,5 @@ class Trajectory(object):
         system.sample.WriteConf(f, 'w')
 
     def close(self):
-        # Assuming something has been written, unzip the trajectory file
-        if os.path.exists(self.filename + '.gz'):
-            os.system("gunzip -f %s.gz" % self.filename)
-
+        pass
     
