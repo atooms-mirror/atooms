@@ -207,18 +207,18 @@ class ParallelTempering(Simulation):
         for i in range(self.nr):
             with open(self.file_replica_out[i], 'a') as fh:
                 # In which state is physical replica i ?
-                fh.write('%d %d %d %g\n' % (step[i], self.replica_id[self.state[i]], self.state[i], msd[i]))
+                fh.write('%d %d %d %g\n' % (self.steps, step[i], self.state[i], msd[i]))
 
     def write_state(self, u, step):
         """ Dump output info on a thermodynamic state """
-        # TODO: CHECK THIS! we could write_state operate atomtically, which would allow parallelization
+        # TODO: we could write state atomically, which would allow parallelization
         # Loop over states       
         logging.debug('rx step=%s replicas(state)=%s' % (step[0], self.replica_id))
 
         for i in range(self.nr):
             with open(self.file_state_out[i], 'a') as fh:
                 # Which replica is in state i? What is its energy?
-                fh.write('%d %d %d %g\n' % (step[i], i, self.replica_id[i], u[self.replica_id[i]])) #, self.acceptance(i)))
+                fh.write('%d %d %d %g\n' % (self.steps, step[i], self.replica_id[i], u[self.replica_id[i]])) #, self.acceptance(i)))
 
     # def read_checkpoint(self):
     #     """ Checkpoint """
