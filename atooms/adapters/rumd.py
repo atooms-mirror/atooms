@@ -330,5 +330,7 @@ class Trajectory(object):
         system.sample.WriteConf(f, 'w')
 
     def close(self):
-        pass
+        # Assuming something has been written, unzip the trajectory file
+        if os.path.exists(self.filename + '.gz'):
+            os.system("gunzip -f %s.gz" % self.filename)
     

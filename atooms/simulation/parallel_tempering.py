@@ -249,8 +249,9 @@ class ParallelTempering(Simulation):
 
         if self.restart:
             # TODO: steps should all be equal, we should check
-            # TODO: this must be done by everybody or not?
-            for i in self.my_replica:
+            # This must be done by everybody. Otherwise, each process
+            # can read its replicas and then gather
+            for i in range(self.nr):
                 # This is basically a read_checkpoint()
                 f = self.file_replica_out[i] + '.chk'
                 if os.path.exists(f):
@@ -353,13 +354,19 @@ class ParallelTempering(Simulation):
                 if state > 0:
                     self.__exchange_T_comm(state, state-1, system)
 
-        # Update offset
+        # Update offset and replica ids
         self.offset = (self.offset+1) % 2
+        self._update_replicas()
 
+        # Update internal state of replicas / simulations
         # When swapping thermostats we imply the internal state should be swapped.
         # This is not the case in RUMD for now (we simply swap T), so we simply 
         # communicate the state and use a static mapping between states and temperatures.
         # The internal state of the thermostat after each swap is reset to the initial one
+        system[i].thermostat = self._thermostat[s]
+
+    def _update_replicas(self):
+        """Once states have changed, we must update replica id's across processes"""
         state_tmp = numpy.array(range(self.nr))
         state_new = numpy.array([self.state[r] for r in self.my_replica])
         if size > 1:
@@ -368,7 +375,6 @@ class ParallelTempering(Simulation):
             state_tmp = state_new
         for i, s in enumerate(state_tmp):
             self.replica_id[s] = i
-            system[i].thermostat = self._thermostat[s]
 
     def __exchange_T_comm(self, my_state, nn_state, system):
         # TODO: add attempts
