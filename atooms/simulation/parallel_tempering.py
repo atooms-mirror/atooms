@@ -242,7 +242,7 @@ class ParallelTempering(Simulation):
                 # Offset is redundant, since it is global
                 fh.write('%d\n' % self.offset)
             # TODO: write_checkpoint is not part of the official simulation interface, should it?
-            self.sim[i].write_checkpoint(self.trajectory[self.state[i]].filename)
+            self.sim[i].write_checkpoint()
 
     def run_pre(self):
         Simulation.run_pre(self)
@@ -363,7 +363,8 @@ class ParallelTempering(Simulation):
         # This is not the case in RUMD for now (we simply swap T), so we simply 
         # communicate the state and use a static mapping between states and temperatures.
         # The internal state of the thermostat after each swap is reset to the initial one
-        system[i].thermostat = self._thermostat[s]
+        for i, s in enumerate(self.state):
+            system[i].thermostat = self._thermostat[s]
 
     def _update_replicas(self):
         """Once states have changed, we must update replica id's across processes"""
@@ -373,6 +374,7 @@ class ParallelTempering(Simulation):
             comm.Allgather(state_new, state_tmp)
         else:
             state_tmp = state_new
+        # After setting replica_id we can safely use self.state
         for i, s in enumerate(state_tmp):
             self.replica_id[s] = i
 
@@ -390,12 +392,12 @@ class ParallelTempering(Simulation):
         if nn == rank:
             if my_state > nn_state:
                 return
-            log.debug('comm rank %d on same rank %d -> %d\n' % (rank, my_state, nn_state))
+            log.debug('comm rank %d on same rank %d -> %d' % (rank, my_state, nn_state))
             u_j = numpy.array([system[r_j].potential_energy()])
             ran = numpy.array([random.random()])
         else:
             if my_state < nn_state:
-                log.debug('comm rank %d on /= rank %d -> %d\n' % (rank, my_state, nn_state))
+                log.debug('comm rank %d on /= rank %d -> %d' % (rank, my_state, nn_state))
                 # I am on the left, I send first.
                 u_j = numpy.array([0.0])
                 comm.Send(u_i, nn, 10)
@@ -403,7 +405,7 @@ class ParallelTempering(Simulation):
                 ran = numpy.array([random.random()])
                 comm.Send(ran, nn, 12)
             elif my_state > nn_state:
-                log.debug('comm rank %d on /= rank %d <- %d\n' % (rank, my_state, nn_state))
+                log.debug('comm rank %d on /= rank %d <- %d' % (rank, my_state, nn_state))
                 # I am on the right I receive first
                 u_j = numpy.array([0.0])
                 comm.Recv(u_j, nn, 10)
@@ -417,10 +419,10 @@ class ParallelTempering(Simulation):
         T_i = self.params[my_state]
         T_j = self.params[nn_state]
         # Store current probability term
-        log.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g\n" % (rank,  u_j[0], u_i[0], T_i, T_j))
+        log.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g" % (rank,  u_j[0], u_i[0], T_i, T_j))
         self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
         # Test if we can swap states of replicas
-        log.debug("comm rank %d sawpping ran %g prob %g => %s\n" % (rank,  ran[0], self.__prob, ran[0]<self.__prob,))
+        log.debug("comm rank %d sawpping ran %g prob %g => %s" % (rank,  ran[0], self.__prob, ran[0]<self.__prob,))
         if (ran[0] < self.__prob):
             self._swap(system, my_state, nn_state, r_i, r_j)
             # TODO: fix accepted counter
