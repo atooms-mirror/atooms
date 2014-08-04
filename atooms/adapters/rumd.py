@@ -110,17 +110,7 @@ class Simulation(simulation.Simulation):
             # but then it means that we swap trajectories in PT (need refactoring)
             f = self.trajectory.filename + '.chk'
             if os.path.exists(f):
-                # TODO: this shouldn't be necessary because we should write checkpoint also at the end
-                if os.path.exists(self.dir_output + '/final.xyz.gz'):
-                    if os.path.getmtime(self.dir_output + '/final.xyz.gz') > \
-                            os.path.getmtime(f):
-                        # There exists a final configuration, exit immediately
-                        # Update the sample from final configuartion
-                        self._sim.sample.ReadConf(self.dir_output + '/final.xyz.gz')
-                        raise simulation.SimulationEnd('already completed')
-
                 self.read_checkpoint()
-
             else:
                 # Use RUMD checkpoint
                 if os.path.exists(self.dir_output + '/final.xyz.gz'):

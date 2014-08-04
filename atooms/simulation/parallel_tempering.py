@@ -233,13 +233,11 @@ class ParallelTempering(Simulation):
         thermodynamic states in which the replicas found themselves.
         """
         logging.debug('write checkpoint %d' % self.steps)
+        # Note: offset and step are redundant, since they are global
         for i in self.my_replica:
             with open(self.file_replica_out[i] + '.chk', 'w') as fh:
-                # This is the state of replica i
                 fh.write('%d\n' % self.state[i])
-                # TODO: if swap period is variable this is not enough to restart!
                 fh.write('%d\n' % self.steps)
-                # Offset is redundant, since it is global
                 fh.write('%d\n' % self.offset)
             # TODO: write_checkpoint is not part of the official simulation interface, should it?
             self.sim[i].write_checkpoint()

@@ -208,6 +208,7 @@ class Simulation(object):
         if config_period or config_number:
             self.add(self._WRITER_CONFIG(), Scheduler(config_period, config_number))
         # Checkpoint must be after other writers
+        # TODO: make sure chk is written at least at the end 
         if checkpoint_period or checkpoint_number:
             self.add(self._WRITER_CHECKPOINT(), Scheduler(checkpoint_period, checkpoint_number))
 
@@ -262,12 +263,12 @@ class Simulation(object):
 
         try:
             self.run_pre()
-            logging.info('simulation started at %d' % self.steps)
-            logging.info('targeted number of steps: %s' % self.target_steps)
             # Before entering the simulation, check if we can quit right away
             # TODO: find a more elegant way to notify targeters only / order observers
             self.notify(lambda x : isinstance(x, Target))
             self.notify(lambda x : not isinstance(x, Target))
+            logging.info('simulation started at %d' % self.steps)
+            logging.info('targeted number of steps: %s' % self.target_steps)
 
             while True:
 #                if self.steps >= self.target_steps:
