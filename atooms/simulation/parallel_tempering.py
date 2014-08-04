@@ -250,8 +250,9 @@ class ParallelTempering(Simulation):
         if self.restart:
             # TODO: steps should all be equal, we should check
             # This must be done by everybody. Otherwise, each process
-            # can read its replicas and then gather
+            # should read its replicas and then gather.
             for i in range(self.nr):
+                self.sim[i].restart = True
                 # This is basically a read_checkpoint()
                 f = self.file_replica_out[i] + '.chk'
                 if os.path.exists(f):
@@ -262,9 +263,10 @@ class ParallelTempering(Simulation):
                         self.offset = int(fh.readline())
                     logging.debug('pt restarting replica %d at state %d from step %d' % 
                                   (i, istate, self.steps))
-                
+        # Restarting is handled by the simulation instance.
+        # The only glitch for now is that the checkpoint file ends up
+        # in the directory corresponding to the initial state of the replica
         for i in self.my_replica:
-            self.sim[i].restart = True
             self.sim[i].run_pre()
         
         # Log RX info
