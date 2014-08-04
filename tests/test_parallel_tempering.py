@@ -60,7 +60,7 @@ class TestReplicaExchange(unittest.TestCase):
                 s.AddPotential(potential())
                 s.SetIntegrator(i)
 
-            dir_state_out = [dir_root + '/rx.r%d' % i for i in range(len(Tl))]
+            dir_state_out = [dir_root + '/r%d' % i for i in range(len(Tl))]
             sim_adapter = [Simulation(s, d) for s, d in zip(sim, dir_state_out)]
             rx_sim = ParallelTempering(dir_root, dir_state_out, Tl, sim_adapter, swap_period)
             rx_sim.setup(target_steps = nsteps,
@@ -70,7 +70,7 @@ class TestReplicaExchange(unittest.TestCase):
                  
         Tl = [1.0, 1.1, 1.2]
         input_file = ['atooms/reference/kalj256.h5.xyz' for T in Tl]
-        dir_root = '/tmp'
+        dir_root = '/tmp/rx'
         rx(Tl, dir_root, input_file, nsteps=3, swap_period=1000)
 
 

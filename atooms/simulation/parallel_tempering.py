@@ -38,7 +38,7 @@ class WriterConfig(object):
             # If the output directory for state irx is None
             # we do not write configurations
             if e.output[irx]:
-                with e.trajectory(e.output[irx], 'a') as t:
+                with e.trajectory(e.output[irx]+'/'+e.sim[irx].base_output, 'a') as t:
                     t.write_sample(e.replica[i], e.steps)
 
 class WriterCheckpoint(object):
