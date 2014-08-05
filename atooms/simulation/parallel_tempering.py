@@ -188,6 +188,10 @@ class ParallelTempering(Simulation):
         self.file_state_out = [self.output_root + '/state/%d.out' % i for i in range(self.nr)]
         # For each physical replica, info on the state in which it is
         self.file_replica_out = [self.output_root + '/replica/%d.out' % i for i in range(self.nr)]
+        # Make sure output directories exist
+        for d in self.output:
+            if d:
+                mkdir(d)
 
     def clean_files(self):
         for f in \
