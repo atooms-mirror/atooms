@@ -195,6 +195,7 @@ class Simulation(object):
 
         if reset:
             self._callback = []
+            self._scheduler = []
         
         if target_steps:
             self.target_steps = target_steps
