@@ -128,7 +128,8 @@ class ParallelTempering(Simulation):
 
         # Sanity check
         if not (self.nr == len(self.output) == len(sim)):
-            raise ValueError('params and sim must have the same len')
+            raise ValueError('nr, params and sim must have the same len (%d, %d, %d)' % 
+                             (self.nr, len(self.output), len(sim)))
 
         # Get physical replicas (systems) from simulation instances.
         # These are references: they'll follow the simulations 
@@ -186,6 +187,7 @@ class ParallelTempering(Simulation):
         self.file_log = self.output_root + '/pt.log'
         # For each thermodynamic state, info on the replica which has it
         self.file_state_out = [self.output_root + '/state/%d.out' % i for i in range(self.nr)]
+        self.file_state_xyz = [self.output_root + '/state/%d.xyz' % i for i in range(self.nr)]
         # For each physical replica, info on the state in which it is
         self.file_replica_out = [self.output_root + '/replica/%d.out' % i for i in range(self.nr)]
         # Make sure output directories exist
@@ -196,6 +198,7 @@ class ParallelTempering(Simulation):
     def clean_files(self):
         for f in \
                 self.file_state_out + \
+                self.file_state_xyz + \
                 self.file_replica_out:
             rmf(f)
 
@@ -293,8 +296,10 @@ class ParallelTempering(Simulation):
         self.exchange(self.replica)
             
     def run_end(self):
-        # TODO: check how final is written, probably in the wrong directory
         for i in self.my_replica:
+            fout = self.output_root + '/state/%d.xyz' % self.state[i]
+            with self.trajectory(fout, 'w') as t:
+                t.write_sample(self.replica[i], None)
             self.sim[i].run_end()
         barrier()
 
