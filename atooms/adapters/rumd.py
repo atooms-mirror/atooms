@@ -321,6 +321,7 @@ class Trajectory(object):
 
     def close(self):
         # Assuming something has been written, unzip the trajectory file
+        # TODO: this won't unzip config_*gz files
         if os.path.exists(self.filename + '.gz'):
             os.system("gunzip -f %s.gz" % self.filename)
     
