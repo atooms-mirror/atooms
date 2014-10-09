@@ -23,6 +23,7 @@ class TrajectoryXYZ(TrajectoryBase):
         self._cell = None
         self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
         self._min_id = 1 # minimum integer for ids, can be modified by subclasses
+        self._step = 0
 
         if self.mode == 'w':
             self.trajectory = open(self.filename, 'w')
@@ -100,6 +101,7 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def rewind(self):
         self.trajectory.seek(0)
+        self._step = 0
 
     def _parse_step(self, data):
         """Internal xyz method to grab the step index. Can be overwritten in subclasses."""
