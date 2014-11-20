@@ -65,7 +65,11 @@ class TrajectoryHDF5(TrajectoryBase):
         self.trajectory.close()
 
     def read_timestep(self):
-        return self.trajectory['trajectory/realtime/timestep'][0]
+        try:
+            return self.trajectory['trajectory/realtime/timestep'][0]
+        except:
+            print 'Warning: could not find dt in hdf5 file %s' % self.filename
+            return 1.0
 
     def write_timestep(self, value):
         self.trajectory.create_group_safe('/trajectory')
