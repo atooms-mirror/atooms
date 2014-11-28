@@ -19,9 +19,10 @@ setup(name='atooms',
       author='Daniele Coslovich',
       author_email='daniele.coslovich@univ-montp2.fr',
       url='some.site.fr',
-      packages=['atooms', 'atooms.adapters', 'atooms.system',
-                'atooms.interaction', 'atooms.potential', 
-                'atooms.postprocessing'],
-      scripts=['bin/pp.py', 'bin/trj_info.py']
+      packages=[],
+      # 'atooms', 'atooms.adapters', 'atooms.system',
+      # 'atooms.interaction', 'atooms.potential', 
+      # 'atooms.postprocessing'],
+      scripts=['bin/trj.py']
       #scripts=glob.glob(os.path.join('bin', '*.py'))
      )
