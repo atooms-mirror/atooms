@@ -174,6 +174,12 @@ class ParallelTempering(Simulation):
         # We should update them all the time.
         if not type(swap_period) is list:
             self.steps_block = [swap_period] * self.nr
+        # If we provided 1 block period in list, upgrade it to nr length
+        if len(self.steps_block) != self.nr:
+            if len(self.steps_block) == 1:
+                self.steps_block = swap_period * self.nr
+            else:
+                raise ValueError('number of blocks does not match n. replica')
 
         # We setup target steps here, then run_batch will use it
         # In principle, this could be controlled by the user from outside
