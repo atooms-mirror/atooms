@@ -317,7 +317,7 @@ class Trajectory(object):
         if step:
             base, ext = os.path.splitext(f)
             f = base + '_%011d' % step + ext
-        system.sample.WriteConf(f, 'w')
+        system.sample.WriteConf(f, self.mode)
 
     def close(self):
         # Assuming something has been written, unzip the trajectory file
