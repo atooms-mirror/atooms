@@ -11,7 +11,7 @@ class Cell(object):
     def __init__(self,
                  side   = numpy.zeros(ndim),
                  origin = numpy.zeros(ndim)):
-        self.side   = side
+        self.side   = numpy.array(side)
         self.invside = 1.0/side
         self.origin = origin
 
