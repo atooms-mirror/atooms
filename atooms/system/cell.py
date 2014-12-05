@@ -12,7 +12,7 @@ class Cell(object):
                  side   = numpy.zeros(ndim),
                  origin = numpy.zeros(ndim)):
         self.side   = numpy.array(side)
-        self.invside = 1.0/side
+        self.invside = 1.0/self.side
         self.origin = origin
 
     @property
