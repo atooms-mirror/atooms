@@ -190,6 +190,7 @@ class Simulation(simulation.Simulation):
 
 import numpy
 from atooms.system.particle import Particle
+from atooms.system.cell import Cell
 
 class System(object):
     
@@ -275,6 +276,12 @@ class System(object):
         self._sim.SetIntegrator(value)
 
     thermostat = property(_get_thermostat, _set_thermostat, 'Thermostat (actually an instance of RUMD Integrator')
+
+    @property
+    def cell(self):
+        box = self.sample.GetSimulationBox()
+        L = [box.GetLength(i) for i in range(3)]
+        return Cell(L)
 
     @property
     def particle(self):
