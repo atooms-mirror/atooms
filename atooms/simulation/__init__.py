@@ -267,7 +267,8 @@ class Simulation(object):
             # Before entering the simulation, check if we can quit right away
             # TODO: find a more elegant way to notify targeters only / order observers
             self.notify(lambda x : isinstance(x, Target))
-            self.notify(lambda x : not isinstance(x, Target))
+            if not self.restart:
+                self.notify(lambda x : not isinstance(x, Target))
             logging.info('simulation started at %d' % self.steps)
             logging.info('targeted number of steps: %s' % self.target_steps)
 
