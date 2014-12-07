@@ -178,7 +178,7 @@ class TrajectoryXYZ(TrajectoryBase):
         return System(p, self._cell)
 
     def _comment_header(self, step, system):
-        return "Step: %d\n" % step
+        return "Step:%d Cell:%s\n" % (step, ','.join(map(lambda x: '%s' % x, system.cell.side)))
 
     def write_sample(self, system, step, ignore=[]):
         self._cell = system.cell
