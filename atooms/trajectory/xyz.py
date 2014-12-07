@@ -185,8 +185,9 @@ class TrajectoryXYZ(TrajectoryBase):
         self.trajectory.write("%8i\n" % len(system.particle))
         self.trajectory.write(self._comment_header(step, system))
         ndim = len(system.particle[0].position)
-        if abs(system.particle[0].velocity[0]) < 1e-15 and \
-           abs(system.particle[-1].velocity[-1]) < 1e-15:
+        if (abs(system.particle[0].velocity[0]) < 1e-15 and \
+           abs(system.particle[-1].velocity[-1]) < 1e-15) or \
+           'vel' in ignore:
             for p in system.particle:
                 # Check for tag, somewhat hard hack to write voronoi polyehdron
                 # TODO: could be improved 
