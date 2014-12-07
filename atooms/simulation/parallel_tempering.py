@@ -5,7 +5,6 @@ import os
 import sys
 import math
 import random
-import copy
 import numpy
 import logging
 
@@ -37,8 +36,8 @@ class WriterConfig(object):
             irx = e.state[i]
             # If the output directory for state irx is None
             # we do not write configurations
-            if e.output[irx]:
-                with e.trajectory(e.output[irx]+'/'+e.sim[irx].base_output, 'a') as t:
+            if e.output_path[irx]:
+                with e.trajectory(e.output_path[irx]+'/'+e.sim[irx].base_output, 'a') as t:
                     t.write_sample(e.replica[i], e.steps)
 
 class WriterCheckpoint(object):
@@ -105,11 +104,8 @@ class ParallelTempering(Simulation):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpoint
 
-    def __init__(self, output_root, output, params, sim, swap_period, variables=['T']):
-        Simulation.__init__(self) # super does not work???
-        
+    def __init__(self, output_root, output_path, params, sim, swap_period, variables=['T']):
         self.output_root = output_root
-        self.output = output
         self.params = params
         self.variables = variables
         self.sim = sim
@@ -120,29 +116,28 @@ class ParallelTempering(Simulation):
         # For the moment, we assume that at least the first simulation 
         # backend has a trajectory
         self.trajectory = self.sim[0].trajectory.__class__
-        random.seed(self.seed)
-
-        # If output is just one directory, we listify it padding it with None
-        if not isinstance(output, list):
-            self.output = self.output + None * (self.nr-1)
-
-        # Sanity check
-        if not (self.nr == len(self.output) == len(sim)):
-            raise ValueError('nr, params and sim must have the same len (%d, %d, %d)' % 
-                             (self.nr, len(self.output), len(sim)))
 
         # Get physical replicas (systems) from simulation instances.
         # These are references: they'll follow the simulations 
         self.replica = [s.system for s in sim]
-        # We also need a system, to adhere to the simulation interface
-        # Essentially we need it for the RMSD at the moment, we should
-        # think how to generalize TargetRMSD and rmsd(). Making the latter
-        # a list might break other things in base class, it should be checked
-        # Perhaps just the log, which should be encapsulated and would be
-        # overridden here
+
+        # If output is just one directory, we listify it padding it with None
+        if not isinstance(output_path, list):
+            output_path = [output_path] + [None] * (self.nr-1)
+
+        # Sanity check
+        if not (self.nr == len(output_path) == len(sim)):
+            raise ValueError('nr, params and sim must have the same len (%d, %d, %d)' % 
+                             (self.nr, len(output_path), len(sim)))
+
+        # Here it is good to call the base constructor since we know input sample
+        # and output directory
         # TODO: potential bug here. If the initial system is different for each replica, the RMSD will be wrong
-        # We should outsource rmsd or overwrite.
-        self.system = self.replica[0]
+        # We should outsource rmsd or override.
+        Simulation.__init__(self, self.replica[0], output_path)
+
+        # Set random seed now
+        random.seed(self.seed)
 
         self.replica_id = range(self.nr)
         # TODO: remember to checkpoint them
@@ -197,7 +192,7 @@ class ParallelTempering(Simulation):
         # For each physical replica, info on the state in which it is
         self.file_replica_out = [self.output_root + '/replica/%d.out' % i for i in range(self.nr)]
         # Make sure output directories exist
-        for d in self.output:
+        for d in self.output_path:
             if d:
                 mkdir(d)
 
@@ -245,6 +240,9 @@ class ParallelTempering(Simulation):
         """Checkpoint replicas via simulation backends as well as the
         thermodynamic states in which the replicas found themselves.
         """
+        # TODO: make this more robust. Only if all check points (state and replica) have been written we can safely restart!
+        # We should therefore first keep the old checkpoints, create new files and then move (which is quick).
+        # Additionally we should check consistency upon reading (i.e. all checkpoints should belong to the same step) and fail otherwise
         logging.debug('write checkpoint %d' % self.steps)
         # Note: offset and step are redundant, since they are global
         for i in self.my_replica:
@@ -296,7 +294,6 @@ class ParallelTempering(Simulation):
             # of steps prescribed for its state 
             n = self.sim[i].steps + self.steps_block[self.state[i]]
             self.sim[i].run_until(n)
-
         # Attempt to exchange replicas.
         # When swapping we must exchange their thermostats.
         self.exchange(self.replica)
@@ -304,8 +301,10 @@ class ParallelTempering(Simulation):
     def run_end(self):
         for i in self.my_replica:
             fout = self.output_root + '/state/%d.xyz' % self.state[i]
-            with self.trajectory(fout, 'w') as t:
-                t.write_sample(self.replica[i], None)
+            # TODO: this is not good. None is not accepted by other formats. Why needed here?
+            # Where do we use this?
+#            with self.trajectory(fout, 'w') as t:
+#                t.write_sample(self.replica[i], None)
             self.sim[i].run_end()
         barrier()
 

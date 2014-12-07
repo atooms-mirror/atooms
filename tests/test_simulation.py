@@ -8,7 +8,7 @@ class TestSimulationBackend(unittest.TestCase):
 
     def setUp(self):
         from atooms.adapters import backend
-        self.s = backend.Simulation()
+        self.s = backend.Simulation(None, None)
         self.s.verbosity = 2
 
     def test_simulation(self):

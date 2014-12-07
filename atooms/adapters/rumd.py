@@ -42,7 +42,6 @@ class Simulation(simulation.Simulation):
     def __init__(self, sim, dir_output, base_output='config.xyz'):
         self._sim = sim
         self._sim.sample.SetOutputDirectory(dir_output)
-        simulation.Simulation.__init__(self, dir_output)
         self.__set_verbosity(0)
         self._initialize_output = True
         self.base_output = base_output
@@ -50,6 +49,8 @@ class Simulation(simulation.Simulation):
         self.trajectory = Trajectory(os.path.join(dir_output, base_output), 'w')
         self.trajectory.close()
         mkdir(self.dir_output)
+        # TODO: if dir_output is just output_path for init, why not using the latter?
+        simulation.Simulation.__init__(self, self.system, dir_output)
 
     # Temporarily use a different method
     def __set_verbosity(self, value):
@@ -84,6 +85,7 @@ class Simulation(simulation.Simulation):
     def read_checkpoint(self, filename=None):
         if filename is None:
             filename = self.trajectory.filename + '.chk'
+        logging.debug('reading own restart file %s' % filename)
         self._sim.sample.ReadConf(filename)
         with open(filename + '.step') as fh:
             self.steps = int(fh.read())
@@ -101,6 +103,7 @@ class Simulation(simulation.Simulation):
         # This may also a problem for self restarting blocks...??
         # TODO: *** why and when does rumd moves to .bak???! ***
         if self.restart:
+            logging.debug('restart attempt')
             
             self.restart = False
 
@@ -116,12 +119,14 @@ class Simulation(simulation.Simulation):
                 if os.path.exists(self.dir_output + '/final.xyz.gz'):
                     if os.path.getmtime(self.dir_output + '/final.xyz.gz') > \
                             os.path.getmtime(self.dir_output + '/LastComplete_restart.txt'):
+                        # TODO: yes but what if we want to prolong a simulation? This is not good.
                         # There exists a final configuration, exit immediately
                         # Update the sample from final configuartion
                         self._sim.sample.ReadConf(self.dir_output + '/final.xyz.gz')
                         raise simulation.SimulationEnd('already completed')
 
                 if os.path.exists(self.dir_output + '/LastComplete_restart.txt'):
+                    logging.debug('reading rumd restart file %s' % (self.dir_output + '/LastComplete_restart.txt'))
                     with open(self.dir_output + '/LastComplete_restart.txt') as fh:
                         ibl, nstep = fh.readline().split()
                     self._ibl = int(ibl)
@@ -266,7 +271,7 @@ class System(object):
         # Unfold positions using periodic image information
         ref = reference.sample.GetPositions() + reference.sample.GetImages() * L
         unf = self.sample.GetPositions() + self.sample.GetImages() * L
-
+                
         return sum(sum((unf-ref)**2)) / N
 
     def _get_thermostat(self):

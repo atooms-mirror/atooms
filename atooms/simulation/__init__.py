@@ -7,7 +7,7 @@ import sys
 import os
 import time
 import logging
-from copy import copy, deepcopy
+import copy
 
 log = logging.getLogger('atooms')
 
@@ -140,7 +140,7 @@ class Scheduler(object):
 
 class Simulation(object):
 
-    """Simulation abstract class using callback support"""
+    """Simulation abstract class using callback support."""
 
     # TODO: write initial configuration as well
 
@@ -158,23 +158,24 @@ class Simulation(object):
     # or following a file suffix logic. Meant to be subclassed.
     STORAGE = 'directory'
 
-    def __init__(self, output='.'):
-        self.output = output # can be file or directory
+    def __init__(self, initial_state, output_path):
+        """We expect input and output paths as input.
+        Alternatively, input might be a system (or trajectory?) instance.
+        """
+        self._callback = []
+        self._scheduler = []
         self.steps = 0
         self.target_steps = 0
         self.restart = False
-        self._initial_system = None # to compute rmsd
-        self._callback = []
-        self._scheduler = []
+        self.output_path = output_path # can be file or directory
+        self.system = initial_state
+        # Store a copy of the initial state to calculate RMSD
+        self.initial_system = copy.deepcopy(self.system)
 
     @property
     def rmsd(self):
-        if self.system:
-            if self._initial_system:
-                return self.system.mean_square_displacement(self._initial_system)**0.5
-            else:
-                log.warn('self._initial_system missing in simulation, rmsd is 0')
-                return 0.0
+        # TODO: provide rmsd by species 07.12.2014
+        return self.system.mean_square_displacement(self.initial_system)**0.5
 
     def add(self, callback, scheduler):
         """Add an observer (callback) to be called along a scheduler"""
@@ -193,6 +194,7 @@ class Simulation(object):
               reset=False):
         """Convenience function to set default observers"""
 
+        #TODO: we should allow to modify just one parameter of callback without reset
         if reset:
             self._callback = []
             self._scheduler = []
@@ -209,7 +211,7 @@ class Simulation(object):
         if config_period or config_number:
             self.add(self._WRITER_CONFIG(), Scheduler(config_period, config_number))
         # Checkpoint must be after other writers
-        # TODO: make sure chk is written at least at the end 
+        # TODO: implement sort callbacks to enforce checkpoint being last when not using setup()        
         if checkpoint_period or checkpoint_number:
             self.add(self._WRITER_CHECKPOINT(), Scheduler(checkpoint_period, checkpoint_number))
 
@@ -222,21 +224,14 @@ class Simulation(object):
             except SchedulerError:
                 logging.error('error with %s' % f, s.period, s.calls)
                 raise
-       
+
     # Our template consists of three steps: pre, until and end
     # Typically a backend will implement the until method.
-    # It is recommended to extend the base run_pre() in subclasses
+    # It is recommended to *extend* (not override) the base run_pre() in subclasses
+    # TODO: when should checkpoint be read? The logic must be set here
+    # Having a read_checkpoint() stub method would be OK here.
     def run_pre(self):
-        # TODO: sort callbacks to enforce checkpoint being last 
-        if not self.restart:
-            self.steps = 0
-
-        # Store a copy of the initial system to calculate RMSD
-        # When restarting, the initial system set before the checkpoint
-        # is read. It becomes problematic if run() is called repeteadly
-        # in which case the initial system is replaced.
-        self._initial_system = deepcopy(self.system)
-
+        """This is safe to called by subclassing before or after reading checkpoint"""
         # Some schedulers need target steps to estimate the period
         for s in self._scheduler:
             # TODO: introduce dynamic scheduling for rmsd and similar
@@ -253,7 +248,8 @@ class Simulation(object):
     def run_until(self, n):
         # Design: it is run_until responsability to set steps
         # bear it in mind when subclassing 
-        self.steps = n
+        # self.steps = n
+        pass
 
     def run_end(self):
         pass
@@ -287,6 +283,8 @@ class Simulation(object):
                 self.notify(lambda x : isinstance(x, Target))
 
         except SimulationEnd as s:
+            # Checkpoint is always called at the end 
+            self.notify(lambda x : isinstance(x, WriterCheckpoint))
             logging.info('simulation ended successfully: %s' % s.message)
             self.run_end()
 

@@ -5,9 +5,13 @@ from atooms import simulation
 
 class Simulation(simulation.Simulation):
 
-    @property
-    def system(self):
+    def _get_system(self):
         pass
+
+    def _set_system(self, value): 
+        pass
+
+    system = property(_get_system, _set_system, 'System')
 
     def run_until(self, n):
         pass
