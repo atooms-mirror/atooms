@@ -292,7 +292,7 @@ class ParallelTempering(Simulation):
 
     def run_until(self, n):
         # Evolve over my physical replicas.
-        logging.info('run until %d' % n)
+        logging.debug('run until %d' % n)
         for i in self.my_replica:
             logging.debug('evolve %d' % i)
             # This will evolve physical replica[i] for the number

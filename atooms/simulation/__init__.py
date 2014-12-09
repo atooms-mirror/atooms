@@ -218,8 +218,10 @@ class Simulation(object):
             self.add(self._TARGET_STEPS(target_steps), Scheduler())
         if target_rmsd:
             #self.target_steps = None
-            print target_rmsd
-            self.add(self._TARGET_RMSD(target_rmsd), Scheduler())
+            # For the time being rmsd targeting is checked at every step
+            # Of course, this could be relaxed with some more dynamic
+            # scheduling
+            self.add(self._TARGET_RMSD(target_rmsd), Scheduler(period=1))
 
         if thermo_period or thermo_number:
             self.add(self._WRITER_THERMO(), Scheduler(thermo_period, thermo_number))
