@@ -36,8 +36,8 @@ class WriterConfig(object):
             irx = e.state[i]
             # If the output directory for state irx is None
             # we do not write configurations
-            if e.output_path[irx]:
-                with e.trajectory(e.output_path[irx]+'/'+e.sim[irx].base_output, 'a') as t:
+            if e.output_path_data[irx]:
+                with e.trajectory(e.output_path_data[irx]+'/'+e.sim[irx].base_output, 'a') as t:
                     t.write_sample(e.replica[i], e.steps, ignore=['vel'])
 
 class WriterCheckpoint(object):
@@ -104,8 +104,7 @@ class ParallelTempering(Simulation):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpoint
 
-    def __init__(self, output_root, output_path, params, sim, swap_period, variables=['T']):
-        self.output_root = output_root
+    def __init__(self, output_path, output_path_data, params, sim, swap_period, variables=['T']):
         self.params = params
         self.variables = variables
         self.sim = sim
@@ -122,13 +121,14 @@ class ParallelTempering(Simulation):
         self.replica = [s.system for s in sim]
 
         # If output is just one directory, we listify it padding it with None
-        if not isinstance(output_path, list):
-            output_path = [output_path] + [None] * (self.nr-1)
+        if not isinstance(output_path_data, list):
+            output_path_data = [output_path_data] + [None] * (self.nr-1)
+        self.output_path_data = output_path_data
 
         # Sanity check
-        if not (self.nr == len(output_path) == len(sim)):
+        if not (self.nr == len(output_path_data) == len(sim)):
             raise ValueError('nr, params and sim must have the same len (%d, %d, %d)' % 
-                             (self.nr, len(output_path), len(sim)))
+                             (self.nr, len(output_path_data), len(sim)))
 
         # Here it is good to call the base constructor since we know input sample
         # and output directory
@@ -183,16 +183,16 @@ class ParallelTempering(Simulation):
         #     s.setup(target_steps=steps)
 
         # Define output files
-        mkdir(self.output_root + '/state')
-        mkdir(self.output_root + '/replica')
-        self.file_log = self.output_root + '/pt.log'
+        mkdir(self.output_path + '/state')
+        mkdir(self.output_path + '/replica')
+        self.file_log = self.output_path + '/pt.log'
         # For each thermodynamic state, info on the replica which has it
-        self.file_state_out = [self.output_root + '/state/%d.out' % i for i in range(self.nr)]
-        self.file_state_xyz = [self.output_root + '/state/%d.xyz' % i for i in range(self.nr)]
+        self.file_state_out = [self.output_path + '/state/%d.out' % i for i in range(self.nr)]
+        self.file_state_xyz = [self.output_path + '/state/%d.xyz' % i for i in range(self.nr)]
         # For each physical replica, info on the state in which it is
-        self.file_replica_out = [self.output_root + '/replica/%d.out' % i for i in range(self.nr)]
+        self.file_replica_out = [self.output_path + '/replica/%d.out' % i for i in range(self.nr)]
         # Make sure output directories exist
-        for d in self.output_path:
+        for d in self.output_path_data:
             if d:
                 mkdir(d)
 
@@ -305,7 +305,7 @@ class ParallelTempering(Simulation):
             
     def run_end(self):
         for i in self.my_replica:
-            fout = self.output_root + '/state/%d.xyz' % self.state[i]
+            fout = self.output_path + '/state/%d.xyz' % self.state[i]
             # TODO: this is not good. None is not accepted by other formats. Why needed here?
             # Where do we use this?
 #            with self.trajectory(fout, 'w') as t:
