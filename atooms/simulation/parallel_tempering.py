@@ -196,6 +196,11 @@ class ParallelTempering(Simulation):
             if d:
                 mkdir(d)
 
+    @property
+    def rmsd(self):
+        """In parallel tempering simulation we define rmsd as the minimum one"""
+        return min([s.rmsd for s in self.sim])
+
     def clean_files(self):
         for f in \
                 self.file_state_out + \
