@@ -107,6 +107,17 @@ class TargetWallTime(Target):
             dt = self.wtime_limit - (time.time() - TIME_START)
             logging.debug('reamining time %g' % dt)
 
+class UserStop(object):
+    """Allows a user to stop the simulation smoothly by touching a STOP
+    file in the output root directory.
+    """
+    def __call__(self, e):
+        log.debug('thermo writer')
+        # TODO: support files as well
+        #if e.STORAGE == 'directory':
+        if os.path.exists('%s/STOP' % e.output_path):
+            os.remove('%s/STOP' % e.output_path)
+            raise SimulationEnd('user has stopped the simulation')
 
 #TODO: period can be a function to allow non linear sampling
 class Scheduler(object):
@@ -198,12 +209,16 @@ class Simulation(object):
         if reset:
             self._callback = []
             self._scheduler = []
+
+        # Add check for user stop
+        self.add(UserStop(), Scheduler(1))
         
         if target_steps:
             self.target_steps = target_steps
             self.add(self._TARGET_STEPS(target_steps), Scheduler())
         if target_rmsd:
-            self.target_steps = None
+            #self.target_steps = None
+            print target_rmsd
             self.add(self._TARGET_RMSD(target_rmsd), Scheduler())
 
         if thermo_period or thermo_number:
