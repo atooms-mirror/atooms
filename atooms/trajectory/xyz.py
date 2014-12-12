@@ -85,37 +85,44 @@ class TrajectoryXYZ(TrajectoryBase):
         self._ncols = len(self.trajectory.readline().split())
         self.trajectory.seek(0)
 
-        # Get cell
-        self._cell = self._parse_cell()
-
-        # Get list of steps and samples
+        # Get list of steps, samples and cell
         self.steps = []
         for i in self._index:
             fh.seek(i)
             fh.readline() # skip Npart
-            step = self._parse_step(fh.readline())
-            if step is None:
-                break
-            else:
-                self.steps.append(step)
+            meta = self._parse_header(fh.readline())
+            self.steps.append(meta['step'])
+        
+        # Grab it from the end of file in case it is there
+        if meta['cell'] is not None:
+            self._cell = Cell(meta['cell'])
+        else:
+            self._cell = self._parse_cell()
 
     def rewind(self):
         self.trajectory.seek(0)
         self._step = 0
 
-    def _parse_step(self, data):
-        """Internal xyz method to grab the step index. Can be overwritten in subclasses."""
-        p = re.compile(r'step\w*[=:](\d*)\w', re.IGNORECASE)
-        s = p.search(data)
-        if s is None:
+    def _parse_header(self, data):
+        """Internal xyz method to get header metadata."""
+        meta = {'step':None, 'cell':None}
+        grabber = {'step':lambda x: int(x), 
+                   'cell':lambda x: map(float, x.split(','))}
+        for m in meta:
+            p = re.compile(r'%s\s*[=:]\s*(\S*)\s' % m, re.IGNORECASE)
+            s = p.search(data)
+            if s is not None:     
+                meta[m] = grabber[m](s.group(1))
+
+        # Fix step
+        if meta['step'] is None:
             try:
                 n = int(data.split()[-1])
             except:
                 self._step += 1
                 n = self._step
-        else:
-            n = int(s.group(1))
-        return n
+            meta['step'] = n
+        return meta
 
     def _parse_cell(self):
         """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
