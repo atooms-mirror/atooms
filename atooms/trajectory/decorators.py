@@ -103,18 +103,18 @@ class MatrixFix(object):
         self._component = component # actually unnecessary
         self.matrix_species = matrix_species
 
-    def _init_read(self):
-        s = super(MatrixFix, self)._init_read()
-        matrix = []
-        fluid = []
-        for p in s.particle:
-            if p.id in self.matrix_species:
-                matrix.append(p)
-            else:
-                fluid.append(p)
-        s.particle = fluid
-        s.matrix = matrix
-        return s
+    # def _init_read(self):
+    #     s = super(MatrixFix, self)._init_read()
+    #     matrix = []
+    #     fluid = []
+    #     for p in s.particle:
+    #         if p.id in self.matrix_species:
+    #             matrix.append(p)
+    #         else:
+    #             fluid.append(p)
+    #     s.particle = fluid
+    #     s.matrix = matrix
+    #     return s
 
     def read(self, *args, **kwargs):
         s = super(MatrixFix, self).read(*args, **kwargs)
