@@ -148,7 +148,7 @@ class ParallelTempering(Simulation):
 
         # Distribute physical replicas in parallel.
         # Each process gets a bunch of replicas to evolve
-        # my_replica contains their state id's.
+        # replica_id contains their state id's.
         # We could as well distributes states, which would allow
         # for other optimizations.
         self._thermostat = None
@@ -163,6 +163,7 @@ class ParallelTempering(Simulation):
             for nr in range(ni, nf):
                 self.process_with_replica[nr] = irank
         barrier()
+        logging.info('GPU %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]))
 
         # Listify steps per block.
         # Note that this is per state. If we set it in the sim instances
@@ -199,7 +200,17 @@ class ParallelTempering(Simulation):
     @property
     def rmsd(self):
         """In parallel tempering simulation we define rmsd as the minimum one"""
-        return min([s.rmsd for s in self.sim])
+        # RMSD must be known on all processes, thus an allgather is needed
+        # This might be optimized by targeting rmsd dynamically.
+        rmsd_l = numpy.ndarray(len(self.my_replica))
+        for i, ri in enumerate(self.my_replica):
+            rmsd_l[i] = self.sim[ri].rmsd
+        if size > 1:
+            rmsd = numpy.ndarray(self.nr)
+            comm.Allgather(rmsd_l, rmsd)
+            return min(rmsd)
+        else:
+            return min(rmsd_l)
 
     def clean_files(self):
         for f in \
@@ -294,7 +305,7 @@ class ParallelTempering(Simulation):
         # Evolve over my physical replicas.
         logging.debug('run until %d' % n)
         for i in self.my_replica:
-            logging.debug('evolve %d' % i)
+            logging.debug('evolve replica %d on GPU %d' % (i, rank))
             # This will evolve physical replica[i] for the number
             # of steps prescribed for its state 
             n = self.sim[i].steps + self.steps_block[self.state[i]]
