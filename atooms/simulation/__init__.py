@@ -246,7 +246,7 @@ class Simulation(object):
     def wall_time_per_step(self):
         """Return the wall time in seconds per step.
         Can be conventiently subclassed by more complex simulation classes."""
-        return _elapsed_time() / self.steps
+        return _elapsed_time() / (self.steps-self.initial_steps)
 
     # Our template consists of three steps: pre, until and end
     # Typically a backend will implement the until method.
@@ -290,7 +290,7 @@ class Simulation(object):
                 self.notify(lambda x : not isinstance(x, Target))
             logging.info('simulation started at %d' % self.steps)
             logging.info('targeted number of steps: %s' % self.target_steps)
-
+            self.initial_steps = self.steps
             while True:
 #                if self.steps >= self.target_steps:
 #                    raise SimulationEnd('target steps achieved')
@@ -300,7 +300,9 @@ class Simulation(object):
                 next_step = min([s.next(self.steps) for s in self._scheduler])
                 self.run_until(next_step)
                 self.steps = next_step
-                logging.debug('step=%d out of %d' % (self.steps, self.target_steps))
+                logging.info('step=%d/%d rmsd=%.2f wtime/step=%.2g' % (self.steps, self.target_steps,
+                                                                       self.rmsd,
+                                                                       self.wall_time_per_step()))
                 # Notify writer and generic observers before targeters
                 self.notify(lambda x : not isinstance(x, Target))
                 self.notify(lambda x : isinstance(x, Target))
