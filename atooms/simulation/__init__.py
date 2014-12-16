@@ -104,19 +104,21 @@ class TargetWallTime(Target):
         if (time.time() - TIME_START) > self.wtime_limit:
             raise WallTimeLimit('target wall time reached')
         else:
-            dt = self.wtime_limit - (time.time() - TIME_START)
-            logging.debug('reamining time %g' % dt)
+            t = time.time() - TIME_START
+            dt = self.wtime_limit - t
+            logging.debug('elapsed time %g, reamining time %g' % (t, dt))
 
 class UserStop(object):
     """Allows a user to stop the simulation smoothly by touching a STOP
     file in the output root directory.
+    Currently the file is not deleted to allow parallel jobs to all exit.
     """
     def __call__(self, e):
-        log.debug('thermo writer')
+        # To make it work in parallel we should broadcast and then rm 
+        # or subclass userstop in classes that use parallel execution
+        log.debug('User Stop %s/STOP' % e.output_path)
         # TODO: support files as well
-        #if e.STORAGE == 'directory':
         if os.path.exists('%s/STOP' % e.output_path):
-            os.remove('%s/STOP' % e.output_path)
             raise SimulationEnd('user has stopped the simulation')
 
 #TODO: period can be a function to allow non linear sampling
