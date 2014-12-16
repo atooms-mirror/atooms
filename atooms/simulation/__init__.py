@@ -91,20 +91,19 @@ class TargetRMSD(Target):
 
 TIME_START = time.time()
 
+def _elapsed_time():
+    return time.time() - TIME_START
+
 class TargetWallTime(Target):
 
     def __init__(self, wall_time):
         self.wtime_limit = wall_time
-        # this will target the simulation wtime, but if we have a chain
-        # we must either pass it as a variable or use a module level
-        # time start variable
-        self.TIME_START = time.time()
 
     def __call__(self, sim):
-        if (time.time() - TIME_START) > self.wtime_limit:
+        if _elapsed_time() > self.wtime_limit:
             raise WallTimeLimit('target wall time reached')
         else:
-            t = time.time() - TIME_START
+            t = _elapsed_time()
             dt = self.wtime_limit - t
             logging.debug('elapsed time %g, reamining time %g' % (t, dt))
 
@@ -243,6 +242,11 @@ class Simulation(object):
             except SchedulerError:
                 logging.error('error with %s' % f, s.period, s.calls)
                 raise
+    
+    def wall_time_per_step(self):
+        """Return the wall time in seconds per step.
+        Can be conventiently subclassed by more complex simulation classes."""
+        return _elapsed_time() / self.steps
 
     # Our template consists of three steps: pre, until and end
     # Typically a backend will implement the until method.
@@ -304,6 +308,8 @@ class Simulation(object):
         except SimulationEnd as s:
             # Checkpoint is always called at the end 
             self.notify(lambda x : isinstance(x, WriterCheckpoint))
+            logging.info('simulation wall time [s]: %.1f' % _elapsed_time())
+            logging.info('simulation wall time/step [s]: %.2g' % self.wall_time_per_step())
             logging.info('simulation ended successfully: %s' % s.message)
             self.run_end()
 
