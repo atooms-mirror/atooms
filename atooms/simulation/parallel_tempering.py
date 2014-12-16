@@ -8,7 +8,7 @@ import random
 import numpy
 import logging
 
-from atooms.simulation import Simulation
+from atooms.simulation import Simulation, WriterCheckpoint
 from atooms.utils import rmd, rmf, mkdir
 
 log = logging.getLogger()
@@ -40,15 +40,17 @@ class WriterConfig(object):
                 with e.trajectory(e.output_path_data[irx]+'/'+e.sim[irx].base_output, 'a') as t:
                     t.write_sample(e.replica[i], e.steps, ignore=['vel'])
 
-class WriterCheckpoint(object):
-
+class WriterCheckpointPT(WriterCheckpoint):
+    # This guy must inherit from WriterCheckPoint otherwise it wont be called
+    # at last last by simulation base class! All this points towards checkpoint
+    # being a mthod of simulation. Full stop.
     def __call__(self, e):
         e.write_checkpoint()
         
 class WriterThermo(object):
 
     def __call__(self, e):
-        logging.debug('writer thermo')
+        logging.debug('PT writer thermo')
 
         # Since we grab steps from simulations, we must gather them first
         # We could have each process write down its replicas and make it more efficient, see write_state()
@@ -102,7 +104,7 @@ class ParallelTempering(Simulation):
 
     _WRITER_THERMO = WriterThermo
     _WRITER_CONFIG = WriterConfig    
-    _WRITER_CHECKPOINT = WriterCheckpoint
+    _WRITER_CHECKPOINT = WriterCheckpointPT
 
     def __init__(self, output_path, output_path_data, params, sim, swap_period, variables=['T']):
         self.params = params

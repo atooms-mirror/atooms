@@ -306,8 +306,14 @@ class Simulation(object):
                 self.notify(lambda x : isinstance(x, Target))
 
         except SimulationEnd as s:
-            # Checkpoint is always called at the end 
-            self.notify(lambda x : isinstance(x, WriterCheckpoint))
+            # TODO: make checkpoint is an explicit method of simulation and not a callback! 16.12.2014
+            # The rationale here is that notify will basically check for now() but writecheckpoint must
+            # here we must call no matter how the period fits. The problem was that PT checkpoint
+            # was not a subclass of base one, and so it was not called!
+            for f in self._callback:
+                if isinstance(f, WriterCheckpoint):
+                    f(self)
+            #self.notify(lambda x : isinstance(x, WriterCheckpoint))
             logging.info('simulation wall time [s]: %.1f' % _elapsed_time())
             logging.info('simulation wall time/step [s]: %.2g' % self.wall_time_per_step())
             logging.info('simulation ended successfully: %s' % s.message)
