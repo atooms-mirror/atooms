@@ -1,3 +1,5 @@
+.PHONY: all dist test todo todo_critical dist_rumd install clean
+
 all: install
 
 dist:
