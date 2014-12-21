@@ -197,11 +197,43 @@ import numpy
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 
+
+class Thermostat(object):
+
+    """Wrap a RUMD integrator as a thermostat."""
+
+    # TODO: problem with this approach is that we rely on RUMD keeping the same order in future versions. We should unit test it.
+    # Info string looks like IntegratorNVT,0.004,0.3602,0.2,-0.7223
+
+    def __init__(self, integrator):
+        self._integrator = integrator
+
+    def reset(self):
+        info = self._integrator.GetInfoString(18).split(',')
+        info[4] = '1.0'
+        info = ','.join(info)
+        self._integrator.InitializeFromInfoString(info)
+        
+    def _get_temperature(self):
+        info = self._integrator.GetInfoString(18).split(',')
+        return info[2]
+
+    def _set_temperature(self, value):
+        info = self._integrator.GetInfoString(18).split(',')
+        info[2] = '%g' % value
+        info = ','.join(info)
+        self._integrator.InitializeFromInfoString(info)
+
+    temperature = property(_get_temperature, _set_temperature, 'Temperature')
+    
+
 class System(object):
     
     def __init__(self, sim):
         self._sim = sim
         self.sample = sim.sample
+        # TODO: system may not have one right now, what will this give? A None?
+        self.thermostat = Thermostat(self.sample.GetIntegrator())
 
     def __copy__(self):
         # This is not really needed, it's just there for reference
@@ -273,14 +305,6 @@ class System(object):
         unf = self.sample.GetPositions() + self.sample.GetImages() * L
                 
         return sum(sum((unf-ref)**2)) / N
-
-    def _get_thermostat(self):
-        return self.sample.GetIntegrator()
-
-    def _set_thermostat(self, value): 
-        self._sim.SetIntegrator(value)
-
-    thermostat = property(_get_thermostat, _set_thermostat, 'Thermostat (actually an instance of RUMD Integrator')
 
     @property
     def cell(self):
