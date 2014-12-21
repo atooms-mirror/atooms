@@ -283,6 +283,7 @@ class Simulation(object):
 
         try:
             self.run_pre()
+            self.initial_steps = self.steps
             # Before entering the simulation, check if we can quit right away
             # TODO: find a more elegant way to notify targeters only / order observers
             self.notify(lambda x : isinstance(x, Target))
@@ -290,7 +291,6 @@ class Simulation(object):
                 self.notify(lambda x : not isinstance(x, Target))
             logging.info('simulation started at %d' % self.steps)
             logging.info('targeted number of steps: %s' % self.target_steps)
-            self.initial_steps = self.steps
             while True:
 #                if self.steps >= self.target_steps:
 #                    raise SimulationEnd('target steps achieved')
@@ -300,6 +300,7 @@ class Simulation(object):
                 next_step = min([s.next(self.steps) for s in self._scheduler])
                 self.run_until(next_step)
                 self.steps = next_step
+                # TODO: logging should be done only by rank=0 in parallel: encapsulate
                 logging.info('step=%d/%d rmsd=%.2f wtime/step=%.2g' % (self.steps, self.target_steps,
                                                                        self.rmsd,
                                                                        self.wall_time_per_step()))
@@ -316,8 +317,9 @@ class Simulation(object):
                 if isinstance(f, WriterCheckpoint):
                     f(self)
             #self.notify(lambda x : isinstance(x, WriterCheckpoint))
-            logging.info('simulation wall time [s]: %.1f' % _elapsed_time())
-            logging.info('simulation wall time/step [s]: %.2g' % self.wall_time_per_step())
+            if not self.initial_steps == self.steps:
+                logging.info('simulation wall time [s]: %.1f' % _elapsed_time())
+                logging.info('simulation wall time/step [s]: %.2g' % self.wall_time_per_step())
             logging.info('simulation ended successfully: %s' % s.message)
             self.run_end()
 
