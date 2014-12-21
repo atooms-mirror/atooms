@@ -12,6 +12,8 @@ from atooms.simulation import Simulation, WriterCheckpoint
 from atooms.utils import rmd, rmf, mkdir
 
 log = logging.getLogger()
+# TODO: logging info should only work for size=0. But then what if we want to set to debug?
+# Either we wrap logging as private methods, or try to extend logging, or define different handlers...
 
 try:
     from mpi4py import MPI
