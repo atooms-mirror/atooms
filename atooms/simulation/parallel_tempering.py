@@ -56,27 +56,32 @@ class WriterThermo(object):
         # We could have each process write down its replicas and make it more efficient, see write_state()
         u = numpy.ndarray(e.nr)
         u_l = numpy.ndarray(len(e.my_replica))
+        k = numpy.ndarray(e.nr)
+        k_l = numpy.ndarray(len(e.my_replica))
         rmsd = numpy.ndarray(e.nr)
         rmsd_l = numpy.ndarray(len(e.my_replica))
         steps = numpy.ndarray(e.nr, dtype=int)
         steps_l = numpy.ndarray(len(e.my_replica), dtype=int)
         for i, ri in enumerate(e.my_replica):
             u_l[i] = e.replica[ri].potential_energy()
+            k_l[i] = e.replica[ri].kinetic_energy()
             rmsd_l[i] = e.sim[ri].rmsd
             steps_l[i] = e.sim[ri].steps
 
         if size > 1:
             comm.Gather(u_l, u, 0)
+            comm.Gather(k_l, k, 0)
             comm.Gather(rmsd_l, rmsd, 0)
             comm.Gather(steps_l, steps, 0)
         else:
             u = u_l
+            k = k_l
             rmsd = rmsd_l
             steps = steps_l
 
         if rank == 0:
             e.write_replica(rmsd, steps)
-            e.write_state(u, steps)
+            e.write_state(u, k, steps)
 
 # Design:
 
@@ -153,7 +158,6 @@ class ParallelTempering(Simulation):
         # replica_id contains their state id's.
         # We could as well distributes states, which would allow
         # for other optimizations.
-        self._thermostat = None
         np = self.nr / size
         ni = rank * np
         nf = (rank+1) * np
@@ -165,7 +169,6 @@ class ParallelTempering(Simulation):
             for nr in range(ni, nf):
                 self.process_with_replica[nr] = irank
         barrier()
-        logging.info('GPU %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]))
 
         # Listify steps per block.
         # Note that this is per state. If we set it in the sim instances
@@ -235,16 +238,17 @@ class ParallelTempering(Simulation):
                 # In which state is physical replica i ?
                 fh.write('%d %d %d %g\n' % (self.steps, step[i], self.state[i], msd[i]))
 
-    def write_state(self, u, step):
+    def write_state(self, u, k, step):
         """ Dump output info on a thermodynamic state """
-        # TODO: we could write state atomically, which would allow parallelization
+        # TODO: we could write state atomically, which would allow parallelization and remove communications
         # Loop over states       
         logging.debug('rx step=%s replicas(state)=%s' % (step[0], self.replica_id))
 
         for i in range(self.nr):
             with open(self.file_state_out[i], 'a') as fh:
                 # Which replica is in state i? What is its energy?
-                fh.write('%d %d %d %g\n' % (self.steps, step[i], self.replica_id[i], u[self.replica_id[i]])) #, self.acceptance(i)))
+                fh.write('%d %d %d %g %g\n' % (self.steps, step[i], self.replica_id[i], 
+                                               u[self.replica_id[i]], k[self.replica_id[i]] )) #, self.acceptance(i)))
 
     # def read_checkpoint(self):
     #     """ Checkpoint """
@@ -271,6 +275,13 @@ class ParallelTempering(Simulation):
             # TODO: write_checkpoint is not part of the official simulation interface, should it?
             self.sim[i].write_checkpoint()
 
+    def check(self):
+        for i in range(self.nr):
+            T = float(self.replica[i].thermostat.temperature)
+            if abs(self.params[self.state[i]] - T) > 1e-5:
+                logging.error('replica %d state %d at T=%s has thermostat at %s, delta %f' % (i, self.state[i], self.params[self.state[i]], T, abs(self.params[self.state[i]] - T)))
+                raise RuntimeError
+
     def run_pre(self):
         Simulation.run_pre(self)
 
@@ -295,9 +306,10 @@ class ParallelTempering(Simulation):
         # in the directory corresponding to the initial state of the replica
         for i in self.my_replica:
             self.sim[i].run_pre()
-        
+
         # Log RX info
         logging.info('rx with %d GPUs (rank=%d)' % (size, rank))
+        logging.info('GPU %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]))
         self.write_log()
 
         if not self.restart:
@@ -308,12 +320,12 @@ class ParallelTempering(Simulation):
         logging.debug('run until %d' % n)
         for i in self.my_replica:
             logging.debug('evolve replica %d on GPU %d' % (i, rank))
+            logging.debug('replica %d state %d formally at T=%s has thermostat T %s' % (i, self.state[i], self.params[self.state[i]], self.replica[i].thermostat.temperature))
             # This will evolve physical replica[i] for the number
             # of steps prescribed for its state 
             n = self.sim[i].steps + self.steps_block[self.state[i]]
             self.sim[i].run_until(n)
         # Attempt to exchange replicas.
-        # When swapping we must exchange their thermostats.
         self.exchange(self.replica)
             
     def run_end(self):
@@ -357,8 +369,6 @@ class ParallelTempering(Simulation):
     def exchange(self, system):
         logging.debug("exchange rx")
         if self.variables == ['T']:
-            if self._thermostat is None:
-                self._thermostat = [s.thermostat for s in system]
             self.__exchange_T_parallel(system)
         else:
             raise ValueError(self.variables)
@@ -390,13 +400,11 @@ class ParallelTempering(Simulation):
         self.offset = (self.offset+1) % 2
         self._update_replicas()
 
-        # Update internal state of replicas / simulations
-        # When swapping thermostats we imply the internal state should be swapped.
-        # This is not the case in RUMD for now (we simply swap T), so we simply 
-        # communicate the state and use a static mapping between states and temperatures.
-        # The internal state of the thermostat after each swap is reset to the initial one
+        # Update temperatures of replicas
+        # Note that when swapping certan thermostats, the internal state should be reset.
+        # It is OK for RUMD to only set the temperatures from the params list
         for i, s in enumerate(self.state):
-            system[i].thermostat = self._thermostat[s]
+            system[i].thermostat.temperature = self.params[s]
 
     def _update_replicas(self):
         """Once states have changed, we must update replica id's across processes"""
