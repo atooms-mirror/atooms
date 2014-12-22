@@ -5,8 +5,7 @@
 
 import sys
 import os
-import logging
-from atooms import simulation
+from atooms import simulation, log
 from atooms.utils import mkdir
 from rumd import *
 from rumdSimulation import rumdSimulation
@@ -14,13 +13,13 @@ from rumdSimulation import rumdSimulation
 class WriterCheckpoint(object):
 
     def __call__(self, e):
-        logging.debug('write checkpoint %d' % e.steps)
+        log.debug('write checkpoint %d' % e.steps)
         e.write_checkpoint()
 
 class WriterConfig(object):
 
     def __call__(self, e):
-        logging.debug('write config %d' % e.steps)
+        log.debug('write config %d' % e.steps)
         f = os.path.join(self.dir_output, self.file_base)
         with Trajectory(f, 'a') as t:
             t.write_sample(e.system, e.steps)
@@ -28,7 +27,7 @@ class WriterConfig(object):
 class WriterThermo(object):
 
     def __call__(self, e):
-        logging.debug('write thermo %d' % e.steps)
+        log.debug('write thermo %d' % e.steps)
         with open(e.trajectory.filename + '.thermo', 'a') as fh:
             fh.write('%d %g %g\n' % (e.steps, e.system.potential_energy(), e.rmsd))
 
@@ -85,11 +84,11 @@ class Simulation(simulation.Simulation):
     def read_checkpoint(self, filename=None):
         if filename is None:
             filename = self.trajectory.filename + '.chk'
-        logging.debug('reading own restart file %s' % filename)
+        log.debug('reading own restart file %s' % filename)
         self._sim.sample.ReadConf(filename)
         with open(filename + '.step') as fh:
             self.steps = int(fh.read())
-        logging.info('rumd restarting from %d' % self.steps)
+        log.info('rumd restarting from %d' % self.steps)
 
     def __check_restart(self):
         self._ibl = None
@@ -103,7 +102,7 @@ class Simulation(simulation.Simulation):
         # This may also a problem for self restarting blocks...??
         # TODO: *** why and when does rumd moves to .bak???! ***
         if self.restart:
-            logging.debug('restart attempt')
+            log.debug('restart attempt')
             
             self.restart = False
 
@@ -126,7 +125,7 @@ class Simulation(simulation.Simulation):
                         raise simulation.SimulationEnd('already completed')
 
                 if os.path.exists(self.dir_output + '/LastComplete_restart.txt'):
-                    logging.debug('reading rumd restart file %s' % (self.dir_output + '/LastComplete_restart.txt'))
+                    log.debug('reading rumd restart file %s' % (self.dir_output + '/LastComplete_restart.txt'))
                     with open(self.dir_output + '/LastComplete_restart.txt') as fh:
                         ibl, nstep = fh.readline().split()
                     self._ibl = int(ibl)
@@ -137,7 +136,7 @@ class Simulation(simulation.Simulation):
                     restart_files = glob.glob(self.dir_output + '/restart*')
                     restart_files.sort()
                     for f in restart_files[:-1]:
-                        logging.debug('removing restart file %s' % f)
+                        log.debug('removing restart file %s' % f)
                         os.remove(f)
         
     def run_pre(self):
@@ -145,7 +144,7 @@ class Simulation(simulation.Simulation):
         if self._sim.blockSize is None:
             # We set RUMD block to infinity unless the user set it already
             self._sim.SetBlockSize(sys.maxint)
-        logging.debug('RUMD block is %d' % self._sim.blockSize)
+        log.debug('RUMD block is %d' % self._sim.blockSize)
         self.__check_restart()
         self._initialize_output = True
 
@@ -279,7 +278,7 @@ class System(object):
                 # then get meta.GetMassOfType(i)
                 mi = self.sample.GetMass(i)
             except:
-                logging.warning('cannot get mass from RUMD interface, setting to 1.0')
+                log.warning('cannot get mass from RUMD interface, setting to 1.0')
                 mi = 1.0
             mass[ii:ii+ni] = mi
             ii += ni
