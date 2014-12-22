@@ -303,7 +303,8 @@ class ParallelTempering(Simulation):
         # Evolve over my physical replicas.
         log.debug('run until %d' % n)
         for i in self.my_replica:
-            log.debug('evolve replica %d on GPU %d' % (i, rank))
+            # TODO: rather use an additional level (debug_all, info_all) than extra dict
+            log.debug('evolve replica %d on GPU %d' % (i, rank), extra={'rank':'all'})
             log.debug('replica %d state %d formally at T=%s has thermostat T %s' % (i, self.state[i], self.params[self.state[i]], self.replica[i].thermostat.temperature))
             # This will evolve physical replica[i] for the number
             # of steps prescribed for its state 
