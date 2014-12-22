@@ -6,29 +6,23 @@ import sys
 import math
 import random
 import numpy
-import logging
 
 from atooms.simulation import Simulation, WriterCheckpoint
+from atooms.simulation import log as logging
+from atooms.utils import rank, size, barrier
 from atooms.utils import rmd, rmf, mkdir
-
-log = logging.getLogger()
-# TODO: logging info should only work for size=0. But then what if we want to set to debug?
-# Either we wrap logging as private methods, or try to extend logging, or define different handlers...
 
 try:
     from mpi4py import MPI
     comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
-    logging.info('found mpi4py %d %d' % (rank, size))
+    # rank = comm.Get_rank()
+    # size = comm.Get_size()
+    # logging.info('found mpi4py %d %d' % (rank, size))
 except:
-    rank = 0
-    size = 1
-    logging.info('mpi4py not found')
-
-def barrier():
-    if size > 1:
-        comm.barrier()
+    pass
+    # rank = 0
+    # size = 1
+    # logging.info('mpi4py not found')
 
 class WriterConfig(object):
 
@@ -434,12 +428,12 @@ class ParallelTempering(Simulation):
         if nn == rank:
             if my_state > nn_state:
                 return
-            log.debug('comm rank %d on same rank %d -> %d' % (rank, my_state, nn_state))
+            logging.debug('comm rank %d on same rank %d -> %d' % (rank, my_state, nn_state))
             u_j = numpy.array([system[r_j].potential_energy()])
             ran = numpy.array([random.random()])
         else:
             if my_state < nn_state:
-                log.debug('comm rank %d on /= rank %d -> %d' % (rank, my_state, nn_state))
+                logging.debug('comm rank %d on /= rank %d -> %d' % (rank, my_state, nn_state))
                 # I am on the left, I send first.
                 u_j = numpy.array([0.0])
                 comm.Send(u_i, nn, 10)
@@ -447,7 +441,7 @@ class ParallelTempering(Simulation):
                 ran = numpy.array([random.random()])
                 comm.Send(ran, nn, 12)
             elif my_state > nn_state:
-                log.debug('comm rank %d on /= rank %d <- %d' % (rank, my_state, nn_state))
+                logging.debug('comm rank %d on /= rank %d <- %d' % (rank, my_state, nn_state))
                 # I am on the right I receive first
                 u_j = numpy.array([0.0])
                 comm.Recv(u_j, nn, 10)
@@ -461,10 +455,10 @@ class ParallelTempering(Simulation):
         T_i = self.params[my_state]
         T_j = self.params[nn_state]
         # Store current probability term
-        log.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g" % (rank,  u_j[0], u_i[0], T_i, T_j))
+        logging.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g" % (rank,  u_j[0], u_i[0], T_i, T_j))
         self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
         # Test if we can swap states of replicas
-        log.debug("comm rank %d sawpping ran %g prob %g => %s" % (rank,  ran[0], self.__prob, ran[0]<self.__prob,))
+        logging.debug("comm rank %d sawpping ran %g prob %g => %s" % (rank,  ran[0], self.__prob, ran[0]<self.__prob,))
         if (ran[0] < self.__prob):
             self._swap(system, my_state, nn_state, r_i, r_j)
             # TODO: fix accepted counter
