@@ -9,20 +9,8 @@ import numpy
 
 from atooms.simulation import Simulation, WriterCheckpoint
 from atooms.simulation import log as logging
-from atooms.utils import rank, size, barrier
+from atooms.utils import rank, size, comm, barrier
 from atooms.utils import rmd, rmf, mkdir
-
-try:
-    from mpi4py import MPI
-    comm = MPI.COMM_WORLD
-    # rank = comm.Get_rank()
-    # size = comm.Get_size()
-    # logging.info('found mpi4py %d %d' % (rank, size))
-except:
-    pass
-    # rank = 0
-    # size = 1
-    # logging.info('mpi4py not found')
 
 class WriterConfig(object):
 
