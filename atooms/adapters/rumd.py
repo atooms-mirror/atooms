@@ -262,7 +262,8 @@ class System(object):
 
     def kinetic_energy(self):
         # TODO: use double IntegratorNVT::GetKineticEnergy(bool copy) const{
-        return ekin
+        from atooms.system.particle import total_kinetic_energy
+        return total_kinetic_energy(self.particle)
 
     def __get_mass(self):
         # TODO: cache it (but what if masses change?)
