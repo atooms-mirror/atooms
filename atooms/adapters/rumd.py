@@ -5,7 +5,8 @@
 
 import sys
 import os
-from atooms import simulation, log
+from atooms import simulation
+from atooms.simulation import log
 from atooms.utils import mkdir
 from rumd import *
 from rumdSimulation import rumdSimulation
@@ -118,13 +119,9 @@ class Simulation(simulation.Simulation):
                 if os.path.exists(self.dir_output + '/final.xyz.gz'):
                     if os.path.getmtime(self.dir_output + '/final.xyz.gz') > \
                             os.path.getmtime(self.dir_output + '/LastComplete_restart.txt'):
-                        # TODO: yes but what if we want to prolong a simulation? This is not good.
-                        # There exists a final configuration, exit immediately
                         # Update the sample from final configuartion
                         self._sim.sample.ReadConf(self.dir_output + '/final.xyz.gz')
-                        raise simulation.SimulationEnd('already completed')
-
-                if os.path.exists(self.dir_output + '/LastComplete_restart.txt'):
+                elif os.path.exists(self.dir_output + '/LastComplete_restart.txt'):
                     log.debug('reading rumd restart file %s' % (self.dir_output + '/LastComplete_restart.txt'))
                     with open(self.dir_output + '/LastComplete_restart.txt') as fh:
                         ibl, nstep = fh.readline().split()
