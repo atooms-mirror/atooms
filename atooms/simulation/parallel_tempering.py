@@ -292,8 +292,8 @@ class ParallelTempering(Simulation):
             self.sim[i].run_pre()
 
         # Log RX info
-        log.info('rx with %d GPUs (rank=%d)' % (size, rank))
-        log.info('GPU %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]))
+        log.info('rx with %d GPUs (rank=%d)' % (size, rank), extra={'rank':'all'})
+        log.info('GPU %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]), extra={'rank':'all'})
         self.write_log()
 
         if not self.restart:
