@@ -8,14 +8,14 @@ import random
 import numpy
 
 from atooms.simulation import Simulation, WriterCheckpoint
-from atooms.simulation import log as logging
+from atooms.simulation import log
 from atooms.utils import rank, size, comm, barrier
 from atooms.utils import rmd, rmf, mkdir
 
 class WriterConfig(object):
 
     def __call__(self, e):
-        logging.debug('writer config')
+        log.debug('writer config')
         for i in e.my_replica:
             irx = e.state[i]
             # If the output directory for state irx is None
@@ -34,7 +34,7 @@ class WriterCheckpointPT(WriterCheckpoint):
 class WriterThermo(object):
 
     def __call__(self, e):
-        logging.debug('PT writer thermo')
+        log.debug('PT writer thermo')
 
         # Since we grab steps from simulations, we must gather them first
         # We could have each process write down its replicas and make it more efficient, see write_state()
@@ -226,7 +226,7 @@ class ParallelTempering(Simulation):
         """ Dump output info on a thermodynamic state """
         # TODO: we could write state atomically, which would allow parallelization and remove communications
         # Loop over states       
-        logging.debug('rx step=%s replicas(state)=%s' % (step[0], self.replica_id))
+        log.debug('rx step=%s replicas(state)=%s' % (step[0], self.replica_id))
 
         for i in range(self.nr):
             with open(self.file_state_out[i], 'a') as fh:
@@ -249,7 +249,7 @@ class ParallelTempering(Simulation):
         # TODO: make this more robust. Only if all check points (state and replica) have been written we can safely restart!
         # We should therefore first keep the old checkpoints, create new files and then move (which is quick).
         # Additionally we should check consistency upon reading (i.e. all checkpoints should belong to the same step) and fail otherwise
-        logging.debug('write checkpoint %d' % self.steps)
+        log.debug('write checkpoint %d' % self.steps)
         # Note: offset and step are redundant, since they are global
         for i in self.my_replica:
             with open(self.file_replica_out[i] + '.chk', 'w') as fh:
@@ -263,7 +263,7 @@ class ParallelTempering(Simulation):
         for i in range(self.nr):
             T = float(self.replica[i].thermostat.temperature)
             if abs(self.params[self.state[i]] - T) > 1e-5:
-                logging.error('replica %d state %d at T=%s has thermostat at %s, delta %f' % (i, self.state[i], self.params[self.state[i]], T, abs(self.params[self.state[i]] - T)))
+                log.error('replica %d state %d at T=%s has thermostat at %s, delta %f' % (i, self.state[i], self.params[self.state[i]], T, abs(self.params[self.state[i]] - T)))
                 raise RuntimeError
 
     def run_pre(self):
@@ -283,7 +283,7 @@ class ParallelTempering(Simulation):
                         self.replica_id[istate] = i
                         self.steps = int(fh.readline())
                         self.offset = int(fh.readline())
-                    logging.debug('pt restarting replica %d at state %d from step %d' % 
+                    log.debug('pt restarting replica %d at state %d from step %d' % 
                                   (i, istate, self.steps))
         # Restarting is handled by the simulation instance.
         # The only glitch for now is that the checkpoint file ends up
@@ -292,8 +292,8 @@ class ParallelTempering(Simulation):
             self.sim[i].run_pre()
 
         # Log RX info
-        logging.info('rx with %d GPUs (rank=%d)' % (size, rank))
-        logging.info('GPU %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]))
+        log.info('rx with %d GPUs (rank=%d)' % (size, rank))
+        log.info('GPU %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]))
         self.write_log()
 
         if not self.restart:
@@ -301,10 +301,10 @@ class ParallelTempering(Simulation):
 
     def run_until(self, n):
         # Evolve over my physical replicas.
-        logging.debug('run until %d' % n)
+        log.debug('run until %d' % n)
         for i in self.my_replica:
-            logging.debug('evolve replica %d on GPU %d' % (i, rank))
-            logging.debug('replica %d state %d formally at T=%s has thermostat T %s' % (i, self.state[i], self.params[self.state[i]], self.replica[i].thermostat.temperature))
+            log.debug('evolve replica %d on GPU %d' % (i, rank))
+            log.debug('replica %d state %d formally at T=%s has thermostat T %s' % (i, self.state[i], self.params[self.state[i]], self.replica[i].thermostat.temperature))
             # This will evolve physical replica[i] for the number
             # of steps prescribed for its state 
             n = self.sim[i].steps + self.steps_block[self.state[i]]
@@ -351,7 +351,7 @@ class ParallelTempering(Simulation):
         return self.process_with_replica[self.replica_id[state]]
 
     def exchange(self, system):
-        logging.debug("exchange rx")
+        log.debug("exchange rx")
         if self.variables == ['T']:
             self.__exchange_T_parallel(system)
         else:
@@ -416,12 +416,12 @@ class ParallelTempering(Simulation):
         if nn == rank:
             if my_state > nn_state:
                 return
-            logging.debug('comm rank %d on same rank %d -> %d' % (rank, my_state, nn_state))
+            log.debug('comm rank %d on same rank %d -> %d' % (rank, my_state, nn_state))
             u_j = numpy.array([system[r_j].potential_energy()])
             ran = numpy.array([random.random()])
         else:
             if my_state < nn_state:
-                logging.debug('comm rank %d on /= rank %d -> %d' % (rank, my_state, nn_state))
+                log.debug('comm rank %d on /= rank %d -> %d' % (rank, my_state, nn_state))
                 # I am on the left, I send first.
                 u_j = numpy.array([0.0])
                 comm.Send(u_i, nn, 10)
@@ -429,7 +429,7 @@ class ParallelTempering(Simulation):
                 ran = numpy.array([random.random()])
                 comm.Send(ran, nn, 12)
             elif my_state > nn_state:
-                logging.debug('comm rank %d on /= rank %d <- %d' % (rank, my_state, nn_state))
+                log.debug('comm rank %d on /= rank %d <- %d' % (rank, my_state, nn_state))
                 # I am on the right I receive first
                 u_j = numpy.array([0.0])
                 comm.Recv(u_j, nn, 10)
@@ -443,10 +443,10 @@ class ParallelTempering(Simulation):
         T_i = self.params[my_state]
         T_j = self.params[nn_state]
         # Store current probability term
-        logging.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g" % (rank,  u_j[0], u_i[0], T_i, T_j))
+        log.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g" % (rank,  u_j[0], u_i[0], T_i, T_j))
         self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
         # Test if we can swap states of replicas
-        logging.debug("comm rank %d sawpping ran %g prob %g => %s" % (rank,  ran[0], self.__prob, ran[0]<self.__prob,))
+        log.debug("comm rank %d sawpping ran %g prob %g => %s" % (rank,  ran[0], self.__prob, ran[0]<self.__prob,))
         if (ran[0] < self.__prob):
             self._swap(system, my_state, nn_state, r_i, r_j)
             # TODO: fix accepted counter
