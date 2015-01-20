@@ -67,6 +67,20 @@ class WriterThermo(object):
             e.write_replica(rmsd, steps)
             e.write_state(u, k, steps)
 
+class StateTemperature(object):
+
+    """Callback to set the state of a simulation, once PT has swapped states"""
+
+    def __call__(self, system, params):
+        # Note that when swapping certan thermostats, the internal state should be reset.
+        # It is OK for RUMD to only set the temperatures from the params list
+        try:
+            system.thermostat.temperature = params[0]
+            system.dynamics.timestep = params[1]
+        except TypeError:
+            system.thermostat.temperature = params
+
+
 # Design:
 
 # Trajectory are defined internally by Simulation
@@ -95,9 +109,11 @@ class ParallelTempering(Simulation):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
-    def __init__(self, output_path, output_path_data, params, sim, swap_period, variables=['T']):
+    def __init__(self, output_path, output_path_data, params, sim, swap_period, update=StateTemperature):
         self.params = params
-        self.variables = variables
+        # TODO: drop variables, make acceptance a callback
+        self.variables = ['T']
+        self.update = update()
         self.sim = sim
         self.steps_block = swap_period
         self.seed = 10
@@ -212,7 +228,11 @@ class ParallelTempering(Simulation):
         """ Dump state parameters """
         with open(self.file_log, 'w') as fh:
             for i, T in enumerate(self.params):
-                fh.write('%d %g\n' % (i, T))
+                try:
+                    fmt = ' %s' * len(T)
+                    fh.write(('%d' + fmt + '\n') % tuple([i] + list(T)))
+                except:
+                    fh.write('%d %s\n' % (i, T))
 
     def write_replica(self, msd, step):
         """ Dump output info on a physical replica """
@@ -383,27 +403,24 @@ class ParallelTempering(Simulation):
 
         # Update offset and replica ids
         self.offset = (self.offset+1) % 2
-        self._update_replicas()
 
-        # -------------------------------
-        # Update temperatures of replicas
-        # Note that when swapping certan thermostats, the internal state should be reset.
-        # It is OK for RUMD to only set the temperatures from the params list
-        for i, s in enumerate(self.state):
-            system[i].thermostat.temperature = self.params[s]
-        # -------------------------------
-
-    def _update_replicas(self):
-        """Once states have changed, we must update replica id's across processes"""
+        # Once states have changed, we must update replica id's across processes
         state_tmp = numpy.array(range(self.nr))
         state_new = numpy.array([self.state[r] for r in self.my_replica])
         if size > 1:
             comm.Allgather(state_new, state_tmp)
         else:
             state_tmp = state_new
+
         # After setting replica_id we can safely use self.state
         for i, s in enumerate(state_tmp):
             self.replica_id[s] = i
+
+        # -------------------------------
+        # Update state of replicas
+        for i, s in enumerate(self.state):
+            self.update(system[i], self.params[s])
+        # -------------------------------
 
     def __exchange_T_comm(self, my_state, nn_state, system):
         # TODO: add attempts
@@ -443,8 +460,13 @@ class ParallelTempering(Simulation):
                 raise ValueError("my_state %d == nn_state %d" % (my_state, nn_state))
 
         # Temperatures
-        T_i = self.params[my_state]
-        T_j = self.params[nn_state]
+        # TODO: encapsulate in exchange attempt callback
+        try:
+            T_i = self.params[my_state][0]
+            T_j = self.params[nn_state][0]
+        except:
+            T_i = self.params[my_state]
+            T_j = self.params[nn_state]
         # Store current probability term
         log.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g" % (rank,  u_j[0], u_i[0], T_i, T_j))
         self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
