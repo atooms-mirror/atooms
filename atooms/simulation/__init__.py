@@ -231,17 +231,13 @@ class Simulation(object):
             self._scheduler = []
 
         # Add check for user stop
-        self.add(UserStop(), Scheduler(1))
+        #self.add(UserStop(), Scheduler(1))
         
         if target_steps:
             self.target_steps = target_steps
             self.add(self._TARGET_STEPS(target_steps), Scheduler())
         if target_rmsd:
-            #self.target_steps = None
-            # For the time being rmsd targeting is checked at every step
-            # Of course, this could be relaxed with some more dynamic
-            # scheduling
-            self.add(self._TARGET_RMSD(target_rmsd), Scheduler(period=1))
+            self.add(self._TARGET_RMSD(target_rmsd), Scheduler(1))
 
         if thermo_period or thermo_number:
             self.add(self._WRITER_THERMO(), Scheduler(thermo_period, thermo_number))
