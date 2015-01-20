@@ -11,12 +11,13 @@ class System(object):
 
     """System class."""
 
-    def __init__(self,particle=[],cell=None,interaction=None,matrix=None,thermostat=None):
+    def __init__(self,particle=[],cell=None,interaction=None,matrix=None,thermostat=None,dynamics=None):
         self.particle = particle
         self.interaction = interaction
         self.cell     = cell
         self.matrix   = matrix
         self.thermostat = thermostat
+        self.dynamics = dynamics
 
     @property
     def number_of_dimensions(self):
@@ -50,6 +51,12 @@ class System(object):
 
     def fix_cm(self):
         fix_cm(self.particle)
+
+    def evolve(self):
+        # Time evolution is a behavior of a system.
+        # But to avoid passing the whole object, we must unpack it
+        if not self.dynamics is None:
+            self.dynamics.evolve(self.particle,self.cell,self.interaction,self.thermostat)
         
     def maxwellian(self, T):
         """ Reset velocities to a Maxwellian distribution with fixed CM """

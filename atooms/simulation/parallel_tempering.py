@@ -385,11 +385,13 @@ class ParallelTempering(Simulation):
         self.offset = (self.offset+1) % 2
         self._update_replicas()
 
+        # -------------------------------
         # Update temperatures of replicas
         # Note that when swapping certan thermostats, the internal state should be reset.
         # It is OK for RUMD to only set the temperatures from the params list
         for i, s in enumerate(self.state):
             system[i].thermostat.temperature = self.params[s]
+        # -------------------------------
 
     def _update_replicas(self):
         """Once states have changed, we must update replica id's across processes"""

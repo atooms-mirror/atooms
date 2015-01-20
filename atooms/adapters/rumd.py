@@ -223,6 +223,22 @@ class Thermostat(object):
     temperature = property(_get_temperature, _set_temperature, 'Temperature')
     
 
+class MolecularDynamics(object):
+
+    """Wrap an integrator as MolecularDynamics."""
+
+    def __init__(self, integrator):
+        self._integrator = integrator
+
+    def _get_timestep(self):
+        return self._integrator.GetTimeStep()
+
+    def _set_timestep(self, value):
+        self._integrator.SetTimeStep(value)
+
+    timestep = property(_get_timestep, _set_timestep, 'Timestep')
+
+
 class System(object):
     
     def __init__(self, sim):
@@ -230,6 +246,7 @@ class System(object):
         self.sample = sim.sample
         # TODO: system may not have one right now, what will this give? A None?
         self.thermostat = Thermostat(self.sample.GetIntegrator())
+        self.dynamics = MolecularDynamics(self.sample.GetIntegrator())
 
     def __copy__(self):
         # This is not really needed, it's just there for reference
