@@ -9,7 +9,26 @@ import time
 import logging
 import copy
 
+from atooms.utils import rank, size
+
+# Logging facilities
+
+class ParallelFilter(logging.Filter):
+    def filter(self, rec):
+        if hasattr(rec, 'rank'):
+            if rec.rank == 'all':
+                return True
+            else:
+                return rank == rec.rank
+        else:
+            return rank == 0
+
 log = logging.getLogger('atooms')
+#formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+#handler = logging.StreamHandler()
+#handler.setFormatter(formatter)
+log.addFilter(ParallelFilter())
+#log.addHandler(handler)
 
 # Default exceptions
 
@@ -69,7 +88,7 @@ class Target(object):
 
     def __call__(self, sim):
         x = float(getattr(sim, self.name))
-        logging.debug('targeting %s to %g [%d]' % (self.name, x, int(float(x) / self.target * 100)))
+        log.debug('targeting %s to %g [%d]' % (self.name, x, int(float(x) / self.target * 100)))
         if x >= self.target:
             raise SimulationEnd('target %s achieved' % self.name)
 
@@ -105,7 +124,7 @@ class TargetWallTime(Target):
         else:
             t = _elapsed_time()
             dt = self.wtime_limit - t
-            logging.debug('elapsed time %g, reamining time %g' % (t, dt))
+            log.debug('elapsed time %g, reamining time %g' % (t, dt))
 
 class UserStop(object):
     """Allows a user to stop the simulation smoothly by touching a STOP
@@ -196,7 +215,7 @@ class Simulation(object):
         
     def report(self):
         for f, s in zip(self._callback, self._scheduler):
-            logging.info('Observer %s: period=%s calls=%s target=%s' % (type(f), s.period, s.calls, s.target))
+            log.info('Observer %s: period=%s calls=%s target=%s' % (type(f), s.period, s.calls, s.target))
 
     def setup(self, 
               target_steps=None, target_rmsd=None,
@@ -240,7 +259,7 @@ class Simulation(object):
                 if s.now(self.steps) and condition(f):
                     f(self)
             except SchedulerError:
-                logging.error('error with %s' % f, s.period, s.calls)
+                log.error('error with %s' % f, s.period, s.calls)
                 raise
     
     def wall_time_per_step(self):
@@ -289,8 +308,8 @@ class Simulation(object):
             self.notify(lambda x : isinstance(x, Target))
             if not self.restart:
                 self.notify(lambda x : not isinstance(x, Target))
-            logging.info('simulation started at %d' % self.steps)
-            logging.info('targeted number of steps: %s' % self.target_steps)
+            log.info('simulation started at %d' % self.steps)
+            log.info('targeted number of steps: %s' % self.target_steps)
             while True:
 #                if self.steps >= self.target_steps:
 #                    raise SimulationEnd('target steps achieved')
@@ -300,8 +319,8 @@ class Simulation(object):
                 next_step = min([s.next(self.steps) for s in self._scheduler])
                 self.run_until(next_step)
                 self.steps = next_step
-                # TODO: logging should be done only by rank=0 in parallel: encapsulate
-                logging.info('step=%d/%d rmsd=%.2f wtime/step=%.2g' % (self.steps, self.target_steps,
+                # TODO: log should be done only by rank=0 in parallel: encapsulate
+                log.info('step=%d/%d rmsd=%.2f wtime/step=%.2g' % (self.steps, self.target_steps,
                                                                        self.rmsd,
                                                                        self.wall_time_per_step()))
                 # Notify writer and generic observers before targeters
@@ -318,11 +337,11 @@ class Simulation(object):
                     f(self)
             #self.notify(lambda x : isinstance(x, WriterCheckpoint))
             if not self.initial_steps == self.steps:
-                logging.info('simulation wall time [s]: %.1f' % _elapsed_time())
-                logging.info('simulation wall time/step [s]: %.2g' % self.wall_time_per_step())
-            logging.info('simulation ended successfully: %s' % s.message)
+                log.info('simulation wall time [s]: %.1f' % _elapsed_time())
+                log.info('simulation wall time/step [s]: %.2g' % self.wall_time_per_step())
+            log.info('simulation ended successfully: %s' % s.message)
             self.run_end()
 
         finally:
-            logging.info('exiting')
+            log.info('exiting')
 

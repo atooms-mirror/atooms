@@ -1,5 +1,48 @@
 import os
 import shutil
+import logging
+
+# Logging facilities
+
+LOGGER_NAME = 'atooms'
+DEFAULT_LOGGING_FORMAT = '[%(levelname)s/%(processName)s] %(message)s'
+
+_logger = None
+
+def log_to_stderr(level=None):
+    '''
+    Turn on logging and add a handler which prints to stderr
+    '''
+    import logging
+
+    logger = logging.get_logger(LOGGER_NAME)
+    formatter = logging.Formatter(DEFAULT_LOGGING_FORMAT)
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    if level:
+        logger.setLevel(level)
+    return _logger
+
+# Parallel environment
+
+try:
+    from mpi4py import MPI
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+    print 'found mpi4py %d %d' % (rank, size)
+    logging.info('found mpi4py %d %d' % (rank, size))
+except:
+    rank = 0
+    size = 1
+    print 'not found mpi4py %d %d' % (rank, size)
+    logging.info('mpi4py not found')
+
+def barrier():
+    if size > 1:
+        comm.barrier()
 
 # Utility functions to mimic bash directory / file handling
 
