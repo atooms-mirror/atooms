@@ -109,14 +109,14 @@ class ParallelTempering(Simulation):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
-    def __init__(self, output_path, output_path_data, params, sim, swap_period, update=StateTemperature):
+    def __init__(self, output_path, output_path_data, params, sim, swap_period, seed=10, update=StateTemperature):
         self.params = params
         # TODO: drop variables, make acceptance a callback
         self.variables = ['T']
         self.update = update()
         self.sim = sim
         self.steps_block = swap_period
-        self.seed = 10
+        self.seed = seed
         self.nr = len(params)
         # The trajectory class is taken from the simulation backend
         # For the moment, we assume that at least the first simulation 
