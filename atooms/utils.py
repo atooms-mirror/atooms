@@ -32,12 +32,10 @@ try:
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
-    print 'found mpi4py %d %d' % (rank, size)
     logging.info('found mpi4py %d %d' % (rank, size))
 except:
     rank = 0
     size = 1
-    print 'not found mpi4py %d %d' % (rank, size)
     logging.info('mpi4py not found')
 
 def barrier():
