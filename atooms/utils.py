@@ -34,6 +34,7 @@ try:
     size = comm.Get_size()
     logging.info('found mpi4py %d %d' % (rank, size))
 except:
+    comm = None
     rank = 0
     size = 1
     logging.info('mpi4py not found')
