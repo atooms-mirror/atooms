@@ -278,8 +278,8 @@ def convert(inp, out, tag='', ignore=[]):
 
     Return: name of converted trajectory file
     """
+    # TODO: strip trailing slash !
     filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix
-
     with out(filename, 'w') as conv:
         conv.timestep = inp.timestep
         conv.block_period = inp.block_period
