@@ -25,12 +25,16 @@ class TrajectoryNinarello(TrajectoryBase):
         self.__f_all = glob.glob(dirname + '/%s-*' % basename)
         self.__box = box
         self.__x = x
-        self.steps = []
+        # TODO: sorting is copied over from lammps, refactor
+        file_steps = []
         for f in self.__f_all:
             s = re.search(r'%s-(\d*)' % basename, f)
             if s:
                 step = int(s.group(1))
-                self.steps.append(step)
+                file_steps.append((f, step))
+        file_steps.sort(key = lambda a : a[1])
+        self.__f_all = [a[0] for a in file_steps]
+        self.steps = [a[1] for a in file_steps]
 
     def read_sample(self, sample):
         particle = []
