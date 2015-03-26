@@ -65,7 +65,8 @@ if __name__ == '__main__':
     from atooms.trajectory import TrajectoryBase, TrajectoryHDF5, convert
     #side = float(sys.argv[1])
     for f in sys.argv[1:]:
-        with TrajectoryNinarello(f, x=0.8) as t:
+        #with TrajectoryNinarello(f, x=0.8) as t:
+        with TrajectoryNinarello(f) as t:
             fout = convert(t, TrajectoryHDF5)            
 
         # import re
