@@ -148,9 +148,9 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Interaction
         # TODO: we should make sure interaction is a list
-        group = '/initialstate/interaction/'
         if system.interaction:
-            self.write_interaction([system.interaction])
+            self.trajectory.copy(system.interaction, '/initialstate/interaction/')
+            #self.write_interaction([system.interaction])
         
     def write_interaction(self, interaction):
         rgr = '/initialstate/interaction/'
@@ -224,9 +224,11 @@ class TrajectoryHDF5(TrajectoryBase):
             if entry == 'sidebox' : sidebox = group[entry][:]
         cell = Cell(sidebox)
 
-        # TODO: read actual interactions from file if they are present
-        # create some default total interaction
-        interaction = Interaction('', [])
+        # read interaction as h5 group
+        try:
+            interaction = self.trajectory['/initialstate/interaction']
+        except:
+            interaction = Interaction('', [])
 
         # build system
         self._system = System(particle, cell, interaction)
