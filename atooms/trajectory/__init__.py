@@ -324,6 +324,7 @@ class SuperTrajectory(TrajectoryBase):
 
     # The approach is inefficient for large number of
     # subtrajectories (init takes some time)
+    # TODO; try not to keep all files open at a time !
 
     def __init__(self, subtrajectories, mode='r', timestep=1.0, variable=False, periodic=True):
         f = os.path.dirname(subtrajectories[0].filename) + '/'
