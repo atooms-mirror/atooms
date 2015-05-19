@@ -228,7 +228,7 @@ class TrajectoryHDF5(TrajectoryBase):
         try:
             interaction = self.trajectory['/initialstate/interaction']
         except:
-            interaction = Interaction('', [])
+            interaction = None
 
         # build system
         self._system = System(particle, cell, interaction)
