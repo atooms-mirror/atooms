@@ -32,11 +32,13 @@ class TrajectoryXYZ(TrajectoryBase):
             self.trajectory = open(self.filename, 'a')
 
         elif self.mode == 'r':
+            # TODO: allow reading xyz file from stdin. Seek wont work though, need to pass through tmp file
             ext = os.path.splitext(self.filename)[1]
             if ext == '.gz':
                 self.trajectory = gzip.open(self.filename)
             else:
                 self.trajectory = open(self.filename, 'r')
+
             self._setup_index(self.trajectory)
             # Define sample list and fix case when no step is available
             # Should it be in _setup_index()
