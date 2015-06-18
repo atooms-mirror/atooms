@@ -280,7 +280,17 @@ def convert(inp, out, tag='', ignore=[]):
     """
     # TODO: strip trailing slash !
     # TODO: convert metadata (interaction etc) !
-    filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix
+    # If the input trajectory lies in a directory, the new trajectory is located
+    # in a companion directory prefixed by tag. The basename is config
+    if os.path.isdir(inp.filename):
+        if tag == '':
+            tag = '-conv'
+        dirname = inp.filename.strip('/') + tag
+        from pyutils.utils import mkdir
+        mkdir(dirname)
+        filename = dirname + '/config.' + out.suffix
+    else:
+        filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix    
     with out(filename, 'w') as conv:
         conv.timestep = inp.timestep
         conv.block_period = inp.block_period
