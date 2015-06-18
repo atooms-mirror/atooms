@@ -22,7 +22,7 @@ def add_interaction_hdf5(finp, ff, tag=None):
     pid = os.getpid()
     f_ref = '/tmp/cnv_%s.h5' % pid
     # TODO: we can cache a ref file if ff is the same
-    os.system('system.x -n 2 -f %s %s' % (ff, f_ref))
+    os.system('system.x -n 2 -f %s %s > /dev/stdout' % (ff, f_ref))
     ref = h5py.File(f_ref, 'r')
 
     if tag:
@@ -35,12 +35,12 @@ def add_interaction_hdf5(finp, ff, tag=None):
         
     # Add interaction
     os.system('/bin/cp %s %s' % (finp, fout))
-    print '/bin/cp %s %s' % (finp, fout)
     h5 = h5py.File(fout , 'r+')
+    # Make sure interaction does not exist
     try:
         del h5['initialstate/interaction']
     except:
-        print 'interaction does not exists'
+        pass
     h5.copy(ref['initialstate/interaction'], 'initialstate/interaction')
     h5.close()
 
@@ -56,6 +56,7 @@ def add_interaction_hdf5(finp, ff, tag=None):
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument('-p', '--percentage',dest='percent', action='store_true', help='first and last in percentages (if set)')
 parser.add_argument('-f', '--first',   dest='first', type=int, default=0, help='first cfg')
 parser.add_argument('-l', '--last',    dest='last', type=int, default=-1, help='last cfg')
 parser.add_argument('-s', '--skip',    dest='skip', type=int, default=1, help='interval between cfg')
@@ -75,25 +76,27 @@ if not args.out in trj_map:
 if args.out  == 'auto':
     raise ValueError('Cannot use factory for output format')
 
-if args.first == 0 and args.last == -1 and args.skip == 1:
-    sl = None
-else:
-    sl = slice(args.first, args.last, args.skip)
-
 for finp in args.file:
     if not os.path.exists(finp):
         logging.warn('file %s does not exists, skipping it.' % finp)
         continue
 
     with trj_map[args.inp](finp) as t:
-        if sl is None:
-            tn = trajectory.NormalizeId(t)
-        else:
-            tnn = trajectory.NormalizeId(t)
-            tn = trajectory.Sliced(t, sl)
+        tn = trajectory.NormalizeId(t)
 
-        fout = trajectory.convert(tn, trj_map[args.out], args.tag)
-        print 'converted %s to %s' % (finp, fout)
+        # Define slice
+        if args.percent:
+            # If we ask fractional first / last sample and they are different from default
+            # get the actual first and/or last sample to convert
+            if args.first > 0:
+                args.first = int(args.first / 100. * len(tn))
+            if args.last != -1:
+                args.last = int(args.last / 100. * len(tn))
+
+        sl = slice(args.first, args.last, args.skip)
+        t = trajectory.Sliced(t, sl)
+        fout = trajectory.convert(t, trj_map[args.out], args.tag)
+        print 'converted %s to %s from step %d to %d' % (finp, fout, args.first, args.last)
     
         if args.ff:
             if os.path.exists(args.ff):
