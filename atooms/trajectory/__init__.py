@@ -282,6 +282,10 @@ def convert(inp, out, tag='', ignore=[]):
     # TODO: convert metadata (interaction etc) !
     # If the input trajectory lies in a directory, the new trajectory is located
     # in a companion directory prefixed by tag. The basename is config
+    # Check that we have some files there
+    if len(inp.steps) == 0:
+        raise IOError('No files in directory (%s)' % inp.filename)
+
     if os.path.isdir(inp.filename):
         if tag == '':
             tag = '-conv'
