@@ -56,6 +56,16 @@ def temperature(particle, ndof=None):
         ndof = ndim * (len(particle) - 1)
     return 2 * total_kinetic_energy(particle) / ndof
 
+def composition(particle):
+    """Return a tuple containing the number of particles 
+    of each species appearing the input particle list"""
+    # TODO: check id normalization
+    x = max([p.id for p in particle]) * [0]
+    for p in particle:
+        x[p.id-1] += 1
+    return tuple(x)
+
+
 class Particle(object):
 
     """
