@@ -231,6 +231,12 @@ class TrajectoryBase(object):
         # msd_total = numpy.sum((self._pos_unf[-1] - self._pos_unf[0])**2) / self._pos_unf[0].shape[0]
         # return min(1.0, msd_target * sigma**2 / msd_total) * self.steps[-1] * self.timestep
 
+    def timeseries(self, callback, *args, **kwargs):
+        """Returns a timeseries of a callback results"""
+        for i, s in zip(self.steps, self):
+            yield i, callback(s, *args, **kwargs)
+
+
     # def _unfold(self):
     #     # unfold should be handled only via the decorator.
     #     # We should allow subclasses to use internal data to avoid explicit unfolding.
@@ -310,6 +316,7 @@ def convert(inp, out, tag='', ignore=[]):
 
     return filename
 
+
 def split(inp, selection=slice(None), index='step', archive=False):
     """Split the trajectory into independent trajectory files, one per sample."""
     if archive:
@@ -331,6 +338,7 @@ def split(inp, selection=slice(None), index='step', archive=False):
 
     if archive:
         tar.close()
+
 
 class SuperTrajectory(TrajectoryBase):
 
