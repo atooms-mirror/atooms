@@ -93,10 +93,11 @@ for finp in args.file:
             if args.last != -1:
                 args.last = int(args.last / 100. * len(tn))
 
+        print 'converting %s (from step %d to %d) to' % (finp, args.first, args.last),
         sl = slice(args.first, args.last, args.skip)
         t = trajectory.Sliced(t, sl)
         fout = trajectory.convert(t, trj_map[args.out], args.tag)
-        print 'converted %s to %s from step %d to %d' % (finp, fout, args.first, args.last)
+        print fout
     
         if args.ff:
             if os.path.exists(args.ff):
