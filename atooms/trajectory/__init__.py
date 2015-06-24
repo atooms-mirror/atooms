@@ -10,8 +10,6 @@ import warnings
 
 from decorators import *
 
-log = logging.GetLogger()
-
 class TrajectoryBase(object):
 
     """Trajectory base class"""
@@ -291,8 +289,7 @@ def convert(inp, out, tag='', ignore=[]):
     # in a companion directory prefixed by tag. The basename is config
     # Check that we have some files there
     if len(inp.steps) == 0:
-        log.warning('Warning: no files in directory (%s)' % inp.filename)
-        return None
+        raise IOError('no files in directory (%s)' % inp.filename)
 
     if os.path.isdir(inp.filename):
         if tag == '':
