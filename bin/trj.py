@@ -22,9 +22,10 @@ def add_interaction_hdf5(finp, ff, tag=None):
     pid = os.getpid()
     f_ref = '/tmp/cnv_%s.h5' % pid
     # TODO: we can cache a ref file if ff is the same
-    os.system('system.x -n 2 -f %s %s > /dev/stdout' % (ff, f_ref))
+    os.system('system.x -n 2 -f %s %s 1>/dev/null 2>/dev/null' % (ff, f_ref))
     ref = h5py.File(f_ref, 'r')
 
+    # TODO: can this tag de bropped?
     if tag:
         d = os.path.dirname(finp) + '_' + opts.tag
         if not os.path.exists(d):
@@ -85,22 +86,28 @@ for finp in args.file:
         tn = trajectory.NormalizeId(t)
 
         # Define slice
+        first = args.first
+        last = args.last
         if args.percent:
             # If we ask fractional first / last sample and they are different from default
             # get the actual first and/or last sample to convert
             if args.first > 0:
-                args.first = int(args.first / 100. * len(tn))
+                first = int(args.first / 100. * len(tn))
             if args.last != -1:
-                args.last = int(args.last / 100. * len(tn))
+                last = int(args.last / 100. * len(tn))
+        sl = slice(first, last, args.skip)
 
-        print 'converting %s (from step %d to %d) to' % (finp, args.first, args.last),
-        sl = slice(args.first, args.last, args.skip)
         t = trajectory.Sliced(t, sl)
-        fout = trajectory.convert(t, trj_map[args.out], args.tag)
-        print fout
-    
+        try:
+            fout = trajectory.convert(t, trj_map[args.out], args.tag)
+        except IOError, e:
+            print 'Conversion failed for %s (%s)' % (f, e)
+            continue
+
         if args.ff:
             if os.path.exists(args.ff):
                 add_interaction_hdf5(fout, args.ff)
             else:
-                raise OSError('force field file does not exist')
+                raise IOError('force field file does not exist')
+
+        print 'Created %s (from %d to %d)' % (fout, first, last)
