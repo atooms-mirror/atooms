@@ -10,6 +10,8 @@ import warnings
 
 from decorators import *
 
+log = logging.GetLogger()
+
 class TrajectoryBase(object):
 
     """Trajectory base class"""
@@ -284,13 +286,13 @@ def convert(inp, out, tag='', ignore=[]):
 
     Return: name of converted trajectory file
     """
-    # TODO: strip trailing slash !
     # TODO: convert metadata (interaction etc) !
     # If the input trajectory lies in a directory, the new trajectory is located
     # in a companion directory prefixed by tag. The basename is config
     # Check that we have some files there
     if len(inp.steps) == 0:
-        raise IOError('No files in directory (%s)' % inp.filename)
+        log.warning('Warning: no files in directory (%s)' % inp.filename)
+        return None
 
     if os.path.isdir(inp.filename):
         if tag == '':
