@@ -13,7 +13,7 @@ from atooms.adapters.atoomsf90 import Simulation, System
 class TestAtooms(unittest.TestCase):
 
     def setUp(self):
-        self.file_ref = '../reference/kalj/config.dat'
+        self.file_ref = 'reference/kalj/config.dat'
         self.ref_u = -4805.69761109
 
     def test_potential_energy(self):

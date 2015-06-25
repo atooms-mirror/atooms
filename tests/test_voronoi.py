@@ -9,7 +9,7 @@ class TestVoronoi(unittest.TestCase):
         pass
 
     def test_read(self):
-        t = TrajectoryVoronoi('atooms/reference/wahn_voronoi.xyz')
+        t = TrajectoryVoronoi('reference/wahn_voronoi.xyz')
         v0 = []
         for i in t.samples:
             p, v = t.read_sample(i)

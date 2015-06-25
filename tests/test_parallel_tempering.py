@@ -22,7 +22,7 @@ class TestReplicaExchange(unittest.TestCase):
         file_state_config = [dir_root + '/rx.s%d.h5' % i for i in range(len(Tl))]
         file_replica_out = [dir_root + '/rx.r%d.out' % i for i in range(len(Tl))]
 
-        sim_adapter = [SimulationAtooms(f, file_input='atooms/reference/kalj-small.h5',
+        sim_adapter = [SimulationAtooms(f, file_input='reference/kalj-small.h5',
                                         opts={'--thermostat':'Berendsen',
                                               '--thermostat-temperature':T,
                                               '--dt':0.004}) 
@@ -69,7 +69,7 @@ class TestReplicaExchange(unittest.TestCase):
             rx_sim.run()
                  
         Tl = [1.0, 1.1, 1.2]
-        input_file = ['atooms/reference/kalj256.h5.xyz' for T in Tl]
+        input_file = ['reference/kalj256.h5.xyz' for T in Tl]
         dir_root = '/tmp/rx'
         rx(Tl, dir_root, input_file, nsteps=3, swap_period=1000)
 

@@ -18,16 +18,16 @@ class TestBOO(unittest.TestCase):
     def _load(self, structure):
         # TODO: these references files don't exist anymore
         if structure == 'bcc':
-            self.t = Trajectory('atooms/reference/lj_bcc.h5')
-            self.tn = TrajectoryNeighbors('atooms/reference/lj_bcc.h5.voronoi.xyz.neigh')
+            self.t = Trajectory('reference/lj_bcc.h5')
+            self.tn = TrajectoryNeighbors('reference/lj_bcc.h5.voronoi.xyz.neigh')
             self.ref = {6: 0.510688230857, 4: 0.0363696483727, 8: 0.429322472922}
         elif structure == 'fcc':
-            self.t = Trajectory('atooms/reference/lj_fcc.h5.min')
-            self.tn = TrajectoryNeighbors('atooms/reference/lj_fcc.h5.min.voronoi.xyz.neigh')
+            self.t = Trajectory('reference/lj_fcc.h5.min')
+            self.tn = TrajectoryNeighbors('reference/lj_fcc.h5.min.voronoi.xyz.neigh')
             self.ref = {6: 0.574524259714, 4: 0.190940653956, 8: 0.403914561085}
         elif structure == 'fluid':
-            self.t = TrajectoryHDF5('atooms/reference/lj.h5')
-            self.tn = TrajectoryNeighbors('atooms/reference/lj.h5.voronoi.xyz.neigh')
+            self.t = TrajectoryHDF5('reference/lj.h5')
+            self.tn = TrajectoryNeighbors('reference/lj.h5.voronoi.xyz.neigh')
             self.ref = {6: 0.2731}
 
     def _test(self):

@@ -11,7 +11,7 @@ class TestMeanSquareDisplacement(unittest.TestCase):
 
     # TODO: speed up this test
     def test_msd(self):
-        f = 'atooms/reference/kalj-matrix.h5'
+        f = 'reference/kalj-matrix.h5'
         t = trajectory.Sliced(trajectory.TrajectoryHDF5(f), slice(0,1000,1))
         p = postprocessing.MeanSquareDisplacement(t, [0.0, 1.0, 10.0, 100.0])
         p.do()
@@ -28,7 +28,7 @@ class TestFourierSpace(unittest.TestCase):
 
     # TODO: speed up this test
     def test_fskt(self):
-        t = trajectory.TrajectoryHDF5('atooms/reference/lj.h5')
+        t = trajectory.TrajectoryHDF5('reference/lj.h5')
         p = postprocessing.SelfIntermediateScattering(t, kgrid=[7.0], tgrid=[0.0, 0.1, 0.5])
         p.do()
         ref_value = numpy.array([1.0, 0.51126058513090678, 0.017393617074980577])
@@ -37,7 +37,7 @@ class TestFourierSpace(unittest.TestCase):
 
     # TODO: speed up this test
     def test_fskt_elongated(self):
-        t = trajectory.TrajectoryHDF5('atooms/reference/lj_elongated/config.dat')
+        t = trajectory.TrajectoryHDF5('reference/lj_elongated/config.dat')
         p = postprocessing.SelfIntermediateScattering(t, kgrid=[7.0], tgrid=[0.0, 0.1, 0.5])
         p.do()
         ref_value = numpy.array([1.0, 0.70889408516023678, 0.18584564453072067])
@@ -46,7 +46,7 @@ class TestFourierSpace(unittest.TestCase):
 class TestOverlap(unittest.TestCase):
 
     def test_overlap_pinned(self):
-        t = trajectory.TrajectoryHDF5('atooms/reference/kalj_rumd_pinned.h5')
+        t = trajectory.TrajectoryHDF5('reference/kalj_rumd_pinned.h5')
         p = postprocessing.OverlapDistribution(t, [20], skip=100)
         p.do()
         p.grid
