@@ -149,6 +149,8 @@ class TrajectoryDecorator(object):
 
 class NormalizeId(object):
 
+    """Make sure all chemical ids start from 1"""
+
     def __new__(cls, component):
         cls = type('NormalizeId', (NormalizeId, component.__class__), component.__dict__)
         return object.__new__(cls)
