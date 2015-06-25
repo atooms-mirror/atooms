@@ -101,7 +101,7 @@ for finp in args.file:
         try:
             fout = trajectory.convert(t, trj_map[args.out], args.tag)
         except IOError, e:
-            print 'Conversion failed for %s (%s)' % (f, e)
+            print 'Conversion failed for %s (%s)' % (finp, e)
             continue
 
         if args.ff:

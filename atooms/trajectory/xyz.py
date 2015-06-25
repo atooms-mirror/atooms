@@ -17,6 +17,8 @@ class TrajectoryXYZ(TrajectoryBase):
 
     suffix = 'xyz'
 
+    # TODO: move all file init to write_init. Rename trajectory fh or something like this.
+
     def __init__(self, filename, mode='r'):
         TrajectoryBase.__init__(self, filename, mode)
         self._timestep = 1.0
@@ -216,7 +218,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 self.trajectory.write((ndim*" %14.6f"+"\n") % tuple(self._cell.side))
         self.trajectory.close()
 
-# TODO: refactor xyz class to parse a predefined sequence of float/int/str with appropriate tags / metadata as RUMD
+# TODO: refactor xyz class to parse a predefined sequence of float/int/str with appropriate tags / metadata as RUMD -> drop cell
 class TrajectoryNeighbors(TrajectoryXYZ):
 
     """Neighbors info"""

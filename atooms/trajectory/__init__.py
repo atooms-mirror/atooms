@@ -84,6 +84,10 @@ class TrajectoryBase(object):
     # written, to store for instance, integrator data and so on.
 
     def read(self, index):
+        # TODO: non-existing files should gracefully handled by trajectory (warning)
+        # if mode == 'r' and not os.path.exists(filename):
+        #     logging.warn('file %s does not exists, skipping it.' % filename)
+        #     # locking....
         if not self._initialized_read:
             self.read_init()
             self._initialized_read = True
@@ -104,7 +108,9 @@ class TrajectoryBase(object):
         pass
 
     def write_init(self, system):
-        """It may setup data structures need by the trajectory. Need not be implemented."""
+        """It must open files for writing. 
+        Need not be implemented if this is handled by write_sample on a per sample basis."""
+        # TODO: force subclasses to open files here
         pass
 
     # These methods must be implemented by subclasses
