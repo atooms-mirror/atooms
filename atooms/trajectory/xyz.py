@@ -21,6 +21,9 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def __init__(self, filename, mode='r'):
         TrajectoryBase.__init__(self, filename, mode)
+        # This is the default column format.
+        # TODO: Using vx, vy, vz in the header will grab the velocities
+        self.fmt = ['id', 'x', 'y', 'z', 'tag']
         self._timestep = 1.0
         self._cell = None
         self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
@@ -157,28 +160,42 @@ class TrajectoryXYZ(TrajectoryBase):
         self.trajectory.readline() # skip npart
         self.trajectory.readline() # skip comment header
 
-        # TODO: can we fusion these two loops ?
-        data = []
+        self._sampledata = []
         for j in range(self._npart[sample]):
-            data.append(self.trajectory.readline().split())
+            line = self.trajectory.readline().split()
+            # Unpack into a dictionary according to the specific
+            # format (self.fmt). This dict can then be used by a
+            # subclass to modify or override system properties.
+            # TODO: Do we need to now here about the type or we delegate?
+            self._sampledata.append({})
+            for i, d in enumerate(line):
+                self._sampledata[-1][self.fmt[i]] = d
 
         p = []
-        for d in data:
+        for data in self._sampledata:
+            # Get particle name and id and update local database if needed
+            name = data['id']
+            if not name in self._map_id:
+                self._map_id.append(name)
+
+            # Get positions and velocities
+            r = numpy.array([data['x'], data['y'], data['z']], dtype=float)
+            try:
+                v = numpy.array([data['vx'], data['vy'], data['vz']], dtype=float)
+            except KeyError:
+                v = numpy.zeros(3)
+
             # Get particle name and id and update local database if needed
             name = d[0]
             if not name in self._map_id:
                 self._map_id.append(name)
 
-            # Get positions, velocities, tag and append to particle list
-            r = numpy.array(d[1:4], dtype=float)
-            v = numpy.zeros(3)
-            tag = None
-            if len(d)==7:
-                v = numpy.array(d[4:7], dtype=float)
-            elif len(d)==5:
-                tag = d[4]
-            elif len(d)>=12: # hackish for RUMD
-                v = numpy.array(d[7:10], dtype=float)
+            # Try to grab left over as a tag.
+            try:
+                tag = data['tag']
+            except KeyError:
+                tag = None
+
             p.append(Particle(name=name, id=None, position=r, velocity=v, tag=tag))
 
         # Assign ids to particles according to the updated database
@@ -189,7 +206,9 @@ class TrajectoryXYZ(TrajectoryBase):
         return System(p, self._cell)
 
     def _comment_header(self, step, system):
-        return "Step:%d Cell:%s\n" % (step, ','.join(map(lambda x: '%s' % x, system.cell.side)))
+        fmt = "Step:%d Cell:%s Columns:%s\n"
+        return fmt % (step, ','.join(map(lambda x: '%s' % x, system.cell.side)),
+                      ','.join(self.fmt))
 
     def write_sample(self, system, step, ignore=[]):
         self._cell = system.cell
