@@ -12,21 +12,11 @@ class BenchmarkRead(benchmark.Benchmark):
     def setUp(self):
         pass
 
-    def test_xyz_indexed(self):
-        f = 'atooms/reference/gcm.xyz'
-        t = trajectory.TrajectoryXYZIndexed(f)
-        t.read_initial_state()
-        for i in t.samples:
-            t.read_sample(i)
-        t.close()
-
     def test_xyz(self):
-        f = 'atooms/reference/gcm.xyz'
-        t = trajectory.TrajectoryXYZ(f)
-        t.read_initial_state()
-        for i in t.samples:
-            t.read_sample(i)
-        t.close()
+        f = 'reference/gcm.xyz'
+        with trajectory.TrajectoryXYZ(f) as t:
+            for s in t:
+                pass
 
 class BenchmarkUnfold(benchmark.Benchmark):
 
@@ -36,20 +26,11 @@ class BenchmarkUnfold(benchmark.Benchmark):
         pass
 
     def test_xyz_indexed(self):
-        f = 'atooms/reference/gcm.xyz'
-        t = trajectory.Unfolded(trajectory.TrajectoryXYZIndexed(f))
-        t.read_initial_state()
-        for i in t.samples:
-            t.read_sample(i)
-        t.close()
+        f = 'reference/gcm.xyz'
+        with trajectory.Unfolded(trajectory.TrajectoryXYZ(f)) as t:
+            for s in t:
+                pass
 
-    def test_xyz(self):
-        f = 'atooms/reference/gcm.xyz'
-        t = trajectory.TrajectoryXYZ(f)
-        t.read_initial_state()
-        for i in t.samples:
-            t.read_sample(i, unfolded=True)
-        t.close()
 
 if __name__ == '__main__':
     benchmark.main(format="markdown", numberFormat="%.4g")
