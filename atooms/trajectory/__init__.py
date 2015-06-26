@@ -281,7 +281,7 @@ def get_period(data):
 
 # Useful functions to manipulate trajectories
 
-def convert(inp, out, tag='', ignore=[]):
+def convert(inp, out, tag='', prefix='', ignore=[]):
     """Convert trajectory into a different format.
 
     inp: input trajectory object
@@ -299,8 +299,11 @@ def convert(inp, out, tag='', ignore=[]):
 
     if os.path.isdir(inp.filename):
         if tag == '':
-            tag = '-conv'
-        dirname = inp.filename.strip('/') + tag
+            if prefix == '':
+                tag = '-conv'
+        d = os.path.dirname(inp.filename)
+        b = os.path.basename(inp.filename)
+        dirname = os.path.join(d, prefix + b) + tag
         from pyutils.utils import mkdir
         mkdir(dirname)
         filename = dirname + '/config.' + out.suffix
