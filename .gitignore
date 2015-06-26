@@ -2,6 +2,7 @@
 *.pyc
 
 reference
+plugins
 
 # Ignore version file in package.
 # It will be updated upon build/install
