@@ -8,11 +8,8 @@ class Cell(object):
 
     """Cell class"""
     
-    def __init__(self,
-                 side   = numpy.zeros(ndim),
-                 origin = numpy.zeros(ndim)):
+    def __init__(self, side, origin = numpy.zeros(ndim)):
         self.side   = numpy.array(side)
-        self.invside = 1.0/self.side
         self.origin = origin
 
     @property
