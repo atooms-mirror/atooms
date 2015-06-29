@@ -362,7 +362,7 @@ class Trajectory(object):
     def __exit__(self, type, value, traceback):
         self.close()
 
-    def write_sample(self, system, step, ignore=None):
+    def write_sample(self, system, step):
         f = self.filename 
         if step:
             base, ext = os.path.splitext(f)

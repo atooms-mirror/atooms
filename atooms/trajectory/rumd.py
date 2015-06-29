@@ -93,7 +93,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
         hdr = 'ioformat=1 dt=%g timeStepIndex=%d boxLengths=' + '%.8g,%.8g,%.8g' + ' numTypes=%d mass=' + '%.8g,'*(len(nsp)) + ' columns=type,x,y,z,vx,vy,vz\n'
         return hdr % tuple([self.timestep, step] + list(system.cell.side) + [len(nsp)] + mass)
 
-    def write_sample(self, system, step, ignore=[]):
+    def write_sample(self, system, step):
         # We need to redfine the id, because it expects numerical ids from 0 to nsp-1
         # We get the smallest species id, which we will then subtract.
         # TODO: cache id_min for efficiency

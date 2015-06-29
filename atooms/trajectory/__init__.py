@@ -93,13 +93,13 @@ class TrajectoryBase(object):
             self._initialized_read = True
         return self.read_sample(index)
 
-    def write(self, system, step, ignore=[]):
+    def write(self, system, step):
         if self.mode == 'r':
             raise IOError('trajectory file not open for writing')
         if not self._initialized_write:
             self.write_init(system)
             self._initialized_write = True
-        self.write_sample(system, step, ignore)
+        self.write_sample(system, step)
         # Step is added last, sample index starts from 0 by default
         self.steps.append(step)
 
@@ -118,7 +118,7 @@ class TrajectoryBase(object):
         """It must return the sample (system) with the given index"""
         raise NotImplementedError()
         
-    def write_sample(self, system, step, ignore=[]):
+    def write_sample(self, system, step):
         """It must write a sample (system) to disk. Noting to return."""
         raise NotImplementedError()
 
@@ -281,7 +281,7 @@ def get_period(data):
 
 # Useful functions to manipulate trajectories
 
-def convert(inp, out, tag='', prefix='', ignore=[]):
+def convert(inp, out, tag='', prefix=''):
     """Convert trajectory into a different format.
 
     inp: input trajectory object
@@ -315,13 +315,13 @@ def convert(inp, out, tag='', prefix='', ignore=[]):
         # TODO: Zipping t, t.steps is causing a massive mem leak!
         # In python <3 zip returns a list, not a generator! Therefore this
         # for system, step in zip(inp, inp.steps):
-        #     conv.write(system, step, ignore=ignore)
+        #     conv.write(system, step)
         # will use a lot of RAM! Workarounds (in order of personal preference)
         # 1. zip is a generator in python 3
         # 2. use enumerate instead and grab the step from inp.steps[i]
         # 3. add an attribute system.step for convenience
         for i, system in enumerate(inp):
-            conv.write(system, inp.steps[i], ignore=ignore)
+            conv.write(system, inp.steps[i])
 
     return filename
 

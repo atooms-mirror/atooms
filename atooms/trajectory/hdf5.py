@@ -47,6 +47,8 @@ class TrajectoryHDF5(TrajectoryBase):
         self.general_info = {}
         self._grandcanonical = False
         self._system = None
+        self.fmt = ['position', 'velocity', 'cell']
+        self.ignore = ['radius']
 
         if self.mode == 'r' or self.mode == 'r+':
             self.trajectory = h5py.File(self.filename, mode)
@@ -193,7 +195,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.trajectory[pgr + 'cutoff_radius'] = [phi.cutoff.formal_radius]
                 self.trajectory[pgr + 'lookup_points'] = [phi.npoints]
 
-    def write_sample(self, system, step, ignore = []):
+    def write_sample(self, system, step):
         self.trajectory.create_group_safe('/trajectory')
         self.trajectory.create_group_safe('/trajectory/realtime')
         self.trajectory.create_group_safe('/trajectory/realtime/stepindex')
@@ -208,17 +210,21 @@ class TrajectoryHDF5(TrajectoryBase):
 
         if system.particle != None:
             self.trajectory.create_group_safe('/trajectory/particle')
-            self.trajectory.create_group_safe('/trajectory/particle/position')
-            self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if not 'position' in ignore:
+            if not 'position' in self.ignore:
+                self.trajectory.create_group_safe('/trajectory/particle/position')
                 self.trajectory['/trajectory/particle/position' + csample] = [p.position for p in system.particle]
-            if not 'velocity' in ignore:
+            if not 'velocity' in self.ignore:
                 self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
+                self.trajectory.create_group_safe('/trajectory/particle/velocity')
+            if not 'radius' in self.ignore:
+                self.trajectory.create_group_safe('/trajectory/particle/radius')
+                self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
 
         if system.cell != None:
             self.trajectory.create_group_safe('/trajectory/cell')
-            self.trajectory.create_group_safe('/trajectory/cell/sidebox')
-            self.trajectory['/trajectory/cell/sidebox' + csample] = [system.cell.side]
+            if not 'cell' in self.ignore:
+                self.trajectory.create_group_safe('/trajectory/cell/sidebox')
+                self.trajectory['/trajectory/cell/sidebox' + csample] = [system.cell.side]
 
     def read_init(self):
         # read particles
@@ -230,7 +236,8 @@ class TrajectoryHDF5(TrajectoryBase):
             if entry == 'mass'    : mas = group[entry][:]
             if entry == 'position': pos = group[entry][:]
             if entry == 'velocity': vel = group[entry][:]
-        particle = [ Particle(spe[i],ele[i],mas[i],pos[i,:],vel[i,:]) for i in range(n) ] 
+            if entry == 'radius'  : rad = group[entry][:]
+        particle = [ Particle(spe[i],ele[i],mas[i],rad[i],pos[i,:],vel[i,:]) for i in range(n) ] 
 
         # read cell
         group = self.trajectory['/initialstate/cell']

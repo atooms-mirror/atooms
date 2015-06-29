@@ -24,6 +24,7 @@ class TrajectoryXYZ(TrajectoryBase):
         # This is the default column format.
         # TODO: Using vx, vy, vz in the header will grab the velocities
         self.fmt = ['id', 'x', 'y', 'z']
+        self.ignore = ['velocity']
         self._timestep = 1.0
         self._cell = None
         self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
@@ -209,14 +210,14 @@ class TrajectoryXYZ(TrajectoryBase):
         return fmt % (step, ','.join(map(lambda x: '%s' % x, system.cell.side)),
                       ','.join(self.fmt))
 
-    def write_sample(self, system, step, ignore=[]):
+    def write_sample(self, system, step):
         self._cell = system.cell
         self.trajectory.write("%8i\n" % len(system.particle))
         self.trajectory.write(self._comment_header(step, system))
         ndim = len(system.particle[0].position)
         if (abs(system.particle[0].velocity[0]) < 1e-15 and \
            abs(system.particle[-1].velocity[-1]) < 1e-15) or \
-           'vel' in ignore:
+           'velocity' in self.ignore:
             for p in system.particle:
                 # Check for tag, somewhat hard hack to write voronoi polyehdron
                 # TODO: could be improved 
@@ -268,7 +269,7 @@ class TrajectoryPDB(TrajectoryBase):
         if mode == 'w':
             self.trajectory = open(self.filename, 'w')
 
-    def write_sample(self, system, step, ignore=[]):
+    def write_sample(self, system, step):
         self._system = system
         cfg = ''
         cfg += 'MODEL%9i\n' % step
