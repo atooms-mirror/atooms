@@ -23,7 +23,7 @@ class WriterConfig(object):
         log.debug('write config %d' % e.steps)
         f = os.path.join(self.dir_output, self.file_base)
         with Trajectory(f, 'a') as t:
-            t.write_sample(e.system, e.steps)
+            t.write(e.system, e.steps)
 
 class WriterThermo(object):
 
@@ -78,7 +78,7 @@ class Simulation(simulation.Simulation):
         if filename is None:
             filename = self.trajectory.filename + '.chk'
         with Trajectory(filename, 'w') as t:
-            t.write_sample(self.system, None)
+            t.write(self.system, None)
         with open(filename + '.step', 'w') as fh:
             fh.write('%d' % self.steps)
 
@@ -362,7 +362,13 @@ class Trajectory(object):
     def __exit__(self, type, value, traceback):
         self.close()
 
-    def write_sample(self, system, step):
+    def exclude(self, p):
+        pass
+
+    def include(self, p):
+        pass
+
+    def write(self, system, step):
         f = self.filename 
         if step:
             base, ext = os.path.splitext(f)

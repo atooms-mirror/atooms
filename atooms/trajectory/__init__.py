@@ -20,6 +20,10 @@ class TrajectoryBase(object):
         """When mode is 'r', it must set the list of available steps."""
         self.filename = filename
         self.mode  = mode
+        # fmt is a list of strings describing data to be written by
+        # write_sample(). Subclasses may use it to filter out some
+        # data from their format or can even ignore it entirely.
+        self.fmt = []
         self.steps = []
 
         # These are cached properties
@@ -63,6 +67,18 @@ class TrajectoryBase(object):
 
     def close(self):
         pass
+
+    def exclude(self, patterns):
+        """Exclude a list of patterns from data format"""
+        for p in patterns:
+            if p in self.fmt:
+                self.fmt.remove(p)
+
+    def include(self, patterns):
+        """Include patterns in data format"""
+        for p in patterns:
+            if not p in self.fmt:
+                self.fmt.append(p)
 
     @property
     def samples(self):
@@ -281,7 +297,7 @@ def get_period(data):
 
 # Useful functions to manipulate trajectories
 
-def convert(inp, out, tag='', prefix=''):
+def convert(inp, out, tag='', prefix='', exclude=[], include=[]):
     """Convert trajectory into a different format.
 
     inp: input trajectory object
@@ -309,7 +325,7 @@ def convert(inp, out, tag='', prefix=''):
         filename = dirname + '/config.' + out.suffix
     else:
         filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix    
-    with out(filename, 'w') as conv:
+    with out(filename, 'w', exclude=exclude, include=include) as conv:
         conv.timestep = inp.timestep
         conv.block_period = inp.block_period
         # TODO: Zipping t, t.steps is causing a massive mem leak!

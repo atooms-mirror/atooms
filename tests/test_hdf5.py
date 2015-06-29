@@ -40,6 +40,13 @@ class PairPotentialTest(unittest.TestCase):
             i = t.read_interaction()
             s = t[0]
 
+    @unittest.skipIf(not HAS_HDF5, 'no h5py module')
+    def test_fmt(self):
+        with TrajectoryHDF5('/tmp/test.h5', 'w') as t:
+            t.exclude(['velocity'])
+            t.include(['position'])
+        
+
 if __name__ == '__main__':
     unittest.main()
 

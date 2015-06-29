@@ -48,7 +48,6 @@ class TrajectoryHDF5(TrajectoryBase):
         self._grandcanonical = False
         self._system = None
         self.fmt = ['position', 'velocity', 'cell']
-        self.ignore = ['radius']
 
         if self.mode == 'r' or self.mode == 'r+':
             self.trajectory = h5py.File(self.filename, mode)
@@ -210,19 +209,19 @@ class TrajectoryHDF5(TrajectoryBase):
 
         if system.particle != None:
             self.trajectory.create_group_safe('/trajectory/particle')
-            if not 'position' in self.ignore:
+            if 'position' in self.fmt:
                 self.trajectory.create_group_safe('/trajectory/particle/position')
                 self.trajectory['/trajectory/particle/position' + csample] = [p.position for p in system.particle]
-            if not 'velocity' in self.ignore:
+            if 'velocity' in self.fmt:
                 self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
                 self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if not 'radius' in self.ignore:
+            if 'radius' in self.fmt:
                 self.trajectory.create_group_safe('/trajectory/particle/radius')
                 self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
 
         if system.cell != None:
             self.trajectory.create_group_safe('/trajectory/cell')
-            if not 'cell' in self.ignore:
+            if 'cell' in self.fmt:
                 self.trajectory.create_group_safe('/trajectory/cell/sidebox')
                 self.trajectory['/trajectory/cell/sidebox' + csample] = [system.cell.side]
 

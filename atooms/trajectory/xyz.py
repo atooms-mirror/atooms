@@ -24,7 +24,6 @@ class TrajectoryXYZ(TrajectoryBase):
         # This is the default column format.
         # TODO: Using vx, vy, vz in the header will grab the velocities
         self.fmt = ['id', 'x', 'y', 'z']
-        self.ignore = ['velocity']
         self._timestep = 1.0
         self._cell = None
         self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
@@ -217,7 +216,7 @@ class TrajectoryXYZ(TrajectoryBase):
         ndim = len(system.particle[0].position)
         if (abs(system.particle[0].velocity[0]) < 1e-15 and \
            abs(system.particle[-1].velocity[-1]) < 1e-15) or \
-           'velocity' in self.ignore:
+            (not 'vx' in self.fmt):
             for p in system.particle:
                 # Check for tag, somewhat hard hack to write voronoi polyehdron
                 # TODO: could be improved 

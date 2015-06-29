@@ -83,7 +83,7 @@ class TestAdaptersRUMD(unittest.TestCase):
     def test_trajectory(self):
         t = Trajectory(self.fout, 'w')
         system = System(self.s)
-        t.write_sample(system, 0, 0)
+        t.write(system, 0)
         t.close()
 
     def test_simulation(self):

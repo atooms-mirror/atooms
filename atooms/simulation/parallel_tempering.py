@@ -22,8 +22,7 @@ class WriterConfig(object):
             # we do not write configurations
             if e.output_path_data[irx]:
                 with e.trajectory(e.output_path_data[irx]+'/'+e.sim[irx].base_output, 'a') as t:
-                    # TODO: this should be defined once and for all in the trajectory
-                    t.ignore.append('velocity')
+                    t.exclude(['velocity'])
                     t.write_sample(e.replica[i], e.steps)
 
 class WriterCheckpointPT(WriterCheckpoint):
