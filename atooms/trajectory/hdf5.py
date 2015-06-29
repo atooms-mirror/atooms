@@ -28,6 +28,12 @@ def _get_cached_list_h5(fh, h5g, data):
         except:
             data = []
     return data
+
+def _write_datasets(fh, group, datasets):
+    """Write several data sets stored in datasets dict in group of fh"""
+    for name, dataset in datasets.items():
+        fh[group + name] = dataset
+
            
 class TrajectoryHDF5(TrajectoryBase):
 
@@ -48,12 +54,18 @@ class TrajectoryHDF5(TrajectoryBase):
             for entry in self.trajectory['/']:
                 if type(self.trajectory[entry]) == h5py.highlevel.Dataset:
                     self.general_info[entry] = self.trajectory[entry]
-            # get steps list (could be cached and put in init_read())
-            self.steps = [d[0] for d in self.trajectory['trajectory/realtime/stepindex'].values()]
+            try:
+                # get steps list (could be cached and put in init_read())           
+                self.steps = [d[0] for d in self.trajectory['trajectory/realtime/stepindex'].values()]
+                # private list of samples. This solves the problem that samples may start from 0
+                # or 1 depending on the code that initially produced the data
+                self._samples = [d[0] for d in self.trajectory['trajectory/realtime/sampleindex'].values()]
+            except KeyError:
+                self.steps = []
+                self._samples = []
+
+            # Block period
             self._block_period = self.read_blockperiod()
-            # private list of samples. This solves the problem that samples may start from 0
-            # or 1 depending on the code that initially produced the data
-            self._samples = [d[0] for d in self.trajectory['trajectory/realtime/sampleindex'].values()]
             
         elif self.mode == 'w' or self.mode == 'r+' or self.mode == "w-":
             self.trajectory = _SafeFile(self.filename, self.mode)
@@ -109,12 +121,12 @@ class TrajectoryHDF5(TrajectoryBase):
                            'identity': [p.id for p in particle],
                            'element': ['%3s' % p.name for p in particle],
                            'mass': [p.mass for p in particle],
+                           'radius': [p.radius for p in particle],
                            'position': [p.position for p in particle],
                            'velocity': [p.velocity for p in particle],
                            }
-            # TODO: to create several datasets within a group, make this a function and pass a dict
-            for name, dataset in particle_h5.items():
-                self.trajectory[group + name] = dataset
+            _write_datasets(self.trajectory, group, particle_h5)              
+
         # Matrix
         group = '/initialstate/matrix/'
         if system.matrix:
@@ -129,8 +141,8 @@ class TrajectoryHDF5(TrajectoryBase):
                          'mass': [p.mass for p in matrix],
                          'position': [p.position for p in matrix],
                          }
-            for name, dataset in matrix_h5.items():
-                self.trajectory[group + name] = dataset
+            _write_datasets(self.trajectory, group, matrix_h5)              
+
         # Cell
         group = '/initialstate/cell/'
         if system.cell:
@@ -198,8 +210,10 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory.create_group_safe('/trajectory/particle')
             self.trajectory.create_group_safe('/trajectory/particle/position')
             self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if not 'position' in ignore: self.trajectory['/trajectory/particle/position' + csample] = [p.position for p in system.particle]
-            if not 'velocity' in ignore: self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
+            if not 'position' in ignore:
+                self.trajectory['/trajectory/particle/position' + csample] = [p.position for p in system.particle]
+            if not 'velocity' in ignore:
+                self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
 
         if system.cell != None:
             self.trajectory.create_group_safe('/trajectory/cell')
