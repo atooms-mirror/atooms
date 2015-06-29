@@ -29,19 +29,14 @@ class PairPotentialTest(unittest.TestCase):
         p = [PairPotential("LennardJones", {"epsilon":1.0, "sigma":1.0}, [1,1], CutOff("CS", 2.5))]
         i = [Interaction("atomic", p)]
         s = System()
-        s.cell = Cell()
-        #s.interaction = i
+        s.cell = Cell([1.0, 1.0, 1.0])
         t = TrajectoryHDF5('/tmp/test.h5', 'w')
-        #t.write_initial_state(s)
-        t.write_initial_state_interaction(i)
+        t.write_interaction(i)
         t.close()
 
         t = TrajectoryHDF5('/tmp/test.h5', 'r')
-        #t.write_initial_state(s)
-        i = t.read_initial_state_interaction()
+        i = t.read_interaction()
         t.close()
-
-        #print i[0].potential[0]
 
 if __name__ == '__main__':
     unittest.main()
