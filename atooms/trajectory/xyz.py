@@ -23,7 +23,7 @@ class TrajectoryXYZ(TrajectoryBase):
         TrajectoryBase.__init__(self, filename, mode)
         # This is the default column format.
         # TODO: Using vx, vy, vz in the header will grab the velocities
-        self.fmt = ['id', 'x', 'y', 'z', 'tag']
+        self.fmt = ['id', 'x', 'y', 'z']
         self._timestep = 1.0
         self._cell = None
         self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
@@ -165,11 +165,15 @@ class TrajectoryXYZ(TrajectoryBase):
             line = self.trajectory.readline().split()
             # Unpack into a dictionary according to the specific
             # format (self.fmt). This dict can then be used by a
-            # subclass to modify or override system properties.
-            # TODO: Do we need to now here about the type or we delegate?
+            # subclass to modify or override system properties.  
             self._sampledata.append({})
-            for i, d in enumerate(line):
-                self._sampledata[-1][self.fmt[i]] = d
+            for l, f in zip(line, self.fmt):
+                self._sampledata[-1][f] = l
+            # The special greedy '*' in the last field matches all
+            # that remains so we redefine this here
+            lastfmt = self.fmt[-1]
+            if len(line) > len(self.fmt) and '*' in lastfmt:
+                self._sampledata[-1][lastfmt] = ' '.join(line[len(self.fmt):])
 
         p = []
         for data in self._sampledata:
@@ -184,11 +188,6 @@ class TrajectoryXYZ(TrajectoryBase):
                 v = numpy.array([data['vx'], data['vy'], data['vz']], dtype=float)
             except KeyError:
                 v = numpy.zeros(3)
-
-            # Get particle name and id and update local database if needed
-            name = d[0]
-            if not name in self._map_id:
-                self._map_id.append(name)
 
             # Try to grab left over as a tag.
             try:

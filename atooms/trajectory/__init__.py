@@ -239,8 +239,8 @@ class TrajectoryBase(object):
 
     def timeseries(self, callback, *args, **kwargs):
         """Returns a timeseries of a callback results"""
-        for i, s in zip(self.steps, self):
-            yield i, callback(s, *args, **kwargs)
+        for i, s in enumerate(self):
+            yield self.steps[i], callback(s, *args, **kwargs)
 
 
     # def _unfold(self):
@@ -312,6 +312,7 @@ def convert(inp, out, tag='', prefix='', ignore=[]):
     with out(filename, 'w') as conv:
         conv.timestep = inp.timestep
         conv.block_period = inp.block_period
+        # TODO: Zipping t, t.steps is causing a massive mem leak!
         # In python <3 zip returns a list, not a generator! Therefore this
         # for system, step in zip(inp, inp.steps):
         #     conv.write(system, step, ignore=ignore)
@@ -331,6 +332,7 @@ def split(inp, selection=slice(None), index='step', archive=False):
         tar = tarfile.open(inp.filename + '.tar.gz', "w:gz")
     base, ext = os.path.splitext(inp.filename)
 
+    # TODO: fix zipping of steps
     for system, step, sample in zip(inp, inp.steps, inp.samples):
         if index == 'step':
             filename = '%s-%09i%s' % (base, step, ext)
@@ -394,6 +396,7 @@ class SuperTrajectory(TrajectoryBase):
                     self.steps.pop(-1)
                     self._map.pop(-1)
 
+            # TODO: drop zipping of steps and samples
             for sample, step in zip(t.samples, t.steps):
                 self._map.append((i, sample))
                 self.steps.append(step)
