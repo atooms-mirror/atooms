@@ -78,7 +78,7 @@ class Particle(object):
                  mass     = 1.0,
                  position = numpy.zeros(ndim),
                  velocity = numpy.zeros(ndim),                 
-                 radius   = 1.0,
+                 radius   = 0.5, # sigma=1.0
                  tag      = None):
         self.id       = id
         self.name     = name
