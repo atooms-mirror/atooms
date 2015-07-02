@@ -99,7 +99,7 @@ for finp in args.file:
 
         t = trajectory.Sliced(t, sl)
         try:
-            fout = trajectory.convert(t, trj_map[args.out], args.tag)
+            fout = trajectory.convert(t, trj_map[args.out], tag=args.tag)
         except IOError, e:
             print 'Conversion failed for %s (%s)' % (finp, e)
             continue
