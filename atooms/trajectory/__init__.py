@@ -297,7 +297,7 @@ def get_period(data):
 
 # Useful functions to manipulate trajectories
 
-def convert(inp, out, tag='', prefix='', exclude=[], include=[]):
+def convert(inp, out, fout='', tag='', prefix='', exclude=[], include=[]):
     """Convert trajectory into a different format.
 
     inp: input trajectory object
@@ -313,7 +313,9 @@ def convert(inp, out, tag='', prefix='', exclude=[], include=[]):
     if len(inp.steps) == 0:
         raise IOError('no files in directory (%s)' % inp.filename)
 
-    if os.path.isdir(inp.filename):
+    if len(fout) > 0:
+        filename = fout
+    elif os.path.isdir(inp.filename):
         if tag == '':
             if prefix == '':
                 tag = '-conv'
@@ -325,7 +327,10 @@ def convert(inp, out, tag='', prefix='', exclude=[], include=[]):
         filename = dirname + '/config.' + out.suffix
     else:
         filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix    
-    with out(filename, 'w', exclude=exclude, include=include) as conv:
+
+    with out(filename, 'w') as conv:
+        conv.exclude(exclude)
+        conv.include(include)
         conv.timestep = inp.timestep
         conv.block_period = inp.block_period
         # TODO: Zipping t, t.steps is causing a massive mem leak!
