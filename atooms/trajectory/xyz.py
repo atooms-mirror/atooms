@@ -173,7 +173,7 @@ class TrajectoryXYZ(TrajectoryBase):
             # that remains so we redefine this here
             lastfmt = self.fmt[-1]
             if len(line) > len(self.fmt) and '*' in lastfmt:
-                self._sampledata[-1][lastfmt] = ' '.join(line[len(self.fmt):])
+                self._sampledata[-1][lastfmt] = ' '.join(line[len(self.fmt)-1:])
 
         p = []
         for data in self._sampledata:
