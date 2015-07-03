@@ -229,6 +229,7 @@ class TrajectoryHDF5(TrajectoryBase):
         # read particles
         group = self.trajectory['/initialstate/particle']
         n = self.trajectory['/initialstate/particle/number_of_particles'].value[0]
+        rad = None
         for entry in group:
             if entry == 'identity': spe = group[entry][:]
             if entry == 'element' : ele = group[entry][:]
@@ -236,7 +237,10 @@ class TrajectoryHDF5(TrajectoryBase):
             if entry == 'position': pos = group[entry][:]
             if entry == 'velocity': vel = group[entry][:]
             if entry == 'radius'  : rad = group[entry][:]
-        particle = [ Particle(spe[i],ele[i],mas[i],rad[i],pos[i,:],vel[i,:]) for i in range(n) ] 
+        if rad:
+            particle = [Particle(spe[i],ele[i],mas[i],pos[i,:],vel[i,:],rad[i]) for i in range(n)]
+        else:
+            particle = [Particle(spe[i],ele[i],mas[i],pos[i,:],vel[i,:]) for i in range(n)]
 
         # read cell
         group = self.trajectory['/initialstate/cell']
@@ -261,7 +265,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 if entry == 'element' : ele = group[entry][:]
                 if entry == 'mass'    : mas = group[entry][:]
                 if entry == 'position': pos = group[entry][:]
-            matrix = [ Particle(spe[i],ele[i],mas[i],pos[i,:]) for i in range(len(spe)) ] 
+            matrix = [Particle(spe[i],ele[i],mas[i],pos[i,:]) for i in range(len(spe))] 
             self._system.add_porous_matrix(matrix)
 
         return self._system
@@ -323,13 +327,23 @@ class TrajectoryHDF5(TrajectoryBase):
         except:
             vel = numpy.zeros([len(pos),ndim])
 
-        # TODO: now make an explicit copy because copy creates huge leakage... try with deepcopy?
+        # Dynamic properties
         p = []
         for r, v in zip(pos, vel):
             p.append(Particle(position=r, velocity=v))
 
+        # Try reading radii
+        try:
+            r = group['radius' + csample][:]           
+            for i, pi in enumerate(p):
+                pi.radius = r[i]
+        except:
+            pass
+        
+        # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2
         for pi, r in zip(p, self._system.particle):
+            # TODO: if id changes dynamically (like in swap) we will miss it
             pi.id = r.id
             pi.mass = r.mass
             pi.name = r.name
