@@ -237,7 +237,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if entry == 'position': pos = group[entry][:]
             if entry == 'velocity': vel = group[entry][:]
             if entry == 'radius'  : rad = group[entry][:]
-        if rad:
+        if rad is not None:
             particle = [Particle(spe[i],ele[i],mas[i],pos[i,:],vel[i,:],rad[i]) for i in range(n)]
         else:
             particle = [Particle(spe[i],ele[i],mas[i],pos[i,:],vel[i,:]) for i in range(n)]
