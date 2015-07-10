@@ -208,3 +208,21 @@ class MatrixFlat(object):
         for m in self._matrix:
             s.particle.append(m)
         return s
+
+
+class Filter(object):
+    
+    """Apply a filter that transforms each read sample in a trajectory"""
+
+    def __new__(cls, component, filt):
+        cls = type('Filter', (Filter, component.__class__), component.__dict__)
+        return object.__new__(cls)
+
+    def __init__(self, component, filt):
+        """filt is a function that receives a System and returns a modified version of it"""
+        self.filt = filt
+
+    def read_sample(self, sample, *args, **kwargs):
+        s = super(Filter, self).read_sample(sample)
+        # Apply filter to the system, that's all
+        return self.filt(s, args, kwargs)
