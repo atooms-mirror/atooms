@@ -16,9 +16,9 @@ class Centered(object):
     def __init__(self, component):
         pass
 
-    def read(self, sample):
+    def read_sample(self, sample):
         # TODO: check that we have not subtracted it yet (use a list)
-        s = super(Centered, self).read(sample)
+        s = super(Centered, self).read_sample(sample)
         for p in s.particle:
             p.position -= s.cell.side / 2.0
         return s
@@ -48,10 +48,11 @@ class Unfolded(object):
     def __init__(self, component):
         self._old = None
         
-    def read(self, sample):
+    def read_sample(self, sample):
         # Cache the initial sample and cell
+        # TODO: we should override read_init instead
         if self._old is None:
-            s = super(Unfolded, self).read(0)
+            s = super(Unfolded, self).read_sample(0)
             self._old = numpy.array([p.position for p in s.particle])
             self._L = s.cell.side
             self._last_read = 0
@@ -66,9 +67,9 @@ class Unfolded(object):
             # Allow to skip some samples by reading them internally
             # We read delta-1 samples, then delta is 1
             for i in range(delta-1):
-                self.read(self._last_read+1)
+                self.read_sample(self._last_read+1)
 
-        s = super(Unfolded, self).read(sample)
+        s = super(Unfolded, self).read_sample(sample)
         self._last_read = sample
       
         # Unfold positions
@@ -116,8 +117,8 @@ class MatrixFix(object):
     #     s.matrix = matrix
     #     return s
 
-    def read(self, *args, **kwargs):
-        s = super(MatrixFix, self).read(*args, **kwargs)
+    def read_sample(self, *args, **kwargs):
+        s = super(MatrixFix, self).read_sample(*args, **kwargs)
         # Get rid of matrix particles in trajectory
         s.particle = [p for p in s.particle if not p.id in self.matrix_species]
         return s
@@ -166,8 +167,8 @@ class NormalizeId(object):
                 p.id += 1
         return pl
 
-    def read(self, *args, **kwargs):
-        s = super(NormalizeId, self).read(*args, **kwargs)
+    def read_sample(self, *args, **kwargs):
+        s = super(NormalizeId, self).read_sample(*args, **kwargs)
         s.particle = self._normalize(s.particle)
         return s
 
@@ -201,9 +202,9 @@ class MatrixFlat(object):
         # Sort matrix particles by index
         self._matrix.sort(key = lambda a : a.id)
 
-    def read(self, *args, **kwargs):
+    def read_sample(self, *args, **kwargs):
         #print "decorated sample"
-        s = super(MatrixFlat, self).read(*args, **kwargs)
+        s = super(MatrixFlat, self).read_sample(*args, **kwargs)
         self.__setup_matrix(s)
         for m in self._matrix:
             s.particle.append(m)
@@ -214,15 +215,23 @@ class Filter(object):
     
     """Apply a filter that transforms each read sample in a trajectory"""
 
-    def __new__(cls, component, filt):
+    def __new__(cls, component, filt, *args):
         cls = type('Filter', (Filter, component.__class__), component.__dict__)
         return object.__new__(cls)
 
-    def __init__(self, component, filt):
+    def __init__(self, component, filt, *args):
         """filt is a function that receives a System and returns a modified version of it"""
+        import copy
         self.filt = filt
+        self._args = args
 
-    def read_sample(self, sample, *args, **kwargs):
-        s = super(Filter, self).read_sample(sample)
-        # Apply filter to the system, that's all
-        return self.filt(s, args, kwargs)
+    def read_sample(self, sample):
+        sy = super(Filter, self).read_sample(sample)
+        # Apply filter to the system, that's all        
+        # HACK!: when further decorating the class, the referenced function becomes a bound method of the decorated class and therefore passes the first argument (self)
+        # Workaround is to always expect a trajectory and forcibly add self if no further decorators are added
+        try:
+            return self.filt(sy, *self._args)
+        except:
+            return self.filt(self, sy, *self._args)
+            
