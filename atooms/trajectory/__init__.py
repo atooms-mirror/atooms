@@ -259,24 +259,6 @@ class TrajectoryBase(object):
             yield self.steps[i], callback(s, *args, **kwargs)
 
 
-    # def _unfold(self):
-    #     # unfold should be handled only via the decorator.
-    #     # We should allow subclasses to use internal data to avoid explicit unfolding.
-    #     # Like cell image data or unfolded coordinates dumps
-    #     if self._pos_unf:
-    #         return
-    #     self._system = self.read_initial_state()
-    #     # do not include initial state, is it ok?
-    #     pos = [] #[numpy.array([p.position for p in self._system.particle])]
-    #     for sy in self:
-    #         pos.append(numpy.array([p.position for p in sy.particle]))
-    #         #pos[i] numpy.array([p.position for p in sy.particle]))
-    #    # pos = [numpy.ndarray([p.position for p in self.read_sample(i).particle]) for i in self.samples]
-    #     self._pos_unf = {}
-    #     for i, p in zip(self.samples, _pbc_unfold(pos, self._system.cell.side)):
-    #         self._pos_unf[i] = p
-
-
 def get_period(data):
     if len(data) < 2:
         return 1
