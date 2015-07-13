@@ -27,7 +27,8 @@ class Sliced(object):
 
     """ Only return a slice of a trajectory """
 
-    # TODO: is this still necessary? How large is the memory fingerprint of slicing via __getitem__?
+    # This is still necessary. slicing via __getitem__ has a large memory fingerprint
+    # since we couldnt write it as a generator (maybe it is possible?)
     # TODO: adjust uslice to pick up blocks without truncating them!
 
     def __new__(cls, component, uslice):
@@ -35,7 +36,12 @@ class Sliced(object):
         return object.__new__(cls)
 
     def __init__(self, component, uslice):
-        self.steps = self.steps[uslice]
+        self._sliced_samples = range(len(self.steps))[uslice]
+
+    def read_sample(self, sample):
+        i = self._sliced_samples[sample]
+        return super(Sliced, self).read_sample(i)
+        
 
 class Unfolded(object):
 
@@ -203,7 +209,6 @@ class MatrixFlat(object):
         self._matrix.sort(key = lambda a : a.id)
 
     def read_sample(self, *args, **kwargs):
-        #print "decorated sample"
         s = super(MatrixFlat, self).read_sample(*args, **kwargs)
         self.__setup_matrix(s)
         for m in self._matrix:
