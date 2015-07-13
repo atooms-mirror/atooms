@@ -41,7 +41,6 @@ class Sliced(object):
 
     def read_sample(self, sample):
         i = self._sliced_samples[sample]
-        
         return super(Sliced, self).read_sample(i)
         
 
