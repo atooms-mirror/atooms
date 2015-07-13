@@ -97,9 +97,11 @@ for finp in args.file:
                 last = int(args.last / 100. * len(tn))
         sl = slice(first, last, args.skip)
 
-        t = trajectory.Sliced(t, sl)
+        # Here we could you a trajectory slice t[sl] but this will load 
+        # everything in ram (getitem doesnt provide a generator)
+        ts = trajectory.Sliced(t, sl)
         try:
-            fout = trajectory.convert(t, trj_map[args.out], tag=args.tag)
+            fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag)
         except IOError, e:
             print 'Conversion failed for %s (%s)' % (finp, e)
             continue
