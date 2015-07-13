@@ -37,9 +37,11 @@ class Sliced(object):
 
     def __init__(self, component, uslice):
         self._sliced_samples = range(len(self.steps))[uslice]
+        self.steps = self.steps[uslice]
 
     def read_sample(self, sample):
         i = self._sliced_samples[sample]
+        
         return super(Sliced, self).read_sample(i)
         
 
