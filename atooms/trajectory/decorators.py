@@ -53,18 +53,20 @@ class Unfolded(object):
         return object.__new__(cls)
 
     def __init__(self, component):
-        self._old = None
-        
-    def read_sample(self, sample):
+        pass
+    
+    def read_init(self):
+        s = super(Unfolded, self).read_init()
         # Cache the initial sample and cell
-        # TODO: we should override read_init instead
-        if self._old is None:
-            s = super(Unfolded, self).read_sample(0)
-            self._old = numpy.array([p.position for p in s.particle])
-            self._L = s.cell.side
-            self._last_read = 0
-            # Return here
-            return s
+        s = super(Unfolded, self).read_sample(0)
+        self._old = numpy.array([p.position for p in s.particle])
+        self._L = s.cell.side
+        self._last_read = 0
+
+    def read_sample(self, sample):
+        # Return here if first sample
+        if sample == 0:
+            return super(Unfolded, self).read_sample(sample)
 
         # Compare requested sample with last read
         delta = sample - self._last_read
