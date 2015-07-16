@@ -60,7 +60,6 @@ class Unfolded(object):
         # Cache the initial sample and cell
         s = super(Unfolded, self).read_sample(0)
         self._old = numpy.array([p.position for p in s.particle])
-        self._L = s.cell.side
         self._last_read = 0
 
     def read_sample(self, sample):
@@ -82,9 +81,14 @@ class Unfolded(object):
         self._last_read = sample
       
         # Unfold positions
+        # Note that since L can be variable we get it at each step
+        # TODO: I am not entirely sure this is correct with NPT.
+        # The best thing in this case is to get unfolded positions
+        # from the simulation.
+        L = s.cell.side
         pos = numpy.array([p.position for p in s.particle])
         dif = pos - self._old
-        dif = dif - numpy.rint(dif/self._L) * self._L
+        dif = dif - numpy.rint(dif/L) * L
         self._old += dif
 
         # Return unfolded system
