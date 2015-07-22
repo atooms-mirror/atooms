@@ -47,7 +47,7 @@ class TrajectoryXYZ(TrajectoryBase):
             self._setup_index(self.trajectory)
             # Define sample list and fix case when no step is available
             # Should it be in _setup_index()
-            if not self.steps:
+            if len(self.steps) == 0:
                 self.steps = range(1,len(self._index)+1)
         else:
             raise ValueError('Specify mode (r/w) for file %s (invalid: %s)' % (self.filename, self.mode))
