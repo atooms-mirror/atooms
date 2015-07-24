@@ -109,7 +109,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Particles
         group = '/initialstate/particle/'
-        if system.particle:
+        if system.particle is not None:
             self.trajectory.create_group_safe(group)
             particle = system.particle
 
@@ -130,7 +130,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Matrix
         group = '/initialstate/matrix/'
-        if system.matrix:
+        if system.matrix is not None:
             self.trajectory.create_group_safe(group)
             matrix = system.matrix
             matrix_h5 = {'type' : [''],
@@ -146,13 +146,13 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Cell
         group = '/initialstate/cell/'
-        if system.cell:
+        if system.cell is not None:
             self.trajectory.create_group_safe(group)
             self.trajectory[group + 'sidebox'] = system.cell.side
 
         # Thermostat
         group = '/initialstate/thermostat/'
-        if system.thermostat:
+        if system.thermostat is not None:
             self.trajectory.create_group_safe(group)
             self.trajectory[group + 'temperature'] = system.thermostat.temperature
             self.trajectory[group + 'type'] = system.thermostat.name
@@ -160,8 +160,7 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory[group + 'collision_period'] = system.thermostat.collision_period
 
         # Interaction
-        # TODO: we should make sure interaction is a list
-        if system.interaction:
+        if system.interaction is not None:
             self.trajectory.copy(system.interaction, '/initialstate/interaction/')
             #self.write_interaction([system.interaction])
         
