@@ -1,17 +1,23 @@
 #!/usr/bin/env python
 
+import os
 import unittest
 
 from atooms.simulation.parallel_tempering import ParallelTempering
 
 class TestReplicaExchange(unittest.TestCase):
 
-    # TODO: put input files in a more robust path or skip test when not found
-    @unittest.skip("")
     def test_rx_atooms(self):
         # TODO: refactor replica exchange as a factory, of which the actual adapters define the backend. The only problem is that the backend always require some fine tuning.
-
-        from atooms.adapters.atoomsf90 import SimulationAtooms
+        try:
+            from atooms.adapters.atoomsf90 import SimulationAtooms
+            fref = 'reference/kalj-small.h5'
+            if not os.path.exists(fref):
+                raise
+        except ImportError:
+            self.skipTest('no atooms')
+        except:
+            self.skipTest('no ref')
 
         seed = 10
         nsteps = 3000
@@ -22,7 +28,7 @@ class TestReplicaExchange(unittest.TestCase):
         file_state_config = [dir_root + '/rx.s%d.h5' % i for i in range(len(Tl))]
         file_replica_out = [dir_root + '/rx.r%d.out' % i for i in range(len(Tl))]
 
-        sim_adapter = [SimulationAtooms(f, file_input='reference/kalj-small.h5',
+        sim_adapter = [SimulationAtooms(f, file_input=fref,
                                         opts={'--thermostat':'Berendsen',
                                               '--thermostat-temperature':T,
                                               '--dt':0.004}) 
@@ -39,9 +45,12 @@ class TestReplicaExchange(unittest.TestCase):
 
     def test_rx_rumd(self):
 
-        import rumd
-        from rumdSimulation import rumdSimulation
-        from atooms.adapters.rumd import Simulation, System, Trajectory
+        try:
+            import rumd
+            from rumdSimulation import rumdSimulation
+            from atooms.adapters.rumd import Simulation, System, Trajectory
+        except ImportError:
+            self.skipTest('no rumd')
 
         def potential():
             pot = rumd.Pot_LJ_12_6(cutoff_method = rumd.ShiftedPotential)
