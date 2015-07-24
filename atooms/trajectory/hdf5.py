@@ -161,6 +161,8 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Interaction
         if system.interaction is not None:
+            if not type(system.interaction) is list:
+                raise TypeError('interaction must be list')
             self.trajectory.copy(system.interaction, '/initialstate/interaction/')
             #self.write_interaction([system.interaction])
         
@@ -202,7 +204,6 @@ class TrajectoryHDF5(TrajectoryBase):
         sample = len(self.steps) + 1
         csample = '/sample_%7.7i' % sample
 
-        # TODO: check that sample was not already written, make it a general debug decoration for hdf5
         self.trajectory['/trajectory/realtime/stepindex' + csample] = [step]
         self.trajectory['/trajectory/realtime/sampleindex' + csample] = [sample]
 
@@ -307,9 +308,7 @@ class TrajectoryHDF5(TrajectoryBase):
         if unfolded:
             if not 'position_unfolded' in group:
                 raise NotImplementedError('cannot unfold like this, use decorator instead')
-                # self._unfold()
                 # TODO: fix it since sample may not be [0,1,2,...]
-                #print sample, len(self._pos_unf)
                 pos = self._pos_unf[sample]
             else:
                 # fix for unfolded positions that were not written at the first step
