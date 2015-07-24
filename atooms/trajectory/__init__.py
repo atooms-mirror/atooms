@@ -123,9 +123,7 @@ class TrajectoryBase(object):
         pass
 
     def write_init(self, system):
-        """It must open files for writing. 
-        Need not be implemented if this is handled by write_sample on a per sample basis."""
-        # TODO: force subclasses to open files here
+        """Subclass should use it to open files for writing."""
         pass
 
     # These methods must be implemented by subclasses
