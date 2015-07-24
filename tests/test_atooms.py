@@ -2,33 +2,32 @@
 
 import os
 import sys
-import unittest
+import fuzzyunittest
 
 try:
     from atooms.adapters.atoomsf90 import Simulation, System
-    HAS_ATOOMS = True
+    SKIP = False
 except ImportError:
-    HAS_ATOOMS = False
+    SKIP = True
 
 # TODO: refactor adapters tests, they should be unique (except for constructors) because the interface is the same
 
-class TestAtooms(unittest.TestCase):
+class TestAtooms(fuzzyunittest.FuzzyTestCase):
 
     def setUp(self):
+        if SKIP:
+            self.skipTest('no atooms')
         self.file_ref = 'reference/kalj/config.dat'
         self.ref_u = -4805.69761109
 
-    @unittest.skipIf(not HAS_ATOOMS, 'no atooms')
     def test_potential_energy(self):
         s = System(self.file_ref)
-        self.assertLess(abs(s.potential_energy()-self.ref_u), 1e-5)
+        self.assertAlmostEqual(s.potential_energy(), self.ref_u)
 
-    @unittest.skipIf(not HAS_ATOOMS, 'no atooms')
     def test_potential_energy_from_simulation(self):
         s = Simulation(self.file_ref)
-        self.assertLess(abs(s.system.potential_energy()-self.ref_u), 1e-5)
+        self.assertAlmostEqual(s.system.potential_energy(), self.ref_u)
 
-    @unittest.skipIf(not HAS_ATOOMS, 'no atooms')
     def test_simulation_run(self):
         ref = -4740.46362485
         file_output = '/tmp/test_atooms_run.h5'
@@ -36,8 +35,8 @@ class TestAtooms(unittest.TestCase):
                        opts={'--dt':0.001, '-c':1, '-e':1})
         s.setup(target_steps=10)
         s.run()
-        self.assertLess(abs(s.system.potential_energy()-ref), 1e-5)
+        self.assertAlmostEqual(s.system.potential_energy(), ref)
         os.remove(file_output)
 
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    fuzzyunittest.main(verbosity=0)

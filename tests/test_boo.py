@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 
-import unittest
+import fuzzyunittest
 import numpy
 from atooms.system.particle import Particle
 from atooms.trajectory import TrajectoryNeighbors, Trajectory, TrajectoryHDF5
 from atooms.postprocessing.boo import BondOrientationalOrder, periodic_vector
 
-# TODO: port as utility fnuction for tests
-def deviation(x, y):
-    return abs(x-y)
 
-class TestBOO(unittest.TestCase):
+class TestBOO(fuzzyunittest.FuzzyTestCase):
 
     def setUp(self):
         pass
@@ -49,7 +46,7 @@ class TestBOO(unittest.TestCase):
                 #print q , dr
             print numpy.average(boo.ql(6))
         for l in self.ref:
-            self.assertLess(deviation(self.ref[l], numpy.average(boo.ql(l))), 1e-3)
+            self.assertAlmostEqual(self.ref[l], numpy.average(boo.ql(l)))
 
     # def test_fcc(self):
     #     self._load('fcc')

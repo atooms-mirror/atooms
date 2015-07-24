@@ -4,9 +4,13 @@ import unittest
 import os
 import numpy
 
-import rumd
-from rumdSimulation import rumdSimulation
-from atooms.adapters.rumd import Simulation, System, Trajectory
+try:
+    import rumd
+    from rumdSimulation import rumdSimulation
+    from atooms.adapters.rumd import Simulation, System, Trajectory
+    SKIP = False
+except ImportError:
+    SKIP = True
 
 xyz = """\
      3
@@ -30,6 +34,9 @@ ioformat=1 dt=0.005000000 boxLengths=6.34960421,6.34960421,6.34960421 numTypes=2
 class TestAdaptersRUMD(unittest.TestCase):
 
     def setUp(self):
+        if SKIP:
+            self.skipTest('no rumd')
+
         self.fout = '/tmp/test_adapter_rumd_out.xyz.gz'
         self.dout = '/tmp/test_adapter_rumd_out'
         self.finp = '/tmp/test_adapter_rumd_in.xyz'
@@ -59,14 +66,14 @@ class TestAdaptersRUMD(unittest.TestCase):
         T = system.temperature()
         Uref = 36.9236726612
         Tref = 2*6.0/6
-        self.assertLess(abs((U-Uref)/Uref), 0.001)
-        self.assertLess(abs((T-Tref)/Tref), 1e-9)
+        self.assertAlmostEqual(U, Uref)
+        self.assertAlmostEqual(T, Tref)
 
     def test_temperature_mass(self):
         system = System(self.s2)
         T = system.temperature()
         Tref = 20.0/9 # if we don't have the right masses this will fail
-        self.assertLess(abs((T-Tref)/Tref), 1e-9)
+        self.assertAlmostEqual(T, Tref)
 
     def test_particle(self):
         system = System(self.s)
@@ -77,8 +84,8 @@ class TestAdaptersRUMD(unittest.TestCase):
     def test_particle_mass(self):
         system = System(self.s2)
         p = system.particle
-        mref = numpy.array([1.,1.,1.,2.])
-        self.assertLess(max(abs([pi.mass for pi in p] - mref)), 1e-6)
+        for mref, m in zip(numpy.array([1.,1.,1.,2.]), [pi.mass for pi in p]):
+            self.assertAlmostEqual(m, mref)
 
     def test_trajectory(self):
         t = Trajectory(self.fout, 'w')
