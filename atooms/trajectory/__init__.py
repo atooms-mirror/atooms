@@ -34,10 +34,6 @@ class TrajectoryBase(object):
         self._initialized_write = False
         self._initialized_read = False
 
-        # These two are needed by unfold, system might be dropped
-        self._system = None
-        self._pos_unf = None
-
     def __len__(self):
         return len(self.steps)
 
@@ -252,8 +248,8 @@ class TrajectoryBase(object):
         """Estimate the time when the MSD reaches target_msd in units of sigma^2.
         Bounded by the actual maximum time of trajectory tmax.
         """
-        raise NotImplementedError('time_when_msd_is is broken')
         # TODO: when using decorators, this will introduce a diamond, let's move it to a generic function in post processing 
+        raise NotImplementedError('time_when_msd_is is broken')
         # self._unfold()
         # msd_total = numpy.sum((self._pos_unf[-1] - self._pos_unf[0])**2) / self._pos_unf[0].shape[0]
         # return min(1.0, msd_target * sigma**2 / msd_total) * self.steps[-1] * self.timestep
