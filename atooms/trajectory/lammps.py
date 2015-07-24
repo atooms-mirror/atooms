@@ -8,7 +8,7 @@ import re
 import tarfile
 import numpy
 
-from atooms.trajectory import TrajectoryBase, SuperTrajectory
+from atooms.trajectory import TrajectoryBase
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System

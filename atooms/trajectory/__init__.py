@@ -362,17 +362,13 @@ class SuperTrajectory(TrajectoryBase):
 
     """ Collection of subtrajectories """
 
-    # The approach is inefficient for large number of
-    # subtrajectories (init takes some time)
-    # TODO: pass list of files and trajectory class as input !
+    # Ppproach inefficient for large number of files (init takes some time)
     # The path of a supertrajectory should be the directory containing all the files? Mmmhh
 
-    def __init__(self, subtrajectories, mode='r', timestep=1.0, variable=False, periodic=True):
+    def __init__(self, files, trajectoryclass, mode='r', variable=False, periodic=True):
+        self.subtrajectories = [trajectoryclass(f, mode=mode) for f in files]
         f = os.path.dirname(subtrajectories[0].filename) + '/'
         super(SuperTrajectory, self).__init__(f, mode)
-        # By default we get info from the first trajectory in list
-        #self.trajectory = subtrajectories[0]
-        self.subtrajectories = subtrajectories
         self._timestep = timestep
         self.variable = variable
 
