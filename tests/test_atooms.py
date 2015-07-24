@@ -4,11 +4,13 @@ import os
 import sys
 import unittest
 
-from atooms.adapters.atoomsf90 import Simulation, System
+try:
+    from atooms.adapters.atoomsf90 import Simulation, System
+    HAS_ATOOMS = True
+except ImportError:
+    HAS_ATOOMS = False
 
 # TODO: refactor adapters tests, they should be unique (except for constructors) because the interface is the same
-
-# TODO: skip this if atoomsf90 is not there
 
 class TestAtooms(unittest.TestCase):
 
@@ -16,14 +18,17 @@ class TestAtooms(unittest.TestCase):
         self.file_ref = 'reference/kalj/config.dat'
         self.ref_u = -4805.69761109
 
+    @unittest.skipIf(not HAS_ATOOMS, 'no atooms')
     def test_potential_energy(self):
         s = System(self.file_ref)
         self.assertLess(abs(s.potential_energy()-self.ref_u), 1e-5)
 
+    @unittest.skipIf(not HAS_ATOOMS, 'no atooms')
     def test_potential_energy_from_simulation(self):
         s = Simulation(self.file_ref)
         self.assertLess(abs(s.system.potential_energy()-self.ref_u), 1e-5)
 
+    @unittest.skipIf(not HAS_ATOOMS, 'no atooms')
     def test_simulation_run(self):
         ref = -4740.46362485
         file_output = '/tmp/test_atooms_run.h5'

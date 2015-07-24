@@ -15,6 +15,13 @@ from atooms import simulation
 from atooms import system
 from atooms.system import thermostat
 
+
+try:
+    out = subprocess.check_output('md.x', shell=True, stderr=subprocess.STDOUT)
+except subprocess.CalledProcessError:
+    raise ImportError('atooms not installed')
+
+
 def _get_opts(opts):
     s = ''
     for i in opts:
