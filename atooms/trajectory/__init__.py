@@ -101,10 +101,8 @@ class TrajectoryBase(object):
     # written, to store for instance, integrator data and so on.
 
     def read(self, index):
-        # TODO: non-existing files should gracefully handled by trajectory (warning)
-        # if mode == 'r' and not os.path.exists(filename):
-        #     logging.warn('file %s does not exists, skipping it.' % filename)
-        #     # locking....
+        if not os.path.exists(self.filename):
+            raise IOError('trajectory file %s does not exist' % self.filename)
         if not self._initialized_read:
             self.read_init()
             self._initialized_read = True
