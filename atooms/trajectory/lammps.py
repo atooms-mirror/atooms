@@ -131,8 +131,6 @@ class TrajectoryLAMMPS(TrajectoryBase):
             self.tarred = False
             self._file_list = [self.filename]
 
-        self._timestep = 1.0
-
         file_steps = []
         for f in self._file_list:
             if os.path.isdir(f):
