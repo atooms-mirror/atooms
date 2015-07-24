@@ -12,7 +12,7 @@ from atooms.interaction.interaction import Interaction
 from atooms.potential.potential import PairPotential
 from atooms.potential.cutoff import CutOff
 
-# TODO: decorate hdf5 class so that error messages contain the path of the offending file (at least!)
+# TODO: decorate hdf5 class so that error messages contain the path of the offending file
 class _SafeFile(h5py.File):
     # TODO: recursively create all h5 groups that do not exist
     # TODO: actually redefine create_group unless this is a serious performace issue ?
