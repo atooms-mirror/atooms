@@ -308,8 +308,6 @@ class TrajectoryHDF5(TrajectoryBase):
         if unfolded:
             if not 'position_unfolded' in group:
                 raise NotImplementedError('cannot unfold like this, use decorator instead')
-                # TODO: fix it since sample may not be [0,1,2,...]
-                pos = self._pos_unf[sample]
             else:
                 # fix for unfolded positions that were not written at the first step
                 # should be fixed once and for all in md.x
