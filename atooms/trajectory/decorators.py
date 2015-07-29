@@ -53,7 +53,7 @@ class Unfolded(object):
         return object.__new__(cls)
 
     def __init__(self, component):
-        pass
+        self._initialized_read = False
     
     def read_init(self):
         s = super(Unfolded, self).read_init()
@@ -246,4 +246,8 @@ class Filter(object):
             return self.filt(sy, *self._args)
         except:
             return self.filt(self, sy, *self._args)
-            
+
+
+def filter_id(s, species):
+    s.particle = filter(lambda p: p.id == species, s.particle)
+    return s
