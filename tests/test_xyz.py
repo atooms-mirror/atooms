@@ -71,6 +71,14 @@ A -2.8 2.8 0.0
         self.assertEqual(list(s.particle[0].position), list(s1.particle[0].position))
         self.assertEqual(list(s.particle[1].position), list(s1.particle[1].position))
 
+    def test_xyz_unfolded(self):
+        """Test reading unfolded after reading normal"""
+        with trajectory.TrajectoryXYZ(self.finp) as t1:
+            for s in t1:
+                pass
+            with  trajectory.Unfolded(t1) as t:
+                for s in t:
+                    pass
 
     @unittest.skip('ikeda2 does not work')
     def test_ikeda2_indexed(self):
