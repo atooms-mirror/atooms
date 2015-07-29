@@ -58,9 +58,9 @@ def add_interaction_hdf5(finp, ff, tag=None):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--percentage',dest='percent', action='store_true', help='first and last in percentages (if set)')
-parser.add_argument('-f', '--first',   dest='first', type=int, default=0, help='first cfg')
-parser.add_argument('-l', '--last',    dest='last', type=int, default=-1, help='last cfg')
-parser.add_argument('-s', '--skip',    dest='skip', type=int, default=1, help='interval between cfg')
+parser.add_argument('-f', '--first',   dest='first', type=float, default=0, help='first cfg')
+parser.add_argument('-l', '--last',    dest='last', type=float, default=-1, help='last cfg')
+parser.add_argument('-s', '--skip',    dest='skip', type=float, default=1, help='interval between cfg')
 parser.add_argument('-i', '--fmt-inp', dest='inp', type=str, default='auto', help='input format ')
 parser.add_argument('-o', '--fmt-out', dest='out', type=str, default='', help='output format for conversion')
 parser.add_argument('-t', '--tag',     dest='tag', type=str, default='', help='tag to add before suffix')
@@ -95,7 +95,7 @@ for finp in args.file:
                 first = int(args.first / 100. * len(tn))
             if args.last != -1:
                 last = int(args.last / 100. * len(tn))
-        sl = slice(first, last, args.skip)
+        sl = slice(int(first), int(last), int(args.skip))
 
         # Here we could you a trajectory slice t[sl] but this will load 
         # everything in ram (getitem doesnt provide a generator)
