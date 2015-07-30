@@ -99,7 +99,7 @@ for finp in args.file:
 
         # Here we could you a trajectory slice t[sl] but this will load 
         # everything in ram (getitem doesnt provide a generator)
-        ts = trajectory.Sliced(t, sl)
+        ts = trajectory.Sliced(tn, sl)
         try:
             fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag)
         except IOError, e:
