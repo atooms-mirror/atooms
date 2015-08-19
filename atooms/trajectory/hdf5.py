@@ -343,6 +343,7 @@ class TrajectoryHDF5(TrajectoryBase):
             pi.id = r.id
             pi.mass = r.mass
             pi.name = r.name
+            pi.radius = r.radius
 
         # Read also interaction.
         has_int = True
