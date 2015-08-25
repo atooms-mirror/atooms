@@ -11,13 +11,17 @@ class System(object):
 
     """System class."""
 
-    def __init__(self,particle=[],cell=None,interaction=None,matrix=None,thermostat=None,dynamics=None):
+    def __init__(self, particle=[], cell=None, interaction=None, matrix=None, thermostat=None, dynamics=None):
         self.particle = particle
         self.interaction = interaction
         self.cell     = cell
         self.matrix   = matrix
         self.thermostat = thermostat
         self.dynamics = dynamics
+        # A dict of properties that are expected to change or not
+        # (a hint that trajectories shouldn not write them in samples)
+        # Not sure this is the best place for them, lets see
+        self.fix = {}
 
     @property
     def number_of_dimensions(self):

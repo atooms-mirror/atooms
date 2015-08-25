@@ -41,7 +41,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
     suffix = 'h5'
 
-    def __init__(self, filename, mode='r'):
+    def __init__(self, filename, mode='r+'):
         TrajectoryBase.__init__(self, filename, mode)
 
         self.general_info = {}
@@ -215,7 +215,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if 'velocity' in self.fmt:
                 self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
                 self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if 'radius' in self.fmt:
+            if 'radius' in system.fix and system.fix['radius']:
                 self.trajectory.create_group_safe('/trajectory/particle/radius')
                 self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
 
@@ -358,3 +358,32 @@ class TrajectoryHDF5(TrajectoryBase):
             self._system.interaction.total_stress = group['stress' + csample][:]
         
         return System(p, self._system.cell, self._system.interaction)
+
+    def add_interaction(self, ff):
+
+        """Add interaction from a fortran forcefield file"""
+
+        import os
+
+        pid = os.getpid()
+        f_ref = '/tmp/cnv_%s.h5' % pid
+        # TODO: we can cache a ref file if ff is the same
+        if not os.path.exists(ff):
+            raise IOError('forcefield file does not exist %s' % ff)
+        os.system('system.x -n 2 -f %s %s 1>/dev/null 2>/dev/null' % (ff, f_ref))
+
+        # Add interaction
+        ref = h5py.File(f_ref, 'r')
+        # Make sure interaction does not exist
+        try:
+            del self.trajectory['initialstate/interaction']
+        except:
+            pass
+        self.trajectory.copy(ref['initialstate/interaction'], 'initialstate/interaction')
+
+        # Cleanup
+        ref.close()
+        os.remove(f_ref)
+
+if __name__ == '__main__':
+    add_interaction_hdf5('/tmp/1', '/home/coslo/codes/atooms/forcefields/LJ.ff')
