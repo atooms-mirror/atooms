@@ -4,7 +4,7 @@ import os
 import logging
 import argparse
 from atooms import trajectory
-from atooms.utils import fractional_slice
+from atooms.utils import fractional_slice, add_first_last_skip
 
 trj_map = {
     'auto': trajectory.Trajectory,
@@ -58,9 +58,7 @@ def add_interaction_hdf5(finp, ff, tag=None):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-f', '--first',   dest='first', type=float, default=None, help='first cfg (accepts fractions)')
-parser.add_argument('-l', '--last',    dest='last', type=float, default=None, help='last cfg (accepts fractions)')
-parser.add_argument('-s', '--skip',    dest='skip', type=int, default=1, help='interval between cfg')
+parser = add_first_last_skip(parser)
 parser.add_argument('-i', '--fmt-inp', dest='inp', type=str, default='auto', help='input format ')
 parser.add_argument('-o', '--fmt-out', dest='out', type=str, default='', help='output format for conversion')
 parser.add_argument('-S', '--stdout',  dest='stdout', action='store_true', help='dump to stdout')

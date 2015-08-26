@@ -136,3 +136,12 @@ def fractional_slice(first, last, skip, n):
             last = int(last)
 
     return slice(first, last, skip)
+
+def add_first_last_skip(parser):
+    """Add first, last, skip arguments to ArgumentParser object.
+    Compatible with fractional_slice().
+    Convenience function for analysis scripts."""
+    parser.add_argument('-f', '--first', dest='first', type=float, default=None, help='first cfg (accepts fractions)')
+    parser.add_argument('-l', '--last',  dest='last', type=float, default=None, help='last cfg (accepts fractions)')
+    parser.add_argument('-s', '--skip',  dest='skip', type=int, default=1, help='interval between cfg')
+    return parser
