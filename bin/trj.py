@@ -86,7 +86,6 @@ for finp in args.file:
 
         # Define slice
         sl = fractional_slice(args.first, args.last, args.skip, len(tn))
-        print sl
         # Here we could you a trajectory slice t[sl] but this will load 
         # everything in ram (getitem doesnt provide a generator)
         ts = trajectory.Sliced(tn, sl)
