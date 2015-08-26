@@ -276,7 +276,7 @@ def get_period(data):
 
 # Useful functions to manipulate trajectories
 
-def convert(inp, out, fout='', tag='', prefix='', exclude=[], include=[]):
+def convert(inp, out, fout='', tag='', prefix='', exclude=[], include=[], stdout=False):
     """Convert trajectory into a different format.
 
     inp: input trajectory object
@@ -288,24 +288,28 @@ def convert(inp, out, fout='', tag='', prefix='', exclude=[], include=[]):
     # TODO: convert metadata (interaction etc) !
     # If the input trajectory lies in a directory, the new trajectory is located
     # in a companion directory prefixed by tag. The basename is config
-    # Check that we have some files there
-    if len(inp.steps) == 0:
-        raise IOError('no files in directory (%s)' % inp.filename)
 
-    if len(fout) > 0:
-        filename = fout
-    elif os.path.isdir(inp.filename):
-        if tag == '':
-            if prefix == '':
-                tag = '-conv'
-        d = os.path.dirname(inp.filename)
-        b = os.path.basename(inp.filename)
-        dirname = os.path.join(d, prefix + b) + tag
-        from pyutils.utils import mkdir
-        mkdir(dirname)
-        filename = dirname + '/config.' + out.suffix
+    # Check that we have some files there
+    if len(inp) == 0:
+        raise IOError('no samples in trajectory (%s)' % inp.filename)
+
+    if stdout:
+        filename = '/dev/stdout'
     else:
-        filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix    
+        if len(fout) > 0:
+            filename = fout
+        elif os.path.isdir(inp.filename):
+            if tag == '':
+                if prefix == '':
+                    tag = '-conv'
+            d = os.path.dirname(inp.filename)
+            b = os.path.basename(inp.filename)
+            dirname = os.path.join(d, prefix + b) + tag
+            from pyutils.utils import mkdir
+            mkdir(dirname)
+            filename = dirname + '/config.' + out.suffix
+        else:
+            filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix    
 
     with out(filename, 'w') as conv:
         conv.exclude(exclude)

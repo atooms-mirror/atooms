@@ -4,6 +4,7 @@ import os
 import logging
 import argparse
 from atooms import trajectory
+from atooms.utils import fractional_slice
 
 trj_map = {
     'auto': trajectory.Trajectory,
@@ -57,12 +58,12 @@ def add_interaction_hdf5(finp, ff, tag=None):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-p', '--percentage',dest='percent', action='store_true', help='first and last in percentages (if set)')
-parser.add_argument('-f', '--first',   dest='first', type=float, default=0, help='first cfg')
-parser.add_argument('-l', '--last',    dest='last', type=float, default=-1, help='last cfg')
-parser.add_argument('-s', '--skip',    dest='skip', type=float, default=1, help='interval between cfg')
+parser.add_argument('-f', '--first',   dest='first', type=float, default=None, help='first cfg (accepts fractions)')
+parser.add_argument('-l', '--last',    dest='last', type=float, default=None, help='last cfg (accepts fractions)')
+parser.add_argument('-s', '--skip',    dest='skip', type=int, default=1, help='interval between cfg')
 parser.add_argument('-i', '--fmt-inp', dest='inp', type=str, default='auto', help='input format ')
 parser.add_argument('-o', '--fmt-out', dest='out', type=str, default='', help='output format for conversion')
+parser.add_argument('-S', '--stdout',  dest='stdout', action='store_true', help='dump to stdout')
 parser.add_argument('-t', '--tag',     dest='tag', type=str, default='', help='tag to add before suffix')
 parser.add_argument('-F', '--ff',      dest='ff', type=str, default='', help='force field file')
 parser.add_argument(nargs='+',         dest='file',type=str, help='input files')
@@ -86,22 +87,13 @@ for finp in args.file:
         tn = trajectory.NormalizeId(t)
 
         # Define slice
-        first = args.first
-        last = args.last
-        if args.percent:
-            # If we ask fractional first / last sample and they are different from default
-            # get the actual first and/or last sample to convert
-            if args.first > 0:
-                first = int(args.first / 100. * len(tn))
-            if args.last != -1:
-                last = int(args.last / 100. * len(tn))
-        sl = slice(int(first), int(last), int(args.skip))
-
+        sl = fractional_slice(args.first, args.last, args.skip, len(tn))
+        print sl
         # Here we could you a trajectory slice t[sl] but this will load 
         # everything in ram (getitem doesnt provide a generator)
         ts = trajectory.Sliced(tn, sl)
         try:
-            fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag)
+            fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout)
         except IOError, e:
             print 'Conversion failed for %s (%s)' % (finp, e)
             continue
@@ -112,4 +104,4 @@ for finp in args.file:
             else:
                 raise IOError('force field file does not exist')
 
-        print 'Created %s (from %d to %d)' % (fout, first, last)
+        print '# Created %s [with %s]' % (fout, sl)

@@ -116,3 +116,23 @@ def clockit(func):
         return retval
     return new
 
+
+def fractional_slice(first, last, skip, n):
+    """Return a slice assuming first or last are fractions of n, the length of the iterable,
+    if first or last are in (0,1)"""
+    # We use an implicit convention here:
+    # If first or last are in (0,1) then they are considered as fractions of the iterable
+    # otherwise they are integer indexes. Note the explicit int() cast in the latter case.
+    if first is not None:
+        if first > 0 and first < 1:
+            first = int(first * n)
+        else:
+            first = int(first)
+
+    if last is not None:
+        if last > 0 and last < 1:
+            last = int(last * n)
+        else:
+            last = int(last)
+
+    return slice(first, last, skip)
