@@ -161,7 +161,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Interaction
         if system.interaction is not None:
-            if not type(system.interaction) is list:
+            if type(system.interaction) is list:
                 raise TypeError('interaction must be list')
             self.trajectory.copy(system.interaction, '/initialstate/interaction/')
             #self.write_interaction([system.interaction])
@@ -215,7 +215,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if 'velocity' in self.fmt:
                 self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
                 self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if 'radius' in system.fix and system.fix['radius']:
+            if not ('radius' in system.fix and not system.fix['radius']):
                 self.trajectory.create_group_safe('/trajectory/particle/radius')
                 self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
 
@@ -328,22 +328,22 @@ class TrajectoryHDF5(TrajectoryBase):
         for r, v in zip(pos, vel):
             p.append(Particle(position=r, velocity=v))
 
-        # Try reading radii
+        # Static properties
+        # TODO: optimize, this takes quite some additional time, almost x2
+        for pi, r in zip(p, self._system.particle):
+            # TODO: if id changes dynamically (like in swap) we will miss it. We should update them after this loop
+            pi.id = r.id
+            pi.mass = r.mass
+            pi.name = r.name
+            pi.radius = r.radius
+
+        # Try update radii. This must be done after setting defaults
         try:
             r = group['radius' + csample][:]           
             for i, pi in enumerate(p):
                 pi.radius = r[i]
         except:
-            pass
-        
-        # Static properties
-        # TODO: optimize, this takes quite some additional time, almost x2
-        for pi, r in zip(p, self._system.particle):
-            # TODO: if id changes dynamically (like in swap) we will miss it
-            pi.id = r.id
-            pi.mass = r.mass
-            pi.name = r.name
-            pi.radius = r.radius
+            raise
 
         # Read also interaction.
         has_int = True
