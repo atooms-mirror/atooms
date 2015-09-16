@@ -59,6 +59,7 @@ def add_interaction_hdf5(finp, ff, tag=None):
 
 parser = argparse.ArgumentParser()
 parser = add_first_last_skip(parser)
+parser.add_argument('-V', '--velocity',dest='vel', action='store_true', help='dump velocities')
 parser.add_argument('-i', '--fmt-inp', dest='inp', type=str, default='auto', help='input format ')
 parser.add_argument('-o', '--fmt-out', dest='out', type=str, default='', help='output format for conversion')
 parser.add_argument('-S', '--stdout',  dest='stdout', action='store_true', help='dump to stdout')
@@ -90,7 +91,10 @@ for finp in args.file:
         # everything in ram (getitem doesnt provide a generator)
         ts = trajectory.Sliced(tn, sl)
         try:
-            fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout)
+            if args.vel:
+                fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout, include=['vx','vy','vz'])
+            else:
+                fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout)
         except IOError, e:
             print 'Conversion failed for %s (%s)' % (finp, e)
             continue
