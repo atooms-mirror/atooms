@@ -60,6 +60,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.steps = [d[0] for d in self.trajectory['trajectory/realtime/stepindex'].values()]
                 # private list of samples. This solves the problem that samples may start from 0
                 # or 1 depending on the code that initially produced the data
+                # TODO: can we drop this for performance?
                 self._samples = [d[0] for d in self.trajectory['trajectory/realtime/sampleindex'].values()]
             except KeyError:
                 self.steps = []
@@ -343,7 +344,7 @@ class TrajectoryHDF5(TrajectoryBase):
             for i, pi in enumerate(p):
                 pi.radius = r[i]
         except:
-            raise
+            pass
 
         # Read also interaction.
         has_int = True
