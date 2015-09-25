@@ -5,7 +5,10 @@ import subprocess
 from distutils.core import setup
 
 # Get the git version
-git_version = subprocess.check_output('git describe --abbrev=4 --dirty --always', shell=True).strip()
+try:
+    git_version = subprocess.check_output('git describe --abbrev=4 --dirty --always', shell=True).strip()
+except:
+    git_version = '?'
 
 # Store it in the unversioned file _version.
 # This could be handled using a Makefile target
