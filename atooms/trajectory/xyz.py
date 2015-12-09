@@ -169,6 +169,9 @@ class TrajectoryXYZ(TrajectoryBase):
             self._sampledata.append({})
             for l, f in zip(line, self.fmt):
                 self._sampledata[-1][f] = l
+            # Put what remains in line in the tag
+            if len(line) > len(self.fmt):
+                self._sampledata[-1]['tag'] = line[len(self.fmt):]
             # The special greedy '*' in the last field matches all
             # that remains so we redefine this here
             lastfmt = self.fmt[-1]
@@ -245,6 +248,27 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         super(TrajectoryNeighbors, self).__init__(filename)
         # TODO: determine minimum value of index automatically
         self.offset = offset # neighbors produced by voronoi are indexed from 1
+
+    def _parse_header(self, data):
+        """Internal xyz method to get header metadata."""        
+        meta = {'time':None, 'cell':None}
+        grabber = {'time':lambda x: int(x)}
+        for m in meta:
+            p = re.compile(r'%s\s*[=:]\s*(\S*)\s' % m, re.IGNORECASE)
+            s = p.search(data)
+            if s is not None:     
+                meta[m] = grabber[m](s.group(1))
+
+        # Fix step
+        meta['step'] = meta['time']
+        if meta['step'] is None:
+            try:
+                n = int(data.split()[-1])
+            except:
+                self._step += 1
+                n = self._step
+            meta['step'] = n
+        return meta
 
     def read_sample(self, sample):
         self.trajectory.seek(self._index[sample])
