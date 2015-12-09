@@ -98,6 +98,15 @@ class Particle(object):
         self.position = p.position + rij
         return self
 
+    def nearest_image_copy(self, p, cell):
+        """Return the nearest image of p in the specified cell."""
+        from copy import deepcopy
+        rij = self.position - p.position
+        periodic_vector(rij, cell.side)
+        image = deepcopy(self)
+        image.position = p.position + rij
+        return image
+
     def distance(self, p, cell=None):
         """
         Return distance from particle p. 
