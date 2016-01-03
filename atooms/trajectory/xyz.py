@@ -244,10 +244,10 @@ class TrajectoryNeighbors(TrajectoryXYZ):
 
     """Neighbors info"""
 
-    def __init__(self, filename, offset=-1):
+    def __init__(self, filename, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename)
         # TODO: determine minimum value of index automatically
-        self.offset = offset # neighbors produced by voronoi are indexed from 1
+        self._offset = offset # neighbors produced by voronoi are indexed from 1
 
     def _parse_header(self, data):
         """Internal xyz method to get header metadata."""        
@@ -278,7 +278,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         for j in range(self._npart[sample]):
             data = self.trajectory.readline().split()
             neigh = numpy.array(data, dtype=int)
-            p.append(neigh+self.offset)
+            p.append(neigh-self._offset)
         return p
 
 class TrajectoryPDB(TrajectoryBase):
