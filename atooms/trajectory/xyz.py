@@ -271,6 +271,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         return meta
 
     def read_sample(self, sample):
+        # TODO: ensure / check III law Newton
         self.trajectory.seek(self._index[sample])
         self.trajectory.readline() # skip npart
         self.trajectory.readline() # skip comment header
