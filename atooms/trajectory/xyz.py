@@ -208,9 +208,13 @@ class TrajectoryXYZ(TrajectoryBase):
         return System(p, self._cell)
 
     def _comment_header(self, step, system):
-        fmt = "Step:%d Cell:%s Columns:%s\n"
-        return fmt % (step, ','.join(map(lambda x: '%s' % x, system.cell.side)),
-                      ','.join(self.fmt))
+        if system.cell is not None:
+            fmt = "Step:%d Cell:%s Columns:%s\n"
+            return fmt % (step, ','.join(map(lambda x: '%s' % x, system.cell.side)),
+                          ','.join(self.fmt))
+        else:
+            fmt = "Step:%d Columns:%s\n"
+            return fmt % (step, ','.join(self.fmt))
 
     def write_sample(self, system, step):
         self._cell = system.cell
@@ -224,7 +228,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 # Check for tag, somewhat hard hack to write voronoi polyehdron
                 # TODO: could be improved 
                 tag = ''
-                if not p.tag is None:
+                if not p.tag is None and not isinstance(p.tag, list):
                     tag = 4*" " + p.tag
                 self.trajectory.write(("%s"+ndim*" %14.6f"+tag+"\n") % ((p.name,) + tuple(p.position)))
         else:
