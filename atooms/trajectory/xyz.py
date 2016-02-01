@@ -248,6 +248,8 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         super(TrajectoryNeighbors, self).__init__(filename)
         # TODO: determine minimum value of index automatically
         self._offset = offset # neighbors produced by voronoi are indexed from 1
+        self._netwon3 = False
+        self._netwon3_message = False
 
     def _parse_header(self, data):
         """Internal xyz method to get header metadata."""        
@@ -271,7 +273,6 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         return meta
 
     def read_sample(self, sample):
-        # TODO: ensure / check III law Newton
         self.trajectory.seek(self._index[sample])
         self.trajectory.readline() # skip npart
         self.trajectory.readline() # skip comment header
@@ -280,6 +281,18 @@ class TrajectoryNeighbors(TrajectoryXYZ):
             data = self.trajectory.readline().split()
             neigh = numpy.array(data, dtype=int)
             p.append(neigh-self._offset)
+
+        # Ensure III law Newton.
+        # If this is ok on first sample we skip it for the next ones
+        if not self._netwon3:
+            self._netwon3 = True
+            for i, ilist in enumerate(p):
+                for j in ilist:
+                    if not i in p[j]:
+                        p[j].append(i)
+                        self._netwon3 = False
+            if not self._netwon3 and not self._netwon3_message:
+                print 'Warning: enforcing 3rd law of Newton...'
         return p
 
 class TrajectoryPDB(TrajectoryBase):
