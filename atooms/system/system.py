@@ -81,3 +81,5 @@ class System(object):
             return numpy.array([p.position[dim] for p in self.particle[pslice]])
         elif what == 'vel':
             return numpy.array([p.velocity[dim] for p in self.particle[pslice]])
+        elif what == 'sigma':
+            return numpy.array([p.radius*2 for p in self.particle[pslice]])
