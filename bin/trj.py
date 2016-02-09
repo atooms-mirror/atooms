@@ -65,6 +65,7 @@ parser.add_argument('-o', '--fmt-out', dest='out', type=str, default='', help='o
 parser.add_argument('-S', '--stdout',  dest='stdout', action='store_true', help='dump to stdout')
 parser.add_argument('-t', '--tag',     dest='tag', type=str, default='', help='tag to add before suffix')
 parser.add_argument('-F', '--ff',      dest='ff', type=str, default='', help='force field file')
+parser.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
 parser.add_argument(nargs='+',         dest='file',type=str, help='input files')
 args = parser.parse_args()
 
@@ -83,6 +84,8 @@ for finp in args.file:
         continue
 
     with trj_map[args.inp](finp) as t:
+        if args.flatten_steps:
+            t.steps = range(1,len(t)+1)
         tn = trajectory.NormalizeId(t)
 
         # Define slice
@@ -96,7 +99,7 @@ for finp in args.file:
             else:
                 fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout)
         except IOError, e:
-            print 'Conversion failed for %s (%s)' % (finp, e)
+            print 'Error: conversion failed for %s (%s)' % (finp, e)
             continue
 
         if args.ff:
@@ -105,4 +108,4 @@ for finp in args.file:
             else:
                 raise IOError('force field file does not exist')
 
-        print '# Created %s [with %s]' % (fout, sl)
+        print '%s'
