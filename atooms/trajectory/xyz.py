@@ -280,11 +280,12 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         self.trajectory.seek(self._index[sample])
         self.trajectory.readline() # skip npart
         self.trajectory.readline() # skip comment header
-        p = []
+        s = System()
+        s.neighbors = []
         for j in range(self._npart[sample]):
             data = self.trajectory.readline().split()
             neigh = numpy.array(data, dtype=int)
-            p.append(neigh-self._offset)
+            s.neighbors.append(neigh-self._offset)
 
         # Ensure III law Newton.
         # If this is ok on first sample we skip it for the next ones
@@ -297,7 +298,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         #                 self._netwon3 = False
         #     if not self._netwon3 and not self._netwon3_message:
         #         print 'Warning: enforcing 3rd law of Newton...'
-        return p
+        return s
 
 class TrajectoryPDB(TrajectoryBase):
 
