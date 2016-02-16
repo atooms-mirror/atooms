@@ -66,7 +66,8 @@ class TestAdaptersRUMD(unittest.TestCase):
         T = system.temperature()
         Uref = 36.9236726612
         Tref = 2*6.0/6
-        self.assertAlmostEqual(U, Uref)
+        # Note places is the number of decimal places, not significant digits, 4 is enough
+        self.assertAlmostEqual(U, Uref, 4)
         self.assertAlmostEqual(T, Tref)
 
     def test_temperature_mass(self):
