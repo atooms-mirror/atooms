@@ -50,7 +50,7 @@ class Simulation(simulation.Simulation):
         self.trajectory.close()
         mkdir(self.dir_output)
         # TODO: if dir_output is just output_path for init, why not using the latter?
-        simulation.Simulation.__init__(self, self.system, dir_output, kwargs)
+        simulation.Simulation.__init__(self, self.system, dir_output, **kwargs)
 
     # Temporarily use a different method
     def __set_verbosity(self, value):
