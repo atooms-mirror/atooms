@@ -39,18 +39,18 @@ class Simulation(simulation.Simulation):
     _WRITER_THERMO = WriterThermo
     STORAGE = 'directory'
 
-    def __init__(self, sim, dir_output, base_output='config.xyz'):
+    def __init__(self, sim, dir_output, **kwargs):
         self._sim = sim
         self._sim.sample.SetOutputDirectory(dir_output)
         self.__set_verbosity(0)
         self._initialize_output = True
-        self.base_output = base_output
+        self.base_output = 'config.xyz'
         self.dir_output = dir_output
-        self.trajectory = Trajectory(os.path.join(dir_output, base_output), 'w')
+        self.trajectory = Trajectory(os.path.join(dir_output, self.base_output), 'w')
         self.trajectory.close()
         mkdir(self.dir_output)
         # TODO: if dir_output is just output_path for init, why not using the latter?
-        simulation.Simulation.__init__(self, self.system, dir_output)
+        simulation.Simulation.__init__(self, self.system, dir_output, kwargs)
 
     # Temporarily use a different method
     def __set_verbosity(self, value):

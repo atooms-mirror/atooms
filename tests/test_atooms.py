@@ -31,10 +31,9 @@ class TestAtooms(fuzzyunittest.FuzzyTestCase):
     def test_simulation_run(self):
         ref = -4740.46362485
         file_output = '/tmp/test_atooms_run.h5'
-        s = Simulation(file_output, file_input=self.file_ref, 
+        s = Simulation(self.file_ref, file_output,
                        opts={'--dt':0.001, '-c':1, '-e':1})
-        s.setup(target_steps=10)
-        s.run()
+        s.run(10)
         self.assertAlmostEqual(s.system.potential_energy(), ref)
         os.remove(file_output)
 

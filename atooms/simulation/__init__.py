@@ -144,23 +144,26 @@ class Scheduler(object):
 
     """Scheduler to call observer during the simulation"""
 
-    def __init__(self, period=None, calls=None, target=None):
-        self._period = period
+    def __init__(self, period, calls=None, target=None):
+        self.period = period
         self.calls = calls
         self.target = target
-
-    @property
-    def period(self):
-        if not self._period:
-            if self.target:
-                if self.calls:
-                    self._period = max(1, self.target / self.calls)
+        # Main switch
+        if period is not None:
+            # Fixed period.
+            self.period = period
+        else:
+            if calls is not None:
+                # Fixed number of calls.
+                if self.target is not None:
+                    # If both calls and target are not None, we determine period
+                    self.period = max(1, self.target / self.calls)
                 else:
-                    self._period = self.target
+                    # Dynamic scheduling
+                    raise SchedulerError('dynamic scheduling not implemented')
             else:
-                raise SchedulerError('scheduler needs target to estimate period')
-
-        return self._period
+                # Scheduler is disabled
+                self.period = sys.maxint
 
     def next(self, this):
         return (this / self.period + 1) * self.period
@@ -189,19 +192,52 @@ class Simulation(object):
     # or following a file suffix logic. Meant to be subclassed.
     STORAGE = 'directory'
 
-    def __init__(self, initial_state, output_path):
+    def __init__(self, initial_state, output_path, 
+                 target_steps=None, target_rmsd=None,
+                 thermo_period=None, thermo_number=None, 
+                 config_period=None, config_number=None,
+                 checkpoint_period=None, checkpoint_number=None,
+                 restart=False):
         """We expect input and output paths as input.
         Alternatively, input might be a system (or trajectory?) instance.
         """
         self._callback = []
         self._scheduler = []
         self.steps = 0
-        self.target_steps = 0
-        self.restart = False
+        self.restart = restart
         self.output_path = output_path # can be file or directory
         self.system = initial_state
         # Store a copy of the initial state to calculate RMSD
         self.initial_system = copy.deepcopy(self.system)
+        # Setup schedulers and callbacks
+        self.target_steps = target_steps
+        if target_steps:
+            self.add(self._TARGET_STEPS(target_steps), Scheduler(1))
+        if target_rmsd:
+            # TODO: rmsd tagreting period is hard coded
+            self.add(self._TARGET_RMSD(target_rmsd), Scheduler(10000))
+
+        # TODO: implement dynamic scheduling or fail when period is None and targeting is rmsd
+        if thermo_period or thermo_number:
+            self.add(self._WRITER_THERMO(), Scheduler(thermo_period, thermo_number, target_steps))
+        if config_period or config_number:
+            self.add(self._WRITER_CONFIG(), Scheduler(config_period, config_number, target_steps))
+        # Checkpoint must be after other writers
+        if checkpoint_period or checkpoint_number:
+            self.add(self._WRITER_CHECKPOINT(), Scheduler(checkpoint_period, checkpoint_number, target_steps))
+
+        # If we are not targeting steps, we set it to the largest possible int
+        # TODO: can we drop this?
+        if self.target_steps is None:
+            self.target_steps = sys.maxint
+
+    def setup(self, 
+              target_steps=None, target_rmsd=None,
+              thermo_period=None, thermo_number=None, 
+              config_period=None, config_number=None,
+              checkpoint_period=None, checkpoint_number=None,
+              reset=False):
+        raise RuntimeError('use of deprecated setup() function')
 
     @property
     def rmsd(self):
@@ -212,41 +248,11 @@ class Simulation(object):
         """Add an observer (callback) to be called along a scheduler"""
         self._callback.append(callback)
         self._scheduler.append(scheduler)
+        # TODO: enforce checkpoint being last
         
     def report(self):
         for f, s in zip(self._callback, self._scheduler):
             log.info('Observer %s: period=%s calls=%s target=%s' % (type(f), s.period, s.calls, s.target))
-
-    def setup(self, 
-              target_steps=None, target_rmsd=None,
-              thermo_period=None, thermo_number=None, 
-              config_period=None, config_number=None,
-              checkpoint_period=None, checkpoint_number=None,
-              reset=False):
-        """Convenience function to set default observers"""
-
-        #TODO: we should allow to modify just one parameter of callback without reset
-        if reset:
-            self._callback = []
-            self._scheduler = []
-
-        # Add check for user stop
-        #self.add(UserStop(), Scheduler(1))
-        
-        if target_steps:
-            self.target_steps = target_steps
-            self.add(self._TARGET_STEPS(target_steps), Scheduler())
-        if target_rmsd:
-            self.add(self._TARGET_RMSD(target_rmsd), Scheduler(1))
-
-        if thermo_period or thermo_number:
-            self.add(self._WRITER_THERMO(), Scheduler(thermo_period, thermo_number))
-        if config_period or config_number:
-            self.add(self._WRITER_CONFIG(), Scheduler(config_period, config_number))
-        # Checkpoint must be after other writers
-        # TODO: implement sort callbacks to enforce checkpoint being last when not using setup()        
-        if checkpoint_period or checkpoint_number:
-            self.add(self._WRITER_CHECKPOINT(), Scheduler(checkpoint_period, checkpoint_number))
 
     def notify(self, condition=lambda x : True): #, callback, scheduler):
         for f, s in zip(self._callback, self._scheduler):
@@ -269,36 +275,28 @@ class Simulation(object):
     # TODO: when should checkpoint be read? The logic must be set here
     # Having a read_checkpoint() stub method would be OK here.
     def run_pre(self):
-        """This is safe to called by subclassing before or after reading checkpoint"""
-        # Some schedulers need target steps to estimate the period
-        for s in self._scheduler:
-            # TODO: introduce dynamic scheduling for rmsd and similar
-            if self.target_steps is None:
-                s.target = 1000
-            else:
-                s.target = self.target_steps
-
-        if self.target_steps is None:
-            self.target_steps = sys.maxint
-        
-        self.report()
+        """This should be safe to called by subclasses before or after reading checkpoint"""
+        pass
             
     def run_until(self, n):
-        # Design: it is run_until responsability to set steps
+        # Design: it is run_until responsability to set steps: self.steps = n
         # bear it in mind when subclassing 
-        # self.steps = n
         pass
 
     def run_end(self):
         pass
 
     def run(self, target_steps=None):
-        if target_steps:
+        if target_steps is not None:
+            # If we ask for more steps on the go, it means we are restarting
+            if target_steps > self.target_steps:
+                self.restart = True
             self.target_steps = target_steps
 
         try:
             self.run_pre()
             self.initial_steps = self.steps
+            self.report()
             # Before entering the simulation, check if we can quit right away
             # TODO: find a more elegant way to notify targeters only / order observers
             self.notify(lambda x : isinstance(x, Target))
@@ -309,16 +307,13 @@ class Simulation(object):
             while True:
 #                if self.steps >= self.target_steps:
 #                    raise SimulationEnd('target steps achieved')
-
                 # Run simulation until any of the observers need to be called
-                #next_step = min([self.target_steps]+[s.next(self.steps) for s in self._scheduler])
                 next_step = min([s.next(self.steps) for s in self._scheduler])
                 self.run_until(next_step)
                 self.steps = next_step
                 # TODO: log should be done only by rank=0 in parallel: encapsulate
-                log.info('step=%d/%d rmsd=%.2f wtime/step=%.2g' % (self.steps, self.target_steps,
-                                                                       self.rmsd,
-                                                                       self.wall_time_per_step()))
+                log.info('step=%d/%d wtime/step=%.2g' % (self.steps, self.target_steps,
+                                                         self.wall_time_per_step()))
                 # Notify writer and generic observers before targeters
                 self.notify(lambda x : not isinstance(x, Target))
                 self.notify(lambda x : isinstance(x, Target))

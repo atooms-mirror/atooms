@@ -23,7 +23,7 @@ class WriterConfig(object):
             if e.output_path_data[irx]:
                 with e.trajectory(e.output_path_data[irx]+'/'+e.sim[irx].base_output, 'a') as t:
                     t.exclude(['velocity'])
-                    t.write_sample(e.replica[i], e.steps)
+                    t.write(e.replica[i], e.steps)
 
 class WriterCheckpointPT(WriterCheckpoint):
     # This guy must inherit from WriterCheckPoint otherwise it wont be called
@@ -110,7 +110,11 @@ class ParallelTempering(Simulation):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
-    def __init__(self, output_path, output_path_data, params, sim, swap_period, seed=10, update=StateTemperature):
+    def __init__(self, output_path, output_path_data, params, sim, swap_period, seed=10, update=StateTemperature,
+                 target_steps=None, target_rmsd=None,
+                 thermo_period=None, thermo_number=None, 
+                 config_period=None, config_number=None,
+                 checkpoint_period=None, checkpoint_number=None):
         self.params = params
         # TODO: drop variables, make acceptance a callback
         self.variables = ['T']
@@ -142,7 +146,11 @@ class ParallelTempering(Simulation):
         # and output directory
         # TODO: potential bug here. If the initial system is different for each replica, the RMSD will be wrong
         # We should outsource rmsd or override.
-        Simulation.__init__(self, self.replica[0], output_path)
+        Simulation.__init__(self, self.replica[0], output_path,
+                            target_steps=target_steps, target_rmsd=target_rmsd,
+                            thermo_period=thermo_period, thermo_number=thermo_number, 
+                            config_period=config_period, config_number=config_number,
+                            checkpoint_period=checkpoint_period, checkpoint_number=checkpoint_number)
 
         # Set random seed now
         random.seed(self.seed)
