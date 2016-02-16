@@ -92,13 +92,13 @@ class Simulation(simulation.Simulation):
         self.file_input = file_input
         if file_output is None:
             self.file_output = self.file_input
-        super(Simulation, self).__init__(file_input, file_output)
+        super(Simulation, self).__init__(self.file_input, self.file_output)
         self.opts = opts
 
-        self.file_output_tmp = file_output + '.tmp'
+        self.file_output_tmp = self.file_output + '.tmp'
 
         # TODO: should initial state be an input variable or just an entry in the opts dict?
-        self.opts['--initial-state'] = file_input
+        self.opts['--initial-state'] = self.file_input
         self.verbosity = 0
         # This oevrwrites the system defined by init()
         self.system = System(self.file_output_tmp, self.opts) #, {k: self.opts[k] for k in ('--temperature',)})
