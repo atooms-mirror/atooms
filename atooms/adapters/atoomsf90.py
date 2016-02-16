@@ -96,6 +96,7 @@ class Simulation(simulation.Simulation):
         super(Simulation, self).__init__(self.file_input, self.file_output)
         self.opts = opts
 
+        # TODO: what is this guy doing here
         self.file_output_tmp = self.file_output + '.tmp'
 
         # TODO: should initial state be an input variable or just an entry in the opts dict?

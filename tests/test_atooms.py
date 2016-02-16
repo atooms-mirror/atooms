@@ -2,7 +2,7 @@
 
 import os
 import sys
-import fuzzyunittest
+import unittest
 
 try:
     from atooms.adapters.atoomsf90 import Simulation, System
@@ -12,7 +12,7 @@ except ImportError:
 
 # TODO: refactor adapters tests, they should be unique (except for constructors) because the interface is the same
 
-class TestAtooms(fuzzyunittest.FuzzyTestCase):
+class TestAtooms(unittest.TestCase):
 
     def setUp(self):
         if SKIP:
@@ -38,4 +38,4 @@ class TestAtooms(fuzzyunittest.FuzzyTestCase):
         os.remove(file_output)
 
 if __name__ == '__main__':
-    fuzzyunittest.main(verbosity=0)
+    unittest.main(verbosity=0)
