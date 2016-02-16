@@ -90,6 +90,7 @@ class Simulation(simulation.Simulation):
 
     def __init__(self, file_input, file_output=None, opts={}, **kwargs):
         self.file_input = file_input
+        self.file_output = file_output
         if file_output is None:
             self.file_output = self.file_input
         super(Simulation, self).__init__(self.file_input, self.file_output)
