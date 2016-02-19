@@ -29,6 +29,7 @@ log = logging.getLogger('atooms')
 #handler.setFormatter(formatter)
 log.addFilter(ParallelFilter())
 #log.addHandler(handler)
+log.setLevel(logging.INFO)
 
 # Default exceptions
 
@@ -44,20 +45,20 @@ class SchedulerError(Exception):
 # Default observers
 
 # Different approaches are possible:
-# 1. use callable classes passing args to __init__ and period to add()
+# 1. use callable classes passing args to __init__ and interval to add()
 #    Exemple of client code:
-#      sim.add(simulation.WriterThermo(), period=100)
+#      sim.add(simulation.WriterThermo(), interval=100)
 #      sim.add(simulation.TargetRMSD(5.0))
 
-# 2. use functions passing period and args as kwargs 
+# 2. use functions passing interval and args as kwargs 
 #    args are then passed to the function upon calling
 #    In this case, we should differentiate types of callbacks via different add() methods
 #    Exemple of client code:
-#      sim.add(simulation.writer_thermo, period=100)
+#      sim.add(simulation.writer_thermo, interval=100)
 #      sim.add(simulation.target_rmsd, rmsd=5.0)
 
 # At least for default observers, it should be possible to use shortcuts
-#   sim.writer_thermo_period = 100
+#   sim.writer_thermo_interval = 100
 #   sim.target_rmsd = 5.0
 # which will then add / modify the callbacks
 
@@ -139,37 +140,37 @@ class UserStop(object):
         if os.path.exists('%s/STOP' % e.output_path):
             raise SimulationEnd('user has stopped the simulation')
 
-#TODO: period can be a function to allow non linear sampling
+#TODO: interval can be a function to allow non linear sampling
 class Scheduler(object):
 
     """Scheduler to call observer during the simulation"""
 
-    def __init__(self, period, calls=None, target=None):
-        self.period = period
+    def __init__(self, interval, calls=None, target=None):
+        self.interval = interval
         self.calls = calls
         self.target = target
         # Main switch
-        if period is not None:
-            # Fixed period.
-            self.period = period
+        if interval is not None:
+            # Fixed interval.
+            self.interval = interval
         else:
             if calls is not None:
                 # Fixed number of calls.
                 if self.target is not None:
-                    # If both calls and target are not None, we determine period
-                    self.period = max(1, self.target / self.calls)
+                    # If both calls and target are not None, we determine interval
+                    self.interval = max(1, self.target / self.calls)
                 else:
                     # Dynamic scheduling
                     raise SchedulerError('dynamic scheduling not implemented')
             else:
                 # Scheduler is disabled
-                self.period = sys.maxint
+                self.interval = sys.maxint
 
     def next(self, this):
-        return (this / self.period + 1) * self.period
+        return (this / self.interval + 1) * self.interval
 
     def now(self, this):
-        return this % self.period == 0
+        return this % self.interval == 0
 
 
 class Simulation(object):
@@ -193,10 +194,10 @@ class Simulation(object):
     STORAGE = 'directory'
 
     def __init__(self, initial_state, output_path, 
-                 target_steps=None, target_rmsd=None,
-                 thermo_period=None, thermo_number=None, 
-                 config_period=None, config_number=None,
-                 checkpoint_period=None, checkpoint_number=None,
+                 steps=None, rmsd=None,
+                 thermo_interval=None, thermo_number=None, 
+                 config_interval=None, config_number=None,
+                 checkpoint_interval=None, checkpoint_number=None,
                  restart=False):
         """We expect input and output paths as input.
         Alternatively, input might be a system (or trajectory?) instance.
@@ -210,21 +211,22 @@ class Simulation(object):
         # Store a copy of the initial state to calculate RMSD
         self.initial_system = copy.deepcopy(self.system)
         # Setup schedulers and callbacks
-        self.target_steps = target_steps
-        if target_steps:
-            self.add(self._TARGET_STEPS(target_steps), Scheduler(target_steps))
-        if target_rmsd:
-            # TODO: rmsd tagreting period is hard coded
+        self.target_steps = steps
+        # Target steps are checked only at the end of the simulation
+        if self.target_steps:
+            self.add(self._TARGET_STEPS(self.target_steps), Scheduler(self.target_steps))
+        # TODO: rmsd targeting interval is hard coded
+        if rmsd:
             self.add(self._TARGET_RMSD(target_rmsd), Scheduler(10000))
 
-        # TODO: implement dynamic scheduling or fail when period is None and targeting is rmsd
-        if thermo_period or thermo_number:
-            self.add(self._WRITER_THERMO(), Scheduler(thermo_period, thermo_number, target_steps))
-        if config_period or config_number:
-            self.add(self._WRITER_CONFIG(), Scheduler(config_period, config_number, target_steps))
+        # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
+        if thermo_interval or thermo_number:
+            self.add(self._WRITER_THERMO(), Scheduler(thermo_interval, thermo_number, self.target_steps))
+        if config_interval or config_number:
+            self.add(self._WRITER_CONFIG(), Scheduler(config_interval, config_number, self.target_steps))
         # Checkpoint must be after other writers
-        if checkpoint_period or checkpoint_number:
-            self.add(self._WRITER_CHECKPOINT(), Scheduler(checkpoint_period, checkpoint_number, target_steps))
+        if checkpoint_interval or checkpoint_number:
+            self.add(self._WRITER_CHECKPOINT(), Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
 
         # If we are not targeting steps, we set it to the largest possible int
         # TODO: can we drop this?
@@ -252,7 +254,7 @@ class Simulation(object):
         
     def report(self):
         for f, s in zip(self._callback, self._scheduler):
-            log.info('Observer %s: period=%s calls=%s target=%s' % (type(f), s.period, s.calls, s.target))
+            log.info('Observer %s: interval=%s calls=%s target=%s' % (type(f), s.interval, s.calls, s.target))
 
     def notify(self, condition=lambda x : True): #, callback, scheduler):
         for f, s in zip(self._callback, self._scheduler):
@@ -261,7 +263,7 @@ class Simulation(object):
                 if s.now(self.steps) and condition(f):
                     f(self)
             except SchedulerError:
-                log.error('error with %s' % f, s.period, s.calls)
+                log.error('error with %s' % f, s.interval, s.calls)
                 raise
     
     def wall_time_per_step(self):
@@ -312,7 +314,7 @@ class Simulation(object):
                 self.run_until(next_step)
                 self.steps = next_step
                 # TODO: log should be done only by rank=0 in parallel: encapsulate
-                log.info('step=%d/%d wtime/step=%.2g' % (self.steps, self.target_steps,
+                log.debug('step=%d/%d wtime/step=%.2g' % (self.steps, self.target_steps,
                                                          self.wall_time_per_step()))
                 # Notify writer and generic observers before targeters
                 self.notify(lambda x : not isinstance(x, Target))
