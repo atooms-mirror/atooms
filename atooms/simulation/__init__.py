@@ -212,7 +212,7 @@ class Simulation(object):
         # Setup schedulers and callbacks
         self.target_steps = target_steps
         if target_steps:
-            self.add(self._TARGET_STEPS(target_steps), Scheduler(1))
+            self.add(self._TARGET_STEPS(target_steps), Scheduler(target_steps))
         if target_rmsd:
             # TODO: rmsd tagreting period is hard coded
             self.add(self._TARGET_RMSD(target_rmsd), Scheduler(10000))
