@@ -11,13 +11,13 @@ class TestSimulationBackend(unittest.TestCase):
 
     def test_simulation(self):
         from atooms.adapters import backend
-        s = backend.Simulation(None, None, target_steps = 10000)
+        s = backend.Simulation(None, None, steps = 10000)
         s.verbosity = 2
         s.run()
 
     def test_target(self):
         from atooms.adapters import backend
-        s = backend.Simulation(None, None, target_steps = 100, thermo_period = 20, config_number = 10)
+        s = backend.Simulation(None, None, steps = 100, thermo_interval = 20, config_number = 10)
         s.run()
 
 if __name__ == '__main__':
