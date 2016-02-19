@@ -91,7 +91,7 @@ class Target(object):
         x = float(getattr(sim, self.name))
         log.debug('targeting %s to %g [%d]' % (self.name, x, int(float(x) / self.target * 100)))
         if x >= self.target:
-            raise SimulationEnd('target %s achieved' % self.name)
+            raise SimulationEnd('achieved target %s: %s' % (self.name, self.target))
 
     def fraction(self, sim):
         """Fraction of target value already achieved"""
@@ -297,7 +297,7 @@ class Simulation(object):
 
         try:
             self.run_pre()
-            self.initial_steps = self.steps
+            self.initial_steps = copy.copy(self.steps)
             self.report()
             # Before entering the simulation, check if we can quit right away
             # TODO: find a more elegant way to notify targeters only / order observers
@@ -330,8 +330,8 @@ class Simulation(object):
                     f(self)
             #self.notify(lambda x : isinstance(x, WriterCheckpoint))
             if not self.initial_steps == self.steps:
-                log.info('simulation wall time [s]: %.1f' % _elapsed_time())
-                log.info('simulation wall time/step [s]: %.2g' % self.wall_time_per_step())
+                log.info('wall time [s]: %.1f' % _elapsed_time())
+                log.info('steps/wall time [1/s]: %.1f' % (1./self.wall_time_per_step()))
             log.info('simulation ended successfully: %s' % s.message)
             self.run_end()
 
