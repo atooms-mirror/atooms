@@ -108,4 +108,4 @@ for finp in args.file:
             else:
                 raise IOError('force field file does not exist')
 
-        print '%s'
+        print '%s' % fout
