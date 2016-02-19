@@ -109,21 +109,16 @@ class TargetRMSD(Target):
     def __init__(self, target):
         Target.__init__(self, 'rmsd', target)
 
-TIME_START = time.time()
-
-def _elapsed_time():
-    return time.time() - TIME_START
-
 class TargetWallTime(Target):
 
     def __init__(self, wall_time):
         self.wtime_limit = wall_time
 
     def __call__(self, sim):
-        if _elapsed_time() > self.wtime_limit:
+        if sim.elapsed_wall_time() > self.wtime_limit:
             raise WallTimeLimit('target wall time reached')
         else:
-            t = _elapsed_time()
+            t = sim.elapsed_wall_time()
             dt = self.wtime_limit - t
             log.debug('elapsed time %g, reamining time %g' % (t, dt))
 
@@ -205,6 +200,8 @@ class Simulation(object):
         self._callback = []
         self._scheduler = []
         self.steps = 0
+        self.initial_steps = 0
+        self.start_time = time.time()
         self.restart = restart
         self.output_path = output_path # can be file or directory
         self.system = initial_state
@@ -266,10 +263,13 @@ class Simulation(object):
                 log.error('error with %s' % f, s.interval, s.calls)
                 raise
     
+    def elapsed_wall_time(self):
+        return time.time() - self.start_time
+
     def wall_time_per_step(self):
         """Return the wall time in seconds per step.
         Can be conventiently subclassed by more complex simulation classes."""
-        return _elapsed_time() / (self.steps-self.initial_steps)
+        return self.elapsed_wall_time() / (self.steps-self.initial_steps)
 
     # Our template consists of three steps: pre, until and end
     # Typically a backend will implement the until method.
@@ -330,7 +330,7 @@ class Simulation(object):
                     f(self)
             #self.notify(lambda x : isinstance(x, WriterCheckpoint))
             if not self.initial_steps == self.steps:
-                log.info('wall time [s]: %.1f' % _elapsed_time())
+                log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
                 log.info('steps/wall time [1/s]: %.1f' % (1./self.wall_time_per_step()))
             log.info('simulation ended successfully: %s' % s.message)
             self.run_end()
