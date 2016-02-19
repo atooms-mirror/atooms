@@ -111,10 +111,10 @@ class ParallelTempering(Simulation):
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
     def __init__(self, output_path, output_path_data, params, sim, swap_period, seed=10, update=StateTemperature,
-                 target_steps=None, target_rmsd=None,
-                 thermo_period=None, thermo_number=None, 
-                 config_period=None, config_number=None,
-                 checkpoint_period=None, checkpoint_number=None):
+                 steps=None, rmsd=None,
+                 thermo_interval=None, thermo_number=None, 
+                 config_interval=None, config_number=None,
+                 checkpoint_interval=None, checkpoint_number=None):
         self.params = params
         # TODO: drop variables, make acceptance a callback
         self.variables = ['T']
@@ -147,10 +147,10 @@ class ParallelTempering(Simulation):
         # TODO: potential bug here. If the initial system is different for each replica, the RMSD will be wrong
         # We should outsource rmsd or override.
         Simulation.__init__(self, self.replica[0], output_path,
-                            target_steps=target_steps, target_rmsd=target_rmsd,
-                            thermo_period=thermo_period, thermo_number=thermo_number, 
-                            config_period=config_period, config_number=config_number,
-                            checkpoint_period=checkpoint_period, checkpoint_number=checkpoint_number)
+                            steps=steps, rmsd=rmsd,
+                            thermo_interval=thermo_interval, thermo_number=thermo_number, 
+                            config_interval=config_interval, config_number=config_number,
+                            checkpoint_interval=checkpoint_interval, checkpoint_number=checkpoint_number)
 
         # Set random seed now
         random.seed(self.seed)
