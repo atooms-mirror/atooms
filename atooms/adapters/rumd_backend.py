@@ -42,6 +42,7 @@ class Simulation(simulation.Simulation):
     def __init__(self, sim, dir_output, **kwargs):
         self._sim = sim
         self._sim.sample.SetOutputDirectory(dir_output)
+        self._sim.sample.EnableBackup(false)
         self.__set_verbosity(0)
         self._initialize_output = True
         self.base_output = 'config.xyz'
