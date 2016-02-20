@@ -9,6 +9,7 @@ import time
 import logging
 import copy
 
+from atooms.utils import mkdir
 from atooms.utils import rank, size
 
 # Logging facilities
@@ -206,10 +207,16 @@ class Simulation(object):
         self.initial_steps = 0
         self.start_time = time.time()
         self.restart = restart
-        self.output_path = output_path # can be file or directory
-        self.system = initial_state
-        # Store a copy of the initial state to calculate RMSD
+        # Keep a reference to the system and a copy of the initial state (for RMSD)
+        # The copy of the initial state could be delayed to allow subclasses some more freedom
+        self._system = initial_state
         self.initial_system = copy.deepcopy(self.system)
+        self.output_path = output_path # can be file or directory
+        if self.STORAGE == 'directory':
+            mkdir(self.output_path)
+        # We expect subclasses to keep a ref to the trajectory object self.trajectory
+        # used to store configurations, although this is not used in base class
+
         # Setup schedulers and callbacks
         self.target_steps = steps
         # Target steps are checked only at the end of the simulation
@@ -241,6 +248,10 @@ class Simulation(object):
               reset=False):
         raise RuntimeError('use of deprecated setup() function')
 
+    # @property
+    # def system(self):
+    #     return self._system
+
     @property
     def rmsd(self):
         # TODO: provide rmsd by species 07.12.2014
@@ -253,8 +264,9 @@ class Simulation(object):
         # TODO: enforce checkpoint being last
         
     def report(self):
+        log.info('output path: %s' % self.output_path)
         for f, s in zip(self._callback, self._scheduler):
-            log.info('Observer %s: interval=%s calls=%s target=%s' % (type(f), s.interval, s.calls, s.target))
+            log.info('observer %s: interval=%s calls=%s target=%s' % (type(f), s.interval, s.calls, s.target))
 
     def notify(self, condition=lambda x : True): #, callback, scheduler):
         for f, s in zip(self._callback, self._scheduler):
@@ -289,7 +301,7 @@ class Simulation(object):
         pass
 
     def run_end(self):
-        pass
+        self.report()
 
     def run(self, target_steps=None):
         if target_steps is not None:
@@ -332,7 +344,9 @@ class Simulation(object):
                 if isinstance(f, WriterCheckpoint):
                     f(self)
             #self.notify(lambda x : isinstance(x, WriterCheckpoint))
+            # Only dumps log if actually we did some steps
             if not self.initial_steps == self.steps:
+                log.info('final rmsd: %.2f' % self.rmsd)
                 log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
                 log.info('steps/wall time [1/s]: %.1f' % (1./self.wall_time_per_step()))
             log.info('simulation ended successfully: %s' % s.message)

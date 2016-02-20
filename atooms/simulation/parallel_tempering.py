@@ -146,6 +146,7 @@ class ParallelTempering(Simulation):
         # and output directory
         # TODO: potential bug here. If the initial system is different for each replica, the RMSD will be wrong
         # We should outsource rmsd or override.
+        self.system = self.replica[0]
         Simulation.__init__(self, self.replica[0], output_path,
                             steps=steps, rmsd=rmsd,
                             thermo_interval=thermo_interval, thermo_number=thermo_number, 
@@ -329,6 +330,8 @@ class ParallelTempering(Simulation):
             self.clean_files()
 
     def run_until(self, n):
+        """n is the number of PT steps, i.e. a block of several steps"""
+        # TODO: wait it is crucial to set thermo_period to 1 else we get only one one step?!
         # Evolve over my physical replicas.
         log.debug('run until %d' % n)
         for i in self.my_replica:
