@@ -46,6 +46,8 @@ def barrier():
 # Utility functions to mimic bash directory / file handling
 
 def mkdir(d):
+    if d is None:
+        return
     if isinstance(d, str):
         dirs = [d]
     else:
