@@ -130,10 +130,13 @@ class UserStop(object):
     def __call__(self, e):
         # To make it work in parallel we should broadcast and then rm 
         # or subclass userstop in classes that use parallel execution
-        log.debug('User Stop %s/STOP' % e.output_path)
-        # TODO: support files as well
-        if os.path.exists('%s/STOP' % e.output_path):
-            raise SimulationEnd('user has stopped the simulation')
+        if self.STORAGE == 'directory':
+            log.debug('User Stop %s/STOP' % e.output_path)
+            # TODO: support files as well
+            if os.path.exists('%s/STOP' % e.output_path):
+                raise SimulationEnd('user has stopped the simulation')
+        else:
+            raise RuntimeError('USerStop wont work atm with file storage')
 
 #TODO: interval can be a function to allow non linear sampling
 class Scheduler(object):
