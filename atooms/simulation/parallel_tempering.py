@@ -120,7 +120,7 @@ class ParallelTempering(Simulation):
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
     def __init__(self, sim, params, output_path,
-                 swap_period=0, seed=10, update=StateTemperature, fmt='T%.5f',
+                 swap_period=0, seed=10, update=StateTemperature, fmt='T%.4f',
                  mute_config_except=None,
                  steps=None, rmsd=None,
                  thermo_interval=None, thermo_number=None, 
