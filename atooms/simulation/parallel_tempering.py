@@ -21,7 +21,8 @@ class WriterConfig(object):
             # If the output directory for state irx is None
             # we do not write configurations
             if e.output_path_data[irx]:
-                with e.trajectory(e.output_path_data[irx]+'/'+e.sim[irx].base_output, 'a') as t:
+                f = os.path.basename(e.sim[irx].output_file)
+                with e.trajectory(e.output_path_data[irx]+'/'+f, 'a') as t:
                     t.exclude(['velocity'])
                     t.write(e.replica[i], e.steps)
 
