@@ -52,7 +52,6 @@ class Simulation(simulation.Simulation):
         self._sim.SetVerbose(False)
         # TODO: need some switch to use or not RUMD checkpoint. If checkpoint_interval is set e.g. we suppress RUMD's one
         # TODO: this must be set anyway if output_path is None
-        self._suppress_all_output = True # this will avoid RUMD restart files to pollute the folder
         # Copy of initial state
         self.initial_state = self._sim.sample.Copy()
 
@@ -106,7 +105,6 @@ class Simulation(simulation.Simulation):
         # TODO: This may also a problem for self restarting blocks...??
         if self.restart:
             log.debug('restart attempt')
-            self.restart = False
             # TODO: we assume this is the name of the checkpoint! but we had introduced 
             # an optional filename, which will be skipped here. One soultion is to be rigid
             # but then it means that we swap trajectories in PT (need refactoring)
@@ -139,7 +137,10 @@ class Simulation(simulation.Simulation):
     def run_pre(self):
         super(Simulation, self).run_pre()
         # If by now we havent set output_path it means we wont write anything to disk
+        # This will avoid RUMD restart files to pollute the folder, however, it must be kept False the first time RUMD is run to at least get rid of the old directory. Or we do it manually
+        self._suppress_all_output = True
         if self.output_path is not None:
+            self._suppress_all_output = False # we let it clean the dir upon entrance, then we suppress
             self._sim.sample.SetOutputDirectory(self.output_path)
             # TODO: output_file can be dropped as instance variable I guess: we cacn check output_path is not None, grab the basename of trajectory. Or perhaps this should be defined by the writer, no?
             self.output_file = os.path.join(self.output_path, 'config.xyz')
@@ -188,12 +189,22 @@ class Simulation(simulation.Simulation):
                           suppressAllOutput=self._suppress_all_output)
         else:
             # Either we are not restarting or we restart
-            # from our checkpoint. In this we make sure
+            # from our checkpoint. In the first case we make sure
             # the directory is cleared the first time this is called
             # TODO: Actually, we could avoid the inconvenience and do it on our
             # own (in this case set initializeOutput fo False)            
+            if self.restart:
+                self._suppress_all_output = True
+                self._initialize_output = False
+                # We must toggle it here to prevent future calls to pre to restart
+                # TODO: improve restart here (we need an internal variable)
+                self.restart = False 
             self._sim.Run(n-self.steps, suppressAllOutput=self._suppress_all_output,
                           initializeOutput = self._initialize_output)
+            # We let it clean the dir upon entrance, then we suppress this
+            # Note this will leave a restart file.
+            # TODO: perhaps it is better to clean up the dir on our own.
+            self._suppress_all_output = True
             # After calling run_until once, we prevent RUMD from
             # clearing the directory (note we have disabled backups but
             # still it clears the output_path)

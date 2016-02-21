@@ -18,12 +18,15 @@ class WriterConfig(object):
         log.debug('writer config')
         for i in e.my_replica:
             irx = e.state[i]
-            # If the output directory for state irx is None
-            # we do not write configurations
-            if e.dir_state_out[irx] is not None:
-                # Make sure output directories exist
-                d = e.dir_state_out[irx]
-                mkdir(d)
+            # If mute_config_except is None or it contains the state we write it
+            # otherwise we do not write anything. 
+            # Ex: only write the lowest T state -> mute_config_except=[0]
+            #     write all states -> mute_config_except=None (default)
+            # Make sure output directories exist, even if we dont write config (for checkpoint)
+            d = e.dir_state_out[irx]
+            mkdir(d)
+            if e.mute_config_except is None or \
+               irx in e.mute_config_except:
                 f = os.path.basename(e.sim[irx].output_file)
                 # The trajectory class is taken from the simulation backend
                 trj_cls = e.sim[irx].trajectory.__class__
@@ -117,17 +120,24 @@ class ParallelTempering(Simulation):
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
     def __init__(self, sim, params, output_path,
-                  swap_period=0, seed=10, update=StateTemperature,
+                 swap_period=0, seed=10, update=StateTemperature, fmt='T%.5f',
+                 mute_config_except=None,
                  steps=None, rmsd=None,
                  thermo_interval=None, thermo_number=None, 
                  config_interval=None, config_number=None,
                  checkpoint_interval=None, checkpoint_number=None):
+        Simulation.__init__(self, None, output_path,
+                            steps=steps, rmsd=rmsd,
+                            thermo_interval=thermo_interval, thermo_number=thermo_number, 
+                            config_interval=config_interval, config_number=config_number,
+                            checkpoint_interval=checkpoint_interval, checkpoint_number=checkpoint_number)
         self.params = params
+        self.sim = sim
         # TODO: drop variables, make acceptance a callback
         self.variables = ['T']
         self.update = update()
-        self.sim = sim
         self.steps_block = swap_period
+        self.mute_config_except = mute_config_except
         self.nr = len(params)
         self.seed = seed
         random.seed(self.seed)
@@ -136,32 +146,11 @@ class ParallelTempering(Simulation):
         # These are references: they'll follow the simulations 
         self.replica = [s.system for s in sim]
 
-        # Here it is good to call the base constructor since we know input sample
-        # and output directory
-        # TODO: potential bug here. If the initial system is different for each replica, the RMSD will be wrong
-        # We should outsource rmsd or override.
-        # TODO: initial state must be set when calling run_pre(), delegating to subclasses
-        self.system = None
-        #self.system = self.replica[0]
-#        Simulation.__init__(self, self.replica[0], output_path,
-        Simulation.__init__(self, None, output_path,
-                            steps=steps, rmsd=rmsd,
-                            thermo_interval=thermo_interval, thermo_number=thermo_number, 
-                            config_interval=config_interval, config_number=config_number,
-                            checkpoint_interval=checkpoint_interval, checkpoint_number=checkpoint_number)
-
-        # # If output is just one directory, we listify it padding it with None
-        # if not isinstance(output_path_data, list):
-        #     output_path_data = [output_path_data] + [None] * (self.nr-1)
-        # self.output_path_data = output_path_data
-
         # Sanity check
         if not (self.nr == len(sim)):
             raise ParameterError('n. of backends must match n. of states (%d, %d)' % (self.nr, len(sim)))
 
         # Define output files
-        mkdir(self.output_path + '/state')
-        mkdir(self.output_path + '/replica')
         self.file_log = self.output_path + '/pt.log'
         # For each thermodynamic state, info on the replica which has it
         self.file_state_out = [self.output_path + '/state/%d.out' % i for i in range(self.nr)]
@@ -170,7 +159,7 @@ class ParallelTempering(Simulation):
         self.file_replica_out = [self.output_path + '/replica/%d.out' % i for i in range(self.nr)]
         # This must be set as output_path of the backend.
         # TODO: Is this variable needed? It is will output_path of the backend
-        self.dir_state_out = [self.output_path + '/state/T%.4f' % p for p in self.params]
+        self.dir_state_out = [self.output_path + ('/state/' + fmt) % p for p in self.params]
         for s, d in zip(self.sim, self.dir_state_out):
             # We expect this to be None now
             s.output_path = d
@@ -298,6 +287,15 @@ class ParallelTempering(Simulation):
     def run_pre(self):
         Simulation.run_pre(self)
 
+        # If we do not restart, we clear up everything in the base
+        if not self.restart:
+            rmd(self.output_path)
+
+        # Make sure base directories exist
+        mkdir(self.output_path)
+        mkdir(self.output_path + '/state')
+        mkdir(self.output_path + '/replica')
+
         if self.restart:
             # TODO: steps should all be equal, we should check
             # This must be done by everybody. Otherwise, each process
@@ -324,9 +322,6 @@ class ParallelTempering(Simulation):
         log.info('rx with %d GPUs (rank=%d)' % (size, rank), extra={'rank':'all'})
         log.info('GPU %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]), extra={'rank':'all'})
         self.write_log()
-
-        if not self.restart:
-            self.clean_files()
 
     def run_until(self, n):
         """n is the number of PT steps, i.e. a block of several steps"""
