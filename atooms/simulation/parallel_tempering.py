@@ -122,11 +122,14 @@ class ParallelTempering(Simulation):
         self.update = update()
         self.sim = sim
         self.steps_block = swap_period
-        self.seed = seed
         self.nr = len(params)
+        self.seed = seed
+        random.seed(self.seed)
+
         # The trajectory class is taken from the simulation backend
         # For the moment, we assume that at least the first simulation 
         # backend has a trajectory
+        # TODO: do we need to bundle trajectory with simulation? @design
         self.trajectory = self.sim[0].trajectory.__class__
 
         # Get physical replicas (systems) from simulation instances.
@@ -147,6 +150,8 @@ class ParallelTempering(Simulation):
         # and output directory
         # TODO: potential bug here. If the initial system is different for each replica, the RMSD will be wrong
         # We should outsource rmsd or override.
+        # TODO: perhaps the base class need not know about output_path
+        # TODO: initial state must be set when calling run_pre(), delegating to subclasses
         self.system = self.replica[0]
         Simulation.__init__(self, self.replica[0], output_path,
                             steps=steps, rmsd=rmsd,
@@ -154,8 +159,19 @@ class ParallelTempering(Simulation):
                             config_interval=config_interval, config_number=config_number,
                             checkpoint_interval=checkpoint_interval, checkpoint_number=checkpoint_number)
 
-        # Set random seed now
-        random.seed(self.seed)
+        # Define output files
+        mkdir(self.output_path + '/state')
+        mkdir(self.output_path + '/replica')
+        self.file_log = self.output_path + '/pt.log'
+        # For each thermodynamic state, info on the replica which has it
+        self.file_state_out = [self.output_path + '/state/%d.out' % i for i in range(self.nr)]
+        self.file_state_xyz = [self.output_path + '/state/%d.xyz' % i for i in range(self.nr)]
+        # For each physical replica, info on the state in which it is
+        self.file_replica_out = [self.output_path + '/replica/%d.out' % i for i in range(self.nr)]
+        # Make sure output directories exist
+        for d in self.output_path_data:
+            if d:
+                mkdir(d)
 
         self.replica_id = range(self.nr)
         # TODO: remember to checkpoint them
@@ -192,26 +208,6 @@ class ParallelTempering(Simulation):
                 self.steps_block = swap_period * self.nr
             else:
                 raise ValueError('number of blocks does not match n. replica')
-
-        # We setup target steps here, then run_batch will use it
-        # In principle, this could be controlled by the user from outside
-        # and we could drop swap_period and steps_block completely
-        # for s, steps in zip(self.sim, self.steps_block):
-        #     s.setup(target_steps=steps)
-
-        # Define output files
-        mkdir(self.output_path + '/state')
-        mkdir(self.output_path + '/replica')
-        self.file_log = self.output_path + '/pt.log'
-        # For each thermodynamic state, info on the replica which has it
-        self.file_state_out = [self.output_path + '/state/%d.out' % i for i in range(self.nr)]
-        self.file_state_xyz = [self.output_path + '/state/%d.xyz' % i for i in range(self.nr)]
-        # For each physical replica, info on the state in which it is
-        self.file_replica_out = [self.output_path + '/replica/%d.out' % i for i in range(self.nr)]
-        # Make sure output directories exist
-        for d in self.output_path_data:
-            if d:
-                mkdir(d)
 
     @property
     def rmsd(self):
