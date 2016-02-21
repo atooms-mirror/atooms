@@ -111,6 +111,7 @@ class ParallelTempering(Simulation):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
+    # TODO: simulations should go first, then params, output, swap_period (make optional and check if None)
     def __init__(self, output_path, output_path_data, params, sim, swap_period, seed=10, update=StateTemperature,
                  steps=None, rmsd=None,
                  thermo_interval=None, thermo_number=None, 

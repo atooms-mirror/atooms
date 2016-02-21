@@ -46,17 +46,19 @@ class Simulation(simulation.Simulation):
         # So perhaps we might pass None and make an explicit copy of initial_state here
         self._sim = sim
         simulation.Simulation.__init__(self, self.system, *args, **kwargs)
-        self._sim.sample.SetOutputDirectory(self.output_path)
+        if self.output_path is not None:
+            self._sim.sample.SetOutputDirectory(self.output_path)
+            self.output_file = os.path.join(self.output_path, 'config.xyz')
+            # We need to keep a reference to the trajectory backend used here
+            # TODO: do we really need to create a file for that? Cant we we just inspect the backend?
+            self.trajectory = Trajectory(self.output_file, 'w')
+            self.trajectory.close()
         self._sim.sample.EnableBackup(False)
         self._sim.sample.SetVerbose(False)
         self._sim.SetVerbose(False)
-        self.output_file = os.path.join(self.output_path, 'config.xyz')
         # TODO: need some switch to use or not RUMD checkpoint. If checkpoint_interval is set e.g. we suppress RUMD's one
+        # TODO: this must be set anyway if output_path is None
         self._suppress_all_output = True # this will avoid RUMD restart files to pollute the folder
-        # We need to keep a reference to the trajectory backend used here
-        # TODO: do we really need to create a file for that? Cant we we just inspect the backend?
-        self.trajectory = Trajectory(self.output_file, 'w')
-        self.trajectory.close()
             
     def _get_system(self):
         return System(self._sim)
@@ -85,6 +87,8 @@ class Simulation(simulation.Simulation):
 
     def __check_restart(self):
         self._ibl = None
+        if self.output_path is None:
+            return
         # @thomas unfortunately RUMD does not seem to write the last restart 
         # when the simulation is over therefore the last block is always rerun
         # To work around it we check is final.xyz.gz exists (we write it in run_end)        
@@ -176,7 +180,8 @@ class Simulation(simulation.Simulation):
     def run_end(self):
         # Make sure we write final.xyz.gz, this way we can avoid
         # restarting from the but to last block
-        self._sim.WriteConf(self.output_path + '/final.xyz.gz')
+        if self.output_path is not None:
+            self._sim.WriteConf(self.output_path + '/final.xyz.gz')
 
 import numpy
 from atooms.system.particle import Particle

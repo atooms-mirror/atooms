@@ -43,6 +43,9 @@ class WallTimeLimit(Exception):
 class SchedulerError(Exception):
     pass
 
+class ParameterError(Exception):
+    pass
+
 # Default observers
 
 # Different approaches are possible:
@@ -131,7 +134,7 @@ class UserStop(object):
     def __call__(self, e):
         # To make it work in parallel we should broadcast and then rm 
         # or subclass userstop in classes that use parallel execution
-        if self.STORAGE == 'directory':
+        if e.output_path is not None and self.STORAGE == 'directory':
             log.debug('User Stop %s/STOP' % e.output_path)
             # TODO: support files as well
             if os.path.exists('%s/STOP' % e.output_path):
@@ -192,7 +195,7 @@ class Simulation(object):
     # or following a file suffix logic. Meant to be subclassed.
     STORAGE = 'directory'
 
-    def __init__(self, initial_state, output_path, 
+    def __init__(self, initial_state, output_path=None, 
                  steps=None, rmsd=None,
                  thermo_interval=None, thermo_number=None, 
                  config_interval=None, config_number=None,
@@ -211,8 +214,8 @@ class Simulation(object):
         # The copy of the initial state could be delayed to allow subclasses some more freedom
         self._system = initial_state
         self.initial_system = copy.deepcopy(self.system)
-        self.output_path = output_path # can be file or directory
-        if self.STORAGE == 'directory':
+        self.output_path = output_path # can be None, file or directory
+        if self.output_path is not None and self.STORAGE == 'directory':
             mkdir(self.output_path)
         # We expect subclasses to keep a ref to the trajectory object self.trajectory
         # used to store configurations, although this is not used in base class
@@ -247,6 +250,16 @@ class Simulation(object):
               checkpoint_period=None, checkpoint_number=None,
               reset=False):
         raise RuntimeError('use of deprecated setup() function')
+
+    def _check_writers(self):
+        """Check that we have a place to write"""
+        # It should be called at pre()
+        # TODO: in this case we should disable writers or check that
+        if self.output_path is None:
+            # if not all(x is None for x in [config_interval, thermo_interval, checkpoint_interval,
+            #                                config_number, thermo_number, checkpoint_number]):
+            #     raise ParameterError('cannot set writers when output_path is None')
+            pass
 
     # @property
     # def system(self):
