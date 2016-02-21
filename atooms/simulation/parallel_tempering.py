@@ -21,12 +21,10 @@ class WriterConfig(object):
             # If mute_config_except is None or it contains the state we write it
             # otherwise we do not write anything. 
             # Ex: only write the lowest T state -> mute_config_except=[0]
-            #     write all states -> mute_config_except=None (default)
-            # Make sure output directories exist, even if we dont write config (for checkpoint)
-            d = e.dir_state_out[irx]
-            mkdir(d)
+            #     write all states -> mute_config_except=None (default)            
             if e.mute_config_except is None or \
                irx in e.mute_config_except:
+                d = e.dir_state_out[irx]
                 f = os.path.basename(e.sim[irx].output_file)
                 # The trajectory class is taken from the simulation backend
                 trj_cls = e.sim[irx].trajectory.__class__
@@ -295,6 +293,9 @@ class ParallelTempering(Simulation):
         mkdir(self.output_path)
         mkdir(self.output_path + '/state')
         mkdir(self.output_path + '/replica')
+        # Make sure output directories exist, even if we dont write config (for checkpoint)
+        for d in self.dir_state_out:
+            mkdir(d)
 
         if self.restart:
             # TODO: steps should all be equal, we should check
