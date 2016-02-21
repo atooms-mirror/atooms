@@ -195,6 +195,7 @@ class Simulation(object):
     # or following a file suffix logic. Meant to be subclassed.
     STORAGE = 'directory'
 
+    # TODO: initial state is not needed anymore, since rmsd is the subclass or backend responsability (it was a too weak link, the only thing for which initial_state and system were needed.
     def __init__(self, initial_state, output_path=None, 
                  steps=None, rmsd=None,
                  thermo_interval=None, thermo_number=None, 
@@ -210,10 +211,6 @@ class Simulation(object):
         self.initial_steps = 0
         self.start_time = time.time()
         self.restart = restart
-        # Keep a reference to the system and a copy of the initial state (for RMSD)
-        # The copy of the initial state could be delayed to allow subclasses some more freedom
-        self._system = initial_state
-        self.initial_system = copy.deepcopy(self.system)
         self.output_path = output_path # can be None, file or directory
         if self.output_path is not None and self.STORAGE == 'directory':
             mkdir(self.output_path)
@@ -267,8 +264,10 @@ class Simulation(object):
 
     @property
     def rmsd(self):
+        log.warning('rmsd has not been subclassed')
+        return 0.0
         # TODO: provide rmsd by species 07.12.2014
-        return self.system.mean_square_displacement(self.initial_system)**0.5
+        #return self.system.mean_square_displacement(self.initial_system)**0.5
 
     def add(self, callback, scheduler):
         """Add an observer (callback) to be called along a scheduler"""

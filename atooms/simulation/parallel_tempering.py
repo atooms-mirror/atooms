@@ -141,8 +141,10 @@ class ParallelTempering(Simulation):
         # TODO: potential bug here. If the initial system is different for each replica, the RMSD will be wrong
         # We should outsource rmsd or override.
         # TODO: initial state must be set when calling run_pre(), delegating to subclasses
-        self.system = self.replica[0]
-        Simulation.__init__(self, self.replica[0], output_path,
+        self.system = None
+        #self.system = self.replica[0]
+#        Simulation.__init__(self, self.replica[0], output_path,
+        Simulation.__init__(self, None, output_path,
                             steps=steps, rmsd=rmsd,
                             thermo_interval=thermo_interval, thermo_number=thermo_number, 
                             config_interval=config_interval, config_number=config_number,

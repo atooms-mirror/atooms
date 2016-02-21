@@ -5,6 +5,7 @@
 
 import sys
 import os
+import copy
 from atooms import simulation
 from atooms.simulation import log
 from rumd import *
@@ -52,6 +53,8 @@ class Simulation(simulation.Simulation):
         # TODO: need some switch to use or not RUMD checkpoint. If checkpoint_interval is set e.g. we suppress RUMD's one
         # TODO: this must be set anyway if output_path is None
         self._suppress_all_output = True # this will avoid RUMD restart files to pollute the folder
+        # Copy of initial state
+        self.initial_state = self._sim.sample.Copy()
 
     def _get_system(self):
         return System(self._sim)
@@ -60,6 +63,21 @@ class Simulation(simulation.Simulation):
         self._sim.sample = value.sample
 
     system = property(_get_system, _set_system, 'System')
+
+    @property
+    def rmsd(self):
+        """ Compute the mean square displacement between actual sample and the reference sample """
+        if self._sim.sample is self.initial_state:
+            raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
+        ndim = 3 # hard coded
+        N = self._sim.sample.GetNumberOfParticles()
+        L = [self._sim.sample.GetSimulationBox().GetLength(i) for i in range(ndim)]
+
+        # Unfold positions using periodic image information
+        ref = self.initial_state.GetPositions() + self.initial_state.GetImages() * L
+        unf = self._sim.sample.GetPositions() + self._sim.sample.GetImages() * L
+                
+        return (sum(sum((unf-ref)**2)) / N)**0.5
 
     def write_checkpoint(self, filename=None):
         if filename is None:
@@ -254,7 +272,8 @@ class System(object):
         result.__dict__.update(self.__dict__)
         result.sample = self.sample.Copy()
         return result
-        
+
+    # TODO: @nick ask to implement
     def __deepcopy__(self, memo):
         cls = self.__class__
         result = cls.__new__(cls)
