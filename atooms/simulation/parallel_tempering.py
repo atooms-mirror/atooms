@@ -20,9 +20,14 @@ class WriterConfig(object):
             irx = e.state[i]
             # If the output directory for state irx is None
             # we do not write configurations
-            if e.output_path_data[irx]:
+            if e.dir_state_out[irx] is not None:
+                # Make sure output directories exist
+                d = e.dir_state_out[irx]
+                mkdir(d)
                 f = os.path.basename(e.sim[irx].output_file)
-                with e.trajectory(e.output_path_data[irx]+'/'+f, 'a') as t:
+                # The trajectory class is taken from the simulation backend
+                trj_cls = e.sim[irx].trajectory.__class__
+                with trj_cls(os.path.join(d, f), 'a') as t:
                     t.exclude(['velocity'])
                     t.write(e.replica[i], e.steps)
 
@@ -111,8 +116,8 @@ class ParallelTempering(Simulation):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
-    # TODO: simulations should go first, then params, output, swap_period (make optional and check if None)
-    def __init__(self, output_path, output_path_data, params, sim, swap_period, seed=10, update=StateTemperature,
+    def __init__(self, sim, params, output_path,
+                  swap_period=0, seed=10, update=StateTemperature,
                  steps=None, rmsd=None,
                  thermo_interval=None, thermo_number=None, 
                  config_interval=None, config_number=None,
@@ -127,31 +132,14 @@ class ParallelTempering(Simulation):
         self.seed = seed
         random.seed(self.seed)
 
-        # The trajectory class is taken from the simulation backend
-        # For the moment, we assume that at least the first simulation 
-        # backend has a trajectory
-        # TODO: do we need to bundle trajectory with simulation? @design
-        self.trajectory = self.sim[0].trajectory.__class__
-
         # Get physical replicas (systems) from simulation instances.
         # These are references: they'll follow the simulations 
         self.replica = [s.system for s in sim]
-
-        # If output is just one directory, we listify it padding it with None
-        if not isinstance(output_path_data, list):
-            output_path_data = [output_path_data] + [None] * (self.nr-1)
-        self.output_path_data = output_path_data
-
-        # Sanity check
-        if not (self.nr == len(output_path_data) == len(sim)):
-            raise ValueError('nr, params and sim must have the same len (%d, %d, %d)' % 
-                             (self.nr, len(output_path_data), len(sim)))
 
         # Here it is good to call the base constructor since we know input sample
         # and output directory
         # TODO: potential bug here. If the initial system is different for each replica, the RMSD will be wrong
         # We should outsource rmsd or override.
-        # TODO: perhaps the base class need not know about output_path
         # TODO: initial state must be set when calling run_pre(), delegating to subclasses
         self.system = self.replica[0]
         Simulation.__init__(self, self.replica[0], output_path,
@@ -159,6 +147,15 @@ class ParallelTempering(Simulation):
                             thermo_interval=thermo_interval, thermo_number=thermo_number, 
                             config_interval=config_interval, config_number=config_number,
                             checkpoint_interval=checkpoint_interval, checkpoint_number=checkpoint_number)
+
+        # # If output is just one directory, we listify it padding it with None
+        # if not isinstance(output_path_data, list):
+        #     output_path_data = [output_path_data] + [None] * (self.nr-1)
+        # self.output_path_data = output_path_data
+
+        # Sanity check
+        if not (self.nr == len(sim)):
+            raise ParameterError('n. of backends must match n. of states (%d, %d)' % (self.nr, len(sim)))
 
         # Define output files
         mkdir(self.output_path + '/state')
@@ -169,10 +166,12 @@ class ParallelTempering(Simulation):
         self.file_state_xyz = [self.output_path + '/state/%d.xyz' % i for i in range(self.nr)]
         # For each physical replica, info on the state in which it is
         self.file_replica_out = [self.output_path + '/replica/%d.out' % i for i in range(self.nr)]
-        # Make sure output directories exist
-        for d in self.output_path_data:
-            if d:
-                mkdir(d)
+        # This must be set as output_path of the backend.
+        # TODO: Is this variable needed? It is will output_path of the backend
+        self.dir_state_out = [self.output_path + '/state/T%.4f' % p for p in self.params]
+        for s, d in zip(self.sim, self.dir_state_out):
+            # We expect this to be None now
+            s.output_path = d
 
         self.replica_id = range(self.nr)
         # TODO: remember to checkpoint them

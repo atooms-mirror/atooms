@@ -46,20 +46,13 @@ class Simulation(simulation.Simulation):
         # So perhaps we might pass None and make an explicit copy of initial_state here
         self._sim = sim
         simulation.Simulation.__init__(self, self.system, *args, **kwargs)
-        if self.output_path is not None:
-            self._sim.sample.SetOutputDirectory(self.output_path)
-            self.output_file = os.path.join(self.output_path, 'config.xyz')
-            # We need to keep a reference to the trajectory backend used here
-            # TODO: do we really need to create a file for that? Cant we we just inspect the backend?
-            self.trajectory = Trajectory(self.output_file, 'w')
-            self.trajectory.close()
         self._sim.sample.EnableBackup(False)
         self._sim.sample.SetVerbose(False)
         self._sim.SetVerbose(False)
         # TODO: need some switch to use or not RUMD checkpoint. If checkpoint_interval is set e.g. we suppress RUMD's one
         # TODO: this must be set anyway if output_path is None
         self._suppress_all_output = True # this will avoid RUMD restart files to pollute the folder
-            
+
     def _get_system(self):
         return System(self._sim)
 
@@ -127,10 +120,22 @@ class Simulation(simulation.Simulation):
         
     def run_pre(self):
         super(Simulation, self).run_pre()
+        # If by now we havent set output_path it means we wont write anything to disk
+        if self.output_path is not None:
+            self._sim.sample.SetOutputDirectory(self.output_path)
+            # TODO: output_file can be dropped as instance variable I guess: we cacn check output_path is not None, grab the basename of trajectory. Or perhaps this should be defined by the writer, no?
+            self.output_file = os.path.join(self.output_path, 'config.xyz')
+            # We need to keep a reference to the trajectory backend used here
+            # TODO: do we really need to create a file for that? Cant we we just inspect the backend? Can we just keep a reference of the class?
+            self.trajectory = Trajectory(self.output_file, 'w')
+            self.trajectory.close()
+
         if self._sim.blockSize is None:
             # We set RUMD block to infinity unless the user set it already
             self._sim.SetBlockSize(sys.maxint)
+
         log.debug('RUMD block is %d' % self._sim.blockSize)
+
         self.__check_restart()
         # Every time we call run() and we are not restarting, we clear output_path
         # TODO: check the use case of repeated run() without restart
