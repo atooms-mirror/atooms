@@ -344,7 +344,6 @@ class Simulation(object):
             self.notify(lambda x : isinstance(x, Target))
             # if self.steps >= self.target_steps:
             #     raise SimulationEnd('target steps achieved %s' % self.target_steps)
-            return
             # Notify targeters
             if not self.restart:
                 self.notify(lambda x : not isinstance(x, Target))
