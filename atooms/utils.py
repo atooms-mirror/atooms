@@ -1,6 +1,5 @@
 import os
 import shutil
-import logging
 
 # Logging facilities
 
@@ -32,12 +31,10 @@ try:
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
-    logging.info('found mpi4py %d %d' % (rank, size))
 except:
     comm = None
     rank = 0
     size = 1
-    logging.info('mpi4py not found')
 
 def barrier():
     if size > 1:

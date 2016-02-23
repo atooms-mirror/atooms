@@ -11,3 +11,5 @@ atooms/_version.py
 dist
 build
 MANIFEST
+
+rumd_timing_info.dat

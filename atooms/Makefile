@@ -1,4 +1,4 @@
-VERSION = $$(git describe --abbrev=4 --dirty --always 2>/dev/null || echo 0)
+VERSION = $$(git describe --abbrev=6 --dirty --always 2>/dev/null || echo 0)
 
 all: version
 

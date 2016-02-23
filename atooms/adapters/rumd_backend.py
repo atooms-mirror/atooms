@@ -11,6 +11,7 @@ from atooms.simulation import log
 from rumd import *
 from rumdSimulation import rumdSimulation
 
+
 class WriterCheckpoint(object):
 
     def __call__(self, e):
@@ -62,6 +63,9 @@ class Simulation(simulation.Simulation):
         self._sim.sample = value.sample
 
     system = property(_get_system, _set_system, 'System')
+
+    def __str__(self):
+        return 'RUMD %s' % GetVersion()        
 
     @property
     def rmsd(self):

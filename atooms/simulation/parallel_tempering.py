@@ -331,10 +331,30 @@ class ParallelTempering(Simulation):
         for i in self.my_replica:
             self.sim[i].run_pre()
 
-        # Log RX info
-        log.info('rx with %d GPUs (rank=%d)' % (size, rank), extra={'rank':'all'})
-        log.info('GPU %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]), extra={'rank':'all'})
         self.write_log()
+
+    def __str__(self):
+        return 'Parallel tempering simulation'
+
+    def wall_time_per_step(self):
+        """Return the wall time in seconds per step (over all replicas)"""
+        return self.elapsed_wall_time() / (self.steps-self.initial_steps) / sum(self.steps_block)
+
+    def _report(self):
+        log.info('backend: %s' % self.sim[0])
+        log.info('output path: %s' % self.output_path)
+        log.info('number of replicas: %d' % self.nr)
+        log.info('number of processes: %d' % size)
+        if self.steps_block[0] == self.steps_block[-1]:
+            log.info('swap interval: %d' % self.steps_block[0])
+        barrier()
+        log.info('process %s has replicas: %s at state %s' % (rank, self.my_replica, [self.state[i] for i in self.my_replica]), extra={'rank':'all'})
+
+    def _report_end(self):
+#        log.info('final minimum acceptance: %.2f' % min([self.acceptance(i) for i in range(self.nr)]))
+        log.info('final minimum rmsd: %.2f' % self.rmsd)
+        log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
+        log.info('total steps/wall time [1/s]: %.2f' % (1./self.wall_time_per_step()))
 
     def run_until(self, n):
         """n is the number of PT steps, i.e. a block of several steps"""

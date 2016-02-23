@@ -6,9 +6,11 @@
 import sys
 import os
 import time
+import datetime
 import logging
 import copy
 
+from atooms import __version__
 from atooms.utils import mkdir
 from atooms.utils import rank, size
 
@@ -24,12 +26,19 @@ class ParallelFilter(logging.Filter):
         else:
             return rank == 0
 
+class MyFormatter(logging.Formatter):
+    def format(self, record):
+        if record.levelname in ['WARNING', 'ERROR']:
+            return '# %s: %s' % (record.levelname, record.msg)
+        else:
+            return '# %s' % record.msg
+
 log = logging.getLogger('atooms')
-#formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
-#handler = logging.StreamHandler()
-#handler.setFormatter(formatter)
+formatter = MyFormatter()
+handler = logging.StreamHandler()
+handler.setFormatter(formatter)
 log.addFilter(ParallelFilter())
-#log.addHandler(handler)
+log.addHandler(handler)
 log.setLevel(logging.INFO)
 
 # Default exceptions
@@ -279,13 +288,23 @@ class Simulation(object):
         self._callback.append(callback)
         self._scheduler.append(scheduler)
         # TODO: enforce checkpoint being last
-        
+
     def report(self):
-        log.info('output path: %s' % self.output_path)
+        nch = len('%s' % self)
+        #        log.info('-'*nch)
+        log.info('%s' % self)
+        #        log.info('-'*nch)
+        log.info('')
+        log.info('atooms version: %s' % __version__)
+        self._report()
+        self._report_observers()
+        
+    def _report(self):
+        """Implemented by subclassed"""
+        pass
+
+    def _report_observers(self):
         for f, s in zip(self._callback, self._scheduler):
-            # if s.target is None:
-            #     log.info('%s: interval=%s calls=%s' % (f, s.interval, s.calls))
-            # else:
             if isinstance(f, Target):
                 log.info('target %s: %s' % (f, f.target)) #, s.interval, s.calls))
             else:
@@ -323,8 +342,14 @@ class Simulation(object):
         # bear it in mind when subclassing 
         pass
 
-    def run_end(self):
-        self.report()
+    def _report_mid(self):
+        log.debug('step=%d/%d wtime/step=%.2g' % (self.steps, self.target_steps,
+                                                  self.wall_time_per_step()))
+
+    def _report_end(self):
+        log.info('final rmsd: %.2f' % self.rmsd)
+        log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
+        log.info('steps/wall time [1/s]: %.2f' % (1./self.wall_time_per_step()))
 
     def run(self, target_steps=None):
         if target_steps is not None:
@@ -333,10 +358,11 @@ class Simulation(object):
             if target_steps > self.target_steps:
                 self.restart = True
             self.target_steps = target_steps
+            log.info('targeted number of steps: %s' % self.target_steps)
 
         self.initial_steps = copy.copy(self.steps)
-        self.report()
         self.run_pre()
+        self.report()
 
         try:
             # Before entering the simulation, check if we can quit right away
@@ -347,8 +373,8 @@ class Simulation(object):
             # Notify targeters
             if not self.restart:
                 self.notify(lambda x : not isinstance(x, Target))
-            log.info('simulation started at %d' % self.steps)
-            log.info('targeted number of steps: %s' % self.target_steps)
+            log.info('starting at step: %d' % self.steps)
+            log.info('')
             while True:
 #                if self.steps >= self.target_steps:
 #                    raise SimulationEnd('target steps achieved')
@@ -356,9 +382,7 @@ class Simulation(object):
                 next_step = min([s.next(self.steps) for s in self._scheduler])
                 self.run_until(next_step)
                 self.steps = next_step
-                # TODO: log should be done only by rank=0 in parallel: encapsulate
-                log.debug('step=%d/%d wtime/step=%.2g' % (self.steps, self.target_steps,
-                                                         self.wall_time_per_step()))
+                self._report_mid()
                 # Notify writer and generic observers before targeters
                 self.notify(lambda x : not isinstance(x, Target))
                 self.notify(lambda x : isinstance(x, Target))
@@ -375,13 +399,11 @@ class Simulation(object):
                     f(self)
             #self.notify(lambda x : isinstance(x, WriterCheckpoint))
             # Only dumps log if actually we did some steps
+            log.info('%s' % s.message)
             if not self.initial_steps == self.steps:
-                log.info('final rmsd: %.2f' % self.rmsd)
-                log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
-                log.info('steps/wall time [1/s]: %.1f' % (1./self.wall_time_per_step()))
-            log.info('simulation ended successfully: %s' % s.message)
-            self.run_end()
+                self._report_end()
 
         finally:
-            log.info('exiting')
+            pass
+            log.info('goodbye')
 
