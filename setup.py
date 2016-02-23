@@ -6,7 +6,7 @@ from distutils.core import setup
 
 # Get the git version
 try:
-    git_version = subprocess.check_output('git describe --abbrev=4 --dirty --always', shell=True).strip()
+    git_version = subprocess.check_output('git describe --abbrev=6 --dirty --always', shell=True).strip()
 except:
     git_version = '?'
 
