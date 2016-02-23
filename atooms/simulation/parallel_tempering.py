@@ -14,6 +14,9 @@ from atooms.utils import rmd, rmf, mkdir
 
 class WriterConfig(object):
 
+    def __str__(self):
+        return 'config'
+
     def __call__(self, e):
         log.debug('writer config')
         for i in e.my_replica:
@@ -36,14 +39,18 @@ class WriterCheckpointPT(WriterCheckpoint):
     # This guy must inherit from WriterCheckPoint otherwise it wont be called
     # at last last by simulation base class! All this points towards checkpoint
     # being a mthod of simulation. Full stop.
+    def __str__(self):
+        return 'checkpoint'
+
     def __call__(self, e):
         e.write_checkpoint()
         
 class WriterThermo(object):
 
-    def __call__(self, e):
-        log.debug('PT writer thermo')
+    def __str__(self):
+        return 'thermo'
 
+    def __call__(self, e):
         # Since we grab steps from simulations, we must gather them first
         # We could have each process write down its replicas and make it more efficient, see write_state()
         u = numpy.ndarray(e.nr)

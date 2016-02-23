@@ -75,15 +75,15 @@ class ParameterError(Exception):
 
 class WriterThermo(object):
     def __call__(self, e):
-        log.debug('thermo writer')
+        pass
 
 class WriterConfig(object):
     def __call__(self, e):
-        log.debug('config writer')
+        pass
 
 class WriterCheckpoint(object):
     def __call__(self, e):
-        log.debug('checkpoint writer')
+        pass
 
 class Target(object):
 
@@ -103,6 +103,9 @@ class Target(object):
         """Fraction of target value already achieved"""
         return float(getattr(sim, self.name)) / self.target
 
+    def __str__(self):
+        return self.name
+        
 class TargetSteps(Target):
 
     # Note: this class is there just as an insane proof of principle
@@ -110,7 +113,7 @@ class TargetSteps(Target):
 
     def __init__(self, target):
         Target.__init__(self, 'steps', target)
-
+        
 class TargetRMSD(Target):
 
     def __init__(self, target):
@@ -280,7 +283,13 @@ class Simulation(object):
     def report(self):
         log.info('output path: %s' % self.output_path)
         for f, s in zip(self._callback, self._scheduler):
-            log.info('observer %s: interval=%s calls=%s target=%s' % (type(f), s.interval, s.calls, s.target))
+            # if s.target is None:
+            #     log.info('%s: interval=%s calls=%s' % (f, s.interval, s.calls))
+            # else:
+            if isinstance(f, Target):
+                log.info('target %s: %s' % (f, f.target)) #, s.interval, s.calls))
+            else:
+                log.info('report %s: interval=%s calls=%s' % (f, s.interval, s.calls))
 
     def notify(self, condition=lambda x : True): #, callback, scheduler):
         for f, s in zip(self._callback, self._scheduler):
