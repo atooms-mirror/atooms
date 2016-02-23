@@ -117,18 +117,21 @@ class ParallelTempering(Simulation):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
+    # TODO: can we pass a NamedTuple like params (perhaps coming straight from argparse) instead? It would be more compact, more extensible, but less safe (we should check for missing variables and sane defaults)
     def __init__(self, sim, params, output_path,
                  swap_interval=0, seed=10, update=StateTemperature, fmt='T%.4f',
                  mute_config_except=None,
                  steps=None, rmsd=None,
                  thermo_interval=None, thermo_number=None, 
                  config_interval=None, config_number=None,
-                 checkpoint_interval=None, checkpoint_number=None):
+                 checkpoint_interval=None, checkpoint_number=None,
+                 restart=False):
         Simulation.__init__(self, None, output_path,
                             steps=steps, rmsd=rmsd,
                             thermo_interval=thermo_interval, thermo_number=thermo_number, 
                             config_interval=config_interval, config_number=config_number,
-                            checkpoint_interval=checkpoint_interval, checkpoint_number=checkpoint_number)
+                            checkpoint_interval=checkpoint_interval, checkpoint_number=checkpoint_number,
+                            restart=restart)
         self.params = params
         self.sim = sim
         # TODO: drop variables, make acceptance a callback
