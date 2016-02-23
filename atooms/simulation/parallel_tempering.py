@@ -297,7 +297,9 @@ class ParallelTempering(Simulation):
 
         # If we do not restart, we clear up everything in the base
         if not self.restart:
-            rmd(self.output_path)
+            rmf(self.output_path + '/pt.log')
+            rmd(self.output_path + '/state')
+            rmd(self.output_path + '/replica')
 
         # Make sure base directories exist
         mkdir(self.output_path)
