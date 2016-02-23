@@ -92,8 +92,10 @@ class Target(object):
         self.target = target
 
     def __call__(self, sim):
-        x = float(getattr(sim, self.name))
-        log.debug('targeting %s to %g [%d]' % (self.name, x, int(float(x) / self.target * 100)))
+        x = float(getattr(sim, self.name))        
+        if self.target > 0:
+            frac = float(x) / self.target
+            log.debug('targeting %s to %g [%d]' % (self.name, x, int(frac * 100)))
         if x >= self.target:
             raise SimulationEnd('achieved target %s: %s' % (self.name, self.target))
 
@@ -105,6 +107,7 @@ class TargetSteps(Target):
 
     # Note: this class is there just as an insane proof of principle
     # Steps targeting can/should be implemented by checking a simple int variable
+
     def __init__(self, target):
         Target.__init__(self, 'steps', target)
 
@@ -197,7 +200,7 @@ class Simulation(object):
 
     # TODO: initial state is not needed anymore, since rmsd is the subclass or backend responsability (it was a too weak link, the only thing for which initial_state and system were needed.
     def __init__(self, initial_state, output_path=None, 
-                 steps=None, rmsd=None,
+                 steps=0, rmsd=None,
                  thermo_interval=None, thermo_number=None, 
                  config_interval=None, config_number=None,
                  checkpoint_interval=None, checkpoint_number=None,
@@ -220,10 +223,9 @@ class Simulation(object):
         # Setup schedulers and callbacks
         self.target_steps = steps
         # Target steps are checked only at the end of the simulation
-        if self.target_steps:
-            self.add(self._TARGET_STEPS(self.target_steps), Scheduler(self.target_steps))
+        self.add(self._TARGET_STEPS(self.target_steps), Scheduler(max(1, self.target_steps)))
         # TODO: rmsd targeting interval is hard coded
-        if rmsd:
+        if rmsd is not None:
             self.add(self._TARGET_RMSD(target_rmsd), Scheduler(10000))
 
         # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
@@ -235,10 +237,10 @@ class Simulation(object):
         if checkpoint_interval or checkpoint_number:
             self.add(self._WRITER_CHECKPOINT(), Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
 
-        # If we are not targeting steps, we set it to the largest possible int
-        # TODO: can we drop this?
-        if self.target_steps is None:
-            self.target_steps = sys.maxint
+        # # If we are not targeting steps, we set it to the largest possible int
+        # # TODO: can we drop this?
+        # if self.target_steps is None:
+        #     self.target_steps = sys.maxint
 
     def setup(self, 
               target_steps=None, target_rmsd=None,
@@ -318,17 +320,23 @@ class Simulation(object):
     def run(self, target_steps=None):
         if target_steps is not None:
             # If we ask for more steps on the go, it means we are restarting
+            # TODO: really, we might just want to run a new simulation...
             if target_steps > self.target_steps:
                 self.restart = True
             self.target_steps = target_steps
 
+        self.initial_steps = copy.copy(self.steps)
+        self.report()
+        self.run_pre()
+
         try:
-            self.run_pre()
-            self.initial_steps = copy.copy(self.steps)
-            self.report()
             # Before entering the simulation, check if we can quit right away
             # TODO: find a more elegant way to notify targeters only / order observers
             self.notify(lambda x : isinstance(x, Target))
+            # if self.steps >= self.target_steps:
+            #     raise SimulationEnd('target steps achieved %s' % self.target_steps)
+            return
+            # Notify targeters
             if not self.restart:
                 self.notify(lambda x : not isinstance(x, Target))
             log.info('simulation started at %d' % self.steps)
@@ -346,7 +354,9 @@ class Simulation(object):
                 # Notify writer and generic observers before targeters
                 self.notify(lambda x : not isinstance(x, Target))
                 self.notify(lambda x : isinstance(x, Target))
-
+                # if self.steps >= self.target_steps:
+                #     raise SimulationEnd('target steps achieved %s' % self.target_steps)
+                    
         except SimulationEnd as s:
             # TODO: make checkpoint is an explicit method of simulation and not a callback! 16.12.2014
             # The rationale here is that notify will basically check for now() but writecheckpoint must
