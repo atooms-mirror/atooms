@@ -118,7 +118,7 @@ class ParallelTempering(Simulation):
     _WRITER_CHECKPOINT = WriterCheckpointPT
 
     def __init__(self, sim, params, output_path,
-                 swap_period=0, seed=10, update=StateTemperature, fmt='T%.4f',
+                 swap_interval=0, seed=10, update=StateTemperature, fmt='T%.4f',
                  mute_config_except=None,
                  steps=None, rmsd=None,
                  thermo_interval=None, thermo_number=None, 
@@ -134,7 +134,7 @@ class ParallelTempering(Simulation):
         # TODO: drop variables, make acceptance a callback
         self.variables = ['T']
         self.update = update()
-        self.steps_block = swap_period
+        self.steps_block = swap_interval
         self.mute_config_except = mute_config_except
         self.nr = len(params)
         self.seed = seed
@@ -189,12 +189,12 @@ class ParallelTempering(Simulation):
         # Listify steps per block.
         # Note that this is per state. If we set it in the sim instances
         # We should update them all the time.
-        if not type(swap_period) is list:
-            self.steps_block = [swap_period] * self.nr
-        # If we provided 1 block period in list, upgrade it to nr length
+        if not type(swap_interval) is list:
+            self.steps_block = [swap_interval] * self.nr
+        # If we provided 1 block interval in list, upgrade it to nr length
         if len(self.steps_block) != self.nr:
             if len(self.steps_block) == 1:
-                self.steps_block = swap_period * self.nr
+                self.steps_block = swap_interval * self.nr
             else:
                 raise ValueError('number of blocks does not match n. replica')
 
@@ -326,7 +326,7 @@ class ParallelTempering(Simulation):
 
     def run_until(self, n):
         """n is the number of PT steps, i.e. a block of several steps"""
-        # TODO: wait it is crucial to set thermo_period to 1 else we get only one one step?!
+        # TODO: wait it is crucial to set thermo_interval to 1 else we get only one one step?!
         # Evolve over my physical replicas.
         log.debug('run until %d' % n)
         for i in self.my_replica:
