@@ -35,7 +35,7 @@ class MyFormatter(logging.Formatter):
 
 log = logging.getLogger('atooms')
 formatter = MyFormatter()
-handler = logging.StreamHandler()
+handler = logging.StreamHandler(stream=sys.stdout)
 handler.setFormatter(formatter)
 log.addFilter(ParallelFilter())
 log.addHandler(handler)
