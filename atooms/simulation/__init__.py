@@ -392,16 +392,12 @@ class Simulation(object):
             # Before entering the simulation, check if we can quit right away
             # TODO: find a more elegant way to notify targeters only / order observers
             self.notify(lambda x : isinstance(x, Target))
-            # if self.steps >= self.target_steps:
-            #     raise SimulationEnd('target steps achieved %s' % self.target_steps)
             # Notify targeters
             if not self.restart:
                 self.notify(lambda x : not isinstance(x, Target))
             log.info('starting at step: %d' % self.steps)
             log.info('')
             while True:
-#                if self.steps >= self.target_steps:
-#                    raise SimulationEnd('target steps achieved')
                 # Run simulation until any of the observers need to be called
                 next_step = min([s.next(self.steps) for s in self._scheduler])
                 self.run_until(next_step)
@@ -410,8 +406,6 @@ class Simulation(object):
                 # Notify writer and generic observers before targeters
                 self.notify(lambda x : not isinstance(x, Target))
                 self.notify(lambda x : isinstance(x, Target))
-                # if self.steps >= self.target_steps:
-                #     raise SimulationEnd('target steps achieved %s' % self.target_steps)
                     
         except SimulationEnd as s:
             # TODO: make checkpoint is an explicit method of simulation and not a callback! 16.12.2014
