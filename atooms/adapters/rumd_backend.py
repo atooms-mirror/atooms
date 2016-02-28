@@ -105,7 +105,6 @@ class Simulation(simulation.Simulation):
         # @thomas unfortunately RUMD does not seem to write the last restart 
         # when the simulation is over therefore the last block is always rerun
         # To work around it we check is final.xyz.gz exists (we write it in run_end)        
-        # TODO: This may also a problem for self restarting blocks...??
         if self.restart:
             log.debug('restart attempt')
             # TODO: we assume this is the name of the checkpoint! but we had introduced 
@@ -139,16 +138,24 @@ class Simulation(simulation.Simulation):
         
     def run_pre(self):
         super(Simulation, self).run_pre()
-        # If by now we havent set output_path it means we wont write anything to disk
-        # This will avoid RUMD restart files to pollute the folder, however, it must be kept False the first time RUMD is run to at least get rid of the old directory. Or we do it manually
+        # If by now we havent set output_path it means we wont write
+        # anything to disk This will avoid RUMD restart files to
+        # pollute the folder, however, it must be kept False the first
+        # time RUMD is run to at least get rid of the old
+        # directory. Or we do it manually
         self._suppress_all_output = True
         if self.output_path is not None:
             self._suppress_all_output = False # we let it clean the dir upon entrance, then we suppress
             self._sim.sample.SetOutputDirectory(self.output_path)
-            # TODO: output_file can be dropped as instance variable I guess: we cacn check output_path is not None, grab the basename of trajectory. Or perhaps this should be defined by the writer, no?
+            # TODO: output_file can be dropped as instance variable I
+            # guess: we cacn check output_path is not None, grab the
+            # basename of trajectory. Or perhaps this should be
+            # defined by the writer, no?
             self.output_file = os.path.join(self.output_path, 'config.xyz')
-            # We need to keep a reference to the trajectory backend used here
-            # TODO: do we really need to create a file for that? Cant we we just inspect the backend? Can we just keep a reference of the class?
+            # We need to keep a reference to the trajectory backend
+            # used here TODO: do we really need to create a file for
+            # that? Cant we we just inspect the backend? Can we just
+            # keep a reference of the class?
             self.trajectory = Trajectory(self.output_file, 'w')
             self.trajectory.close()
 
