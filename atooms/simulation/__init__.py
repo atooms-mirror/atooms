@@ -252,6 +252,7 @@ class Simulation(object):
         self.output_path = output_path # can be None, file or directory
         if self.output_path is not None and self.STORAGE == 'directory':
             mkdir(self.output_path)
+        # TODO: output_path shouldn't be changed after init
         # We expect subclasses to keep a ref to the trajectory object self.trajectory
         # used to store configurations, although this is not used in base class
 
@@ -425,6 +426,9 @@ class Simulation(object):
             log.info('%s' % s.message)
             if not self.initial_steps == self.steps:
                 self._report_end()
+
+            # TODO: hey! run_end is not called anymore!!
+            # TODO: do we really need run_end() if write_checkpoint is called last and it does everything we won't need this...
 
         finally:
             pass
