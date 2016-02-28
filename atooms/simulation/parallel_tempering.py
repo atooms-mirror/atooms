@@ -162,7 +162,6 @@ class ParallelTempering(Simulation):
         self.file_log = self.output_path + '/pt.log'
         # For each thermodynamic state, info on the replica which has it
         self.file_state_out = [self.output_path + '/state/%d.out' % i for i in range(self.nr)]
-        self.file_state_xyz = [self.output_path + '/state/%d.xyz' % i for i in range(self.nr)]
         # For each physical replica, info on the state in which it is
         self.file_replica_out = [self.output_path + '/replica/%d.out' % i for i in range(self.nr)]
         # This must be set as output_path of the backend.
@@ -226,7 +225,6 @@ class ParallelTempering(Simulation):
     def clean_files(self):
         for f in \
                 self.file_state_out + \
-                self.file_state_xyz + \
                 self.file_replica_out:
             rmf(f)
 
