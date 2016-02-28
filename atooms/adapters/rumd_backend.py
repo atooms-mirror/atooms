@@ -52,7 +52,6 @@ class Simulation(simulation.Simulation):
         self._sim.sample.SetVerbose(False)
         self._sim.SetVerbose(False)
         # TODO: need some switch to use or not RUMD checkpoint. If checkpoint_interval is set e.g. we suppress RUMD's one
-        # TODO: this must be set anyway if output_path is None
         # Copy of initial state
         self.initial_state = self._sim.sample.Copy()
 
