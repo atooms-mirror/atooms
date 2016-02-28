@@ -81,7 +81,11 @@ class ParameterError(Exception):
 # and of course general purpose callback can be passed to do whatever
 
 # It os the backend's responsibility to implement specific Writer observers.
-# TODO: several related todos on where to store output file paths. It would make sense to keep them in Writers and delegate to them (instead of having them in simulation objects)
+
+# TODO: several related todos on where to store output file paths. It
+# would make sense to keep them in Writers and delegate to them
+# (instead of having them in simulation objects). This would require being able
+# to access writers more directly.
 
 class WriterThermo(object):
     def __call__(self, e):
