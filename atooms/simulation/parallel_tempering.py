@@ -27,9 +27,19 @@ class WriterConfig(object):
             #     write all states -> mute_config_except=None (default)            
             if e.mute_config_except is None or \
                irx in e.mute_config_except:
-                # TODO: this is what we should do: using the underlying backend of the replica with state irx
-                # The only issue is how to avoid writing velocities
+                # TODO: this is what we should do if we wanted to use the underlying backend of the replica with state irx
                 # e.sim[irx].writer_config(e.sim[irx])
+                # Issue is how to avoid writing velocities
+                # Issue is we should make sure the backend itself doesn't call the writer...
+                # One way to do that is to delegate to backend entirely, i.e. pt should not add writer_config
+                # as observer. We'd have to make sure that simulation backends write configurations at the right
+                # interval... this will be against the idea that the backend is just there to propagate the dynamics!
+                #
+                # So we need two things here: a trajectory class that is appropriate to the backend
+                # (actually, any trajectory would be fine as long as the backend implements System interface)
+                # and an output file (or output directory). In writer_thermo here this is set by the writer
+                # Perhaps we should define it here. We could grab the output_path from pt instance and the suffix from
+                # the trajectory class
                 #
                 d = e.dir_state_out[irx]
                 f = os.path.basename(e.sim[irx].output_file)
@@ -86,8 +96,25 @@ class WriterThermo(object):
             steps = steps_l
 
         if rank == 0:
-            e.write_replica(rmsd, steps)
-            e.write_state(u, k, steps)
+            #e.write_replica(rmsd, steps)
+            #e.write_state(u, k, steps)
+
+            # Loop over replicas
+            for i in range(self.nr):
+                f = e.output_path + '/replica/%d.out' % i
+                with open(f, 'a') as fh:
+                    # In which state is physical replica i ?
+                    fh.write('%d %d %d %g\n' % (e.steps, steps[i], e.state[i], msd[i]))
+
+            # Loop over states
+            for i in range(self.nr):
+                f = e.output_path + '/state/%d.out' % i
+                with open(f, 'a') as fh:
+                    # Which replica is in state i? What is its energy?
+                    irep = e.replica_id[i]
+                    fh.write('%d %d %d %g %g\n' % (e.steps, steps[i], irep, 
+                                                   u[irep], k[irep]))
+
 
 class StateTemperature(object):
 
@@ -136,9 +163,9 @@ class ParallelTempering(Simulation):
                  swap_interval=0, seed=10, update=StateTemperature, fmt='T%.4f',
                  mute_config_except=None,
                  steps=None, rmsd=None,
-                 thermo_interval=None, thermo_number=None, 
-                 config_interval=None, config_number=None,
-                 checkpoint_interval=None, checkpoint_number=None,
+                 thermo_interval=0, thermo_number=0, 
+                 config_interval=0, config_number=0,
+                 checkpoint_interval=0, checkpoint_number=0,
                  restart=False):
         Simulation.__init__(self, None, output_path,
                             steps=steps, rmsd=rmsd,
@@ -245,6 +272,7 @@ class ParallelTempering(Simulation):
                 except:
                     fh.write('%d %s\n' % (i, T))
 
+    # TODO: drop these two as they are part of WriterThermo
     def write_replica(self, msd, step):
         """ Dump output info on a physical replica """
         # Loop over replicas
