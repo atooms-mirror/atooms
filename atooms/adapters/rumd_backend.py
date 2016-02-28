@@ -153,9 +153,13 @@ class Simulation(simulation.Simulation):
             # defined by the writer, no?
             self.output_file = os.path.join(self.output_path, 'config.xyz')
             # We need to keep a reference to the trajectory backend
-            # used here TODO: do we really need to create a file for
+            # used here 
+            # TODO: do we really need to create a file for
             # that? Cant we we just inspect the backend? Can we just
             # keep a reference of the class?
+            #
+            # It should go to WriterBackend? We can because there is always a writer_config to inspect.
+            #
             self.trajectory = Trajectory(self.output_file, 'w')
             self.trajectory.close()
 
