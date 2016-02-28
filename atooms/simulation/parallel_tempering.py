@@ -42,7 +42,10 @@ class WriterConfig(object):
 class WriterCheckpointPT(WriterCheckpoint):
     # This guy must inherit from WriterCheckPoint otherwise it wont be called
     # at last last by simulation base class! All this points towards checkpoint
-    # being a mthod of simulation. Full stop.
+    # being a mthod of simulation. 
+    # Not really. Since now writer_checkpoint is in instance of Simulation objects
+    # we can easily find them in the observers list.
+    # TODO: drop inheritance
     def __str__(self):
         return 'checkpoint'
 
