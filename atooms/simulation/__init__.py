@@ -184,11 +184,11 @@ class Scheduler(object):
         self.calls = calls
         self.target = target
         # Main switch
-        if interval is not None:
+        if interval>0:
             # Fixed interval.
             self.interval = interval
         else:
-            if calls is not None:
+            if calls>0:
                 # Fixed number of calls.
                 if self.target is not None:
                     # If both calls and target are not None, we determine interval
@@ -196,15 +196,21 @@ class Scheduler(object):
                 else:
                     # Dynamic scheduling
                     raise SchedulerError('dynamic scheduling not implemented')
-            else:
-                # Scheduler is disabled
-                self.interval = sys.maxint
+            # else:
+            #     # Scheduler is disabled
+            #     self.interval = 0 #sys.maxint
 
     def next(self, this):
-        return (this / self.interval + 1) * self.interval
+        if self.interval>0:
+            return (this / self.interval + 1) * self.interval
+        else:
+            return sys.maxint
 
     def now(self, this):
-        return this % self.interval == 0
+        if self.interval>0:
+            return this % self.interval == 0
+        else:
+            return False
 
 
 class Simulation(object):
@@ -230,9 +236,9 @@ class Simulation(object):
     # TODO: initial state is not needed anymore, since rmsd is the subclass or backend responsability (it was a too weak link, the only thing for which initial_state and system were needed.
     def __init__(self, initial_state, output_path=None, 
                  steps=0, rmsd=None,
-                 thermo_interval=None, thermo_number=None, 
-                 config_interval=None, config_number=None,
-                 checkpoint_interval=None, checkpoint_number=None,
+                 thermo_interval=0, thermo_number=0, 
+                 config_interval=0, config_number=0,
+                 checkpoint_interval=0, checkpoint_number=0,
                  restart=False):
         """We expect input and output paths as input.
         Alternatively, input might be a system (or trajectory?) instance.
@@ -254,20 +260,17 @@ class Simulation(object):
         # Target steps are checked only at the end of the simulation
         self.add(self._TARGET_STEPS(self.target_steps), Scheduler(max(1, self.target_steps)))
         # TODO: rmsd targeting interval is hard coded
+        # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
         if rmsd is not None:
             self.add(self._TARGET_RMSD(target_rmsd), Scheduler(10000))
 
-        # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
-        if thermo_interval or thermo_number:
-            self.writer_thermo = self._WRITER_THERMO()
-            self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
-        if config_interval or config_number:
-            self.writer_config = self._WRITER_CONFIG()
-            self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
+        self.writer_thermo = self._WRITER_THERMO()
+        self.writer_config = self._WRITER_CONFIG()
+        self.writer_checkpoint = self._WRITER_CHECKPOINT()
+        self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
+        self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
         # Checkpoint must be after other writers
-        if checkpoint_interval or checkpoint_number:
-            self.writer_checkpoint = self._WRITER_CHECKPOINT()
-            self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
+        self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
 
         # # If we are not targeting steps, we set it to the largest possible int
         # # TODO: can we drop this?
