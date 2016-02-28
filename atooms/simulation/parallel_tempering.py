@@ -407,11 +407,6 @@ class ParallelTempering(Simulation):
             
     def run_end(self):
         for i in self.my_replica:
-            fout = self.output_path + '/state/%d.xyz' % self.state[i]
-            # TODO: this is not good. None is not accepted by other formats. Why needed here?
-            # Where do we use this?
-#            with self.trajectory(fout, 'w') as t:
-#                t.write_sample(self.replica[i], None)
             self.sim[i].run_end()
         barrier()
 
