@@ -88,14 +88,26 @@ class ParameterError(Exception):
 # to access writers more directly.
 
 class WriterThermo(object):
+
+    def __str__(self):
+        return 'thermo'
+
     def __call__(self, e):
         pass
 
 class WriterConfig(object):
+
+    def __str__(self):
+        return 'config'
+
     def __call__(self, e):
         pass
 
 class WriterCheckpoint(object):
+
+    def __str__(self):
+        return 'checkpoint'
+
     def __call__(self, e):
         pass
 
@@ -247,12 +259,15 @@ class Simulation(object):
 
         # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
         if thermo_interval or thermo_number:
-            self.add(self._WRITER_THERMO(), Scheduler(thermo_interval, thermo_number, self.target_steps))
+            self.writer_thermo = self._WRITER_THERMO()
+            self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
         if config_interval or config_number:
-            self.add(self._WRITER_CONFIG(), Scheduler(config_interval, config_number, self.target_steps))
+            self.writer_config = self._WRITER_CONFIG()
+            self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
         # Checkpoint must be after other writers
         if checkpoint_interval or checkpoint_number:
-            self.add(self._WRITER_CHECKPOINT(), Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
+            self.writer_checkpoint = self._WRITER_CHECKPOINT()
+            self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
 
         # # If we are not targeting steps, we set it to the largest possible int
         # # TODO: can we drop this?

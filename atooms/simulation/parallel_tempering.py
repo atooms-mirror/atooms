@@ -27,6 +27,10 @@ class WriterConfig(object):
             #     write all states -> mute_config_except=None (default)            
             if e.mute_config_except is None or \
                irx in e.mute_config_except:
+                # TODO: this is what we should do: using the underlying backend of the replica with state irx
+                # The only issue is how to avoid writing velocities
+                # e.sim[irx].writer_config(e.sim[irx])
+                #
                 d = e.dir_state_out[irx]
                 f = os.path.basename(e.sim[irx].output_file)
                 # The trajectory class is taken from the simulation backend
