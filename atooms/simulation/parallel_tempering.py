@@ -100,14 +100,14 @@ class WriterThermo(object):
             #e.write_state(u, k, steps)
 
             # Loop over replicas
-            for i in range(self.nr):
+            for i in range(e.nr):
                 f = e.output_path + '/replica/%d.out' % i
                 with open(f, 'a') as fh:
                     # In which state is physical replica i ?
-                    fh.write('%d %d %d %g\n' % (e.steps, steps[i], e.state[i], msd[i]))
+                    fh.write('%d %d %d %g\n' % (e.steps, steps[i], e.state[i], rmsd[i]))
 
             # Loop over states
-            for i in range(self.nr):
+            for i in range(e.nr):
                 f = e.output_path + '/state/%d.out' % i
                 with open(f, 'a') as fh:
                     # Which replica is in state i? What is its energy?
