@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
 import unittest
+import sys
 import os
 import numpy
+from atooms.simulation import log
+log.setLevel(30)
 
 try:
     import rumd
     from rumdSimulation import rumdSimulation
-    from atooms.adapters.rumd import Simulation, System, Trajectory
+    from atooms.adapters.rumd_backend import Simulation, System, Trajectory
     SKIP = False
 except ImportError:
     SKIP = True
@@ -95,27 +98,27 @@ class TestAdaptersRUMD(unittest.TestCase):
         t.close()
 
     def test_simulation(self):
-        s = Simulation(self.s, self.dout, target_steps = 1)
+        s = Simulation(self.s, self.dout, steps = 1)
         system = System(self.s)
         s.system = system
         s.run()
 
     def test_rmsd(self):
-        s = Simulation(self.s, self.dout, target_steps = 1)
+        s = Simulation(self.s, self.dout, steps = 1)
         s.run()
         self.assertGreater(s.rmsd, 0.0)
 
     def test_target_rmsd(self):
-        s = Simulation(self.s, self.dout, target_rmsd = 0.3)
+        s = Simulation(self.s, self.dout, rmsd = 0.3, steps=sys.maxint)
         s.run()
         self.assertGreater(s.steps, 1)
         self.assertGreater(s.rmsd, 0.3)
 
     def test_checkpoint(self):
-        s = Simulation(self.s, self.dout, target_steps = 10, checkpoint_period = 10)
+        s = Simulation(self.s, self.dout, steps = 10, checkpoint_interval = 10)
         s.run()
         self.assertTrue(os.path.exists(s.trajectory.filename + '.chk'))
-        # TODO: this will fail, because changing target_steps should update scheduler!
+        # TODO: this will fail, because changing steps should update scheduler!
         # s.target_steps = 20
         # s.restart = True
         # s.run()
