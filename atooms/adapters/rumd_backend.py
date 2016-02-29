@@ -14,21 +14,27 @@ from rumdSimulation import rumdSimulation
 
 class WriterCheckpoint(object):
 
+    def __str__(self):
+        return 'checkpoint'
+
     def __call__(self, e):
-        log.debug('write checkpoint %d' % e.steps)
         e.write_checkpoint()
 
 class WriterConfig(object):
 
+    def __str__(self):
+        return 'config'
+
     def __call__(self, e):
-        log.debug('write config %d' % e.steps)
         with Trajectory(e.output_file, 'a') as t:
             t.write(e.system, e.steps)
 
 class WriterThermo(object):
 
+    def __str__(self):
+        return 'thermo'
+
     def __call__(self, e):
-        log.debug('write thermo %d' % e.steps)
         with open(e.output_file + '.thermo', 'a') as fh:
             fh.write('%d %g %g\n' % (e.steps, e.system.potential_energy(), e.rmsd))
 
