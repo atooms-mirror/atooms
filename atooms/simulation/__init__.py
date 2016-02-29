@@ -263,7 +263,7 @@ class Simulation(object):
         # TODO: rmsd targeting interval is hard coded
         # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
         if rmsd is not None:
-            self.add(self._TARGET_RMSD(target_rmsd), Scheduler(10000))
+            self.add(self._TARGET_RMSD(rmsd), Scheduler(10000))
 
         self.writer_thermo = self._WRITER_THERMO()
         self.writer_config = self._WRITER_CONFIG()
