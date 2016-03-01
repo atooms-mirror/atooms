@@ -536,7 +536,6 @@ class ParallelTempering(Simulation):
         # Store current probability term
         log.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g" % (rank,  u_j[0], u_i[0], T_i, T_j))
         try:
-            self.__prob = math.exp(0.0/0.0)
             self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
         except:
             log.error('acceptance test failed uj=%g uj=%g Ti=%g Tj=%g' % (u_j[0], u_i[0], T_i, T_j))
