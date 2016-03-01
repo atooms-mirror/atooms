@@ -18,7 +18,7 @@ class WriterConfig(object):
         return 'config'
 
     def __call__(self, e):
-        log.debug('writer config')
+        log.debug('write config %d' % e.steps)
         for i in e.my_replica:
             irx = e.state[i]
             # If mute_config_except is None or it contains the state we write it
@@ -41,11 +41,10 @@ class WriterConfig(object):
                 # Perhaps we should define it here. We could grab the output_path from pt instance and the suffix from
                 # the trajectory class
                 #
-                d = e.dir_state_out[irx]
-                f = os.path.basename(e.sim[irx].output_file)
                 # The trajectory class is taken from the simulation backend
-                trj_cls = e.sim[irx].trajectory.__class__
-                with trj_cls(os.path.join(d, f), 'a') as t:
+                trj_cls = e.sim[irx].trajectory
+                d = e.dir_state_out[irx]
+                with trj_cls(os.path.join(d, 'trajectory.' + trj_cls.suffix), 'a') as t:
                     t.exclude(['velocity'])
                     t.write(e.replica[i], e.steps)
 

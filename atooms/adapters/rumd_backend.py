@@ -26,7 +26,8 @@ class WriterConfig(object):
         return 'config'
 
     def __call__(self, e):
-        with Trajectory(e.output_file, 'a') as t:
+        f = os.path.join(e.output_path, 'trajectory.' + e.trajectory.suffix)
+        with Trajectory(f, 'a') as t:
             t.write(e.system, e.steps)
 
 class WriterThermo(object):
@@ -35,7 +36,8 @@ class WriterThermo(object):
         return 'thermo'
 
     def __call__(self, e):
-        with open(e.output_file + '.thermo', 'a') as fh:
+        f = os.path.join(e.output_path, 'trajectory.thermo')
+        with open(f, 'a') as fh:
             fh.write('%d %g %g\n' % (e.steps, e.system.potential_energy(), e.rmsd))
 
 # TODO: can we have backend not inherit from simulation base class? 
@@ -60,6 +62,8 @@ class Simulation(simulation.Simulation):
         # TODO: need some switch to use or not RUMD checkpoint. If checkpoint_interval is set e.g. we suppress RUMD's one
         # Copy of initial state
         self.initial_state = self._sim.sample.Copy()
+        # Keep a reference of the Trajectory backend class
+        self.trajectory = Trajectory
 
     def _get_system(self):
         return System(self._sim)
@@ -70,7 +74,7 @@ class Simulation(simulation.Simulation):
     system = property(_get_system, _set_system, 'System')
 
     def __str__(self):
-        return 'RUMD %s' % GetVersion()        
+        return 'RUMD (v%s)' % GetVersion()
 
     @property
     def rmsd(self):
@@ -87,20 +91,18 @@ class Simulation(simulation.Simulation):
                 
         return (sum(sum((unf-ref)**2)) / N)**0.5
 
-    def write_checkpoint(self, filename=None):
-        if filename is None:
-            filename = self.trajectory.filename + '.chk'
-        with Trajectory(filename, 'w') as t:
+    def write_checkpoint(self):
+        f = os.path.join(self.output_path, 'trajectory.chk')
+        with Trajectory(f, 'w') as t:
             t.write(self.system, None)
-        with open(filename + '.step', 'w') as fh:
+        with open(f + '.step', 'w') as fh:
             fh.write('%d' % self.steps)
 
-    def read_checkpoint(self, filename=None):
-        if filename is None:
-            filename = self.trajectory.filename + '.chk'
-        log.debug('reading own restart file %s' % filename)
-        self._sim.sample.ReadConf(filename)
-        with open(filename + '.step') as fh:
+    def read_checkpoint(self):
+        f = os.path.join(self.output_path, 'trajectory.chk')
+        log.debug('reading own restart file %s' % f)
+        self._sim.sample.ReadConf(f)
+        with open(f + '.step') as fh:
             self.steps = int(fh.read())
         log.info('rumd restarting from %d' % self.steps)
 
@@ -117,7 +119,8 @@ class Simulation(simulation.Simulation):
             # an optional filename, which will be skipped here. One soultion is to be rigid
             # but then it means that we swap trajectories in PT (need refactoring)
             # Seriously, what does all the above mean?? 20.02.2016
-            if os.path.exists(self.trajectory.filename + '.chk'):
+            f = os.path.join(self.output_path, 'trajectory.chk')
+            if os.path.exists(f):
                 # If we find our own checkpoint file, we ignore RUMD checkpoint
                 self.read_checkpoint()
             else:
@@ -157,7 +160,7 @@ class Simulation(simulation.Simulation):
             # guess: we cacn check output_path is not None, grab the
             # basename of trajectory. Or perhaps this should be
             # defined by the writer, no?
-            self.output_file = os.path.join(self.output_path, 'config.xyz')
+            # self.output_file = os.path.join(self.output_path, 'config.xyz')
             # We need to keep a reference to the trajectory backend
             # used here 
             # TODO: do we really need to create a file for
@@ -166,14 +169,12 @@ class Simulation(simulation.Simulation):
             #
             # It should go to WriterBackend? We can because there is always a writer_config to inspect.
             #
-            self.trajectory = Trajectory(self.output_file, 'w')
-            self.trajectory.close()
+            #self.trajectory = self.Trajectory(self.output_file, 'w')
+            #self.trajectory.close()
 
         if self._sim.blockSize is None:
             # We set RUMD block to infinity unless the user set it already
             self._sim.SetBlockSize(sys.maxint)
-
-        log.debug('RUMD block is %d' % self._sim.blockSize)
 
         self.__check_restart()
         # Every time we call run() and we are not restarting, we clear output_path
@@ -395,6 +396,8 @@ class System(object):
         return p
 
 class Trajectory(object):
+
+    suffix = 'xyz'
 
     def __init__(self, filename, mode='w'):
         self.filename = filename

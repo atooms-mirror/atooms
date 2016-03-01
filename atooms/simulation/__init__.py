@@ -309,9 +309,10 @@ class Simulation(object):
         # TODO: enforce checkpoint being last
 
     def report(self):
-        nch = len('%s' % self)
+        txt = '%s' % self
+        nch = len(txt)
         #        log.info('-'*nch)
-        log.info('%s' % self)
+        log.info(txt)
         #        log.info('-'*nch)
         log.info('')
         log.info('atooms version: %s' % __version__)
