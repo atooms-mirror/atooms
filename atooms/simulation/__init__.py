@@ -420,9 +420,11 @@ class Simulation(object):
             # TODO: hey! run_end is not called anymore!!
             # TODO: do we really need run_end() if write_checkpoint is called last and it does everything we won't need this...
 
+        except KeyboardInterrupt:
+            pass
+
         except:
             log.error('simulation failed')
-            raise
 
         finally:
             pass
