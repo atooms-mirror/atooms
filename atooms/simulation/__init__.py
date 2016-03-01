@@ -273,11 +273,6 @@ class Simulation(object):
         # Checkpoint must be after other writers
         self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
 
-        # # If we are not targeting steps, we set it to the largest possible int
-        # # TODO: can we drop this?
-        # if self.target_steps is None:
-        #     self.target_steps = sys.maxint
-
     def setup(self, 
               target_steps=None, target_rmsd=None,
               thermo_period=None, thermo_number=None, 
