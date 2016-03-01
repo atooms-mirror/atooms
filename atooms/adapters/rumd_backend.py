@@ -74,7 +74,7 @@ class Simulation(simulation.Simulation):
     system = property(_get_system, _set_system, 'System')
 
     def __str__(self):
-        return 'RUMD (v%s)' % GetVersion()
+        return 'RUMD v%s' % GetVersion()
 
     @property
     def rmsd(self):
