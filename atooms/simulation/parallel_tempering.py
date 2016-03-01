@@ -535,7 +535,12 @@ class ParallelTempering(Simulation):
             T_j = self.params[nn_state]
         # Store current probability term
         log.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g" % (rank,  u_j[0], u_i[0], T_i, T_j))
-        self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
+        try:
+            self.__prob = math.exp(0.0/0.0)
+            self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
+        except:
+            log.error('acceptance test failed uj=%g uj=%g Ti=%g Tj=%g' % (u_j[0], u_i[0], T_i, T_j))
+            raise
         # Test if we can swap states of replicas
         log.debug("comm rank %d sawpping ran %g prob %g => %s" % (rank,  ran[0], self.__prob, ran[0]<self.__prob,))
         if (ran[0] < self.__prob):
