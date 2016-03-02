@@ -239,17 +239,19 @@ class Simulation(object):
                  thermo_interval=0, thermo_number=0, 
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
+                 fixcm_interval=0,
                  restart=False):
         """We expect input and output paths as input.
         Alternatively, input might be a system (or trajectory?) instance.
         """
         self._callback = []
         self._scheduler = []
+        self.fixcm_interval = fixcm_interval
+        self.restart = restart
+        self.output_path = output_path # can be None, file or directory
         self.steps = 0
         self.initial_steps = 0
         self.start_time = time.time()
-        self.restart = restart
-        self.output_path = output_path # can be None, file or directory
         if self.output_path is not None and self.STORAGE == 'directory':
             mkdir(self.output_path)
         # TODO: output_path shouldn't be changed after init
