@@ -314,6 +314,7 @@ class Simulation(object):
         txt = '%s' % self
         nch = len(txt)
         #        log.info('-'*nch)
+        log.info('')
         log.info(txt)
         #        log.info('-'*nch)
         log.info('')
