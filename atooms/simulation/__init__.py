@@ -111,6 +111,46 @@ class WriterCheckpoint(object):
     def __call__(self, e):
         pass
 
+class Speedometer(object):
+
+    def __init__(self):
+        self._init = False
+
+    def __str__(self):
+        return 'speedometer'
+
+    def __call__(self, e):
+        if not self._init:
+            # We could store all this in __init__() but this
+            # way we allow targeters added to simulation via add()
+            for c in e._callback:
+                if isinstance(c, Target):
+                    self.name_target = c.name
+                    self.x_target = c.target
+                    self.t_last = time.time()
+                    self.x_last = float(getattr(e, self.name_target))
+                    self._init = True
+                    return
+
+        if self.x_target > 0:
+            # Get the speed at which the simulation advances
+            t_now = time.time()
+            x_now = float(getattr(e, self.name_target))
+            speed = (x_now - self.x_last) / (t_now - self.t_last)
+            # Report fraction of target achieved and ETA
+            frac = float(x_now) / self.x_target
+            eta = (self.x_target-x_now) / speed
+            eta_h = eta / (3600.0)
+            eta_d = int(eta_h / 24.0)
+            eta_m = (eta_h - int(eta_h)) * 60.0
+            eta_s = (eta_m - int(eta_m)) * 60.0
+            delta = '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
+            log.info('%s reached %d%% ETA=%s' % (self.name_target, int(frac * 100), delta))
+
+        self.t_last = copy.copy(t_now)
+        self.x_last = copy.copy(x_now)
+
+
 class Target(object):
 
     def __init__(self, name, target):
@@ -270,6 +310,7 @@ class Simulation(object):
         self.writer_thermo = self._WRITER_THERMO()
         self.writer_config = self._WRITER_CONFIG()
         self.writer_checkpoint = self._WRITER_CHECKPOINT()
+        self.add(Speedometer(), Scheduler(None, calls=10, target=self.target_steps))
         self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
         # Checkpoint must be after other writers
@@ -428,6 +469,7 @@ class Simulation(object):
 
         except:
             log.error('simulation failed')
+            raise
 
         finally:
             pass
