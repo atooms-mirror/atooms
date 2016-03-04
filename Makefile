@@ -2,6 +2,9 @@
 
 all: install
 
+pull:
+	git pull
+
 dist:
 	python setup.py sdist
 
@@ -21,7 +24,7 @@ dist_rumd:
 version:
 	cd atooms; make; cd ..
 
-install: version
+install: pull version
 	python setup.py install --home=~
 
 clean:
