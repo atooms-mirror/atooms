@@ -227,25 +227,27 @@ class Filter(object):
     
     """Apply a filter that transforms each read sample in a trajectory"""
 
-    def __new__(cls, component, filt, *args):
+    def __new__(cls, component, filt, *args, **kwargs):
         cls = type('Filter', (Filter, component.__class__), component.__dict__)
         return object.__new__(cls)
 
-    def __init__(self, component, filt, *args):
+    def __init__(self, component, filt, *args, **kwargs):
         """filt is a function that receives a System and returns a modified version of it"""
         import copy
         self.filt = filt
         self._args = args
+        self._kwargs = kwargs
 
     def read_sample(self, sample):
         sy = super(Filter, self).read_sample(sample)
         # Apply filter to the system, that's all        
         # HACK!: when further decorating the class, the referenced function becomes a bound method of the decorated class and therefore passes the first argument (self)
         # Workaround is to always expect a trajectory and forcibly add self if no further decorators are added
+        # TODO: we should catch the rihgt exception here, otherwise errors from the callbacks are caught here as well
         try:
-            return self.filt(sy, *self._args)
+            return self.filt(sy, *self._args, **self._kwargs)
         except:
-            return self.filt(self, sy, *self._args)
+            return self.filt(self, sy, *self._args, **self._kwargs)
 
 
 def filter_id(s, species):
