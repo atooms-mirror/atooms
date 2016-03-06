@@ -111,6 +111,13 @@ class WriterCheckpoint(object):
     def __call__(self, e):
         pass
 
+def sec2time(t):
+    eta_d = t / (24.0*3600)
+    eta_h = (eta_d - int(eta_d)) * 24
+    eta_m = (eta_h - int(eta_h)) * 60.0
+    eta_s = (eta_m - int(eta_m)) * 60.0
+    return '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
+
 class Speedometer(object):
 
     def __init__(self):
@@ -140,11 +147,7 @@ class Speedometer(object):
             # Report fraction of target achieved and ETA
             frac = float(x_now) / self.x_target
             eta = (self.x_target-x_now) / speed
-            eta_h = eta / (3600.0)
-            eta_d = int(eta_h / 24.0)
-            eta_m = (eta_h - int(eta_h)) * 60.0
-            eta_s = (eta_m - int(eta_m)) * 60.0
-            delta = '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
+            delta = sec2time(eta)
             log.info('%s reached %d%% ETA=%s' % (self.name_target, int(frac * 100), delta))
 
         self.t_last = copy.copy(t_now)
