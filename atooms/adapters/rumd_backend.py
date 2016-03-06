@@ -105,7 +105,7 @@ class Simulation(simulation.Simulation):
         self._sim.sample.ReadConf(f)
         with open(f + '.step') as fh:
             self.steps = int(fh.read())
-        log.info('rumd restarting from %d' % self.steps)
+        log.debug('rumd restarting from %d' % self.steps)
 
     def __check_restart(self):
         self._ibl = None
