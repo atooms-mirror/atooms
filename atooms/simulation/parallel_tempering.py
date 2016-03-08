@@ -165,7 +165,7 @@ class ParallelTempering(Simulation):
                  thermo_interval=0, thermo_number=0, 
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
-                 restart=False):
+                 restart=False, dryrun=False):
         Simulation.__init__(self, None, output_path,
                             steps=steps, rmsd=rmsd,
                             thermo_interval=thermo_interval, thermo_number=thermo_number, 
@@ -181,6 +181,7 @@ class ParallelTempering(Simulation):
         self.mute_config_except = mute_config_except
         self.nr = len(params)
         self.seed = seed
+        self.dryrun  dryrun
         random.seed(self.seed)
 
         # Get physical replicas (systems) from simulation instances.
@@ -402,7 +403,8 @@ class ParallelTempering(Simulation):
             n = self.sim[i].steps + self.steps_block[self.state[i]]
             self.sim[i].run_until(n)
         # Attempt to exchange replicas.
-        self.exchange(self.replica)
+        if not self.dryrun:
+            self.exchange(self.replica)
             
     def run_end(self):
         for i in self.my_replica:
