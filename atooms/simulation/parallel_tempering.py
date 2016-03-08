@@ -181,7 +181,7 @@ class ParallelTempering(Simulation):
         self.mute_config_except = mute_config_except
         self.nr = len(params)
         self.seed = seed
-        self.dryrun  dryrun
+        self.dryrun = dryrun
         random.seed(self.seed)
 
         # Get physical replicas (systems) from simulation instances.
