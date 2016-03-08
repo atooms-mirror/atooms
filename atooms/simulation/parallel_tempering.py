@@ -378,6 +378,8 @@ class ParallelTempering(Simulation):
         log.info('output path: %s' % self.output_path)
         log.info('number of replicas: %d' % self.nr)
         log.info('number of processes: %d' % size)
+        if self.dryrun:
+            log.info('** this is a dry run (no actual swaps) **')
         if self.steps_block[0] == self.steps_block[-1]:
             log.info('swap interval: %d' % self.steps_block[0])
         barrier()
