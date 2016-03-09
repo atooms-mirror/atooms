@@ -409,10 +409,6 @@ class Simulation(object):
         # bear it in mind when subclassing 
         pass
 
-    def _report_mid(self):
-        log.debug('step=%d/%d wtime/step=%.2g' % (self.steps, self.target_steps,
-                                                  self.wall_time_per_step()))
-
     def _report_end(self):
         log.info('final rmsd: %.2f' % self.rmsd)
         log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
@@ -445,7 +441,6 @@ class Simulation(object):
                 next_step = min([s.next(self.steps) for s in self._scheduler])
                 self.run_until(next_step)
                 self.steps = next_step
-                self._report_mid()
                 # Notify writer and generic observers before targeters
                 self.notify(lambda x : not isinstance(x, Target))
                 self.notify(lambda x : isinstance(x, Target))
