@@ -333,8 +333,8 @@ class Simulation(object):
         if rmsd is not None:
             self.add(self._TARGET_RMSD(rmsd), Scheduler(10000))
         # Writers
-        self.add(Speedometer(), Scheduler(None, calls=10, target=self.target_steps))
         self.add(Speedometer(what='ETA'), OnetimeScheduler(min(2, self.target_steps)))
+        self.add(Speedometer(), Scheduler(None, calls=10, target=self.target_steps))
         self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
         self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
