@@ -118,6 +118,7 @@ def sec2time(t):
     eta_s = (eta_m - int(eta_m)) * 60.0
     return '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
 
+
 class Speedometer(object):
 
     def __init__(self):
@@ -150,8 +151,8 @@ class Speedometer(object):
             delta = sec2time(eta)
             log.info('%s reached %d%% ETA=%s' % (self.name_target, int(frac * 100), delta))
 
-        self.t_last = copy.copy(t_now)
-        self.x_last = copy.copy(x_now)
+        self.t_last = t_now
+        self.x_last = x_now
 
 
 class Target(object):
@@ -249,12 +250,6 @@ class Scheduler(object):
         else:
             return sys.maxint
 
-    def now(self, this):
-        if self.interval>0:
-            return this % self.interval == 0
-        else:
-            return False
-
 
 class Simulation(object):
 
@@ -303,20 +298,20 @@ class Simulation(object):
 
         # Setup schedulers and callbacks
         self.target_steps = steps
+        self.writer_thermo = self._WRITER_THERMO()
+        self.writer_config = self._WRITER_CONFIG()
+        self.writer_checkpoint = self._WRITER_CHECKPOINT()
+
         # Target steps are checked only at the end of the simulation
         self.add(self._TARGET_STEPS(self.target_steps), Scheduler(max(1, self.target_steps)))
         # TODO: rmsd targeting interval is hard coded
         # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
         if rmsd is not None:
             self.add(self._TARGET_RMSD(rmsd), Scheduler(10000))
-
-        self.writer_thermo = self._WRITER_THERMO()
-        self.writer_config = self._WRITER_CONFIG()
-        self.writer_checkpoint = self._WRITER_CHECKPOINT()
+        # Writers
         self.add(Speedometer(), Scheduler(None, calls=10, target=self.target_steps))
         self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
-        # Checkpoint must be after other writers
         self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
 
     def setup(self, 
@@ -349,10 +344,33 @@ class Simulation(object):
         #return self.system.mean_square_displacement(self.initial_system)**0.5
 
     def add(self, callback, scheduler):
-        """Add an observer (callback) to be called along a scheduler"""
-        self._callback.append(callback)
-        self._scheduler.append(scheduler)
-        # TODO: enforce checkpoint being last
+        """Register an observer (callback) to be called along with a scheduler"""
+        # There are certainly more elegant ways of sorting Writers < Checkpoint < Target 
+        # but anyway...
+        # Keep targeters last
+        if not isinstance(callback, Target):
+            self._callback.insert(0, callback)
+            self._scheduler.insert(0, scheduler)
+        else:
+            self._callback.append(callback)
+            self._scheduler.append(scheduler)
+
+        # Enforce checkpoint is last among non_targeters
+        try:
+            idx = self._callback.index(self.writer_checkpoint)
+            cnt = len(self._non_targeters)
+            self._callback.insert(cnt-1, self._callback.pop(idx))
+            self._scheduler.insert(cnt-1, self._scheduler.pop(idx))
+        except ValueError:
+            pass
+
+    @property
+    def _targeters(self):
+        return [o for o in self._callback if isinstance(o, Target)]
+
+    @property
+    def _non_targeters(self):
+        return [o for o in self._callback if not isinstance(o, Target)]
 
     def report(self):
         txt = '%s' % self
@@ -377,7 +395,7 @@ class Simulation(object):
             else:
                 log.info('report %s: interval=%s calls=%s' % (f, s.interval, s.calls))
 
-    def notify(self, condition=lambda x : True): #, callback, scheduler):
+    def notify_old(self, condition=lambda x : True): #, callback, scheduler):
         for f, s in zip(self._callback, self._scheduler):
             try:
                 # TODO: this check should be done internally by observer
@@ -386,6 +404,10 @@ class Simulation(object):
             except SchedulerError:
                 log.error('error with %s' % f, s.interval, s.calls)
                 raise
+
+    def notify(self, observers):
+        for o in observers:
+            o(self)
     
     def elapsed_wall_time(self):
         return time.time() - self.start_time
@@ -429,36 +451,40 @@ class Simulation(object):
 
         try:
             # Before entering the simulation, check if we can quit right away
-            # TODO: find a more elegant way to notify targeters only / order observers
-            self.notify(lambda x : isinstance(x, Target))
-            # Notify targeters
+            # Then notify non targeters unless restarting
+            self.notify(self._targeters)
             if not self.restart:
-                self.notify(lambda x : not isinstance(x, Target))
+                self.notify(self._non_targeters)
             log.info('starting at step: %d' % self.steps)
             log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
-                next_step = min([s.next(self.steps) for s in self._scheduler])
+                all_steps = [s.next(self.steps) for s in self._scheduler]
+                next_step = min(all_steps)
+                # Find observers indexes corresponding to minimum step
+                # then get all corresponding observers
+                next_step_ids = [i for i, step in enumerate(all_steps) if step == next_step]
+                next_obs = [self._callback[i] for i in next_step_ids]
                 self.run_until(next_step)
                 self.steps = next_step
-                # Notify writer and generic observers before targeters
-                self.notify(lambda x : not isinstance(x, Target))
-                self.notify(lambda x : isinstance(x, Target))
+                # Observers are sorted such that targeters are last
+                # and checkpoint is last among writers
+                self.notify(next_obs)
                     
         except SimulationEnd as s:
             # TODO: make checkpoint is an explicit method of simulation and not a callback! 16.12.2014
             # The rationale here is that notify will basically check for now() but writecheckpoint must
             # here we must call no matter how the period fits. The problem was that PT checkpoint
             # was not a subclass of base one, and so it was not called!
-            for f in self._callback:
-                if isinstance(f, WriterCheckpoint):
-                    f(self)
+            self.writer_checkpoint(self)
+            # for f in self._callback:
+            #     if isinstance(f, WriterCheckpoint):
+            #         f(self)
             #self.notify(lambda x : isinstance(x, WriterCheckpoint))
             # Only dumps log if actually we did some steps
             log.info('%s' % s.message)
             if not self.initial_steps == self.steps:
                 self._report_end()
-
             # TODO: hey! run_end is not called anymore!!
             # TODO: do we really need run_end() if write_checkpoint is called last and it does everything we won't need this...
 
@@ -472,4 +498,5 @@ class Simulation(object):
         finally:
             pass
             log.info('goodbye')
+
 
