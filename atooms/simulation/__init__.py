@@ -524,7 +524,3 @@ class Simulation(object):
         finally:
             pass
             log.info('goodbye')
-
-
-s = Simulation(None)
-s._report_observers()
