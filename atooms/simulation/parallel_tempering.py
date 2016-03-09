@@ -6,6 +6,7 @@ import sys
 import math
 import random
 import numpy
+import datetime
 
 from atooms.simulation import Simulation, WriterCheckpoint
 from atooms.simulation import log
@@ -390,6 +391,7 @@ class ParallelTempering(Simulation):
         log.info('final minimum rmsd: %.2f' % self.rmsd)
         log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
         log.info('total steps/wall time [1/s]: %.2f' % (1./self.wall_time_per_step()))
+        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
 
     def run_until(self, n):
         """n is the number of PT steps, i.e. a block of several steps"""

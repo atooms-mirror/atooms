@@ -121,8 +121,9 @@ def sec2time(t):
 
 class Speedometer(object):
 
-    def __init__(self):
+    def __init__(self, what=None):
         self._init = False
+        self._what = what
 
     def __str__(self):
         return 'speedometer'
@@ -149,7 +150,15 @@ class Speedometer(object):
             frac = float(x_now) / self.x_target
             eta = (self.x_target-x_now) / speed
             delta = sec2time(eta)
-            log.info('%s reached %d%% ETA=%s' % (self.name_target, int(frac * 100), delta))
+            if self._what == 'ETA':
+                d_now = datetime.datetime.now()
+                d_delta = datetime.timedelta(seconds=eta)
+                d_eta = d_now + d_delta
+                log.info('wtime / step: %.2g' % e.wall_time_per_step())
+                log.info('steps / wtime: %.1f' % (1./e.wall_time_per_step()))
+                log.info('estimated end: %s' % d_eta.strftime('%h %d %Y at %H:%M'))
+            else:
+                log.info('%s reached %d%% ETA=%s' % (self.name_target, int(frac * 100), delta))
 
         self.t_last = t_now
         self.x_last = x_now
@@ -250,6 +259,21 @@ class Scheduler(object):
         else:
             return sys.maxint
 
+class OnetimeScheduler(object):
+
+    """Scheduler to call observer during the simulation"""
+
+    def __init__(self, interval):
+        self.interval = interval
+        self.calls = None
+        self.target = None
+
+    def next(self, this):
+        if this / self.interval == 0:
+            return self.interval
+        else:
+            return sys.maxint
+
 
 class Simulation(object):
 
@@ -310,6 +334,7 @@ class Simulation(object):
             self.add(self._TARGET_RMSD(rmsd), Scheduler(10000))
         # Writers
         self.add(Speedometer(), Scheduler(None, calls=10, target=self.target_steps))
+        self.add(Speedometer(what='ETA'), OnetimeScheduler(min(2, self.target_steps)))
         self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
         self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
@@ -435,6 +460,7 @@ class Simulation(object):
         log.info('final rmsd: %.2f' % self.rmsd)
         log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
         log.info('steps/wall time [1/s]: %.2f' % (1./self.wall_time_per_step()))
+        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
 
     def run(self, target_steps=None):
         if target_steps is not None:
@@ -500,3 +526,5 @@ class Simulation(object):
             log.info('goodbye')
 
 
+s = Simulation(None)
+s._report_observers()
