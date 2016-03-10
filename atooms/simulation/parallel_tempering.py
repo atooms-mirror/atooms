@@ -393,18 +393,20 @@ class ParallelTempering(Simulation):
         log.info('total steps/wall time [1/s]: %.2f' % (1./self.wall_time_per_step()))
         log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
 
-    def run_until(self, n):
-        """n is the number of PT steps, i.e. a block of several steps"""
-        # TODO: wait it is crucial to set thermo_interval to 1 else we get only one one step?!
+    def run_until(self, nsteps):
+        """Run until nsteps, which is the number of PT steps, i.e. a block of several steps"""
+        # In general, nsteps will be 1, but with dryrun we may do more steps at once
         # Evolve over my physical replicas.
-        log.debug('run until %d' % n)
+        log.debug('run until %d' % nsteps)
         for i in self.my_replica:
             # TODO: rather use an additional level (debug_all, info_all) than extra dict
-            log.debug('evolve replica %d on GPU %d' % (i, rank), extra={'rank':'all'})
-            log.debug('replica %d state %d formally at T=%s has thermostat T %s' % (i, self.state[i], self.params[self.state[i]], self.replica[i].thermostat.temperature))
+            log.debug('evolve replica %d on GPU %d for %d' % (i, rank, nsteps), extra={'rank':'all'})
+            log.debug('replica %d state %d formally at T=%g has thermostat T %g' % \
+                      (i, self.state[i], self.params[self.state[i]], self.replica[i].thermostat.temperature))
             # This will evolve physical replica[i] for the number
-            # of steps prescribed for its state 
-            n = self.sim[i].steps + self.steps_block[self.state[i]]
+            # of steps prescribed for its state times the number of blocks 
+            # (relevant only for dryrun)
+            n = self.sim[i].steps + nsteps * self.steps_block[self.state[i]]
             self.sim[i].run_until(n)
         # Attempt to exchange replicas.
         if not self.dryrun:
