@@ -154,11 +154,12 @@ class Speedometer(object):
                 d_now = datetime.datetime.now()
                 d_delta = datetime.timedelta(seconds=eta)
                 d_eta = d_now + d_delta
-                log.info('wtime / step: %.2g' % e.wall_time_per_step())
-                log.info('steps / wtime: %.1f' % (1./e.wall_time_per_step()))
-                log.info('estimated end: %s' % d_eta.strftime('%h %d %Y at %H:%M'))
+                log.info('estimated end: %s TSP: %.2g' % (d_eta.strftime('%h %d %Y at %H:%M'),
+                                                      e.wall_time_per_step_particle()))
             else:
-                log.info('%s reached %d%% ETA=%s' % (self.name_target, int(frac * 100), delta))
+                log.info('%s: %d%% ETA: %s TSP: %.2g' % (self.name_target,
+                                                         int(frac * 100), delta,
+                                                         e.wall_time_per_step_particle()))
 
         self.t_last = t_now
         self.x_last = x_now
@@ -333,8 +334,8 @@ class Simulation(object):
         if rmsd is not None:
             self.add(self._TARGET_RMSD(rmsd), Scheduler(10000))
         # Writers
-        self.add(Speedometer(what='ETA'), OnetimeScheduler(min(2, self.target_steps)))
         self.add(Speedometer(), Scheduler(None, calls=10, target=self.target_steps))
+        self.add(Speedometer(what='ETA'), OnetimeScheduler(max(1, int(self.target_steps/200.))))
         self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
         self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
@@ -357,16 +358,11 @@ class Simulation(object):
             #     raise ParameterError('cannot set writers when output_path is None')
             pass
 
-    # @property
-    # def system(self):
-    #     return self._system
-
     @property
     def rmsd(self):
         log.warning('rmsd has not been subclassed')
         return 0.0
         # TODO: provide rmsd by species 07.12.2014
-        #return self.system.mean_square_displacement(self.initial_system)**0.5
 
     def add(self, callback, scheduler):
         """Register an observer (callback) to be called along with a scheduler"""
@@ -400,10 +396,8 @@ class Simulation(object):
     def report(self):
         txt = '%s' % self
         nch = len(txt)
-        #        log.info('-'*nch)
         log.info('')
         log.info(txt)
-        #        log.info('-'*nch)
         log.info('')
         log.info('atooms version: %s' % __version__)
         self._report()
@@ -418,17 +412,7 @@ class Simulation(object):
             if isinstance(f, Target):
                 log.info('target %s: %s' % (f, f.target)) #, s.interval, s.calls))
             else:
-                log.info('report %s: interval=%s calls=%s' % (f, s.interval, s.calls))
-
-    def notify_old(self, condition=lambda x : True): #, callback, scheduler):
-        for f, s in zip(self._callback, self._scheduler):
-            try:
-                # TODO: this check should be done internally by observer
-                if s.now(self.steps) and condition(f):
-                    f(self)
-            except SchedulerError:
-                log.error('error with %s' % f, s.interval, s.calls)
-                raise
+                log.info('writer %s: interval=%s calls=%s' % (f, s.interval, s.calls))
 
     def notify(self, observers):
         for o in observers:
@@ -441,6 +425,11 @@ class Simulation(object):
         """Return the wall time in seconds per step.
         Can be conventiently subclassed by more complex simulation classes."""
         return self.elapsed_wall_time() / (self.steps-self.initial_steps)
+
+    def wall_time_per_step_particle(self):
+        """Return the wall time in seconds per step and particle.
+        Can be conventiently subclassed by more complex simulation classes."""
+        return self.wall_time_per_step() / len(self.system.particle)
 
     # Our template consists of three steps: pre, until and end
     # Typically a backend will implement the until method.

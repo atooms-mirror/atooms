@@ -188,6 +188,7 @@ class ParallelTempering(Simulation):
         # Get physical replicas (systems) from simulation instances.
         # These are references: they'll follow the simulations 
         self.replica = [s.system for s in sim]
+        self.system = self.replica[0]
 
         # Sanity check
         if not (self.nr == len(sim)):
