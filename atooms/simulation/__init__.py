@@ -448,7 +448,7 @@ class Simulation(object):
     def _report_end(self):
         log.info('final rmsd: %.2f' % self.rmsd)
         log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
-        log.info('steps/wall time [1/s]: %.2f' % (1./self.wall_time_per_step()))
+        log.info('TSP [s/step/particle]: %.2f' % (self.wall_time_per_step_particle()))
         log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
 
     def run(self, target_steps=None):
