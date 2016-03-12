@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 
-"""Parallel tempering simulation driver"""
+"""Molecular dynamics simulation driver"""
 
 import sys
 import os
 from atooms.adapters.rumd_backend import Simulation, single
 from atooms.simulation import log
 from atooms.simulation.parallel_tempering import ParallelTempering
-from ff import kalj as potential
 
 def main(params):
     # TODO: dump params to a file in output_dir
     if params.verbose:
         log.setLevel(10)
-    s = single(params.input_file, 
-               potential, 
+    execfile(params.forcefield)
+    potential = locals()['_potential']
+    s = single(params.input_file,
+               potential,
                params.T,
                params.dt)
     sa = Simulation(s, fixcm_interval=params.fixcm_interval,
@@ -37,6 +38,7 @@ if __name__ == '__main__':
     parser.add_argument('--fixcm-interval', dest='fixcm_interval', type=int, default=100, help='interval in steps between CM fixing)')
     parser.add_argument('-n','--steps', dest='steps', type=int, default=None, help='number of steps')
     parser.add_argument('-i', dest='input_file', help='input_file')
+    parser.add_argument('--ff', dest='forcefield', help='force field')
     parser.add_argument('-r', dest='restart', action='store_true', help='restart')
     parser.add_argument(dest='output_dir',type=str, help='output directory')
     params = parser.parse_args()
