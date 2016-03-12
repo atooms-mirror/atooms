@@ -400,14 +400,16 @@ class ParallelTempering(Simulation):
         # Evolve over my physical replicas.
         log.debug('run until %d' % nsteps)
         for i in self.my_replica:
-            # TODO: rather use an additional level (debug_all, info_all) than extra dict
-            log.debug('evolve replica %d on GPU %d for %d' % (i, rank, nsteps), extra={'rank':'all'})
-            log.debug('replica %d state %d formally at T=%s has thermostat T %s' % \
-                      (i, self.state[i], self.params[self.state[i]], self.replica[i].thermostat.temperature))
             # This will evolve physical replica[i] for the number
             # of steps prescribed for its state times the number of blocks 
             # (relevant only for dryrun)
-            n = self.sim[i].steps + nsteps * self.steps_block[self.state[i]]
+            n = nsteps * self.steps_block[self.state[i]]
+            #n = self.sim[i].steps + (nsteps-self.steps) * self.steps_block[self.state[i]]
+            # TODO: rather use an additional level (debug_all, info_all) than extra dict
+            log.debug('evolve replica %d on GPU %d for %d until %d' % (i, rank, nsteps,
+                                                                       n), extra={'rank':'all'})
+            log.debug('replica %d state %d formally at T=%s has thermostat T %s' % \
+                      (i, self.state[i], self.params[self.state[i]], self.replica[i].thermostat.temperature))
             self.sim[i].run_until(n)
         # Attempt to exchange replicas.
         if not self.dryrun:

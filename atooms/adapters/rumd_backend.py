@@ -221,6 +221,7 @@ class Simulation(simulation.Simulation):
                 # We must toggle it here to prevent future calls to pre to restart
                 # TODO: improve restart here (we need an internal variable)
                 self.restart = False 
+            log.debug('RUMD running , %d %d steps' % (n, self.steps))
             self._sim.Run(n-self.steps, suppressAllOutput=self._suppress_all_output,
                           initializeOutput = self._initialize_output)
             # We let it clean the dir upon entrance, then we suppress this
