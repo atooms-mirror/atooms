@@ -154,10 +154,10 @@ class Speedometer(object):
                 d_now = datetime.datetime.now()
                 d_delta = datetime.timedelta(seconds=eta)
                 d_eta = d_now + d_delta
-                log.info('estimated end: %s TSP: %.2g' % (d_eta.strftime('%h %d %Y at %H:%M'),
+                log.info('estimated end: %s TSP: %.2e' % (d_eta.strftime('%h %d %Y at %H:%M'),
                                                       e.wall_time_per_step_particle()))
             else:
-                log.info('%s: %d%% ETA: %s TSP: %.2g' % (self.name_target,
+                log.info('%s: %d%% ETA: %s TSP: %.2e' % (self.name_target,
                                                          int(frac * 100), delta,
                                                          e.wall_time_per_step_particle()))
 
@@ -448,7 +448,7 @@ class Simulation(object):
     def _report_end(self):
         log.info('final rmsd: %.2f' % self.rmsd)
         log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
-        log.info('TSP [s/step/particle]: %.2g' % (self.wall_time_per_step_particle()))
+        log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))
         log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
 
     def run(self, target_steps=None):
