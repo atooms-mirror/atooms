@@ -26,6 +26,6 @@ setup(name='atooms',
       # 'atooms', 'atooms.adapters', 'atooms.system',
       # 'atooms.interaction', 'atooms.potential', 
       # 'atooms.postprocessing'],
-      scripts=['bin/trj.py']
+      scripts=['bin/trj.py', 'bin/md.py']
       #scripts=glob.glob(os.path.join('bin', '*.py'))
      )
