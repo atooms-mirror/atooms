@@ -481,3 +481,13 @@ def multi(input_file, potential, T, dt):
         s.SetIntegrator(i)
 
     return sim
+
+# Forcefields
+
+def kalj():
+    pot = rumd.Pot_LJ_12_6(cutoff_method = rumd.ShiftedPotential)
+    pot.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
+    pot.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+    pot.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+    pot.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
+    return [pot]
