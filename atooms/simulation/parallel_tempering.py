@@ -166,7 +166,7 @@ class ParallelTempering(Simulation):
                  thermo_interval=0, thermo_number=0, 
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
-                 restart=False, dryrun=False):
+                 restart=False, dryrun=False, swap_scheme='random_one'):
         Simulation.__init__(self, None, output_path,
                             steps=steps, rmsd=rmsd,
                             thermo_interval=thermo_interval, thermo_number=thermo_number, 
@@ -183,6 +183,7 @@ class ParallelTempering(Simulation):
         self.nr = len(params)
         self.seed = seed
         self.dryrun = dryrun
+        self.swap_scheme = swap_scheme
         random.seed(self.seed)
 
         # Get physical replicas (systems) from simulation instances.
@@ -440,7 +441,8 @@ class ParallelTempering(Simulation):
         return 'state %d <-> %d, replicas %d <-> %d, [%d/%d], prob %.4f]' % \
             (state, state+1, self.replica_id[state], self.replica_id[state+1], self.accepted[state], self.attempts[state], self.__prob)
 
-    def _swap(self, system, state, nn_state, r_i, r_j):
+    def _swap(self, system, state, nn_state, r_i=None, r_j=None):
+        # TODO: ri and rj unused
         tmp = self.replica_id[state]
         self.replica_id[state] = self.replica_id[nn_state]
         self.replica_id[nn_state] = tmp
@@ -451,7 +453,10 @@ class ParallelTempering(Simulation):
     def exchange(self, system):
         log.debug("exchange rx")
         if self.variables == ['T']:
-            self.__exchange_T_parallel(system)
+            if self.swap_scheme == 'random_one':
+                self.__exchange_T_one(system)
+            elif self.swap_scheme == 'alternate_all':
+                self.__exchange_T_parallel(system)
         else:
             raise ValueError(self.variables)
 
@@ -498,6 +503,99 @@ class ParallelTempering(Simulation):
         for i, s in enumerate(self.state):
             self.update(system[i], self.params[s])
         # -------------------------------
+
+    def __exchange_T_one(self, system):
+        """Swap attempt one replica at a time"""
+        # Get a random state i between 0 and nr-2
+        barrier()
+        if rank == 0:
+            state = random.randint(0, self.nr-2)
+        if size > 1:
+            comm.Broadcast(state)
+
+        # Attempt swap between states i and i+1, only concerned
+        # processes call the exchange function
+        if self.replica_id[state] in self.my_replica or \
+           self.replica_id[state+1] in self.my_replica:
+            if self._swap_attempt(system, state, state+1):
+                self._swap(system, state, state+1)
+                # TODO: fix accepted counter
+
+        # TODO: no need to update anything if swap was unsuccesfull
+        # Once states have changed, we must update replica id's across processes
+        state_tmp = numpy.array(range(self.nr))
+        state_new = numpy.array([self.state[r] for r in self.my_replica])
+        if size > 1:
+            comm.Allgather(state_new, state_tmp)
+        else:
+            state_tmp = state_new
+
+        # After setting replica_id we can safely use self.state
+        for i, s in enumerate(state_tmp):
+            self.replica_id[s] = i
+
+        # Update state of replicas using update() function
+        for i, s in enumerate(self.state):
+            self.update(system[i], self.params[s])
+
+    def _swap_attempt(self, system, state_i, state_j):
+        """This function should be called by processes that hold replicas at i and j"""
+        # TODO: add attempts
+        # Compute potential energy
+        r_i = self.replica_id[state_i]
+        r_j = self.replica_id[state_j] # This should be up to date
+        u_i = numpy.array([system[r_i].potential_energy()])
+
+        # Get processes holding replicas with states i and j
+        rank_i = self._process_with(state_i)
+        rank_j = self._process_with(state_j)
+
+        if rank_i == rank_i == rank:
+            log.debug('comm rank %d on same rank %d -> %d' % (rank, state_i, state_j))
+            u_j = numpy.array([system[r_j].potential_energy()])
+            ran = numpy.array([random.random()])
+        else:
+            # TODO: use sendrcv
+            if rank == rank_i:
+                log.debug('comm rank %d on /= rank %d -> %d' % (rank, state_i, state_j))
+                # I am on the left, I send first.
+                u_j = numpy.array([0.0])
+                comm.Send(u_i, nn, 10)
+                comm.Recv(u_j, nn, 11)
+                ran = numpy.array([random.random()])
+                comm.Send(ran, nn, 12)
+            elif rank == recv_rank:
+                log.debug('comm rank %d on /= rank %d <- %d' % (rank, state_j, state_i))
+                # I am on the right I receive first
+                u_j = numpy.array([0.0])
+                comm.Recv(u_j, nn, 10)
+                comm.Send(u_i, nn, 11)
+                ran = numpy.array([0.0])
+                comm.Recv(ran, nn, 12)
+            else:
+                raise ValueError("rank %d should not call this fct" % (rank))
+
+        # Temperatures
+        # TODO: encapsulate in exchange attempt callback
+        try:
+            T_i = self.params[state_i][0]
+            T_j = self.params[state_j][0]
+        except:
+            T_i = self.params[state_i]
+            T_j = self.params[state_j]
+
+        # Store current probability term
+        log.debug("comm rank %d uj=%g uu=%g Ti=%g Tj=%g" % (rank,  u_j[0], u_i[0], T_i, T_j))
+        try:
+            self.__prob = math.exp(-(u_j[0]-u_i[0])*(1/T_i-1/T_j))
+        except:
+            log.error('acceptance test failed uj=%g uj=%g Ti=%g Tj=%g' % (u_j[0], u_i[0], T_i, T_j))
+            raise
+
+        # Test if we can swap states of replicas
+        log.debug("comm rank %d sawpping ran %g prob %g => %s" % (rank, ran[0], self.__prob, ran[0]<self.__prob))
+        return ran[0] < self.__prob
+            
 
     def __exchange_T_comm(self, my_state, nn_state, system):
         # TODO: add attempts
