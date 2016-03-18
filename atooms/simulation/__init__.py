@@ -121,9 +121,8 @@ def sec2time(t):
 
 class Speedometer(object):
 
-    def __init__(self, what=None):
+    def __init__(self):
         self._init = False
-        self._what = what
 
     def __str__(self):
         return 'speedometer'
@@ -139,6 +138,7 @@ class Speedometer(object):
                     self.t_last = time.time()
                     self.x_last = float(getattr(e, self.name_target))
                     self._init = True
+                    log.info('%s: 0%%' % self.name_target)
                     return
 
         if self.x_target > 0:
@@ -150,16 +150,13 @@ class Speedometer(object):
             frac = float(x_now) / self.x_target
             eta = (self.x_target-x_now) / speed
             delta = sec2time(eta)
-            if self._what == 'ETA':
-                d_now = datetime.datetime.now()
-                d_delta = datetime.timedelta(seconds=eta)
-                d_eta = d_now + d_delta
-                log.info('estimated end: %s TSP: %.2e' % (d_eta.strftime('%h %d %Y at %H:%M'),
-                                                      e.wall_time_per_step_particle()))
-            else:
-                log.info('%s: %d%% ETA: %s TSP: %.2e' % (self.name_target,
-                                                         int(frac * 100), delta,
-                                                         e.wall_time_per_step_particle()))
+            d_now = datetime.datetime.now()
+            d_delta = datetime.timedelta(seconds=eta)
+            d_eta = d_now + d_delta
+            log.info('%s: %d%% estimated end: %s rate: %.2e TSP: %.2e' % \
+                     (self.name_target, int(frac * 100), 
+                      d_eta.strftime('%Y-%m-%d %H:%M'),
+                      speed, e.wall_time_per_step_particle()))
 
         self.t_last = t_now
         self.x_last = x_now
@@ -264,13 +261,15 @@ class OnetimeScheduler(object):
 
     """Scheduler to call observer during the simulation"""
 
-    def __init__(self, interval):
+    def __init__(self, interval, sim):
+        self.sim = sim
         self.interval = interval
         self.calls = None
         self.target = None
 
     def next(self, this):
-        if this / self.interval == 0:
+        log.debug('one time initial steps %d this %d' % (self.sim.initial_steps, this))
+        if (this-self.sim.initial_steps) / self.interval == 0:
             return self.interval
         else:
             return sys.maxint
@@ -334,8 +333,8 @@ class Simulation(object):
         if rmsd is not None:
             self.add(self._TARGET_RMSD(rmsd), Scheduler(10000))
         # Writers
-        self.add(Speedometer(), Scheduler(None, calls=10, target=self.target_steps))
-        self.add(Speedometer(what='ETA'), OnetimeScheduler(max(1, int(self.target_steps/200.))))
+        self.add(Speedometer(), Scheduler(None, calls=20, target=self.target_steps))
+#        self.add(Speedometer(), OnetimeScheduler(max(1, int(self.target_steps/200.)), self))
         self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
         self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
@@ -393,6 +392,10 @@ class Simulation(object):
     def _non_targeters(self):
         return [o for o in self._callback if not isinstance(o, Target)]
 
+    @property
+    def _speedometers(self):
+        return [o for o in self._callback if isinstance(o, Speedometer)]
+
     def report(self):
         txt = '%s' % self
         nch = len(txt)
@@ -416,6 +419,7 @@ class Simulation(object):
 
     def notify(self, observers):
         for o in observers:
+            log.debug('notify %s' % o)
             o(self)
     
     def elapsed_wall_time(self):
@@ -460,16 +464,18 @@ class Simulation(object):
             self.target_steps = target_steps
             log.info('targeted number of steps: %s' % self.target_steps)
 
-        self.initial_steps = copy.copy(self.steps)
         self.run_pre()
+        self.initial_steps = self.steps
         self.report()
 
         try:
             # Before entering the simulation, check if we can quit right away
-            # Then notify non targeters unless restarting
+            # Then notify non targeters unless we are restarting
             self.notify(self._targeters)
-            if not self.restart:
+            if self.steps == 0:
                 self.notify(self._non_targeters)
+            else:
+                self.notify(self._speedometers)
             log.info('starting at step: %d' % self.steps)
             log.info('')
             while True:
