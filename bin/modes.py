@@ -25,12 +25,14 @@ def main(f):
         out_dir = f + '.dump/step_%s' % step
         mkdir(out_dir)
         file_val = '%s/eigenvalues.txt' % out_dir
-        fh_val = open(file_val, 'w')
-        fh_val.write('# file eigenvalue omega pratio\n')
+        # fh_val = open(file_val, 'w')
+        # fh_val.write('# file eigenvalue omega pratio\n')
         for mi in mm:
             g = "trajectory/normalmodes/eigenvectors/vector/%s_mode_%05d" % (s, mi)
             file_eigvec = '%s/eigenvector_%d.txt' % (out_dir, mi)
-            lam, pr, vec = fh[l][mi], pratio(fh[g][:]), fh[g][:]
+            # Attention: mode index (mi) in hdf5 file is from 1, while
+            # numpy indexing (mode_index) for eigenvalues from 0
+            lam, pr, vec = fh[l][mi-1], pratio(fh[g][:]), fh[g][:]
             fh_val.write('%s %g %g %g\n' % (os.path.basename(file_eigvec), lam, lam**0.5, pr))
             with open(file_eigvec, 'w') as fh_vec:
                 fh_vec.write('%d\n' % len(vec))
