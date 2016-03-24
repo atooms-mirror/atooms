@@ -66,6 +66,7 @@ parser.add_argument('-S', '--stdout',  dest='stdout', action='store_true', help=
 parser.add_argument('-t', '--tag',     dest='tag', type=str, default='', help='tag to add before suffix')
 parser.add_argument('-F', '--ff',      dest='ff', type=str, default='', help='force field file')
 parser.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
+parser.add_argument(      '--step',    dest='step', action='store', default=None, type=int, help='')
 parser.add_argument(nargs='+',         dest='file',type=str, help='input files')
 args = parser.parse_args()
 
@@ -88,11 +89,16 @@ for finp in args.file:
             t.steps = range(1,len(t)+1)
         tn = trajectory.NormalizeId(t)
 
-        # Define slice
-        sl = fractional_slice(args.first, args.last, args.skip, len(tn))
-        # Here we could you a trajectory slice t[sl] but this will load 
-        # everything in ram (getitem doesnt provide a generator)
-        ts = trajectory.Sliced(tn, sl)
+        if args.step:
+            step = t.steps.index(args.step)
+            ts = trajectory.Sliced(tn, slice(step, step+1))
+        else:
+            # Define slice
+            sl = fractional_slice(args.first, args.last, args.skip, len(tn))
+            # Here we could you a trajectory slice t[sl] but this will load 
+            # everything in ram (getitem doesnt provide a generator)
+            ts = trajectory.Sliced(tn, sl)
+
         try:
             if args.vel:
                 fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout, include=['vx','vy','vz'])
