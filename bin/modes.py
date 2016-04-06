@@ -25,8 +25,8 @@ def main(f):
         out_dir = f + '.dump/step_%s' % step
         mkdir(out_dir)
         file_val = '%s/eigenvalues.txt' % out_dir
-        # fh_val = open(file_val, 'w')
-        # fh_val.write('# file eigenvalue omega pratio\n')
+        fh_val = open(file_val, 'w')
+        fh_val.write('# file eigenvalue omega pratio\n')
         for mi in mm:
             g = "trajectory/normalmodes/eigenvectors/vector/%s_mode_%05d" % (s, mi)
             file_eigvec = '%s/eigenvector_%d.txt' % (out_dir, mi)
