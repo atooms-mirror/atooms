@@ -276,7 +276,7 @@ def get_period(data):
 
 # Useful functions to manipulate trajectories
 
-def convert(inp, out, fout='', tag='', prefix='', exclude=[], include=[], stdout=False):
+def convert(inp, out, fout='', tag='', prefix='', exclude=[], include=[], stdout=False, callback=None, args={}):
     """Convert trajectory into a different format.
 
     inp: input trajectory object
@@ -325,6 +325,8 @@ def convert(inp, out, fout='', tag='', prefix='', exclude=[], include=[], stdout
         # 2. use enumerate instead and grab the step from inp.steps[i]
         # 3. add an attribute system.step for convenience
         for i, system in enumerate(inp):
+            if callback is not None:
+                system = callback(system, args)
             conv.write(system, inp.steps[i])
 
     return filename
@@ -363,9 +365,9 @@ class SuperTrajectory(TrajectoryBase):
 
     def __init__(self, files, trajectoryclass, mode='r', variable=False, periodic=True):
         self.subtrajectories = [trajectoryclass(f, mode=mode) for f in files]
-        f = os.path.dirname(subtrajectories[0].filename) + '/'
+        f = os.path.dirname(self.subtrajectories[0].filename) + '/'
         super(SuperTrajectory, self).__init__(f, mode)
-        self._timestep = timestep
+        self._timestep = 1.0
         self.variable = variable
 
         # This is a bad hack to tolerate rumd hydiosincracies
