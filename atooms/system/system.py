@@ -34,6 +34,10 @@ class System(object):
     def add_porous_matrix(self,matrix):
         self.matrix = copy.deepcopy(matrix)
 
+    @property
+    def density(self):
+        return len(self.particle) / self.cell.volume
+
     def temperature(self, ndof=None):
         # The n. of degrees of freedom can be passed to this method
         # This way we can correct for missing translational invariance.
