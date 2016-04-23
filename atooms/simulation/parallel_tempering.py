@@ -149,9 +149,6 @@ class ParallelTempering(Simulation):
 
     """
     Parallel tempering simulation.
-    
-    It relies on ReplicaExchange for handling replicas and swaps and on
-    a list of Simulation objects *sim*.
     """
 
     _WRITER_THERMO = WriterThermo
@@ -203,6 +200,7 @@ class ParallelTempering(Simulation):
         self.file_replica_out = [self.output_path + '/replica/%d.out' % i for i in range(self.nr)]
         # This must be set as output_path of the backend.
         # TODO: Is this variable needed? It is will output_path of the backend
+        # REFACTOR: this requires output_path to be checked after init 
         self.dir_state_out = [self.output_path + ('/state/' + fmt) % p for p in self.params]
         for s, d in zip(self.sim, self.dir_state_out):
             # We expect this to be None now
@@ -319,7 +317,8 @@ class ParallelTempering(Simulation):
                 fh.write('%d\n' % self.steps)
                 fh.write('%d\n' % self.offset)
             # TODO: write_checkpoint is not part of the official simulation interface, should it?
-            self.sim[i].write_checkpoint()
+            # REFACTOR: this belongs to the backend at the moment
+            self.sim[i].backend.write_checkpoint()
 
     def check(self):
         for i in range(self.nr):
@@ -412,11 +411,14 @@ class ParallelTempering(Simulation):
             log.debug('replica %d state %d formally at T=%s has thermostat T %s' % \
                       (i, self.state[i], self.params[self.state[i]], self.replica[i].thermostat.temperature))
             self.sim[i].run_until(n)
+        # Its up to us to update our steps
+        self.steps = nsteps
         # Attempt to exchange replicas.
         if not self.dryrun:
             self.exchange(self.replica)
-            
+
     def run_end(self):
+        # TODO: not called anymore
         for i in self.my_replica:
             self.sim[i].run_end()
         barrier()

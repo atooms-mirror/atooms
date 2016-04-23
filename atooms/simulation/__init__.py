@@ -148,6 +148,7 @@ class Speedometer(object):
             speed = (x_now - self.x_last) / (t_now - self.t_last)
             # Report fraction of target achieved and ETA
             frac = float(x_now) / self.x_target
+            print speed, x_now, self.x_last, self.name_target
             eta = (self.x_target-x_now) / speed
             delta = sec2time(eta)
             d_now = datetime.datetime.now()
@@ -295,30 +296,30 @@ class Simulation(object):
     # or following a file suffix logic. Meant to be subclassed.
     STORAGE = 'directory'
 
-    # TODO: initial state is not needed anymore, since rmsd is the subclass or backend responsability (it was a too weak link, the only thing for which initial_state and system were needed.
-    def __init__(self, initial_state, output_path=None, 
+    def __init__(self, backend,
+                 output_path=None, 
                  steps=0, rmsd=None,
                  thermo_interval=0, thermo_number=0, 
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
-                 fixcm_interval=0,
                  restart=False):
         """We expect input and output paths as input.
         Alternatively, input might be a system (or trajectory?) instance.
         """
+        self.backend = backend
         self._callback = []
         self._scheduler = []
-        self.fixcm_interval = fixcm_interval
         self.restart = restart
         self.output_path = output_path # can be None, file or directory
         self.steps = 0
         self.initial_steps = 0
         self.start_time = time.time()
-        if self.output_path is not None and self.STORAGE == 'directory':
-            mkdir(self.output_path)
-        # TODO: output_path shouldn't be changed after init
+
         # We expect subclasses to keep a ref to the trajectory object self.trajectory
         # used to store configurations, although this is not used in base class
+        if self.backend is not None:
+            self.system = self.backend.system
+            self.trajectory = self.backend.trajectory
 
         # Setup schedulers and callbacks
         self.target_steps = steps
@@ -332,6 +333,7 @@ class Simulation(object):
         # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
         if rmsd is not None:
             self.add(self._TARGET_RMSD(rmsd), Scheduler(10000))
+
         # Writers
         self.add(Speedometer(), Scheduler(None, calls=20, target=self.target_steps))
 #        self.add(Speedometer(), OnetimeScheduler(max(1, int(self.target_steps/200.)), self))
@@ -359,9 +361,12 @@ class Simulation(object):
 
     @property
     def rmsd(self):
-        log.warning('rmsd has not been subclassed')
-        return 0.0
         # TODO: provide rmsd by species 07.12.2014
+        try:
+            return self.backend.rmsd
+        except:
+            log.warning('rmsd has not been subclassed')
+            return 0.0
 
     def add(self, callback, scheduler):
         """Register an observer (callback) to be called along with a scheduler"""
@@ -417,6 +422,13 @@ class Simulation(object):
             else:
                 log.info('writer %s: interval=%s calls=%s' % (f, s.interval, s.calls))
 
+    def _report_end(self):
+        log.info('final rmsd: %.2f' % self.rmsd)
+        log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
+        log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))
+        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
+
+
     def notify(self, observers):
         for o in observers:
             log.debug('notify %s' % o)
@@ -427,13 +439,19 @@ class Simulation(object):
 
     def wall_time_per_step(self):
         """Return the wall time in seconds per step.
-        Can be conventiently subclassed by more complex simulation classes."""
+        Can be conventiently subclassed by more complex simulation classes.
+        """
         return self.elapsed_wall_time() / (self.steps-self.initial_steps)
 
     def wall_time_per_step_particle(self):
         """Return the wall time in seconds per step and particle.
-        Can be conventiently subclassed by more complex simulation classes."""
-        return self.wall_time_per_step() / len(self.system.particle)
+        Can be conventiently subclassed by more complex simulation classes.
+        """
+        try:
+            # Be tolerant if there is no reference to system
+            return self.wall_time_per_step() / len(self.system.particle)
+        except:
+            return 0.0
 
     # Our template consists of three steps: pre, until and end
     # Typically a backend will implement the until method.
@@ -441,19 +459,19 @@ class Simulation(object):
     # TODO: when should checkpoint be read? The logic must be set here
     # Having a read_checkpoint() stub method would be OK here.
     def run_pre(self):
-        """This should be safe to called by subclasses before or after reading checkpoint"""
-        pass
+        """Before run_until()"""
+        # TODO: moved from init to here, is it ok?
+        if self.output_path is not None and self.STORAGE == 'directory':
+            mkdir(self.output_path)
+        if self.backend is not None:
+            self.backend.output_path = self.output_path
+            self.backend.run_pre(self.restart)
             
     def run_until(self, n):
-        # Design: it is run_until responsability to set steps: self.steps = n
-        # bear it in mind when subclassing 
-        pass
-
-    def _report_end(self):
-        log.info('final rmsd: %.2f' % self.rmsd)
-        log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
-        log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))
-        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
+        # /Design/: it is run_until responsability to set steps: self.steps = n
+        # Bear it in mind when subclassing 
+        self.backend.run_until(n)
+        self.steps = n
 
     def run(self, target_steps=None):
         if target_steps is not None:
@@ -462,8 +480,9 @@ class Simulation(object):
             if target_steps > self.target_steps:
                 self.restart = True
             self.target_steps = target_steps
+            # TODO: we must update the targeter
             log.info('targeted number of steps: %s' % self.target_steps)
-
+            
         self.run_pre()
         self.initial_steps = self.steps
         self.report()
@@ -487,27 +506,17 @@ class Simulation(object):
                 next_step_ids = [i for i, step in enumerate(all_steps) if step == next_step]
                 next_obs = [self._callback[i] for i in next_step_ids]
                 self.run_until(next_step)
-                self.steps = next_step
                 # Observers are sorted such that targeters are last
                 # and checkpoint is last among writers
                 self.notify(next_obs)
                     
         except SimulationEnd as s:
-            # TODO: make checkpoint is an explicit method of simulation and not a callback! 16.12.2014
-            # The rationale here is that notify will basically check for now() but writecheckpoint must
-            # here we must call no matter how the period fits. The problem was that PT checkpoint
-            # was not a subclass of base one, and so it was not called!
+            # Checkpoint configuration at last step
             self.writer_checkpoint(self)
-            # for f in self._callback:
-            #     if isinstance(f, WriterCheckpoint):
-            #         f(self)
-            #self.notify(lambda x : isinstance(x, WriterCheckpoint))
             # Only dumps log if actually we did some steps
             log.info('%s' % s.message)
             if not self.initial_steps == self.steps:
                 self._report_end()
-            # TODO: hey! run_end is not called anymore!!
-            # TODO: do we really need run_end() if write_checkpoint is called last and it does everything we won't need this...
 
         except KeyboardInterrupt:
             pass

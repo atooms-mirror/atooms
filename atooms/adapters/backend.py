@@ -3,7 +3,9 @@
 
 from atooms import simulation
 
-class Simulation(simulation.Simulation):
+class SimulationBackend(object):
+
+    trajectory = None
 
     def _get_system(self):
         pass
@@ -13,7 +15,11 @@ class Simulation(simulation.Simulation):
 
     system = property(_get_system, _set_system, 'System')
 
+    def run_pre(self, restart):
+        pass
+
     def run_until(self, n):
+        self.steps = n
         pass
 
 
