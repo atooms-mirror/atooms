@@ -4,19 +4,16 @@
 class DryRunBackend(object):
 
     def __init__(self):
+        self.system = System()
         self.trajectory = Trajectory
         self.output_path = None
 
-    def _get_system(self):
-        pass
-
-    def _set_system(self, value): 
-        pass
-
-    system = property(_get_system, _set_system, 'System')
-
     def write_checkpoint(self):
         pass
+
+    @property
+    def rmsd(self):
+        return 0.0
 
     def run_pre(self, restart):
         pass
@@ -29,13 +26,13 @@ class DryRunBackend(object):
 class System(object):
     
     def potential_energy(self):
-        pass
+        return 0.
 
     def temperature(self):
-        pass
+        return 0.
 
     def mean_square_displacement(self, reference):
-        pass
+        return 0.
 
     @property
     def thermostat(self):
@@ -48,12 +45,15 @@ class Trajectory(object):
     def __init__(self, filename, mode='r'):
         pass
 
-    def write_initial_state(self, system):
-        pass
-
-    def write_sample(self, system, step, sample):
+    def write(self, system, step):
         pass
 
     def close(self):
         pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
     

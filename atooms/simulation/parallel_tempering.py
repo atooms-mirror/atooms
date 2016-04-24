@@ -49,13 +49,8 @@ class WriterConfig(object):
                     t.exclude(['velocity'])
                     t.write(e.replica[i], e.steps)
 
-class WriterCheckpointPT(WriterCheckpoint):
-    # This guy must inherit from WriterCheckPoint otherwise it wont be called
-    # at last last by simulation base class! All this points towards checkpoint
-    # being a mthod of simulation. 
-    # Not really. Since now writer_checkpoint is in instance of Simulation objects
-    # we can easily find them in the observers list.
-    # TODO: drop inheritance
+class WriterCheckpointPT(object):
+
     def __str__(self):
         return 'checkpoint'
 
@@ -200,8 +195,7 @@ class ParallelTempering(Simulation):
         # For each physical replica, info on the state in which it is
         self.file_replica_out = [self.output_path + '/replica/%d.out' % i for i in range(self.nr)]
         # This must be set as output_path of the backend.
-        # TODO: Is this variable needed? It is will output_path of the backend
-        # REFACTOR: this requires output_path to be checked after init 
+        # Note: this requires output_path to be checked after init (in run_pre())
         self.dir_state_out = [self.output_path + ('/state/' + fmt) % p for p in self.params]
         for s, d in zip(self.sim, self.dir_state_out):
             # We expect this to be None now
@@ -317,9 +311,7 @@ class ParallelTempering(Simulation):
                 fh.write('%d\n' % self.state[i])
                 fh.write('%d\n' % self.steps)
                 fh.write('%d\n' % self.offset)
-            # TODO: write_checkpoint is not part of the official simulation interface, should it?
-            # REFACTOR: this belongs to the backend at the moment
-            self.sim[i].backend.write_checkpoint()
+            self.sim[i].write_checkpoint()
 
     def check(self):
         for i in range(self.nr):
@@ -689,13 +681,5 @@ class ParallelTempering(Simulation):
         # Update offset
         self.offset = (self.offset+1) % 2
 
-        # Final timer dump
-#         if rank == 0:
-#             fh = open(self.file_log, 'a')
-#             fh.write("# Timings\n")
-#             fh.write("\tNR \t NGPU \tTotal \tRun \tComm \tIO\n")
-# #            sys.stdout.write("CPU \t%d \t%d \t%.2f \t%.2f \t%.2f \t%.2f\n" % (self.nr, size, t.cpu_time, t_run.cpu_time, t_com.cpu_time, t_io.cpu_time))
-#             fh.write("WALL  \t%d \t%d \t%.2f \t%.2f \t%.2f \t%.2f\n" % (self.nr, size, t.wall_time, t_run.wall_time, t_com.wall_time, t_io.wall_time))
-#             fh.close()
 
 

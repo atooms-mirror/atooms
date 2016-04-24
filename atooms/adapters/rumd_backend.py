@@ -248,8 +248,8 @@ class System(object):
         result.sample = self.sample.Copy()
         return result
 
-    # TODO: @nick ask to implement
     def __deepcopy__(self, memo):
+        # TODO: @nick ask to implement
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -394,9 +394,7 @@ def single(input_file, potential, T, dt, interval_energy=None, interval_config=N
     if interval_config:
         sim.SetOutputScheduling("trajectory","linear",interval=interval_config)
 
-    # Output dir??
     return sim
-    #yield si
 
 def multi(input_file, potential, T, dt):
     from atooms.utils import size, rank, barrier

@@ -1,7 +1,7 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Simulation base class handling callbacks logic"""
+"""Simulation base class with callback logic"""
 
 import sys
 import os
@@ -321,6 +321,7 @@ class Simulation(object):
         self._scheduler = []
         self.restart = restart
         self.output_path = output_path # can be None, file or directory
+        self.target_steps = steps
         self.steps = 0
         self.initial_steps = 0
         self.start_time = time.time()
@@ -330,21 +331,24 @@ class Simulation(object):
         self.system = self.backend.system
         self.trajectory = self.backend.trajectory
 
-        # Setup schedulers and callbacks
-        self.target_steps = steps
+        # Setup writer callbacks
+        # TODO: if output_path is None we should disable writers
         self.writer_thermo = self._WRITER_THERMO()
         self.writer_config = self._WRITER_CONFIG()
         self.writer_checkpoint = self._WRITER_CHECKPOINT()
 
         # Target steps are checked only at the end of the simulation
-        self.add(self._TARGET_STEPS(self.target_steps), Scheduler(max(1, self.target_steps)))
+        self.targeter_steps = self._TARGET_STEPS(self.target_steps)
+        self.add(self.targeter_steps, Scheduler(max(1, self.target_steps)))
         # TODO: rmsd targeting interval is hard coded
         # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
         if rmsd is not None:
-            self.add(self._TARGET_RMSD(rmsd), Scheduler(10000))
+            self.targeter_rmsd = self._TARGET_RMSD(rmsd)
+            self.add(self.targeter_rmsd, Scheduler(10000))
 
-        # Writers
-        self.add(Speedometer(), Scheduler(None, calls=20, target=self.target_steps))
+        # Setup schedulers
+        self.speedometer = Speedometer()
+        self.add(self.speedometer, Scheduler(None, calls=20, target=self.target_steps))
 #        self.add(Speedometer(), OnetimeScheduler(max(1, int(self.target_steps/200.)), self))
         self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
@@ -357,16 +361,6 @@ class Simulation(object):
               checkpoint_period=None, checkpoint_number=None,
               reset=False):
         raise RuntimeError('use of deprecated setup() function')
-
-    def _check_writers(self):
-        """Check that we have a place to write"""
-        # It should be called at pre()
-        # TODO: in this case we should disable writers or check that
-        if self.output_path is None:
-            # if not all(x is None for x in [config_interval, thermo_interval, checkpoint_interval,
-            #                                config_number, thermo_number, checkpoint_number]):
-            #     raise ParameterError('cannot set writers when output_path is None')
-            pass
 
     @property
     def rmsd(self):
@@ -443,11 +437,12 @@ class Simulation(object):
     # TODO: when should checkpoint be read? The logic must be set here
     # Having a read_checkpoint() stub method would be OK here.
     def run_pre(self):
-        """Before run_until()"""
+        """Deal with restart conditions before run we call_until()"""
         # TODO: moved from init to here, is it ok?
         if self.output_path is not None and self.STORAGE == 'directory':
             mkdir(self.output_path)
-        self.backend.output_path = self.output_path
+        if self.output_path is None:
+            self.backend.output_path = self.output_path
         self.backend.run_pre(self.restart)
             
     def run_until(self, n):
@@ -458,14 +453,11 @@ class Simulation(object):
 
     def run(self, target_steps=None):
         if target_steps is not None:
-            # If we ask for more steps on the go, it means we are restarting
-            # TODO: really, we might just want to run a new simulation...
-            if target_steps > self.target_steps:
-                self.restart = True
-            self.target_steps = target_steps
-            # TODO: we must update the targeter
+            self.targeter_steps.target = target_steps
+            # How bad...
+            self.speedometer._init = False
             log.info('targeted number of steps: %s' % self.target_steps)
-            
+
         self.run_pre()
         self.initial_steps = self.steps
         self.report()
