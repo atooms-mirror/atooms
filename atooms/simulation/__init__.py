@@ -13,7 +13,7 @@ import copy
 from atooms import __version__
 from atooms.utils import mkdir
 from atooms.utils import rank, size
-from atooms.adapters.backend import DryRunBackend
+from atooms.backends.dryrun import DryRunBackend
 
 # Logging facilities
 
@@ -441,7 +441,7 @@ class Simulation(object):
         # TODO: moved from init to here, is it ok?
         if self.output_path is not None and self.STORAGE == 'directory':
             mkdir(self.output_path)
-        if self.output_path is None:
+        if self.output_path is not None:
             self.backend.output_path = self.output_path
         self.backend.run_pre(self.restart)
             
