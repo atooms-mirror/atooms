@@ -164,7 +164,8 @@ class ParallelTempering(Simulation):
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
                  restart=False, dryrun=False, swap_scheme='alternate_all'):
-        Simulation.__init__(self, None, output_path,
+        # Note we ignore the backend here
+        Simulation.__init__(self, output_path=output_path,
                             steps=steps, rmsd=rmsd,
                             thermo_interval=thermo_interval, thermo_number=thermo_number, 
                             config_interval=config_interval, config_number=config_number,

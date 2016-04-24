@@ -13,6 +13,7 @@ import copy
 from atooms import __version__
 from atooms.utils import mkdir
 from atooms.utils import rank, size
+from atooms.adapters.backend import DryRunBackend
 
 # Logging facilities
 
@@ -87,13 +88,13 @@ class ParameterError(Exception):
 # (instead of having them in simulation objects). This would require being able
 # to access writers more directly.
 
-class WriterThermo(object):
+class WriterCheckpoint(object):
 
     def __str__(self):
-        return 'thermo'
+        return 'checkpoint'
 
     def __call__(self, e):
-        pass
+        e.write_checkpoint()
 
 class WriterConfig(object):
 
@@ -101,15 +102,25 @@ class WriterConfig(object):
         return 'config'
 
     def __call__(self, e):
-        pass
+        if e.output_path is None:
+            log.warning('config writing is request but output path is None')
+            return
+        f = os.path.join(e.output_path, 'trajectory.' + e.trajectory.suffix)
+        with e.trajectory(f, 'a') as t:
+            t.write(e.system, e.steps)
 
-class WriterCheckpoint(object):
+class WriterThermo(object):
 
     def __str__(self):
-        return 'checkpoint'
+        return 'thermo'
 
     def __call__(self, e):
-        pass
+        if e.output_path is None:
+            log.warning('thermo writing is request but output path is None')
+            return
+        f = os.path.join(e.output_path, 'trajectory.thermo')
+        with open(f, 'a') as fh:
+            fh.write('%d %g %g\n' % (e.steps, e.system.potential_energy(), e.rmsd))
 
 def sec2time(t):
     eta_d = t / (24.0*3600)
@@ -148,7 +159,6 @@ class Speedometer(object):
             speed = (x_now - self.x_last) / (t_now - self.t_last)
             # Report fraction of target achieved and ETA
             frac = float(x_now) / self.x_target
-            print speed, x_now, self.x_last, self.name_target
             eta = (self.x_target-x_now) / speed
             delta = sec2time(eta)
             d_now = datetime.datetime.now()
@@ -278,7 +288,7 @@ class OnetimeScheduler(object):
 
 class Simulation(object):
 
-    """Simulation abstract class using callback support."""
+    """Simulation base class."""
 
     # TODO: write initial configuration as well
 
@@ -296,7 +306,7 @@ class Simulation(object):
     # or following a file suffix logic. Meant to be subclassed.
     STORAGE = 'directory'
 
-    def __init__(self, backend,
+    def __init__(self, backend=DryRunBackend(),
                  output_path=None, 
                  steps=0, rmsd=None,
                  thermo_interval=0, thermo_number=0, 
@@ -317,9 +327,8 @@ class Simulation(object):
 
         # We expect subclasses to keep a ref to the trajectory object self.trajectory
         # used to store configurations, although this is not used in base class
-        if self.backend is not None:
-            self.system = self.backend.system
-            self.trajectory = self.backend.trajectory
+        self.system = self.backend.system
+        self.trajectory = self.backend.trajectory
 
         # Setup schedulers and callbacks
         self.target_steps = steps
@@ -368,6 +377,9 @@ class Simulation(object):
             log.warning('rmsd has not been subclassed')
             return 0.0
 
+    def write_checkpoint(self):
+        self.backend.write_checkpoint()
+
     def add(self, callback, scheduler):
         """Register an observer (callback) to be called along with a scheduler"""
         # There are certainly more elegant ways of sorting Writers < Checkpoint < Target 
@@ -400,34 +412,6 @@ class Simulation(object):
     @property
     def _speedometers(self):
         return [o for o in self._callback if isinstance(o, Speedometer)]
-
-    def report(self):
-        txt = '%s' % self
-        nch = len(txt)
-        log.info('')
-        log.info(txt)
-        log.info('')
-        log.info('atooms version: %s' % __version__)
-        self._report()
-        self._report_observers()
-        
-    def _report(self):
-        """Implemented by subclassed"""
-        pass
-
-    def _report_observers(self):
-        for f, s in zip(self._callback, self._scheduler):
-            if isinstance(f, Target):
-                log.info('target %s: %s' % (f, f.target)) #, s.interval, s.calls))
-            else:
-                log.info('writer %s: interval=%s calls=%s' % (f, s.interval, s.calls))
-
-    def _report_end(self):
-        log.info('final rmsd: %.2f' % self.rmsd)
-        log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
-        log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))
-        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
-
 
     def notify(self, observers):
         for o in observers:
@@ -463,9 +447,8 @@ class Simulation(object):
         # TODO: moved from init to here, is it ok?
         if self.output_path is not None and self.STORAGE == 'directory':
             mkdir(self.output_path)
-        if self.backend is not None:
-            self.backend.output_path = self.output_path
-            self.backend.run_pre(self.restart)
+        self.backend.output_path = self.output_path
+        self.backend.run_pre(self.restart)
             
     def run_until(self, n):
         # /Design/: it is run_until responsability to set steps: self.steps = n
@@ -528,3 +511,32 @@ class Simulation(object):
         finally:
             pass
             log.info('goodbye')
+
+    def report(self):
+        txt = '%s' % self
+        nch = len(txt)
+        log.info('')
+        log.info(txt)
+        log.info('')
+        log.info('atooms version: %s' % __version__)
+        self._report()
+        self._report_observers()
+        
+    def _report(self):
+        """Implemented by subclassed"""
+        pass
+
+    def _report_observers(self):
+        for f, s in zip(self._callback, self._scheduler):
+            if isinstance(f, Target):
+                log.info('target %s: %s' % (f, f.target)) #, s.interval, s.calls))
+            else:
+                log.info('writer %s: interval=%s calls=%s' % (f, s.interval, s.calls))
+
+    def _report_end(self):
+        log.info('final rmsd: %.2f' % self.rmsd)
+        log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
+        log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))
+        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
+
+

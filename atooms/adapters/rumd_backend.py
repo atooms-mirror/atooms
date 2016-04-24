@@ -11,45 +11,7 @@ from atooms.simulation import log
 from rumd import *
 from rumdSimulation import rumdSimulation
 
-
-class WriterCheckpoint(object):
-
-    def __str__(self):
-        return 'checkpoint'
-
-    def __call__(self, e):
-        e.write_checkpoint()
-
-class WriterConfig(object):
-
-    def __str__(self):
-        return 'config'
-
-    def __call__(self, e):
-        f = os.path.join(e.output_path, 'trajectory.' + e.trajectory.suffix)
-        with Trajectory(f, 'a') as t:
-            t.write(e.system, e.steps)
-
-class WriterThermo(object):
-
-    def __str__(self):
-        return 'thermo'
-
-    def __call__(self, e):
-        f = os.path.join(e.output_path, 'trajectory.thermo')
-        with open(f, 'a') as fh:
-            fh.write('%d %g %g\n' % (e.steps, e.system.potential_energy(), e.rmsd))
-
-# TODO: can we have backend not inherit from simulation base class? 
-# Strategy is better than inheritance. What is the minimal subset of methods / attributes that
-# need to be exposed to Simulation and its subclasses, if we only were to implement it as a backend?
-
 class SimulationBackend(object):
-
-    _WRITER_CHECKPOINT = WriterCheckpoint
-    _WRITER_CONFIG = WriterConfig
-    _WRITER_THERMO = WriterThermo
-    STORAGE = 'directory'
 
     def __init__(self, sim, output_path=None, fixcm_interval=0):
         # System is an instance in base class, but this adapter redefines it as a property
@@ -144,7 +106,7 @@ class SimulationBackend(object):
                 # @thomas unfortunately RUMD does not seem to write the last restart 
                 # when the simulation is over therefore the last block is always rerun
                 # To work around it we check is final.xyz.gz exists (we write it in run_end)        
-                # TODO: run_pre() is not called anymore, so this wont work anymore. Thats really bad.
+                # TODO: run_end() is not called anymore, so this wont work anymore. Thats really bad.
                 if os.path.exists(self.output_path + '/final.xyz.gz'):
                     if os.path.getmtime(self.output_path + '/final.xyz.gz') > \
                             os.path.getmtime(self.output_path + '/LastComplete_restart.txt'):
@@ -437,9 +399,7 @@ def single(input_file, potential, T, dt, interval_energy=None, interval_config=N
     #yield si
 
 def multi(input_file, potential, T, dt):
-    # from rumd import IntegratorNVT
     from atooms.utils import size, rank, barrier
-    # from rumdSimulation import rumdSimulation
     
     # Create simulation and integrators
     for i in range(size):

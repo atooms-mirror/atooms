@@ -1,11 +1,11 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-from atooms import simulation
+class DryRunBackend(object):
 
-class SimulationBackend(object):
-
-    trajectory = None
+    def __init__(self):
+        self.trajectory = Trajectory
+        self.output_path = None
 
     def _get_system(self):
         pass
@@ -14,6 +14,9 @@ class SimulationBackend(object):
         pass
 
     system = property(_get_system, _set_system, 'System')
+
+    def write_checkpoint(self):
+        pass
 
     def run_pre(self, restart):
         pass
@@ -39,6 +42,8 @@ class System(object):
         pass
 
 class Trajectory(object):
+
+    suffix = 'dry'
 
     def __init__(self, filename, mode='r'):
         pass
