@@ -10,7 +10,7 @@ import datetime
 import logging
 import copy
 
-from atooms import __version__
+from atooms import __version__, __date__
 from atooms.utils import mkdir
 from atooms.utils import rank, size
 from atooms.backends.dryrun import DryRunBackend
@@ -362,6 +362,9 @@ class Simulation(object):
               reset=False):
         raise RuntimeError('use of deprecated setup() function')
 
+    def __str__(self):
+        return 'ATOOMS simulation (backend: %s)' % self.backend
+
     @property
     def rmsd(self):
         # TODO: provide rmsd by species 07.12.2014
@@ -510,7 +513,8 @@ class Simulation(object):
         log.info('')
         log.info(txt)
         log.info('')
-        log.info('atooms version: %s' % __version__)
+        log.info('atooms version: %s (%s)' % (__version__, __date__.split()[0]))
+        log.info('simulation starts on: %s' % datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
         self._report()
         self._report_observers()
         
@@ -529,6 +533,6 @@ class Simulation(object):
         log.info('final rmsd: %.2f' % self.rmsd)
         log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
         log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))
-        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%h %d %Y at %H:%M'))
+        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
 
 

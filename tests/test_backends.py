@@ -5,17 +5,19 @@ import sys
 import os
 import numpy
 from atooms.simulation import log
-log.setLevel(30)
+
+log.setLevel(40)
 
 try:
     import rumd
     from rumdSimulation import rumdSimulation
-    from atooms.simulation import Simulation
-    from atooms.adapters.rumd_backend import System, Trajectory
-    from atooms.adapters.rumd_backend import Simulation as SimulationBackend
     SKIP = False
 except ImportError:
     SKIP = True
+
+from atooms.simulation import Simulation
+from atooms.backends.rumd_backend import System, Trajectory
+from atooms.backends.rumd_backend import RumdBackend as Backend
 
 xyz = """\
      3
@@ -34,9 +36,9 @@ ioformat=1 dt=0.005000000 boxLengths=6.34960421,6.34960421,6.34960421 numTypes=2
 1       -1.813011      1.380848     -0.037014 1.0 1.0 0.0
 """
 
-# TODO: make test_adapters a package
+# TODO: make test_backend a package
 
-class TestAdaptersRUMD(unittest.TestCase):
+class TestBackendRUMD(unittest.TestCase):
 
     def setUp(self):
         if SKIP:
@@ -100,26 +102,26 @@ class TestAdaptersRUMD(unittest.TestCase):
         t.close()
 
     def test_simulation(self):
-        s = Simulation(SimulationBackend(self.s), self.dout, steps = 1)
+        s = Simulation(Backend(self.s), self.dout, steps = 1)
         system = System(self.s)
         s.system = system
         s.run()
 
     def test_rmsd(self):
-        s = Simulation(SimulationBackend(self.s), self.dout, steps = 1)
+        s = Simulation(Backend(self.s), self.dout, steps = 1)
 #        s = Simulation(self.s, self.dout, steps = 1)
         s.run()
         self.assertGreater(s.rmsd, 0.0)
 
     def test_target_rmsd(self):
-        s = Simulation(SimulationBackend(self.s), self.dout, rmsd = 0.3, steps=sys.maxint)
+        s = Simulation(Backend(self.s), self.dout, rmsd = 0.3, steps=sys.maxint)
         # s = Simulation(self.s, self.dout, rmsd = 0.3, steps=sys.maxint)
         s.run()
         self.assertGreater(s.steps, 1)
         self.assertGreater(s.rmsd, 0.3)
 
     def test_checkpoint(self):
-        s = Simulation(SimulationBackend(self.s), self.dout, steps = 10, checkpoint_interval = 10)
+        s = Simulation(Backend(self.s), self.dout, steps = 10, checkpoint_interval = 10)
         #s = Simulation(self.s, self.dout, steps = 10, checkpoint_interval = 10)
         s.run()
         # TODO: this will fail, change test for existence of chk file

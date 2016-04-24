@@ -11,7 +11,7 @@ from atooms.simulation import log
 from rumd import *
 from rumdSimulation import rumdSimulation
 
-class SimulationBackend(object):
+class RumdBackend(object):
 
     def __init__(self, sim, output_path=None, fixcm_interval=0):
         # System is an instance in base class, but this adapter redefines it as a property
