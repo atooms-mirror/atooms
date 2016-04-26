@@ -318,7 +318,6 @@ class Simulation(object):
         """
         self.backend = backend
         self._callback = []
-        self._scheduler = []
         self.restart = restart
         self.output_path = output_path # can be None, file or directory
         self.target_steps = steps
@@ -383,18 +382,17 @@ class Simulation(object):
         # but anyway...
         # Keep targeters last
         if not isinstance(callback, Target):
-            self._callback.insert(0, callback)
-            self._scheduler.insert(0, scheduler)
+            callback.scheduler = scheduler
+            self._callback.insert(0, callback)            
         else:
+            callback.scheduler = scheduler
             self._callback.append(callback)
-            self._scheduler.append(scheduler)
 
         # Enforce checkpoint is last among non_targeters
         try:
             idx = self._callback.index(self.writer_checkpoint)
             cnt = len(self._non_targeters)
             self._callback.insert(cnt-1, self._callback.pop(idx))
-            self._scheduler.insert(cnt-1, self._scheduler.pop(idx))
         except ValueError:
             pass
 
@@ -478,7 +476,7 @@ class Simulation(object):
             log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
-                all_steps = [s.next(self.steps) for s in self._scheduler]
+                all_steps = [c.scheduler.next(self.steps) for c in self._callback]
                 next_step = min(all_steps)
                 # Find observers indexes corresponding to minimum step
                 # then get all corresponding observers
@@ -524,7 +522,8 @@ class Simulation(object):
         pass
 
     def _report_observers(self):
-        for f, s in zip(self._callback, self._scheduler):
+        for f in self._callback:
+            s = f.scheduler
             if isinstance(f, Target):
                 log.info('target %s: %s' % (f, f.target)) #, s.interval, s.calls))
             else:
