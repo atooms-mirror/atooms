@@ -7,7 +7,7 @@ from atooms.backends.rumd_backend import RumdBackend, single, multi
 from atooms.simulation import Simulation, log
 from atooms.simulation.parallel_tempering import ParallelTempering
 
-log.setLevel(40)
+log.setLevel(10)
 
 def potential():
     import rumd
@@ -25,11 +25,19 @@ class Test(unittest.TestCase):
             
     def test_single(self):
         s = single(self.input_file, potential, T=0.80, dt=0.002)
-        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_single', steps=20000, 
-                        thermo_interval=1000, config_interval=1000, checkpoint_interval=1000,
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_single', steps=2000, 
+                        thermo_interval=100, config_interval=100, checkpoint_interval=100,
                         restart=False)
         #si = Simulation(s, output_path=None, steps=200000) 
         si.run()
+
+    def test_multi(self):
+        s = single(self.input_file, potential, T=0.80, dt=0.002)
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', steps=2000, 
+                        thermo_interval=100, config_interval=100, checkpoint_interval=100,
+                        restart=False)
+        si.run()
+        si.run(1000)
 
     def test_pt(self):
         T = [1.0,0.95,0.9]

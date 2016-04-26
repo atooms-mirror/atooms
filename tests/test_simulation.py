@@ -18,7 +18,7 @@ class TestSimulationBackend(unittest.TestCase):
         s = Simulation(output_path='/tmp/test_simulation', steps = 10000, thermo_interval = 20, config_number = 10)
         s.run()
 
-    def test_target(self):
+    def test_target_multi(self):
         s = Simulation(output_path='/tmp/test_simulation', steps = 10000, thermo_interval = 20, config_number = 10)
         s.run()
         s.run(20000)

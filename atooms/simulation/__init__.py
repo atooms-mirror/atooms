@@ -183,7 +183,7 @@ class Target(object):
         x = float(getattr(sim, self.name))        
         if self.target > 0:
             frac = float(x) / self.target
-            log.debug('targeting %s to %g [%d]' % (self.name, x, int(frac * 100)))
+            log.debug('targeting %s now at %g [%d]' % (self.name, x, int(frac * 100)))
         if x >= self.target:
             raise SimulationEnd('achieved target %s: %s' % (self.name, self.target))
 
@@ -446,6 +446,7 @@ class Simulation(object):
             mkdir(self.output_path)
         if self.output_path is not None:
             self.backend.output_path = self.output_path
+        log.debug('calling backend pre at steps %d' % self.steps)
         self.backend.run_pre(self.restart)
             
     def run_until(self, n):

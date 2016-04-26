@@ -162,7 +162,8 @@ class RumdBackend(object):
                 # We must toggle it here to prevent future calls to pre to restart
                 # TODO: why??
                 self._restart = False 
-            log.debug('RUMD running , %d %d steps' % (n, self.steps))
+            log.debug('RUMD running from %d to %d steps' % (n, self.steps))
+            log.debug('RUMD %s %s' % (self._suppress_all_output, self._initialize_output))
             self._sim.Run(n-self.steps, suppressAllOutput=self._suppress_all_output,
                           initializeOutput = self._initialize_output)
             # We let it clean the dir upon entrance, then we suppress this
