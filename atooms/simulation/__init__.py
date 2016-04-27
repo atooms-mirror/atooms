@@ -403,7 +403,7 @@ class Simulation(object):
         if callback in self._callback:
             self._callback.remove(callback)
         else:
-            log.warning('attempt to remove inexistent callback')
+            log.debug('attempt to remove inexistent callback %s (dont worry)' % callback)
 
     @property
     def _targeters(self):
