@@ -486,7 +486,7 @@ class Simulation(object):
                 # Observers are sorted such that targeters are last
                 # and checkpoint is last among writers
                 self.notify(next_obs)
-                    
+
         except SimulationEnd as s:
             # Checkpoint configuration at last step
             self.writer_checkpoint(self)

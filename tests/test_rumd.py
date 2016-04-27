@@ -39,6 +39,18 @@ class Test(unittest.TestCase):
         si.run()
         si.run(1000)
 
+    def test_multi_2(self):
+        s = single(self.input_file, potential, T=0.80, dt=0.002)
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', steps=2000, 
+                        thermo_interval=100, config_interval=100, checkpoint_interval=100,
+                        restart=False)
+        si.run()
+        s = single(s, potential, T=0.80, dt=0.002)
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', steps=1000, 
+                        thermo_interval=100, config_interval=100, checkpoint_interval=100,
+                        restart=False)
+        si.run()
+
     def test_pt(self):
         T = [1.0,0.95,0.9]
         nr = len(T)
