@@ -149,7 +149,6 @@ class Speedometer(object):
                     self.t_last = time.time()
                     self.x_last = float(getattr(e, self.name_target))
                     self._init = True
-                    log.info('%s: 0%%' % self.name_target)
                     return
 
         if self.x_target > 0:
