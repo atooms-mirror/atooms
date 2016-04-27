@@ -7,7 +7,7 @@ from atooms.backends.rumd_backend import RumdBackend, single, multi
 from atooms.simulation import Simulation, log
 from atooms.simulation.parallel_tempering import ParallelTempering
 
-log.setLevel(10)
+log.setLevel(40)
 
 def potential():
     import rumd
