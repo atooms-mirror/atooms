@@ -377,13 +377,16 @@ class Trajectory(object):
         if os.path.exists(self.filename + '.gz'):
             os.system("gunzip -f %s.gz" % self.filename)
     
-def single(input_file, potential, T, dt, interval_energy=None, interval_config=None):
+def single(sim_input, potential=None, T=None, dt=0.001, interval_energy=None, interval_config=None):
     from rumd import IntegratorNVT
     from rumdSimulation import rumdSimulation
 
-    sim = rumdSimulation(input_file)
-    for pot in potential():
-        sim.AddPotential(pot)
+    if type(sim_input) is str:
+        sim = rumdSimulation(sim_input)
+        for pot in potential():
+            sim.AddPotential(pot)
+    else:
+        sim = sim_input
 
     itg = IntegratorNVT(targetTemperature=T, timeStep=dt)
     sim.SetIntegrator(itg)
