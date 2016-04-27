@@ -87,6 +87,10 @@ class RumdBackend(object):
         log.debug('rumd restarting from %d' % self.steps)
 
     def run_pre(self, restart):
+        # Copy of initial state. 
+        # This way even upon repeated calls to run() we still get the right rmsd
+        # Note restart is handled after this, so sample here is really the initial one.
+        self.initial_state = self._sim.sample.Copy()
         self._restart = restart
         self._ibl = None        
         if self.output_path is not None:
@@ -163,7 +167,7 @@ class RumdBackend(object):
                 # TODO: why??
                 self._restart = False 
             log.debug('RUMD running from %d to %d steps' % (self.steps, n))
-            log.debug('RUMD %s %s' % (self._suppress_all_output, self._initialize_output))
+            log.debug('RUMD suppress=%s initialize=%s' % (self._suppress_all_output, self._initialize_output))
             self._sim.Run(n-self.steps, suppressAllOutput=self._suppress_all_output,
                           initializeOutput = self._initialize_output)
             # We let it clean the dir upon entrance, then we suppress this

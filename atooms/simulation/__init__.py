@@ -239,9 +239,10 @@ class UserStop(object):
         else:
             raise RuntimeError('USerStop wont work atm with file storage')
 
-#TODO: interval can be a function to allow non linear sampling
-#TODO: base scheduler plus derived scheduler for fixed ncalls 
 class Scheduler(object):
+
+    #TODO: interval can be a function to allow non linear sampling
+    #TODO: base scheduler plus derived scheduler for fixed ncalls 
 
     """Scheduler to call observer during the simulation"""
 
@@ -479,14 +480,18 @@ class Simulation(object):
         # /Design/: it is run_until responsability to set steps: self.steps = n
         # Bear it in mind when subclassing 
         self.backend.run_until(n)
+        self.backend.steps = n
         self.steps = n
 
-    def run(self, steps=None):
+    def run(self, steps=None, rmsd=None):
         # If we are restaring we do not allow changing steps on the fly
         if not self.restart or self.steps==0:
             if steps is not None:
                 self.target_steps = steps
+            if rmsd is not None:
+                self.target_rmsd = rmsd
             self.steps = 0
+            self.backend.steps = 0
             self._setup()
 
         self.run_pre()
