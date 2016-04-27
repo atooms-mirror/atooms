@@ -484,7 +484,7 @@ class Simulation(object):
 
     def run(self, steps=None):
         # If we are restaring we do not allow changing steps on the fly
-        if not self.restart:
+        if not self.restart or self.steps==0:
             if steps is not None:
                 self.target_steps = steps
             self.steps = 0
