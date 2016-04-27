@@ -237,6 +237,7 @@ class UserStop(object):
             raise RuntimeError('USerStop wont work atm with file storage')
 
 #TODO: interval can be a function to allow non linear sampling
+#TODO: base scheduler plus derived scheduler for fixed ncalls 
 class Scheduler(object):
 
     """Scheduler to call observer during the simulation"""
@@ -309,6 +310,7 @@ class Simulation(object):
     def __init__(self, backend=DryRunBackend(),
                  output_path=None, 
                  steps=0, rmsd=None,
+                 target_steps=0, target_rmsd=None,
                  thermo_interval=0, thermo_number=0, 
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
@@ -317,14 +319,24 @@ class Simulation(object):
         Alternatively, input might be a system (or trajectory?) instance.
         """
         self.backend = backend
-        self._callback = []
         self.restart = restart
         self.output_path = output_path # can be None, file or directory
-        self.target_steps = steps
+        self.target_steps = steps # convenience
+        self.target_rmsd = rmsd # convenience
+        self.target_steps = target_steps
+        self.target_rmsd = target_rmsd
+        self.thermo_interval = thermo_interval
+        self.thermo_number = thermo_number
+        self.config_interval = config_interval
+        self.config_number = config_number
+        self.checkpoint_interval = checkpoint_interval
+        self.checkpoint_number = checkpoint_number
+
+        # Internal variables
+        self._callback = []
         self.steps = 0
         self.initial_steps = 0
         self.start_time = time.time()
-
         # We expect subclasses to keep a ref to the trajectory object self.trajectory
         # used to store configurations, although this is not used in base class
         self.system = self.backend.system
@@ -332,54 +344,44 @@ class Simulation(object):
 
         # Setup writer callbacks
         # TODO: if output_path is None we should disable writers
+        self.targeter_steps = self._TARGET_STEPS(self.target_steps)
+        self.targeter_rmsd = self._TARGET_RMSD(self.target_rmsd)
         self.writer_thermo = self._WRITER_THERMO()
         self.writer_config = self._WRITER_CONFIG()
         self.writer_checkpoint = self._WRITER_CHECKPOINT()
+        self.speedometer = Speedometer()
+
+    def __str__(self):
+        return 'ATOOMS simulation (backend: %s)' % self.backend
+        
+    def _setup(self):
+        """Add all internal observers to callbacks"""
+        # This is called in run() if we are not restarting.
+        # First make sure there are no default callbacks
+        for c in [self.targeter_steps, self.targeter_rmsd,
+                  self.writer_thermo, self.writer_config, self.writer_checkpoint,
+                  self.speedometer]:
+            self.remove(c)
 
         # Target steps are checked only at the end of the simulation
         self.targeter_steps = self._TARGET_STEPS(self.target_steps)
         self.add(self.targeter_steps, Scheduler(max(1, self.target_steps)))
+
         # TODO: rmsd targeting interval is hard coded
         # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
-        if rmsd is not None:
-            self.targeter_rmsd = self._TARGET_RMSD(rmsd)
+        if self.target_rmsd is not None:
+            self.targeter_rmsd = self._TARGET_RMSD(self.target_rmsd)
             self.add(self.targeter_rmsd, Scheduler(10000))
 
         # Setup schedulers
-        self.speedometer = Speedometer()
         self.add(self.speedometer, Scheduler(None, calls=20, target=self.target_steps))
-#        self.add(Speedometer(), OnetimeScheduler(max(1, int(self.target_steps/200.)), self))
-        self.add(self.writer_thermo, Scheduler(thermo_interval, thermo_number, self.target_steps))
-        self.add(self.writer_config, Scheduler(config_interval, config_number, self.target_steps))
-        self.add(self.writer_checkpoint, Scheduler(checkpoint_interval, checkpoint_number, self.target_steps))
-
-    def setup(self, 
-              target_steps=None, target_rmsd=None,
-              thermo_period=None, thermo_number=None, 
-              config_period=None, config_number=None,
-              checkpoint_period=None, checkpoint_number=None,
-              reset=False):
-        raise RuntimeError('use of deprecated setup() function')
-
-    def __str__(self):
-        return 'ATOOMS simulation (backend: %s)' % self.backend
-
-    @property
-    def rmsd(self):
-        # TODO: provide rmsd by species 07.12.2014
-        try:
-            return self.backend.rmsd
-        except:
-            log.warning('rmsd has not been subclassed')
-            return 0.0
-
-    def write_checkpoint(self):
-        self.backend.write_checkpoint()
+        self.add(self.writer_thermo, Scheduler(self.thermo_interval, self.thermo_number, self.target_steps))
+        self.add(self.writer_config, Scheduler(self.config_interval, self.config_number, self.target_steps))
+        self.add(self.writer_checkpoint, Scheduler(self.checkpoint_interval, self.checkpoint_number, self.target_steps))
 
     def add(self, callback, scheduler):
         """Register an observer (callback) to be called along with a scheduler"""
-        # There are certainly more elegant ways of sorting Writers < Checkpoint < Target 
-        # but anyway...
+        # There are certainly more elegant ways of sorting Writers < Checkpoint < Target but anyway...
         # Keep targeters last
         if not isinstance(callback, Target):
             callback.scheduler = scheduler
@@ -395,6 +397,13 @@ class Simulation(object):
             self._callback.insert(cnt-1, self._callback.pop(idx))
         except ValueError:
             pass
+
+    def remove(self, callback):
+        """Remove an observer (callback)"""
+        if callback in self._callback:
+            self._callback.remove(callback)
+        else:
+            log.warning('attempt to remove inexistent callback')
 
     @property
     def _targeters(self):
@@ -413,6 +422,18 @@ class Simulation(object):
             log.debug('notify %s' % o)
             o(self)
     
+    @property
+    def rmsd(self):
+        # TODO: provide rmsd by species 07.12.2014
+        try:
+            return self.backend.rmsd
+        except:
+            log.warning('rmsd has not been subclassed')
+            return 0.0
+
+    def write_checkpoint(self):
+        self.backend.write_checkpoint()
+
     def elapsed_wall_time(self):
         return time.time() - self.start_time
 
@@ -432,7 +453,7 @@ class Simulation(object):
         except:
             return 0.0
 
-    # Our template consists of three steps: pre, until and end
+    # Our template consists of two steps: run_pre() and run_until()
     # Typically a backend will implement the until method.
     # It is recommended to *extend* (not override) the base run_pre() in subclasses
     # TODO: when should checkpoint be read? The logic must be set here
@@ -440,11 +461,11 @@ class Simulation(object):
     def run_pre(self):
         """Deal with restart conditions before run we call_until()"""
         # TODO: moved from init to here, is it ok?
+        log.debug('calling backend pre at steps %d' % self.steps)
         if self.output_path is not None and self.STORAGE == 'directory':
             mkdir(self.output_path)
         if self.output_path is not None:
             self.backend.output_path = self.output_path
-        log.debug('calling backend pre at steps %d' % self.steps)
         self.backend.run_pre(self.restart)
             
     def run_until(self, n):
@@ -453,12 +474,14 @@ class Simulation(object):
         self.backend.run_until(n)
         self.steps = n
 
-    def run(self, target_steps=None):
-        if target_steps is not None:
-            self.targeter_steps.target = target_steps
-            # How bad...
-            self.speedometer._init = False
-            log.info('targeted number of steps: %s' % self.target_steps)
+    def run(self, steps=None, rmsd=None):
+        # If we are restaring we keep 
+        if not self.restart:
+            if steps is not None:
+                self.target_steps = steps
+            if rmsd is not None:
+                self.target_rmsd = rmsd
+            self._setup()
 
         self.run_pre()
         self.initial_steps = self.steps
