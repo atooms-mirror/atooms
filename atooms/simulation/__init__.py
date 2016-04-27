@@ -153,21 +153,25 @@ class Speedometer(object):
                     return
 
         if self.x_target > 0:
-            # Get the speed at which the simulation advances
             t_now = time.time()
             x_now = float(getattr(e, self.name_target))
+            # Get the speed at which the simulation advances
             speed = (x_now - self.x_last) / (t_now - self.t_last)
             # Report fraction of target achieved and ETA
             frac = float(x_now) / self.x_target
-            eta = (self.x_target-x_now) / speed
-            delta = sec2time(eta)
-            d_now = datetime.datetime.now()
-            d_delta = datetime.timedelta(seconds=eta)
-            d_eta = d_now + d_delta
-            log.info('%s: %d%% estimated end: %s rate: %.2e TSP: %.2e' % \
-                     (self.name_target, int(frac * 100), 
-                      d_eta.strftime('%Y-%m-%d %H:%M'),
-                      speed, e.wall_time_per_step_particle()))
+            try:
+                eta = (self.x_target-x_now) / speed
+                delta = sec2time(eta)
+                d_now = datetime.datetime.now()
+                d_delta = datetime.timedelta(seconds=eta)
+                d_eta = d_now + d_delta
+                log.info('%s: %d%% estimated end: %s rate: %.2e TSP: %.2e' % \
+                         (self.name_target, int(frac * 100), 
+                          d_eta.strftime('%Y-%m-%d %H:%M'),
+                          speed, e.wall_time_per_step_particle()))
+            except ZeroDivisionError:
+                print x_now, self.x_last
+                raise
 
         self.t_last = t_now
         self.x_last = x_now
@@ -321,8 +325,6 @@ class Simulation(object):
         self.backend = backend
         self.restart = restart
         self.output_path = output_path # can be None, file or directory
-        self.target_steps = steps # convenience
-        self.target_rmsd = rmsd # convenience
         self.target_steps = target_steps
         self.target_rmsd = target_rmsd
         self.thermo_interval = thermo_interval
@@ -331,6 +333,11 @@ class Simulation(object):
         self.config_number = config_number
         self.checkpoint_interval = checkpoint_interval
         self.checkpoint_number = checkpoint_number
+        # Convenience shortcuts (might be dropped in the future)
+        if steps>0:
+            self.target_steps = steps 
+        if rmsd is not None:
+            self.target_rmsd = rmsd
 
         # Internal variables
         self._callback = []
@@ -374,6 +381,7 @@ class Simulation(object):
             self.add(self.targeter_rmsd, Scheduler(10000))
 
         # Setup schedulers
+        self.speedometer = Speedometer()
         self.add(self.speedometer, Scheduler(None, calls=20, target=self.target_steps))
         self.add(self.writer_thermo, Scheduler(self.thermo_interval, self.thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(self.config_interval, self.config_number, self.target_steps))
@@ -474,18 +482,20 @@ class Simulation(object):
         self.backend.run_until(n)
         self.steps = n
 
-    def run(self, steps=None, rmsd=None):
-        # If we are restaring we keep 
+    def run(self, steps=None):
+        # If we are restaring we do not allow changing steps on the fly
         if not self.restart:
             if steps is not None:
                 self.target_steps = steps
-            if rmsd is not None:
-                self.target_rmsd = rmsd
+            self.steps = 0
             self._setup()
 
         self.run_pre()
         self.initial_steps = self.steps
         self.report()
+        # Reinitialize speedometers
+        for s in self._speedometers:
+            s._init = False
 
         try:
             # Before entering the simulation, check if we can quit right away
@@ -526,7 +536,6 @@ class Simulation(object):
             raise
 
         finally:
-            pass
             log.info('goodbye')
 
     def report(self):
