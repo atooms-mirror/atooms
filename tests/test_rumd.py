@@ -7,7 +7,7 @@ from atooms.backends.rumd_backend import RumdBackend, single, multi
 from atooms.simulation import Simulation, log
 from atooms.simulation.parallel_tempering import ParallelTempering
 
-log.setLevel(40)
+log.setLevel(10)
 
 def potential():
     import rumd
@@ -38,6 +38,13 @@ class Test(unittest.TestCase):
                         restart=False)
         si.run()
         si.run(1000)
+
+    def test_multi_writing(self):
+        # We should have 10 cfgs at the end. Note that energies are not zipped after calling run()...
+        s = single(self.input_file, potential, T=0.80, dt=0.002, interval_energy=500, interval_config=500)
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', enable_speedometer=False)
+        si.run(50000)
+        si.run(5000)
 
     def test_multi_2(self):
         s = single(self.input_file, potential, T=0.80, dt=0.002)

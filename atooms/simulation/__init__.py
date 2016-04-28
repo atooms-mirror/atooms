@@ -318,6 +318,7 @@ class Simulation(object):
                  thermo_interval=0, thermo_number=0, 
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
+                 enable_speedometer=True,
                  restart=False):
         """We expect input and output paths as input.
         Alternatively, input might be a system (or trajectory?) instance.
@@ -333,6 +334,7 @@ class Simulation(object):
         self.config_number = config_number
         self.checkpoint_interval = checkpoint_interval
         self.checkpoint_number = checkpoint_number
+        self.enable_speedometer = enable_speedometer
         # Convenience shortcuts (might be dropped in the future)
         if steps>0:
             self.target_steps = steps 
@@ -381,8 +383,9 @@ class Simulation(object):
             self.add(self.targeter_rmsd, Scheduler(10000))
 
         # Setup schedulers
-        self.speedometer = Speedometer()
-        self.add(self.speedometer, Scheduler(None, calls=20, target=self.target_steps))
+        if self.enable_speedometer:
+            self.speedometer = Speedometer()
+            self.add(self.speedometer, Scheduler(None, calls=20, target=self.target_steps))
         self.add(self.writer_thermo, Scheduler(self.thermo_interval, self.thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(self.config_interval, self.config_number, self.target_steps))
         self.add(self.writer_checkpoint, Scheduler(self.checkpoint_interval, self.checkpoint_number, self.target_steps))
@@ -488,6 +491,7 @@ class Simulation(object):
         if not self.restart or self.steps==0:
             if steps is not None:
                 self.target_steps = steps
+                self.target_rmsd = rmsd
             if rmsd is not None:
                 self.target_rmsd = rmsd
             self.steps = 0
@@ -566,6 +570,7 @@ class Simulation(object):
                 log.info('writer %s: interval=%s calls=%s' % (f, s.interval, s.calls))
 
     def _report_end(self):
+        log.info('final steps: %d' % self.steps)
         log.info('final rmsd: %.2f' % self.rmsd)
         log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
         log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))

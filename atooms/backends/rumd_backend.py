@@ -91,6 +91,7 @@ class RumdBackend(object):
         # This way even upon repeated calls to run() we still get the right rmsd
         # Note restart is handled after this, so sample here is really the initial one.
         self.initial_state = self._sim.sample.Copy()
+        self._initialize_output = True
         self._restart = restart
         self._ibl = None        
         if self.output_path is not None:
@@ -397,9 +398,9 @@ def single(sim_input, potential=None, T=None, dt=0.001, interval_energy=None, in
     sim.SetMomentumResetInterval(10000)
     sim.SetOutputScheduling("energies","none")
     sim.SetOutputScheduling("trajectory","none")
-    if interval_energy:
+    if interval_energy is not None:
         sim.SetOutputScheduling("energies","linear",interval=interval_energy)
-    if interval_config:
+    if interval_config is not None:
         sim.SetOutputScheduling("trajectory","linear",interval=interval_config)
 
     return sim
