@@ -3,7 +3,7 @@
 
 import numpy
 import h5py
-from atooms.trajectory import TrajectoryBase
+from base import TrajectoryBase
 from atooms import ndim
 from atooms.system import System
 from atooms.system.particle import Particle
