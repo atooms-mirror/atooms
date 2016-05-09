@@ -170,12 +170,12 @@ class SuperTrajectory2(TrajectoryBase):
         self._timestep = 1.0
 
         # Make sure subtrajectories are sorted by increasing step
+        self.subfile.sort()
         self._map = []
         for i, f in enumerate(self.subfile):
 #            with self.trajectoryclass(f) as t:
                 #self._map.append((t.steps[0], f))
             self._map.append((i, f))
-        self._map.sort(key=lambda x : x[0])
         self.steps = [i[0] for i in self._map]
 
     def read_sample(self, sample):
