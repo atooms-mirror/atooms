@@ -56,6 +56,34 @@ def add_interaction_hdf5(finp, ff, tag=None):
     for f in glob.glob(f_ref + '*'):
         os.remove(f)
 
+def main(t, args):
+    if args.flatten_steps:
+        t.steps = range(1,len(t)+1)
+    tn = trajectory.NormalizeId(t)
+
+    if args.step:
+        step = t.steps.index(args.step)
+        ts = trajectory.Sliced(tn, slice(step, step+1))
+    else:
+        # Define slice
+        sl = fractional_slice(args.first, args.last, args.skip, len(tn))
+        # Here we could you a trajectory slice t[sl] but this will load 
+        # everything in ram (getitem doesnt provide a generator)
+        ts = trajectory.Sliced(tn, sl)
+
+    if args.vel:
+        fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout, include=['vx','vy','vz'])
+    else:
+        fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout)
+
+    if args.ff:
+        if os.path.exists(args.ff):
+            add_interaction_hdf5(fout, args.ff)
+        else:
+            raise IOError('force field file does not exist')
+
+    print '%s' % fout
+
 
 parser = argparse.ArgumentParser()
 parser = add_first_last_skip(parser)
@@ -65,6 +93,7 @@ parser.add_argument('-o', '--fmt-out', dest='out', type=str, default='', help='o
 parser.add_argument('-S', '--stdout',  dest='stdout', action='store_true', help='dump to stdout')
 parser.add_argument('-t', '--tag',     dest='tag', type=str, default='', help='tag to add before suffix')
 parser.add_argument('-F', '--ff',      dest='ff', type=str, default='', help='force field file')
+parser.add_argument('-g', '--gather',  dest='gather', action='store_true', help='gather files as a super trajectory in <dirname>-conv')
 parser.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
 parser.add_argument(      '--step',    dest='step', action='store', default=None, type=int, help='')
 parser.add_argument(nargs='+',         dest='file',type=str, help='input files')
@@ -79,39 +108,17 @@ if not args.out in trj_map:
 if args.out  == 'auto':
     raise ValueError('Cannot use factory for output format')
 
-for finp in args.file:
-    if not os.path.exists(finp):
-        logging.warn('file %s does not exists, skipping it.' % finp)
-        continue
-
-    with trj_map[args.inp](finp) as t:
-        if args.flatten_steps:
-            t.steps = range(1,len(t)+1)
-        tn = trajectory.NormalizeId(t)
-
-        if args.step:
-            step = t.steps.index(args.step)
-            ts = trajectory.Sliced(tn, slice(step, step+1))
-        else:
-            # Define slice
-            sl = fractional_slice(args.first, args.last, args.skip, len(tn))
-            # Here we could you a trajectory slice t[sl] but this will load 
-            # everything in ram (getitem doesnt provide a generator)
-            ts = trajectory.Sliced(tn, sl)
-
-        try:
-            if args.vel:
-                fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout, include=['vx','vy','vz'])
-            else:
-                fout = trajectory.convert(ts, trj_map[args.out], tag=args.tag, stdout=args.stdout)
-        except IOError, e:
-            print 'Error: conversion failed for %s (%s)' % (finp, e)
+if args.gather:
+    with trajectory.SuperTrajectory2(args.file, trj_map[args.inp]) as t:
+        main(t, args)
+else:
+    for finp in args.file:
+        if not os.path.exists(finp):
+            logging.warn('file %s does not exists, skipping it.' % finp)
             continue
-
-        if args.ff:
-            if os.path.exists(args.ff):
-                add_interaction_hdf5(fout, args.ff)
-            else:
-                raise IOError('force field file does not exist')
-
-        print '%s' % fout
+        with trj_map[args.inp](finp) as t:
+            try:
+                main(t, args)
+            except IOError, e:
+                print 'Error: conversion failed for %s (%s)' % (finp, e)
+                continue
