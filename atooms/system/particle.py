@@ -93,6 +93,8 @@ class Particle(object):
 
     def nearest_image(self, p, cell):
         """Transform self into the nearest image of p in the specified cell."""
+        if cell is None:
+            return self
         rij = self.position - p.position
         periodic_vector(rij, cell.side)
         self.position = p.position + rij
