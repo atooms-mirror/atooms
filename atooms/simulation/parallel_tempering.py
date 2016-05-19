@@ -107,8 +107,8 @@ class WriterThermo(object):
                 with open(f, 'a') as fh:
                     # Which replica is in state i? What is its energy?
                     irep = e.replica_id[i]
-                    fh.write('%d %d %d %g %g\n' % (e.steps, steps[i], irep, 
-                                                   u[irep], k[irep]))
+                    fh.write('%d %d %d %.6g %.6g\n' % (e.steps, steps[i], irep, 
+                                                       u[irep], k[irep]))
 
 
 class StateTemperature(object):
