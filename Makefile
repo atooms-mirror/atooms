@@ -21,7 +21,7 @@ dist_rumd:
 	python -m unittest discover -s tests -p '*adapter*'
 	tar cvf adapter_rumd.tar tests/test_adapters.py atooms/adapters/rumd.py
 
-version: pull
+version:
 	cd atooms; make; cd ..
 
 install: version
