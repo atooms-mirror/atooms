@@ -21,18 +21,24 @@ class TrajectoryRUMD(TrajectoryXYZ):
     #         params[key] = value
     #     # Array entry have comma separated elements, split them into lists
 
-    def __init__(self, filename, mode='r', basename='block'):
+    def __init__(self, filename, mode='r'):
         """basename: prefix of RUMD configurations."""
         # Use an internal counter for ioformat=2
         self._step = 0
-        self.basename = basename
 
         super(TrajectoryRUMD, self,).__init__(filename, mode)
         
         # The minimum id for RUMD is 0
         self._min_id = 0
         
-        if basename == 'block':
+        basename = os.path.basename(filename)
+        s = re.search(r'([a-zA-Z0-9]*)_\d*', basename)
+        if s:
+            base = s.group(1)
+        else:
+            base = ''
+            
+        if base == 'block':
             # Redefine samples and steps to make sure these are the absolute steps and samples
             # This is important when trajectories are written in blocks.
             # To extract the block index we look at the filename indexing.
@@ -46,7 +52,8 @@ class TrajectoryRUMD(TrajectoryXYZ):
         else:
             # In case of non native RUMD filename, we assume the step
             # is written after the basename.
-            s = re.search(r'%s_(\d*)' % basename, filename)
+            # TODO: check if steps is recognized!
+            s = re.search(r'[a-zA-Z0-9]*_(\d*)', basename)
             if s:
                 self.steps = [int(s.group(1))]
 
