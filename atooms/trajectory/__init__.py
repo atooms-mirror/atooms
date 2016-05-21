@@ -152,7 +152,6 @@ class SuperTrajectory(TrajectoryBase):
         i, j = self._map[sample]
         return self.subtrajectories[i].read_sample(j)
 
-import glob
 
 class SuperTrajectory2(TrajectoryBase):
 
@@ -161,21 +160,23 @@ class SuperTrajectory2(TrajectoryBase):
     # Optimized version
 
     def __init__(self, files, trajectoryclass, mode='r'):
-        self.subfile = glob.glob(files)
-        if len(self.subfile) == 0:
-            raise ValueError('no files found in %s' % files)
-        f = os.path.dirname(self.subfile[0]) + '/'
+        """Group list of files into a single trajectory"""
+        self.files = files
+        if len(self.files) == 0:
+            raise ValueError('no files found in %s' % self.files)
+        f = os.path.dirname(self.files[0])
         super(SuperTrajectory2, self).__init__(f, mode)
         self.trajectoryclass = trajectoryclass
         self._timestep = 1.0
 
         # Make sure subtrajectories are sorted by increasing step
-        self.subfile.sort()
+        self.files.sort()
         self._map = []
-        for i, f in enumerate(self.subfile):
-#            with self.trajectoryclass(f) as t:
-                #self._map.append((t.steps[0], f))
-            self._map.append((i, f))
+        for i, f in enumerate(self.files):
+            # This is slow... just to get the step index....
+            with self.trajectoryclass(f) as t:
+                self._map.append((t.steps[0], f))
+            #self._map.append((i, f))
         self.steps = [i[0] for i in self._map]
 
     def read_sample(self, sample):
