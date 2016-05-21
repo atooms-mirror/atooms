@@ -164,8 +164,10 @@ class Speedometer(object):
                 d_now = datetime.datetime.now()
                 d_delta = datetime.timedelta(seconds=eta)
                 d_eta = d_now + d_delta
-                log.info('%s: %d%% estimated end: %s rate: %.2e TSP: %.2e' % \
-                         (self.name_target, int(frac * 100), 
+                log.info('%s: %d%% %s/%s estimated end: %s rate: %.2e TSP: %.2e' % \
+                         (self.name_target, int(frac * 100), \
+                          getattr(e, self.name_target), \
+                          self.x_target,
                           d_eta.strftime('%Y-%m-%d %H:%M'),
                           speed, e.wall_time_per_step_particle()))
             except ZeroDivisionError:
