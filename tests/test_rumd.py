@@ -3,7 +3,11 @@
 import sys
 import os
 import unittest
-from atooms.backends.rumd_backend import RumdBackend, single, multi
+try:
+    from atooms.backends.rumd_backend import RumdBackend, single, multi
+    SKIP = False
+except ImportError:
+    SKIP = True
 from atooms.simulation import Simulation, log
 from atooms.simulation.parallel_tempering import ParallelTempering
 
@@ -21,6 +25,8 @@ def potential():
 class Test(unittest.TestCase):
 
     def setUp(self):
+        if SKIP:
+            self.skipTest('missing RUMD')
         self.input_file = os.path.join(os.path.dirname(sys.argv[0]), '../data/KA_N256_L6.0_T0.80.xyz.gz')
             
     def test_single(self):
