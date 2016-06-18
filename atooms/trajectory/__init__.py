@@ -13,7 +13,7 @@ from base import TrajectoryBase
 
 # Useful functions to manipulate trajectories
 
-def convert(inp, out, fout='', tag='', prefix='', exclude=[], include=[], stdout=False, callback=None, args={}):
+def convert(inp, out, fout='', tag='', prefix='', force=True, exclude=[], include=[], stdout=False, callback=None, args={}):
     """Convert trajectory into a different format.
 
     inp: input trajectory object
@@ -48,23 +48,24 @@ def convert(inp, out, fout='', tag='', prefix='', exclude=[], include=[], stdout
         else:
             filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix    
 
-    with out(filename, 'w') as conv:
-        conv.exclude(exclude)
-        conv.include(include)
-        conv.timestep = inp.timestep
-        conv.block_period = inp.block_period
-        # TODO: Zipping t, t.steps is causing a massive mem leak!
-        # In python <3 zip returns a list, not a generator! Therefore this
-        # for system, step in zip(inp, inp.steps):
-        #     conv.write(system, step)
-        # will use a lot of RAM! Workarounds (in order of personal preference)
-        # 1. zip is a generator in python 3
-        # 2. use enumerate instead and grab the step from inp.steps[i]
-        # 3. add an attribute system.step for convenience
-        for i, system in enumerate(inp):
-            if callback is not None:
-                system = callback(system, args)
-            conv.write(system, inp.steps[i])
+    if not os.path.exists(filename) or force:
+        with out(filename, 'w') as conv:
+            conv.exclude(exclude)
+            conv.include(include)
+            conv.timestep = inp.timestep
+            conv.block_period = inp.block_period
+            # TODO: Zipping t, t.steps is causing a massive mem leak!
+            # In python <3 zip returns a list, not a generator! Therefore this
+            # for system, step in zip(inp, inp.steps):
+            #     conv.write(system, step)
+            # will use a lot of RAM! Workarounds (in order of personal preference)
+            # 1. zip is a generator in python 3
+            # 2. use enumerate instead and grab the step from inp.steps[i]
+            # 3. add an attribute system.step for convenience
+            for i, system in enumerate(inp):
+                if callback is not None:
+                    system = callback(system, args)
+                conv.write(system, inp.steps[i])
 
     return filename
 
@@ -205,8 +206,12 @@ try:
 except:
     pass
 
-# Load all plugins
-from atooms.plugins.trajectory import *
+# Load plugins (if plugins are found)
+try:
+    from atooms.plugins.trajectory import *
+except:
+    # No plugins found
+    pass
 
 # TODO: trajectories should implement a method to check if a file
 # is of their own format or not, to avoid relying on suffix
