@@ -8,16 +8,16 @@ from atooms.simulation import log
 
 log.setLevel(40)
 
+from atooms.simulation import Simulation
 try:
     import rumd
     from rumdSimulation import rumdSimulation
+    from atooms.backends.rumd_backend import System, Trajectory
+    from atooms.backends.rumd_backend import RumdBackend as Backend
     SKIP = False
 except ImportError:
     SKIP = True
 
-from atooms.simulation import Simulation
-from atooms.backends.rumd_backend import System, Trajectory
-from atooms.backends.rumd_backend import RumdBackend as Backend
 
 xyz = """\
      3
