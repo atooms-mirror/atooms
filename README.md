@@ -1,10 +1,12 @@
-===== Atooms =====
+Atooms
+======
 
-This is atooms, a package for Atomistic and Object-Oriented Modeling and Simulations
+This is atooms, a general-purpose, object-oriented package for molecular simulations.
 
-Copyright (C) 2010-2015 Daniele Coslovich <daniele.coslovich@um2.fr>
+Copyright (C) 2010-2016 Daniele Coslovich <daniele.coslovich@umontpellier.fr>
 
-=== Plugins ===
+Plugins
+-------
 
 Put your plugin packages under local/ add the path to your
 PYTHONPATH. In order for atooms to recognize your plugins under the
@@ -20,5 +22,3 @@ where __init__.py contains
 from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 ```
-
-
