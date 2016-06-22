@@ -216,7 +216,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if 'velocity' in self.fmt:
                 self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
                 self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if not ('radius' in system.fix and not system.fix['radius']):
+            if 'radius' in self.fmt:
                 self.trajectory.create_group_safe('/trajectory/particle/radius')
                 self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
 
@@ -343,8 +343,9 @@ class TrajectoryHDF5(TrajectoryBase):
             r = group['radius' + csample][:]           
             for i, pi in enumerate(p):
                 pi.radius = r[i]
+            self.include(['radius'])
         except:
-            pass
+            self.exclude(['radius'])
 
         # Read also interaction.
         has_int = True

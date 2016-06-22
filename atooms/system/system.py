@@ -18,10 +18,6 @@ class System(object):
         self.matrix   = matrix
         self.thermostat = thermostat
         self.dynamics = dynamics
-        # A dict of properties that are expected to change or not
-        # (a hint that trajectories shouldn not write them in samples)
-        # Not sure this is the best place for them, lets see
-        self.fix = {}
 
     @property
     def number_of_dimensions(self):
