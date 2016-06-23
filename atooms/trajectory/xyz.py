@@ -11,6 +11,37 @@ from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
 
+class TrajectoryXYZBase(TrajectoryBase):
+
+    def __init__(self, filename, mode='r'):
+        TrajectoryBase.__init__(self, filename, mode)
+        self.fmt = []
+        self.cbk_write = []
+        self.fh = open(self.filename, self.mode)
+
+    def write_sample(self, system, step):
+        # Check that all arrays in data have the same length
+        data = [[f(p) for p in system.particle] for f in self.cbk_write]
+        nlines = len(data[0])
+        ncols = len(data)
+        lengths_ok = map(lambda x: len(x) == nlines, data)
+        if not all(lengths_ok):
+            raise ValueError('All arrays must have the same length')
+
+        # Write in xyz format
+        self.fh.write('%d\n' % nlines)
+        # Comment line: concatenate metadata
+        line = 'step: %d; ' % step 
+        line += 'columns:' + ','.join(self.fmt)
+        self.fh.write(line + '\n')
+        # Write data. This is inefficient but
+        # we cannot use numpy.savetxt because there is no append mode.
+        fmt = '%s ' * len(data)
+        fmt = fmt[:-1] + '\n'
+        for i in range(nlines):
+            self.fh.write(fmt % tuple([data[j][i] for j in range(ncols)]))
+        
+
 class TrajectoryXYZ(TrajectoryBase):
 
     """Trajectory with XYZ layout using memory leightweight indexed access."""
@@ -367,3 +398,11 @@ class TrajectoryXYZIkeda2(TrajectoryXYZ):
             r = numpy.array(d[1:4], dtype=float)
             p.append(Particle(name='A', id=1, position=r)) #- self._cell.side/2.0)))
         return System(p, self._cell)
+
+if __name__ == '__main__':
+    import atooms.trajectory as trj
+    t=trj.Trajectory('/home/coslo/projects/polydisperse_swap/data/misaki/const_volume/EQ/N8000/phi0.640/conv-configs/config.h5')
+    t1=trj.TrajectoryXYZBase('/tmp/1.xyz', 'w')
+    t1.fmt=['radius']
+    t1.cbk_write=[lambda x: x.radius]
+    t1.write(t[0], 0)
