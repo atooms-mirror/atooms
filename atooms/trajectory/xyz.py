@@ -13,6 +13,8 @@ from atooms.system import System
 
 class TrajectoryXYZBase(TrajectoryBase):
 
+    suffix = 'xyz'
+
     def __init__(self, filename, mode='r'):
         TrajectoryBase.__init__(self, filename, mode)
         self.fmt = []

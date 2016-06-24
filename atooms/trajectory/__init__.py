@@ -189,7 +189,7 @@ class SuperTrajectory2(TrajectoryBase):
 # Factory method which mimics an abstract factory class
 __factory_map = {}
 
-from xyz import TrajectoryXYZ, TrajectoryPDB, TrajectoryNeighbors, TrajectoryXYZIkeda2
+from xyz import *
 __factory_map['xyz'] = TrajectoryXYZ
 __factory_map['pdb'] = TrajectoryPDB
 
