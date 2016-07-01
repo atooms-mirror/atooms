@@ -1,7 +1,7 @@
 Atooms
 ======
 
-This is atooms, a general-purpose, object-oriented package for molecular simulations.
+This is atooms - high-level library and tools for molecular simulations.
 
 Copyright (C) 2010-2016 Daniele Coslovich <daniele.coslovich@umontpellier.fr>
 

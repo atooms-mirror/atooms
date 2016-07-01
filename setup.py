@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 
 import os
-import subprocess
 from distutils.core import setup
 
 setup(name='atooms',
-      #version=git_version,
-      description='Python tools for atomistic simulations',
+      version='0.1',
+      description='High-level library and tools for molecular simulations',
       author='Daniele Coslovich',
-      author_email='daniele.coslovich@univ-montp2.fr',
-      #http://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/
-      url='',
-      packages=[],
-      # 'atooms', 'atooms.adapters', 'atooms.system',
-      # 'atooms.interaction', 'atooms.potential', 
-      # 'atooms.postprocessing'],
-      scripts=['bin/trj.py', 'bin/md.py', 'bin/modes.py', 'bin/vis.py'],
-      #scripts=glob.glob(os.path.join('bin', '*.py'))
+      author_email='daniele.coslovich@umontpellier.fr',
+      url='http://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/',
+      packages=['atooms', 'atooms.backends', 'atooms.interaction',
+                'atooms.plugins', 'atooms.potential', 'atooms.simulation',
+                'atooms.system', 'atooms.trajectory'],
+      install_requires=['numpy'],
+      classifiers={
+          'Intended Audience :: Science/Research',
+          'Programming Language :: Python',
+          'Topic :: Scientific/Engineering',
+      }
      )
