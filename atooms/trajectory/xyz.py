@@ -19,6 +19,7 @@ class TrajectoryXYZBase(TrajectoryBase):
         TrajectoryBase.__init__(self, filename, mode)
         self.fmt = []
         self.cbk_write = []
+        self.cbk_read = []
         self.fh = open(self.filename, self.mode)
 
     def write_sample(self, system, step):
@@ -42,7 +43,7 @@ class TrajectoryXYZBase(TrajectoryBase):
         fmt = fmt[:-1] + '\n'
         for i in range(nlines):
             self.fh.write(fmt % tuple([data[j][i] for j in range(ncols)]))
-        
+
 
 class TrajectoryXYZ(TrajectoryBase):
 
@@ -131,8 +132,9 @@ class TrajectoryXYZ(TrajectoryBase):
             fh.seek(i)
             fh.readline() # skip Npart
             meta = self._parse_header(fh.readline())
+            self.meta = meta
             self.steps.append(meta['step'])
-        
+
         # Grab it from the end of file in case it is there
         if meta['cell'] is not None:
             self._cell = Cell(meta['cell'])
@@ -145,9 +147,10 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def _parse_header(self, data):
         """Internal xyz method to get header metadata."""
-        meta = {'step':None, 'cell':None}
-        grabber = {'step':lambda x: int(x), 
-                   'cell':lambda x: map(float, x.split(','))}
+        meta = {'step':None, 'cell':None, 'columns':None}
+        grabber = {'step':lambda x: int(x),
+                   'cell':lambda x: map(float, x.split(',')),
+                   'columns':lambda x: x.split(',')}
         for m in meta:
             p = re.compile(r'%s\s*[=:]\s*(\S*)\s' % m, re.IGNORECASE)
             s = p.search(data)
@@ -242,11 +245,11 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def _comment_header(self, step, system):
         if system.cell is not None:
-            fmt = "Step:%d Cell:%s Columns:%s\n"
+            fmt = "step:%d cell:%s columns:%s\n"
             return fmt % (step, ','.join(map(lambda x: '%s' % x, system.cell.side)),
                           ','.join(self.fmt))
         else:
-            fmt = "Step:%d Columns:%s\n"
+            fmt = "step:%d columns:%s\n"
             return fmt % (step, ','.join(self.fmt))
 
     def write_sample(self, system, step):
