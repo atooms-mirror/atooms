@@ -65,6 +65,40 @@ def composition(particle):
         x[p.id-1] += 1
     return tuple(x)
 
+def rotated(particle, cell):
+    """Return a rotated list of particles around the main symmetry axis of the set."""
+    import numpy as np
+    import math
+
+    def norm2(x):
+        return numpy.dot(x, x)
+
+    def rotation(axis, theta):
+        """
+        Return the rotation matrix associated with counterclockwise rotation about
+        the given axis by theta radians.
+        """
+        axis = np.asarray(axis)
+        theta = np.asarray(theta)
+        axis = axis/math.sqrt(np.dot(axis, axis))
+        a = math.cos(theta/2.0)
+        b, c, d = -axis*math.sin(theta/2.0)
+        aa, bb, cc, dd = a*a, b*b, c*c, d*d
+        bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
+        return np.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
+                         [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
+                         [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+
+    p = copy.deepcopy(particle)
+    dist = [sum(p[0].distance(pi, cell)**2) for pi in p]
+    dmax = max(dist)
+    imax = dist.index(dmax)
+    z_axis = numpy.array([0,-1,0])
+    pr_axis = p[0].position - p[imax].position
+    ro_axis = numpy.cross(pr_axis, z_axis)
+    theta = math.acos(numpy.dot(pr_axis, z_axis) / (norm2(pr_axis) * norm2(z_axis))**0.5)
+    for pi in p:
+        pi.position = numpy.dot(rotation(ro_axis, theta), pi.position)            
 
 class Particle(object):
 
