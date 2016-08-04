@@ -31,31 +31,32 @@ class TrajectoryRUMD(TrajectoryXYZ):
         # The minimum id for RUMD is 0
         self._min_id = 0
         
-        basename = os.path.basename(filename)
-        s = re.search(r'([a-zA-Z0-9]*)_\d*', basename)
-        if s:
-            base = s.group(1)
-        else:
-            base = ''
-            
-        if base == 'block':
-            # Redefine samples and steps to make sure these are the absolute steps and samples
-            # This is important when trajectories are written in blocks.
-            # To extract the block index we look at the filename indexing.
-            # If the name is different the block index is set to zero and steps have no offset
-            s = re.search(r'%s_(\d*)' % basename, filename)
+        if mode == 'r':
+            basename = os.path.basename(filename)
+            s = re.search(r'([a-zA-Z0-9]*)_\d*', basename)
             if s:
-                iblock = int(s.group(1))
-                # Redefine available steps to account for block offset
-                dt = self.steps[-1]
-                self.steps = [i+dt*iblock for i in self.steps]
-        else:
-            # In case of non native RUMD filename, we assume the step
-            # is written after the basename.
-            # TODO: check if steps is recognized!
-            s = re.search(r'[a-zA-Z0-9]*_(\d*)', basename)
-            if s:
-                self.steps = [int(s.group(1))]
+                base = s.group(1)
+            else:
+                base = ''
+
+            if base == 'block':
+                # Redefine samples and steps to make sure these are the absolute steps and samples
+                # This is important when trajectories are written in blocks.
+                # To extract the block index we look at the filename indexing.
+                # If the name is different the block index is set to zero and steps have no offset
+                s = re.search(r'%s_(\d*)' % basename, filename)
+                if s:
+                    iblock = int(s.group(1))
+                    # Redefine available steps to account for block offset
+                    dt = self.steps[-1]
+                    self.steps = [i+dt*iblock for i in self.steps]
+            else:
+                # In case of non native RUMD filename, we assume the step
+                # is written after the basename.
+                # TODO: check if steps is recognized!
+                s = re.search(r'[a-zA-Z0-9]*_(\d*)', basename)
+                if s:
+                    self.steps = [int(s.group(1))]
 
     def _parse_step(self, data):
         s = re.search(r'timeStepIndex=(\d*)', data)
