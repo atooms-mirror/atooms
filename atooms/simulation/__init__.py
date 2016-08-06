@@ -355,6 +355,7 @@ class Simulation(object):
 
         # Setup writer callbacks
         # TODO: if output_path is None we should disable writers
+        self.targeter_rmsd_period = 10000
         self.targeter_steps = self._TARGET_STEPS(self.target_steps)
         self.targeter_rmsd = self._TARGET_RMSD(self.target_rmsd)
         self.writer_thermo = self._WRITER_THERMO()
@@ -378,11 +379,10 @@ class Simulation(object):
         self.targeter_steps = self._TARGET_STEPS(self.target_steps)
         self.add(self.targeter_steps, Scheduler(max(1, self.target_steps)))
 
-        # TODO: rmsd targeting interval is hard coded
         # TODO: implement dynamic scheduling or fail when interval is None and targeting is rmsd
         if self.target_rmsd is not None:
             self.targeter_rmsd = self._TARGET_RMSD(self.target_rmsd)
-            self.add(self.targeter_rmsd, Scheduler(10000))
+            self.add(self.targeter_rmsd, Scheduler(self.targeter_rmsd_period))
 
         # Setup schedulers
         if self.enable_speedometer:

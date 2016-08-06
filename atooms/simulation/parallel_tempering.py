@@ -168,6 +168,7 @@ class ParallelTempering(Simulation):
                             restart=restart)
         self.params = params
         self.sim = sim
+        self.targeter_rmsd_period = 10
         # TODO: drop variables, make acceptance a callback
         self.variables = ['T']
         self.update = update()
