@@ -195,11 +195,13 @@ class ParallelTempering(Simulation):
         self.file_state_out = [self.output_path + '/state/%d.out' % i for i in range(self.nr)]
         # For each physical replica, info on the state in which it is
         self.file_replica_out = [self.output_path + '/replica/%d.out' % i for i in range(self.nr)]
-        # This must be set as output_path of the backend.
-        # Note: this requires output_path to be checked after init (in run_pre())
-        self.dir_state_out = [self.output_path + ('/state/' + fmt) % p for p in self.params]
+        # This will be set as output_path of the backend in a moment
+        if fmt is None:
+            self.dir_state_out = [self.output_path + '/state/%d' % i for i in range(self.nr)]
+        else:
+            self.dir_state_out = [self.output_path + ('/state/' + fmt) % p for p in self.params]
         for s, d in zip(self.sim, self.dir_state_out):
-            # We expect this to be None now
+            # This variable should be None (or we are overwriting something)
             s.output_path = d
 
         self.replica_id = range(self.nr)
