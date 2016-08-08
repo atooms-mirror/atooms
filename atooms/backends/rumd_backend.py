@@ -210,7 +210,7 @@ class Thermostat(object):
         
     def _get_temperature(self):
         info = self._integrator.GetInfoString(18).split(',')
-        return info[2]
+        return float(info[2])
 
     def _set_temperature(self, value):
         info = self._integrator.GetInfoString(18).split(',')
