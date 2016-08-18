@@ -147,6 +147,8 @@ class Speedometer(object):
                     self.name_target = c.name
                     self.x_target = c.target
                     self.t_last = time.time()
+                    # TODO: this assumes that targeters all get their target as attributes of simulation.
+                    # We should fail or ask the targeter a cached value
                     self.x_last = float(getattr(e, self.name_target))
                     self._init = True
                     return
