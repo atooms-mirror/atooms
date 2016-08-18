@@ -44,9 +44,10 @@ class RumdBackend(object):
         self._restart = False # internal restart toggle
 
     def _get_system(self):
-        return System(self._sim)
+        return System(self._sim.sample)
 
     def _set_system(self, value): 
+        # TODO: I think we should have Copy()
         self._sim.sample = value.sample
 
     system = property(_get_system, _set_system, 'System')
@@ -239,9 +240,8 @@ class MolecularDynamics(object):
 
 class System(object):
     
-    def __init__(self, sim):
-        self._sim = sim
-        self.sample = sim.sample
+    def __init__(self, sample):
+        self.sample = sample
         # TODO: system may not have one right now, what will this give? A None?
         self.thermostat = Thermostat(self.sample.GetIntegrator())
         self.dynamics = MolecularDynamics(self.sample.GetIntegrator())

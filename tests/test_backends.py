@@ -50,25 +50,25 @@ class TestBackendRUMD(unittest.TestCase):
         with open(self.finp, 'w') as fh:
             fh.write(xyz)
 
-        self.s = rumdSimulation(self.finp, verbose=False)
-        self.s.SetOutputScheduling("energies", "none")
-        self.s.SetOutputScheduling("trajectory", "none")
-        self.s.sample.SetOutputDirectory(self.dout)
-        self.s.suppressAllOutput = True
+        self.sim = rumdSimulation(self.finp, verbose=False)
+        self.sim.SetOutputScheduling("energies", "none")
+        self.sim.SetOutputScheduling("trajectory", "none")
+        self.sim.sample.SetOutputDirectory(self.dout)
+        self.sim.suppressAllOutput = True
         p = rumd.Pot_LJ_12_6(cutoff_method = rumd.ShiftedPotential)
         p.SetVerbose(False)
         p.SetParams(0, 0, 1., 1., 2.5)
-        self.s.SetPotential(p)
+        self.sim.SetPotential(p)
         i = rumd.IntegratorNVT(targetTemperature=2.0, timeStep=0.002)
-        self.s.SetIntegrator(i)
+        self.sim.SetIntegrator(i)
 
         self.finp2 = '/tmp/test_adapter_rumd_in2.xyz'
         with open(self.finp2, 'w') as fh:
             fh.write(xyz_2)
-        self.s2 = rumdSimulation(self.finp2, verbose=False)
+        self.sim2 = rumdSimulation(self.finp2, verbose=False)
 
     def test_system(self):
-        system = System(self.s)
+        system = System(self.sim.sample)
         U = system.potential_energy()
         T = system.temperature()
         Uref = 36.9236726612
@@ -78,51 +78,48 @@ class TestBackendRUMD(unittest.TestCase):
         self.assertAlmostEqual(T, Tref)
 
     def test_temperature_mass(self):
-        system = System(self.s2)
+        system = System(self.sim2.sample)
         T = system.temperature()
         Tref = 20.0/9 # if we don't have the right masses this will fail
         self.assertAlmostEqual(T, Tref)
 
     def test_particle(self):
-        system = System(self.s)
+        system = System(self.sim.sample)
         p = system.particle
         ref = numpy.array([-3.1597569, 3.14520597, -3.1456511])
         self.assertLess(max(abs(p[0].position - ref)), 1e-6)
 
     def test_particle_mass(self):
-        system = System(self.s2)
+        system = System(self.sim2.sample)
         p = system.particle
         for mref, m in zip(numpy.array([1.,1.,1.,2.]), [pi.mass for pi in p]):
             self.assertAlmostEqual(m, mref)
 
     def test_trajectory(self):
         t = Trajectory(self.fout, 'w')
-        system = System(self.s)
+        system = System(self.sim.sample)
         t.write(system, 0)
         t.close()
 
     def test_simulation(self):
-        s = Simulation(Backend(self.s), self.dout, steps = 1)
-        system = System(self.s)
+        s = Simulation(Backend(self.sim), self.dout, steps = 1)
+        system = System(self.sim.sample)
         s.system = system
         s.run()
 
     def test_rmsd(self):
-        s = Simulation(Backend(self.s), self.dout, steps = 1)
-#        s = Simulation(self.s, self.dout, steps = 1)
+        s = Simulation(Backend(self.sim), self.dout, steps = 1)
         s.run()
         self.assertGreater(s.rmsd, 0.0)
 
     def test_target_rmsd(self):
-        s = Simulation(Backend(self.s), self.dout, rmsd = 0.3, steps=sys.maxint)
-        # s = Simulation(self.s, self.dout, rmsd = 0.3, steps=sys.maxint)
+        s = Simulation(Backend(self.sim), self.dout, rmsd = 0.3, steps=sys.maxint)
         s.run()
         self.assertGreater(s.steps, 1)
         self.assertGreater(s.rmsd, 0.3)
 
     def test_checkpoint(self):
-        s = Simulation(Backend(self.s), self.dout, steps = 10, checkpoint_interval = 10)
-        #s = Simulation(self.s, self.dout, steps = 10, checkpoint_interval = 10)
+        s = Simulation(Backend(self.sim), self.dout, steps = 10, checkpoint_interval = 10)
         s.run()
         # TODO: this will fail, change test for existence of chk file
         # self.assertTrue(os.path.exists(s.trajectory.filename + '.chk'))
