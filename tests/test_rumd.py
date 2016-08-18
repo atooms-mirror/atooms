@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import os
 import unittest
 try:
@@ -27,7 +26,7 @@ class Test(unittest.TestCase):
     def setUp(self):
         if SKIP:
             self.skipTest('missing RUMD')
-        self.input_file = os.path.join(os.path.dirname(sys.argv[0]), '../data/KA_N256_L6.0_T0.80.xyz.gz')
+        self.input_file = os.path.join(os.path.dirname(__file__), '../data/KA_N256_L6.0_T0.80.xyz.gz')
             
     def test_single(self):
         s = single(self.input_file, potential, T=0.80, dt=0.002)
