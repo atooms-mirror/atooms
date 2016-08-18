@@ -14,8 +14,6 @@ from rumdSimulation import rumdSimulation
 class RumdBackend(object):
 
     def __init__(self, sim, output_path=None, fixcm_interval=0):
-        # System is an instance in base class, but this adapter redefines it as a property
-        # So perhaps we might pass None and make an explicit copy of initial_state here
         self.steps = 0
         self.fixcm_interval = fixcm_interval
         self._sim = sim
@@ -25,8 +23,6 @@ class RumdBackend(object):
         self._sim.SetMomentumResetInterval(self.fixcm_interval)
         self.output_path = output_path
         # TODO: need some switch to use or not RUMD checkpoint. If checkpoint_interval is set e.g. we suppress RUMD's one
-        # Copy of initial state
-        self.initial_state = self._sim.sample.Copy()
         # Keep a reference of the Trajectory backend class
         self.trajectory = Trajectory
         # We set RUMD block to infinity unless the user set it already
@@ -47,10 +43,13 @@ class RumdBackend(object):
         return System(self._sim.sample)
 
     def _set_system(self, value): 
-        # TODO: I think we should have Copy()
         self._sim.sample = value.sample
 
     system = property(_get_system, _set_system, 'System')
+
+    @property
+    def initial_state(self):
+        return System(self._initial_sample)
 
     def __str__(self):
         return 'RUMD v%s' % GetVersion()
@@ -59,13 +58,13 @@ class RumdBackend(object):
     def rmsd(self):
         """ Compute the mean square displacement between actual sample and the reference sample """
         # TODO: not sure it is the backend responsibility
-        if self._sim.sample is self.initial_state:
+        if self._sim.sample is self._initial_sample:
             raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
         ndim = 3 # hard coded
         N = self._sim.sample.GetNumberOfParticles()
         L = [self._sim.sample.GetSimulationBox().GetLength(i) for i in range(ndim)]
         # Unfold positions using periodic image information
-        ref = self.initial_state.GetPositions() + self.initial_state.GetImages() * L
+        ref = self._initial_sample.GetPositions() + self._initial_sample.GetImages() * L
         unf = self._sim.sample.GetPositions() + self._sim.sample.GetImages() * L
         return (sum(sum((unf-ref)**2)) / N)**0.5
 
@@ -91,7 +90,7 @@ class RumdBackend(object):
         # Copy of initial state. 
         # This way even upon repeated calls to run() we still get the right rmsd
         # Note restart is handled after this, so sample here is really the initial one.
-        self.initial_state = self._sim.sample.Copy()
+        self._initial_sample = self._sim.sample.Copy()
         self._initialize_output = True
         self._restart = restart
         self._ibl = None        
