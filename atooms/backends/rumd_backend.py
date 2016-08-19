@@ -25,6 +25,8 @@ class RumdBackend(object):
         # TODO: need some switch to use or not RUMD checkpoint. If checkpoint_interval is set e.g. we suppress RUMD's one
         # Keep a reference of the Trajectory backend class
         self.trajectory = Trajectory
+        # Copy of initial state (it is not always enough to do it in run_pre())
+        self._initial_sample = self._sim.sample.Copy()
         # We set RUMD block to infinity unless the user set it already
         if self._sim.blockSize is None:
             self._sim.SetBlockSize(sys.maxint)
