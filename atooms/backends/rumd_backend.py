@@ -331,6 +331,7 @@ class System(object):
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
         nsp = self.sample.GetNumberOfTypes()
+        ima = self.sample.GetImages()
         mass = self.__get_mass()
         spe = numpy.ndarray(n, dtype=int)
         name = numpy.ndarray(n, dtype='|S1')
@@ -341,6 +342,8 @@ class System(object):
             name[ii:ii+ni] = nmap[i]
             ii += ni
         p = [Particle(s, n, m, p, v) for s, n, m, p, v in zip(spe, name, mass, pos, vel)]
+        for pi, i in zip(p, ima):
+            pi.periodic_image = i
         return p
 
 class Trajectory(object):
