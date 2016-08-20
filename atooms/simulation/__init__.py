@@ -12,7 +12,7 @@ import copy
 
 from atooms import __version__, __date__
 from atooms.utils import mkdir
-from atooms.utils import rank, size
+from atooms.utils import rank, size, barrier
 from atooms.backends.dryrun import DryRunBackend
 
 # Logging facilities
@@ -482,6 +482,7 @@ class Simulation(object):
         if self.output_path is not None:
             self.backend.output_path = self.output_path
         self.backend.run_pre(self.restart)
+        barrier()
             
     def run_until(self, n):
         # /Design/: it is run_until responsability to set steps: self.steps = n
