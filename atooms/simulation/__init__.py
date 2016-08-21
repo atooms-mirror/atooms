@@ -442,7 +442,7 @@ class Simulation(object):
         # TODO: provide rmsd by species 07.12.2014
         try:
             return self.backend.rmsd
-        except:
+        except AttributeError:
             log.warning('rmsd has not been subclassed')
             return 0.0
 
