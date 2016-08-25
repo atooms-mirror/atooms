@@ -1,8 +1,14 @@
 import unittest
 
+try:
+    import h5py
+    from atooms.trajectory import TrajectoryHDF5
+    HAS_HDF5 = True
+except:
+    HAS_HDF5 = False
+
 from atooms.system import System
 from atooms.system.cell import Cell
-from atooms.trajectory import TrajectoryHDF5
 from atooms.interaction.interaction import Interaction
 from atooms.potential.potential import PairPotential
 from atooms.potential.cutoff import CutOff
