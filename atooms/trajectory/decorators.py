@@ -1,23 +1,32 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+# To properly implement decorators in python see 
+# http://stackoverflow.com/questions/3118929/implementing-the-decorator-pattern-in-python
+# asnwer by Alec Thomas. if we don't subclass at runtime we won't be able to use the decorated
+# mathod in other non-subclassed methods.
+
 """Trajectory decorators."""
 
 import numpy
 
 class Centered(object):
 
-    """ Center positions in the box on the fly """
+    """Center positions in the box on the fly."""
 
     def __new__(cls, component):
         cls = type('Centered', (Centered, component.__class__), component.__dict__)
         return object.__new__(cls)
 
     def __init__(self, component):
-        pass
+        #`Internal list of samples that were already centered.
+        self.__done = []
 
     def read_sample(self, sample):
-        # TODO: check that we have not subtracted it yet (use a list)
+        # If we have subtracted it yet, we return immediately
+        if sample in self.__done:
+            return            
+        self.__done.append(sample)
         s = super(Centered, self).read_sample(sample)
         for p in s.particle:
             p.position -= s.cell.side / 2.0
@@ -25,7 +34,7 @@ class Centered(object):
 
 class Sliced(object):
 
-    """ Only return a slice of a trajectory """
+    """Only return a slice of a trajectory."""
 
     # This is still necessary. slicing via __getitem__ has a large memory fingerprint
     # since we couldnt write it as a generator (maybe it is possible?)
@@ -46,7 +55,7 @@ class Sliced(object):
 
 class Unfolded(object):
 
-    """ Decorate Trajectory to unfold particles positions on the fly """
+    """Decorate Trajectory to unfold particles positions on the fly."""
 
     def __new__(cls, component):
         cls = type('Unfolded', (Unfolded, component.__class__), component.__dict__)
@@ -97,13 +106,7 @@ class Unfolded(object):
         return s
 
 # TODO: see if we can avoid reading anything on construction
-# TODO: how to better handle conversions between subclasses?
-# We cannot use _convert() because we rely on close() method being called
-
-# To properly implement decorators in python see 
-# http://stackoverflow.com/questions/3118929/implementing-the-decorator-pattern-in-python
-# asnwer by Alec Thomas. if we don't subclass at runtime we won't be able to use the decorated
-# mathod in other non-subclassed methods.
+# TODO: how to better handle conversions between subclasses? We cannot use _convert() because we rely on close() method being called
 
 class MatrixFix(object):
 
