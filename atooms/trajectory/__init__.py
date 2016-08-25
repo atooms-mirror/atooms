@@ -190,6 +190,7 @@ class SuperTrajectory2(TrajectoryBase):
 __factory_map = {}
 
 from xyz import *
+from pdb import TrajectoryPDB
 __factory_map['xyz'] = TrajectoryXYZ
 __factory_map['pdb'] = TrajectoryPDB
 
