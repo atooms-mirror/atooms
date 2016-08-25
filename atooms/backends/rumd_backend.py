@@ -95,7 +95,7 @@ class RumdBackend(object):
         self._initial_sample = self._sim.sample.Copy()
         self._initialize_output = True
         self._restart = restart
-        self._ibl = None        
+        self._block_index = None        
         if self.output_path is not None:
             self._suppress_all_output = False # we let it clean the dir upon entrance, then we suppress
             self._sim.sample.SetOutputDirectory(self.output_path)
@@ -121,9 +121,12 @@ class RumdBackend(object):
                         self._sim.sample.ReadConf(self.output_path + '/final.xyz.gz')
                 elif os.path.exists(self.output_path + '/LastComplete_restart.txt'):
                     log.debug('reading rumd restart file %s' % (self.output_path + '/LastComplete_restart.txt'))
+                    # RUMD restart file contains the block index
+                    # (block_index) and the step within the block
+                    # (nstep) of the most recent backup
                     with open(self.output_path + '/LastComplete_restart.txt') as fh:
                         ibl, nstep = fh.readline().split()
-                    self._ibl = int(ibl)
+                    self._block_index = int(ibl)
                     self.steps = int(nstep) * int(ibl)
 
                     # Delete old RUMD restart files
@@ -150,12 +153,11 @@ class RumdBackend(object):
         # If we use our own restart we must tell RUMD
         # to run only the difference n-self.steps. However, if we use
         # the native restart, we must keep n as is.
-        # TODO: what is ibl? Use expressive names!
-        if self._ibl is not None:
+        if self._block_index is not None:
             # We are restarting from RUMD checkpoint. We don't need
             # to worry about initializeOutput.
             # TODO: in this shouldnt we keep all output?
-            self._sim.Run(n, restartBlock=self._ibl,
+            self._sim.Run(n, restartBlock=self._block_index,
                           suppressAllOutput=self._suppress_all_output)
         else:
             # Either we are not restarting or we restart
