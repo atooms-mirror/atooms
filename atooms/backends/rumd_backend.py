@@ -113,12 +113,8 @@ class RumdBackend(object):
                 # @thomas unfortunately RUMD does not seem to write the last restart 
                 # when the simulation is over therefore the last block is always rerun
                 # To work around it we check is final.xyz.gz exists (we write it in run_end)        
-                # TODO: run_end() is not called anymore, so this wont work anymore. Thats really bad.
                 if os.path.exists(self.output_path + '/final.xyz.gz'):
-                    if os.path.getmtime(self.output_path + '/final.xyz.gz') > \
-                            os.path.getmtime(self.output_path + '/LastComplete_restart.txt'):
-                        # Update the sample from final configuartion
-                        self._sim.sample.ReadConf(self.output_path + '/final.xyz.gz')
+                    log.warn('restart file final.xyz.gz found, but it wont be used')
                 elif os.path.exists(self.output_path + '/LastComplete_restart.txt'):
                     log.debug('reading rumd restart file %s' % (self.output_path + '/LastComplete_restart.txt'))
                     # RUMD restart file contains the block index
@@ -184,12 +180,6 @@ class RumdBackend(object):
             # still it clears the output_path)
             self._initialize_output = False
             self.steps = n
-
-    def run_end(self):
-        # Make sure we write final.xyz.gz, this way we can avoid
-        # restarting from the but to last block
-        if self.output_path is not None:
-            self._sim.WriteConf(self.output_path + '/final.xyz.gz')
 
 import numpy
 from atooms.system.particle import Particle

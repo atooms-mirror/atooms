@@ -404,12 +404,6 @@ class ParallelTempering(Simulation):
         if not self.dryrun:
             self.exchange(self.replica)
 
-    def run_end(self):
-        # TODO: not called anymore
-        for i in self.my_replica:
-            self.sim[i].run_end()
-        barrier()
-
     @property
     def state(self):
         # TODO: make state a private list. Done this way is unsafe
