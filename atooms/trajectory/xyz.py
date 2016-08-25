@@ -363,47 +363,6 @@ class TrajectoryPDB(TrajectoryBase):
         self.trajectory.close()
 
 
-class TrajectoryXYZIkeda2(TrajectoryXYZ):
-
-    """Trajectory with indexed XYZ layout from Atsushi Ikeda. Assume one component"""
-
-    def _setup_index(self, fh):
-
-        self._index = []
-        self._index_cell = None
-
-        fh.seek(0)
-        data = self.trajectory.readline().split()
-        npart = int(data[0])
-        ncfg = int(data[1])
-        L = numpy.array([data[2]] * 3, dtype=float)
-        self._npart = [npart] * ncfg
-        self._cell = Cell(L)
-
-        for i in range(ncfg):
-            # This is a float in Atsushi's format
-            step = float(self.trajectory.readline())
-            self.steps.append(step)
-            self._index.append(fh.tell())
-            for i in range(npart):
-                fh.readline()
-
-        # Atsushi stores the actual time (istep*dt).
-        # To get it right we define an artificial timestep as the time difference
-        # between the two first samples and then redefine steps = samples
-        self._timestep = self.steps[1] - self.steps[0] # assume linear grid
-        self.steps = range(len(self.steps))
-
-    def read_sample(self, sample):
-
-        self.trajectory.seek(self._index[sample])
-        p = []
-        for j in range(self._npart[sample]):
-            d = self.trajectory.readline().split()
-            r = numpy.array(d[1:4], dtype=float)
-            p.append(Particle(name='A', id=1, position=r)) #- self._cell.side/2.0)))
-        return System(p, self._cell)
-
 if __name__ == '__main__':
     import atooms.trajectory as trj
     t=trj.Trajectory('/home/coslo/projects/polydisperse_swap/data/misaki/const_volume/EQ/N8000/phi0.640/conv-configs/config.h5')
