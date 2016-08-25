@@ -104,7 +104,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
     def write_sample(self, system, step):
         # We need to redfine the id, because it expects numerical ids from 0 to nsp-1
         # We get the smallest species id, which we will then subtract.
-        # TODO: cache id_min for efficiency
         id_min = min([p.id for p in system.particle])
         self.trajectory.write("%d\n" % len(system.particle))
         self.trajectory.write(self._comment_header(step, system))
