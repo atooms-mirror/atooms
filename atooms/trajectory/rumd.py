@@ -22,7 +22,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
     #     # Array entry have comma separated elements, split them into lists
 
     def __init__(self, filename, mode='r'):
-        """basename: prefix of RUMD configurations."""
         # Use an internal counter for ioformat=2
         self._step = 0
 
