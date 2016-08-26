@@ -1,7 +1,7 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Trajectory formats for 3rd party simulation packages"""
+"""RUMD trajectory format."""
 
 import os
 import re
@@ -22,7 +22,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
     #     # Array entry have comma separated elements, split them into lists
 
     def __init__(self, filename, mode='r'):
-        """basename: prefix of RUMD configurations."""
         # Use an internal counter for ioformat=2
         self._step = 0
 
@@ -104,7 +103,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
     def write_sample(self, system, step):
         # We need to redfine the id, because it expects numerical ids from 0 to nsp-1
         # We get the smallest species id, which we will then subtract.
-        # TODO: cache id_min for efficiency
         id_min = min([p.id for p in system.particle])
         self.trajectory.write("%d\n" % len(system.particle))
         self.trajectory.write(self._comment_header(step, system))

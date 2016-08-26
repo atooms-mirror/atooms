@@ -1,6 +1,29 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+"""Parallel tempering simulation."""
+
+# Design:
+
+# Each step of a parallel tempering simulation comprises several steps
+# of an underlying Simulation instance, defined by the swap_interval
+# property.
+
+# Parallel tempering keeps a list of Simulation instances, each of
+# them is responsible for the evolution of the corresponding physical
+# replica. States are swapped, not configurations (replica centric
+# approach).
+
+# In parallel, replicas are distributed evenly to processes. A copy of
+# "unused" physical replica is kept by each process. The relevant
+# replicas are identified using the self.my_replica list. This list is
+# updated after each swap.
+
+# Trajectories are defined internally by Simulation instances.
+# The actual backend might be changed by the user at run time.
+# It's not the replica simulation responsibility to handle the trajectory backend.
+# Each simulation has its own trajectory backend, which can be changed of course
+
 import os
 import sys
 import math
@@ -12,6 +35,8 @@ from atooms.simulation import Simulation, WriterCheckpoint
 from atooms.simulation import log
 from atooms.utils import rank, size, comm, barrier
 from atooms.utils import rmd, rmf, mkdir
+
+# Writer callbacks specific to parallel tempering
 
 class WriterConfig(object):
 
@@ -63,8 +88,10 @@ class WriterThermo(object):
         return 'thermo'
 
     def __call__(self, e):
-        # Since we grab steps from simulations, we must gather them first
-        # We could have each process write down its replicas and make it more efficient, see write_state()
+        # Since we grab steps from simulations, we must gather them first.
+        # We could have each process write down its replicas and make
+        # it more efficient, this used to be self.write_state()
+        # TODO: we could write state atomically, which would allow parallelization and remove communications
         u = numpy.ndarray(e.nr)
         u_l = numpy.ndarray(len(e.my_replica))
         k = numpy.ndarray(e.nr)
@@ -110,6 +137,7 @@ class WriterThermo(object):
                     fh.write('%d %d %d %.6g %.6g\n' % (e.steps, steps[i], irep, 
                                                        u[irep], k[irep]))
 
+# State update callbacks
 
 class StateTemperature(object):
 
@@ -125,26 +153,9 @@ class StateTemperature(object):
             system.thermostat.temperature = params
 
 
-# Design:
-
-# Trajectory are defined internally by Simulation
-# The actual backend might be changed by the user at run time
-
-# Trajectory are usually one per file but rumd uses a directory based logic
-# From a file name we can always reconstruct the dirname,
-# the other way around we need a hint how to construct the path, like a base
-# From this discussion it looks like using file name in constructor is always best ... (even for sim)
-
-# It's not the replica simulation responsibility to handle the trajectory backend
-# Each simulation has its own trajectory backend, which can be changed of course
-
-# In RX we consider a step=block since the number of steps may depend on the replica
-
 class ParallelTempering(Simulation):
 
-    """
-    Parallel tempering simulation.
-    """
+    """Parallel tempering simulation."""
 
     _WRITER_THERMO = WriterThermo
     _WRITER_CONFIG = WriterConfig    
@@ -242,7 +253,7 @@ class ParallelTempering(Simulation):
 
     @property
     def rmsd(self):
-        """In parallel tempering simulation we define rmsd as the minimum one"""
+        """Minimum root mean square displacement among replicas."""
         # RMSD must be known on all processes, thus an allgather is needed
         # This might be optimized by targeting rmsd dynamically.
         rmsd_l = numpy.ndarray(len(self.my_replica))
@@ -270,27 +281,6 @@ class ParallelTempering(Simulation):
                     fh.write(('%d' + fmt + '\n') % tuple([i] + list(T)))
                 except:
                     fh.write('%d %s\n' % (i, T))
-
-    # TODO: drop these two as they are part of WriterThermo
-    def write_replica(self, msd, step):
-        """ Dump output info on a physical replica """
-        # Loop over replicas
-        for i in range(self.nr):
-            with open(self.file_replica_out[i], 'a') as fh:
-                # In which state is physical replica i ?
-                fh.write('%d %d %d %g\n' % (self.steps, step[i], self.state[i], msd[i]))
-
-    def write_state(self, u, k, step):
-        """ Dump output info on a thermodynamic state """
-        # TODO: we could write state atomically, which would allow parallelization and remove communications
-        # Loop over states       
-        log.debug('rx step=%s replicas(state)=%s' % (step[0], self.replica_id))
-
-        for i in range(self.nr):
-            with open(self.file_state_out[i], 'a') as fh:
-                # Which replica is in state i? What is its energy?
-                fh.write('%d %d %d %g %g\n' % (self.steps, step[i], self.replica_id[i], 
-                                               u[self.replica_id[i]], k[self.replica_id[i]] )) #, self.acceptance(i)))
 
     # def read_checkpoint(self):
     #     """ Checkpoint """
@@ -413,12 +403,6 @@ class ParallelTempering(Simulation):
         # Attempt to exchange replicas.
         if not self.dryrun:
             self.exchange(self.replica)
-
-    def run_end(self):
-        # TODO: not called anymore
-        for i in self.my_replica:
-            self.sim[i].run_end()
-        barrier()
 
     @property
     def state(self):
