@@ -302,6 +302,7 @@ class TrajectoryHDF5(TrajectoryBase):
     def read_sample(self, sample, unfolded=False):
         # We must increase sample by 1 if we iterate over samples with len().
         # This is some convention to be fixed once and for all
+        # TODO: read cell on the fly NPT
         isample = self._samples[sample]
         csample = '/sample_%7.7i' % isample
         # read particles
