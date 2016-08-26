@@ -9,8 +9,8 @@ class TestXYZ(unittest.TestCase):
 
     def setUp(self):
         self.finp = '/tmp/test_pbc.xyz'
-        fh = open(self.finp, 'w')
-        fh.write("""\
+        with open(self.finp, 'w') as fh:
+            fh.write("""\
 2
 1
 A 1.0 -1.0 0.0
@@ -29,7 +29,24 @@ A 1.3 -1.3 0.0
 A -2.8 2.8 0.0
 6.0 6.0 6.0
 """)
-        fh.close()
+        # Test metadata recognition
+        self.finp_meta = '/tmp/test_meta.xyz'
+        with open(self.finp_meta, 'w') as fh:
+            fh.write("""\
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0 step:1 cell:5.0,5.0,5.0 
+A 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+""")
+
+
+    def test_xyz_meta(self):
+        with trajectory.TrajectoryXYZ(self.finp_meta) as t:
+            meta = t._read_metadata(0)
+            self.assertEqual(t.steps, [1])
+            self.assertEqual(meta['mass'], ['1.0', '2.0'])
+            self.assertEqual(t[0].particle[0].mass, 1.0)
+            self.assertEqual(t[0].particle[1].mass, 2.0)
 
     def test_xyz_indexed(self):
         r_ref = [[1., -1., 0.], [2.9, -2.9, 0.]]

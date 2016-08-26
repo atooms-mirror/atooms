@@ -145,6 +145,25 @@ class TrajectoryXYZ(TrajectoryBase):
         self.trajectory.seek(0)
         self._step = 0
 
+    def _read_metadata(self, sample):
+        """Internal xyz method to get header metadata from comment line of given sample."""
+        # Get comment line
+        self.trajectory.seek(self._index[sample])
+        self.trajectory.readline() # skip Npart
+        line = self.trajectory.readline()
+        # We assume metadata fmt is a space-separated sequence of comma separated entries
+        # such as
+        # columns:id,x,y,z step:10
+        # columns=id,x,y,z step=10
+        meta = {}
+        entries = line.split()
+        for e in entries:
+            s = re.search(r'(\S*)[=:](\S*)', e)
+            if s is not None:
+                tag, data = s.group(1), s.group(2)
+                meta[tag] = data.split(',')
+        return meta
+
     def _parse_header(self, data):
         """Internal xyz method to get header metadata."""
         meta = {'step':None, 'cell':None, 'columns':None}
@@ -240,6 +259,18 @@ class TrajectoryXYZ(TrajectoryBase):
         # The minimum id is set by self._min_id
         for pi in p:
             pi.id = self._map_id.index(pi.name) + self._min_id
+
+        # Fix the mass
+        meta = self._read_metadata(sample)
+        try:
+            mass = map(float, meta['mass'])
+            mass_db = {}           
+            for k, e in zip(self._map_id, mass):
+                mass_db[k] = e
+            for pi in p:
+                pi.mass = mass_db[pi.name]
+        except KeyError:
+            pass
 
         return System(p, self._cell)
 
