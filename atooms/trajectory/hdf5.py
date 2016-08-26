@@ -224,7 +224,7 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory.create_group_safe('/trajectory/cell')
             if 'cell' in self.fmt:
                 self.trajectory.create_group_safe('/trajectory/cell/sidebox')
-                self.trajectory['/trajectory/cell/sidebox' + csample] = [system.cell.side]
+                self.trajectory['/trajectory/cell/sidebox' + csample] = system.cell.side
 
     def read_init(self):
         # read particles
