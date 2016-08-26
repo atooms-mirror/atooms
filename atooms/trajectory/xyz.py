@@ -161,6 +161,7 @@ class TrajectoryXYZ(TrajectoryBase):
             s = re.search(r'(\S*)[=:](\S*)', e)
             if s is not None:
                 tag, data = s.group(1), s.group(2)
+                data = data.strip(',') # remove dangling commas
                 meta[tag] = data.split(',')
         return meta
 
