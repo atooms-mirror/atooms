@@ -348,6 +348,10 @@ class TrajectoryHDF5(TrajectoryBase):
         except:
             self.exclude(['radius'])
 
+        # Read cell
+        group = self.trajectory['/trajectory/cell']
+        self._system.cell.side = group['sidebox' + csample][:]
+
         # Read also interaction.
         has_int = True
         try:
