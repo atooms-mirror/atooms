@@ -196,6 +196,9 @@ class Sorted(object):
         cls = type('Sorted', (Sorted, component.__class__), component.__dict__)
         return object.__new__(cls)
 
+    def __init__(self, component): 
+        pass
+
     def read_sample(self, *args, **kwargs):
         s = super(Sorted, self).read_sample(*args, **kwargs)
         s.particle.sort(key = lambda a : a.id)
@@ -264,6 +267,29 @@ class Filter(object):
             return self.filt(sy, *self._args, **self._kwargs)
         except:
             return self.filt(self, sy, *self._args, **self._kwargs)
+
+import random
+
+
+class AffineDeformation(object):
+
+    def __new__(cls, component, scale):
+        cls = type('AffineDeformation', (AffineDeformation, component.__class__), component.__dict__)
+        return object.__new__(cls)
+
+    def __init__(self, component, scale=0.01):
+        self.component = component
+        self.scale = scale
+
+    def read_sample(self, *args, **kwargs):
+        s = super(AffineDeformation, self).read_sample(*args, **kwargs)
+        # Note this random scaling changes every time read is called,
+        # even for the same sample
+        scale = 1 + (random.random()-0.5)*self.scale
+        s.cell.side *= scale
+        for p in s.particle:
+            p.position *= scale
+        return s
 
 
 def filter_id(s, species):
