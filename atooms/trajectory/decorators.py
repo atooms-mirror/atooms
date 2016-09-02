@@ -193,7 +193,7 @@ class Sorted(object):
     """Sort by species"""
 
     def __new__(cls, component):
-        cls = type('Sorted', (NormalizeId, component.__class__), component.__dict__)
+        cls = type('Sorted', (Sorted, component.__class__), component.__dict__)
         return object.__new__(cls)
 
     def read_sample(self, *args, **kwargs):
