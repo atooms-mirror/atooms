@@ -40,7 +40,7 @@ class System(object):
         # Ideally, one could determine this via some additional attribute.
         if ndof is None:
             ndof = (len(self.particle)-1) * self.number_of_dimensions
-        return 2.0 / ndf * total_kinetic_energy(self.particle) 
+        return 2.0 / ndof * total_kinetic_energy(self.particle) 
 
     def kinetic_energy(self):
         return total_kinetic_energy(self.particle) 
@@ -83,3 +83,9 @@ class System(object):
             return numpy.array([p.velocity[dim] for p in self.particle[pslice]])
         elif what == 'sigma':
             return numpy.array([p.radius*2 for p in self.particle[pslice]])
+
+    def scale(self, factor):
+        """Affine displacement"""
+        for p in self.particle:
+            p.position *= factor
+        self.cell.side *= factor
