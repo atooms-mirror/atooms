@@ -536,10 +536,12 @@ class Simulation(object):
         except SimulationEnd as s:
             # Checkpoint configuration at last step
             self.writer_checkpoint(self)
-            # Only dumps log if actually we did some steps
             log.info('%s' % s.message)
-            if not self.initial_steps == self.steps:
+            # We ignore errors due to performed steps being zero
+            try:
                 self._report_end()
+            except:
+                pass
 
         except KeyboardInterrupt:
             pass
@@ -575,10 +577,10 @@ class Simulation(object):
                 log.info('writer %s: interval=%s calls=%s' % (f, s.interval, s.calls))
 
     def _report_end(self):
+        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
         log.info('final steps: %d' % self.steps)
         log.info('final rmsd: %.2f' % self.rmsd)
         log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
         log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))
-        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
 
 
