@@ -246,7 +246,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # read cell
         group = self.trajectory['/initialstate/cell']
         for entry in group:
-            if entry == 'sidebox' : sidebox = group[entry][:]
+            if entry == 'sidebox':
+                sidebox = group[entry][:]
         cell = Cell(sidebox)
 
         # read interaction as h5 group
@@ -350,7 +351,12 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Read cell
         group = self.trajectory['/trajectory/cell']
-        self._system.cell.side = group['sidebox' + csample][:]
+        side = group['sidebox' + csample][:]
+        # This fixes an issue with some hdf5 trajectories that stored
+        # cell as (1,3) array
+        if len(side.shape) == 2:
+            side = side[0]
+        self._system.cell.side = side
 
         # Read also interaction.
         has_int = True
