@@ -375,11 +375,11 @@ class ParallelTempering(Simulation):
 
     def _report_end(self):
 #        log.info('final minimum acceptance: %.2f' % min([self.acceptance(i) for i in range(self.nr)]))
+        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
         log.info('final steps: %d' % self.steps)
         log.info('final minimum rmsd: %.2f' % self.rmsd)
         log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
         log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))
-        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
 
     def run_until(self, nsteps):
         """Run until nsteps, which is the number of PT steps, i.e. a block of several steps"""
