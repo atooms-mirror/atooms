@@ -18,6 +18,7 @@ class System(object):
         self.matrix   = matrix
         self.thermostat = thermostat
         self.dynamics = dynamics
+        self._potential_energy = 0.0
 
     @property
     def number_of_dimensions(self):
@@ -44,6 +45,12 @@ class System(object):
 
     def kinetic_energy(self):
         return total_kinetic_energy(self.particle) 
+
+    def potential_energy(self):
+        return self._potential_energy
+
+    def mean_square_displacement(self, reference):
+        return 0.0
 
     @property
     def velocity_cm(self):
