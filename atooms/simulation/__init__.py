@@ -105,6 +105,7 @@ class WriterConfig(object):
         if e.output_path is None:
             log.warning('config writing is request but output path is None')
             return
+        # Note: we are passing but actually some trajectories store in directories
         f = os.path.join(e.output_path, 'trajectory.' + e.trajectory.suffix)
         with e.trajectory(f, 'a') as t:
             t.write(e.system, e.steps)
