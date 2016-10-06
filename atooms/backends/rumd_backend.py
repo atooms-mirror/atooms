@@ -367,9 +367,10 @@ class Trajectory(object):
 
     def write(self, system, step):
         f = self.filename 
-        if step:
+        if step is not None:
             base, ext = os.path.splitext(f)
             f = base + '_%011d' % step + ext
+        log.debug('writing config via backend to %s at step %s' % (f, step))
         system.sample.WriteConf(f, self.mode)
 
     def close(self):
