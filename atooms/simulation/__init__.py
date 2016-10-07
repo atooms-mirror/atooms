@@ -375,6 +375,7 @@ class Simulation(object):
         if self.enable_speedometer:
             self.speedometer = Speedometer()
             self.add(self.speedometer, Scheduler(None, calls=20, target=self.target_steps))
+        # TODO: if we are restarting and nsteps is increased, this will change the interval between cfgs
         self.add(self.writer_thermo, Scheduler(self.thermo_interval, self.thermo_number, self.target_steps))
         self.add(self.writer_config, Scheduler(self.config_interval, self.config_number, self.target_steps))
         self.add(self.writer_checkpoint, Scheduler(self.checkpoint_interval, self.checkpoint_number, self.target_steps))
