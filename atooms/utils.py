@@ -154,3 +154,22 @@ def add_first_last_skip(parser, what=['first', 'last', 'skip']):
     if 'skip' in what:
         parser.add_argument('-s', '--skip',  dest='skip', type=int, default=1, help='interval between cfg')
     return parser
+
+# Logging facilities
+
+class ParallelFilter(logging.Filter):
+    def filter(self, rec):
+        if hasattr(rec, 'rank'):
+            if rec.rank == 'all':
+                return True
+            else:
+                return rank == rec.rank
+        else:
+            return rank == 0
+
+class MyFormatter(logging.Formatter):
+    def format(self, record):
+        if record.levelname in ['WARNING', 'ERROR']:
+            return '# %s: %s' % (record.levelname, record.msg)
+        else:
+            return '# %s' % record.msg

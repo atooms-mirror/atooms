@@ -13,26 +13,10 @@ import copy
 from atooms import __version__, __date__
 from atooms.utils import mkdir, rmd, rmf
 from atooms.utils import rank, size, barrier
+from atooms.utils import ParallelFilter, MyFormatter
 from atooms.backends.dryrun import DryRunBackend
 
-# Logging facilities
-
-class ParallelFilter(logging.Filter):
-    def filter(self, rec):
-        if hasattr(rec, 'rank'):
-            if rec.rank == 'all':
-                return True
-            else:
-                return rank == rec.rank
-        else:
-            return rank == 0
-
-class MyFormatter(logging.Formatter):
-    def format(self, record):
-        if record.levelname in ['WARNING', 'ERROR']:
-            return '# %s: %s' % (record.levelname, record.msg)
-        else:
-            return '# %s' % record.msg
+# Logging
 
 log = logging.getLogger('atooms')
 formatter = MyFormatter()
