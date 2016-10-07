@@ -69,10 +69,11 @@ def rmd(files):
         pass
 
 def rmf(files):
-    try:
-        os.remove(files)
-    except:
-        pass
+    for f in files:
+        try:
+            os.remove(f)
+        except:
+            pass
 
 
 # Timer class, inspired by John Paulett's stopwatch
