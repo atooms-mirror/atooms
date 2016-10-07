@@ -13,6 +13,8 @@ from rumdSimulation import rumdSimulation
 
 class RumdBackend(object):
 
+    # TODO: check the use case of repeated run() without restart
+
     def __init__(self, sim, output_path=None, fixcm_interval=0):
         self.steps = 0
         self.fixcm_interval = fixcm_interval
@@ -30,15 +32,8 @@ class RumdBackend(object):
         # We set RUMD block to infinity unless the user set it already
         if self._sim.blockSize is None:
             self._sim.SetBlockSize(sys.maxint)
-        # Every time we call run() and we are not restarting, we clear output_path
-        # TODO: check the use case of repeated run() without restart
-        # Initialize output in RUMD is checked upon calling Run()
-        # and takes care of creating backup if requested. If no backup is done and this is True
-        # the directory is deleted. That's why this variable must be set to false
-        # after the first call to Run()
         # Handle output
         self._suppress_all_output = True
-        self._initialize_output = True
         self._restart = False # internal restart toggle
 
     def _get_system(self):
@@ -89,50 +84,50 @@ class RumdBackend(object):
         log.debug('rumd restarting from %d' % self.steps)
 
     def run_pre(self, restart):
-        # Copy of initial state. 
-        # This way even upon repeated calls to run() we still get the right rmsd
-        # Note restart is handled after this, so sample here is really the initial one.
+        # Copy of initial state. This way even upon repeated calls to
+        # run() we still get the right rmsd Note restart is handled
+        # after this, so sample here is really the initial one.
         self._initial_sample = self._sim.sample.Copy()
-        self._initialize_output = True
         self._restart = restart
-        self._block_index = None        
+        self._rumd_block_index = None        
+
         if self.output_path is not None:
-            self._suppress_all_output = False # we let it clean the dir upon entrance, then we suppress
-            self._sim.sample.SetOutputDirectory(self.output_path)
-        if self.output_path is None:
-            print 'warning: it does not make sense to restart when writing is disabled'
-            return
-        if self._restart:
+            self._sim.sample.SetOutputDirectory(self.output_path + 'rumd')
+
+        if not self._restart:
+            # We initialize RUMD writers state. Since we make 0 steps,
+            # this won't create the output dir Note: RUMD complains if
+            # we attempt to run some steps and we dont suppress output
+            # without initializing the writers.
+            self._sim.Run(0, suppressAllOutput=True, initializeOutput=True)
+        else:
             log.debug('restart attempt')
-            f = os.path.join(self.output_path, 'trajectory.chk')
-            if os.path.exists(f):
-                # If we find our own checkpoint file, we ignore RUMD checkpoint
+            if self.output_path is None:
+                log.warn('it does not make sense to restart when writing is disabled')
+                return
+            if os.path.exists(os.path.join(self.output_path, 'trajectory.chk')):
+                # Use our own checkpoint file. We ignore RUMD checkpoint
                 self.read_checkpoint()
-            else:
+            elif os.path.exists(self.output_path + '/LastComplete_restart.txt'):
                 # Use RUMD checkpoint
                 # @thomas unfortunately RUMD does not seem to write the last restart 
                 # when the simulation is over therefore the last block is always rerun
-                # To work around it we check is final.xyz.gz exists (we write it in run_end)        
-                if os.path.exists(self.output_path + '/final.xyz.gz'):
-                    log.warn('restart file final.xyz.gz found, but it wont be used')
-                elif os.path.exists(self.output_path + '/LastComplete_restart.txt'):
-                    log.debug('reading rumd restart file %s' % (self.output_path + '/LastComplete_restart.txt'))
-                    # RUMD restart file contains the block index
-                    # (block_index) and the step within the block
-                    # (nstep) of the most recent backup
-                    with open(self.output_path + '/LastComplete_restart.txt') as fh:
-                        ibl, nstep = fh.readline().split()
-                    self._block_index = int(ibl)
-                    self.steps = int(nstep) * int(ibl)
+                # RUMD restart file contains the block index (block_index) 
+                # and the step within the block (nstep) of the most recent backup
+                log.debug('reading rumd restart file %s' % (self.output_path + '/LastComplete_restart.txt'))
+                with open(self.output_path + '/LastComplete_restart.txt') as fh:
+                    ibl, nstep = fh.readline().split()
+                self._rumd_block_index = int(ibl)
+                self.steps = int(nstep) * int(ibl)
 
-                    # Delete old RUMD restart files
-                    import glob
-                    restart_files = glob.glob(self.output_path + '/restart*')
-                    restart_files.sort()
-                    for f in restart_files[:-1]:
-                        log.debug('removing restart file %s' % f)
-                        os.remove(f)
-        
+                # Cleanup: delete old RUMD restart files
+                import glob
+                restart_files = glob.glob(self.output_path + '/restart*')
+                restart_files.sort()
+                for f in restart_files[:-1]:
+                    log.debug('removing restart file %s' % f)
+                    os.remove(f)
+
     def run_until(self, n):
         # 1. suppress all RUMD output and use custom writers. PROS:
         #    this way running batches of simulations will work without
@@ -149,36 +144,16 @@ class RumdBackend(object):
         # If we use our own restart we must tell RUMD
         # to run only the difference n-self.steps. However, if we use
         # the native restart, we must keep n as is.
-        if self._block_index is not None:
-            # We are restarting from RUMD checkpoint. We don't need
-            # to worry about initializeOutput.
-            # TODO: in this shouldnt we keep all output?
-            self._sim.Run(n, restartBlock=self._block_index,
-                          suppressAllOutput=self._suppress_all_output)
+        log.debug('RUMD running from %d to %d steps' % (self.steps, n))
+        if self._rumd_block_index is not None:
+            # Restart from RUMD checkpoint
+            self._sim.Run(n, restartBlock=self._rumd_block_index)
         else:
-            # Either we are not restarting or we restart
-            # from our checkpoint. In the first case we make sure
-            # the directory is cleared the first time this is called
-            # TODO: Actually, we could avoid the inconvenience and do it on our
-            # own (in this case set initializeOutput fo False)            
+            # Not restarting or restart from our checkpoint.
             if self._restart:
-                self._suppress_all_output = True
-                self._initialize_output = False
-                # We must toggle it here to prevent future calls to pre to restart
-                # TODO: why??
+                # We must toggle it here to prevent future calls to pre to restart. TODO: why??
                 self._restart = False 
-            log.debug('RUMD running from %d to %d steps' % (self.steps, n))
-            log.debug('RUMD suppress=%s initialize=%s' % (self._suppress_all_output, self._initialize_output))
-            self._sim.Run(n-self.steps, suppressAllOutput=self._suppress_all_output,
-                          initializeOutput = self._initialize_output)
-            # We let it clean the dir upon entrance, then we suppress this
-            # Note this will leave a restart file.
-            # TODO: perhaps it is better to clean up the dir on our own.
-            self._suppress_all_output = True
-            # After calling run_until once, we prevent RUMD from
-            # clearing the directory (note we have disabled backups but
-            # still it clears the output_path)
-            self._initialize_output = False
+            self._sim.Run(n-self.steps, suppressAllOutput=self._suppress_all_output, initializeOutput=False)
             self.steps = n
 
 import numpy
@@ -370,7 +345,7 @@ class Trajectory(object):
         if step is not None:
             base, ext = os.path.splitext(f)
             f = base + '_%011d' % step + ext
-        log.debug('writing config via backend to %s at step %s' % (f, step))
+        log.debug('writing config via backend to %s at step %s, %s' % (f, step, self.mode))
         system.sample.WriteConf(f, self.mode)
 
     def close(self):

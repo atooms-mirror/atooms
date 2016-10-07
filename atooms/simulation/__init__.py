@@ -11,7 +11,7 @@ import logging
 import copy
 
 from atooms import __version__, __date__
-from atooms.utils import mkdir
+from atooms.utils import mkdir, rmd, rmf
 from atooms.utils import rank, size, barrier
 from atooms.backends.dryrun import DryRunBackend
 
@@ -437,7 +437,7 @@ class Simulation(object):
         for o in observers:
             log.debug('notify %s' % o)
             o(self)
-    
+
     @property
     def rmsd(self):
         # TODO: provide rmsd by species 07.12.2014
@@ -469,6 +469,20 @@ class Simulation(object):
         except:
             return 0.0
 
+    def clear_output(self):
+        """Clear output path.
+        For directory storage, delete the whole directory.
+        For file storage, delete all files like <output_path>*.
+        """
+        import glob
+        if self.output_path is None:
+            return
+        if self.STORAGE == 'directory':
+            rmf(glob.glob(self.output_path))
+            mkdir(self.output_path)
+        elif self.STORAGE == 'file':
+            rmf(glob.glob(self.output_path + '*'))
+
     # Our template consists of two steps: run_pre() and run_until()
     # Typically a backend will implement the until method.
     # It is recommended to *extend* (not override) the base run_pre() in subclasses
@@ -476,10 +490,7 @@ class Simulation(object):
     # Having a read_checkpoint() stub method would be OK here.
     def run_pre(self):
         """Deal with restart conditions before run we call_until()"""
-        # TODO: moved from init to here, is it ok?
         log.debug('calling backend pre at steps %d' % self.steps)
-        if self.output_path is not None and self.STORAGE == 'directory':
-            mkdir(self.output_path)
         if self.output_path is not None:
             self.backend.output_path = self.output_path
         self.backend.run_pre(self.restart)
@@ -516,6 +527,7 @@ class Simulation(object):
             # Then notify non targeters unless we are restarting
             self.notify(self._targeters)
             if self.steps == 0:
+                self.clear_output()
                 self.notify(self._non_targeters)
             else:
                 self.notify(self._speedometers)
@@ -533,8 +545,9 @@ class Simulation(object):
                 # Observers are sorted such that targeters are last
                 # and checkpoint is last among writers
                 self.notify(next_obs)
-
+                
         except SimulationEnd as s:
+
             # Checkpoint configuration at last step
             self.writer_checkpoint(self)
             log.info('%s' % s.message)

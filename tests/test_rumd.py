@@ -10,7 +10,7 @@ except ImportError:
 from atooms.simulation import Simulation, log
 from atooms.simulation.parallel_tempering import ParallelTempering
 
-log.setLevel(10)
+#log.setLevel(10)
 
 def potential():
     import rumd
@@ -19,6 +19,7 @@ def potential():
     pot.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
     pot.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
     pot.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
+    pot.SetVerbose(False)
     return [pot]
 
 class Test(unittest.TestCase):
