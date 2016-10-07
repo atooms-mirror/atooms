@@ -92,7 +92,7 @@ class RumdBackend(object):
         self._rumd_block_index = None        
 
         if self.output_path is not None:
-            self._sim.sample.SetOutputDirectory(self.output_path + 'rumd')
+            self._sim.sample.SetOutputDirectory(self.output_path + '/rumd')
 
         if not self._restart:
             # We initialize RUMD writers state. Since we make 0 steps,
@@ -108,25 +108,27 @@ class RumdBackend(object):
             if os.path.exists(os.path.join(self.output_path, 'trajectory.chk')):
                 # Use our own checkpoint file. We ignore RUMD checkpoint
                 self.read_checkpoint()
-            elif os.path.exists(self.output_path + '/LastComplete_restart.txt'):
+            elif os.path.exists(self.output_path + '/rumd/LastComplete_restart.txt'):
                 # Use RUMD checkpoint
                 # @thomas unfortunately RUMD does not seem to write the last restart 
                 # when the simulation is over therefore the last block is always rerun
                 # RUMD restart file contains the block index (block_index) 
                 # and the step within the block (nstep) of the most recent backup
-                log.debug('reading rumd restart file %s' % (self.output_path + '/LastComplete_restart.txt'))
-                with open(self.output_path + '/LastComplete_restart.txt') as fh:
+                log.debug('reading rumd restart %s' % (self.output_path + '/rumd/LastComplete_restart.txt'))
+                with open(self.output_path + '/rumd/LastComplete_restart.txt') as fh:
                     ibl, nstep = fh.readline().split()
                 self._rumd_block_index = int(ibl)
                 self.steps = int(nstep) * int(ibl)
-
                 # Cleanup: delete old RUMD restart files
                 import glob
-                restart_files = glob.glob(self.output_path + '/restart*')
+                restart_files = glob.glob(self.output_path + '/rumd/restart*')
                 restart_files.sort()
                 for f in restart_files[:-1]:
                     log.debug('removing restart file %s' % f)
                     os.remove(f)
+            else:
+                log.warn('restart requested but no checkpoint is found')
+
 
     def run_until(self, n):
         # 1. suppress all RUMD output and use custom writers. PROS:
