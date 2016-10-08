@@ -6,19 +6,15 @@ class CutOff(object):
     
     def __init__(self, name, radius):
         self.name = name # this is what was called scheme
-        self.rcut = radius
+        self.radius = radius
         self.rcutsq = radius**2
         
     @property
     def effective_radius(self):
-        return self.rcut
-
-    @property
-    def formal_radius(self):
-        return self.rcut
+        return self.radius
 
     def is_zero(self, rsquare):
-        return rsquare > self.rcut
+        return rsquare > self.radius**2
 
     def tailor(self, rsquare):
         raise NotImplementedError()
