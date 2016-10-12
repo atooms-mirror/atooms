@@ -193,7 +193,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.trajectory[pgr + 'parameters_name'] = sorted(phi.params.keys())
                 self.trajectory[pgr + 'parameters'] = [phi.params[k] for k in sorted(phi.params.keys())]
                 self.trajectory[pgr + 'cutoff_scheme'] = [phi.cutoff.name]
-                self.trajectory[pgr + 'cutoff_radius'] = [phi.cutoff.formal_radius]
+                self.trajectory[pgr + 'cutoff_radius'] = [phi.cutoff.radius]
                 self.trajectory[pgr + 'lookup_points'] = [phi.npoints]
 
     def write_sample(self, system, step):
