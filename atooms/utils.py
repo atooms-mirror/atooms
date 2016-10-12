@@ -174,3 +174,32 @@ class MyFormatter(logging.Formatter):
             return '# %s: %s' % (record.levelname, record.msg)
         else:
             return '# %s' % record.msg
+
+def tipify(s):
+    """Convert a string into the best matching type.
+    Example: 2 -> int; 2.32 -> float; text -> str
+    The only risk is if a variable is required to be float, 
+    but is passed without dot.
+
+    Tests:
+    print type(tipify('2.0')) is float
+    print type(tipify('2')) is int
+    print type(tipify('t2')) is str
+    print map(tipify, ['2.0', '2'])
+    """
+    try:
+        return int(s)
+    except ValueError:
+        try:
+            return float(s)
+        except ValueError:
+            return s
+
+
+def __header_dict(self, line):
+    # Array entry have comma separated elements, split them into lists
+    params = {}
+    for key, value in [d.split('=') for d in line.split()]:
+        params[key] = value
+    return params
+

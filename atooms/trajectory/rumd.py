@@ -15,18 +15,12 @@ from atooms.system.cell import Cell
 class TrajectoryRUMD(TrajectoryXYZ):
     # TODO: allow reading unfolded configuration by parsing the box image integers
 
-    # def __header_dict(self, line):
-    #     params = {}
-    #     for key, value in [d.split('=') for d in line.split()]:
-    #         params[key] = value
-    #     # Array entry have comma separated elements, split them into lists
-
     def __init__(self, filename, mode='r'):
         # Use an internal counter for ioformat=2
         self._step = 0
-
+        self._timestep = 1.0
         super(TrajectoryRUMD, self,).__init__(filename, mode)
-        
+        self.tags['step': 'timeStepIndex', 'cell': 'boxLengths']
         # The minimum id for RUMD is 0
         self._min_id = 0
         
@@ -57,35 +51,49 @@ class TrajectoryRUMD(TrajectoryXYZ):
                 if s:
                     self.steps = [int(s.group(1))]
 
-    def _parse_step(self, data):
-        s = re.search(r'timeStepIndex=(\d*)', data)
-        if s is None:
-            self._step += 1
-            n = self._step
-        else:
-            n = s.group(1)
-        return int(n)
+    # def _parse_step(self, data):
+    #     s = re.search(r'timeStepIndex=(\d*)', data)
+    #     print s
+    #     if s is None:
+    #         self._step += 1
+    #         n = self._step
+    #     else:
+    #         n = s.group(1)
+    #     return int(n)
 
-    def _parse_cell(self):
-        self.trajectory.seek(0)
-        self.trajectory.readline()
-        data = self.trajectory.readline()
-        # TODO: improve parsing of timestep dt in xyz indexed files, we put it into _parse_cell() for the moment. We could have a parse metadata that returns a dict.
-        s = re.search(r'dt=(\S*)', data)
-        if s is None:
-            self._timestep = 1.0
-        else:
-            self._timestep = float(s.group(1))
-        # Parse cell side. We take care of string in old format,
-        # in which case the whole string is returned. After sim_box
-        # there is a keyword for the box type which must be ignored
-        s = re.search(r'boxLengths=(\S*)', data)
-        if s is None:
-            s = re.search(r'sim_box=(\S*)', data)
-            side = s.group(1).split(',')[1:]
-        else:
-            side = s.group(1).split(',')
-        return Cell(numpy.array(side, dtype=float))
+#    def read_init(self):
+        # TODO: fixme!
+        #self._timestep = self._read_metadata(0)['dt']
+        # # Parse cell side. We take care of string in old format,
+        # # in which case the whole string is returned. After sim_box
+        # # there is a keyword for the box type which must be ignored
+        # s = re.search(r'boxLengths=(\S*)', data)
+        # if s is None:
+        #     s = re.search(r'sim_box=(\S*)', data)
+        #     side = s.group(1).split(',')[1:]
+        # else:
+        #     side = s.group(1).split(',')
+        
+    # def _parse_cell(self):
+    #     self.trajectory.seek(0)
+    #     self.trajectory.readline()
+    #     data = self.trajectory.readline()
+    #     # TODO: improve parsing of timestep dt in xyz indexed files, we put it into _parse_cell() for the moment. We could have a parse metadata that returns a dict.
+    #     # s = re.search(r'dt=(\S*)', data)
+    #     # if s is None:
+    #     #     self._timestep = 1.0
+    #     # else:
+    #     #     self._timestep = float(s.group(1))
+    #     # Parse cell side. We take care of string in old format,
+    #     # in which case the whole string is returned. After sim_box
+    #     # there is a keyword for the box type which must be ignored
+    #     s = re.search(r'boxLengths=(\S*)', data)
+    #     if s is None:
+    #         s = re.search(r'sim_box=(\S*)', data)
+    #         side = s.group(1).split(',')[1:]
+    #     else:
+    #         side = s.group(1).split(',')
+    #     return Cell(numpy.array(side, dtype=float))
 
     def _comment_header(self, step, system):
 

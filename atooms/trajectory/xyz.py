@@ -6,7 +6,8 @@ import gzip
 import numpy
 import re
 
-from base  import TrajectoryBase
+from base import TrajectoryBase
+from atooms.utils import tipify 
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
@@ -24,6 +25,7 @@ class TrajectoryXYZBase(TrajectoryBase):
 
     def write_sample(self, system, step):
         # Check that all arrays in data have the same length
+        # TODO: hey whats the status of this cbk thing?
         data = [[f(p) for p in system.particle] for f in self.cbk_write]
         nlines = len(data[0])
         ncols = len(data)
@@ -53,10 +55,12 @@ class TrajectoryXYZ(TrajectoryBase):
 
     # TODO: move all file init to write_init. Rename trajectory fh or something like this.
 
-    def __init__(self, filename, mode='r'):
+    def __init__(self, filename, mode='r', tags={}):
         TrajectoryBase.__init__(self, filename, mode)
         # This is the default column format.
         # TODO: Using vx, vy, vz in the header will grab the velocities
+        self.tags = {'step': 'step', 'cell': 'cell', 'columns': 'columns'}
+        self.tags.update(tags)
         self.fmt = ['id', 'x', 'y', 'z']
         self._timestep = 1.0
         self._cell = None
@@ -77,20 +81,24 @@ class TrajectoryXYZ(TrajectoryBase):
                 self.trajectory = gzip.open(self.filename)
             else:
                 self.trajectory = open(self.filename, 'r')
-
-            self._setup_index(self.trajectory)
-            # Define sample list and fix case when no step is available
-            # Should it be in _setup_index()
-            if len(self.steps) == 0:
-                self.steps = range(1,len(self._index)+1)
+            # Internal index of lines to seek and tell.
+            # We may delay setup, moving to read_init() assuming
+            # self.steps becomes a property
+            self._setup_index()
+            self._setup_steps()
         else:
             raise ValueError('Specify mode (r/w) for file %s (invalid: %s)' % (self.filename, self.mode))
 
-    def _setup_index(self, fh):
+    def rewind(self):
+        self.trajectory.seek(0)
+        self._step = 0
+
+    def _setup_index(self):
         """Sample indexing via tell / seek"""
         self._npart = []
         self._index = []
         self._index_cell = None
+        fh = self.trajectory
 
         # TODO: index lines at which first particle is found, not comment
         fh.seek(0)
@@ -119,31 +127,29 @@ class TrajectoryXYZ(TrajectoryBase):
                 d = fh.readline()
             l = fh.tell()
 
-        # Get number of columns
-        self.trajectory.seek(0)
-        self.trajectory.readline()
-        self.trajectory.readline()
-        self._ncols = len(self.trajectory.readline().split())
-        self.trajectory.seek(0)
-
+    def _setup_steps(self):
+        """Define sample list."""
         # Get list of steps, samples and cell
         self.steps = []
-        for i in self._index:
-            fh.seek(i)
-            fh.readline() # skip Npart
-            meta = self._parse_header(fh.readline())
-            self.meta = meta
-            self.steps.append(meta['step'])
+        for sample in range(len(self._index)):
+            meta = self._read_metadata(sample)
+            try:
+                self.steps.append(meta['step'])
+            except KeyError:
+                self.steps.append(sample+1)
 
-        # Grab it from the end of file in case it is there
-        if meta['cell'] is not None:
-            self._cell = Cell(meta['cell'])
-        else:
+        # # Fix case when no step entry is found
+        # if len(self.steps) == 0:
+        #     self.steps = range(1,len(self._index)+1)
+
+    def read_init(self):
+        # Grab cell from the end of file in case it is there
+        # TODO: add subclassable synonyms, ex step: 'Cfg', 'Step', ..., or even callbacks as last resort
+        try:
+            side = self._read_metadata(0)['cell']
+            self._cell = Cell(side)
+        except KeyError:
             self._cell = self._parse_cell()
-
-    def rewind(self):
-        self.trajectory.seek(0)
-        self._step = 0
 
     def _read_metadata(self, sample):
         """Internal xyz method to get header metadata from comment line of given sample."""
@@ -151,45 +157,53 @@ class TrajectoryXYZ(TrajectoryBase):
         self.trajectory.seek(self._index[sample])
         self.trajectory.readline() # skip Npart
         line = self.trajectory.readline()
-        # We assume metadata fmt is a space-separated sequence of comma separated entries
-        # such as
-        # columns:id,x,y,z step:10
-        # columns=id,x,y,z step=10
+        # We assume metadata fmt is a space-separated sequence of
+        # comma separated entries such as
+        #   columns:id,x,y,z step:10
+        #   columns=id,x,y,z step=10
         meta = {}
-        entries = line.split()
-        for e in entries:
+        for e in line.split():
             s = re.search(r'(\S*)[=:](\S*)', e)
             if s is not None:
                 tag, data = s.group(1), s.group(2)
-                data = data.strip(',') # remove dangling commas
-                meta[tag] = data.split(',')
+                # Apply a synonym dict to tag, e.g. to translat Cfg -> step
+                # TODO: Note that the same must be done if we want to write back the metadata
+                if tag in self.tags:
+                    tag = self.tags[tag]
+                # Remove dangling commas
+                data = data.strip(',')
+                # If there are commas, this is a list, else scalar.
+                # We convert the string to appropriate types
+                if ',' in data:
+                    meta[tag] = map(tipify, data.split(','))
+                else:
+                    meta[tag] = tipify(data)
         return meta
 
-    def _parse_header(self, data):
-        """Internal xyz method to get header metadata."""
-        meta = {'step':None, 'cell':None, 'columns':None}
-        grabber = {'step':lambda x: int(x),
-                   'cell':lambda x: map(float, x.split(',')),
-                   'columns':lambda x: x.split(',')}
-        for m in meta:
-            p = re.compile(r'%s\s*[=:]\s*(\S*)\s' % m, re.IGNORECASE)
-            s = p.search(data)
-            if s is not None:     
-                meta[m] = grabber[m](s.group(1))
+    # def _parse_header(self, data):
+    #     """Internal xyz method to get header metadata."""
+    #     meta = {'step':None, 'cell':None, 'columns':None}
+    #     grabber = {'step':lambda x: int(x),
+    #                'cell':lambda x: map(float, x.split(',')),
+    #                'columns':lambda x: x.split(',')}
+    #     for m in meta:
+    #         p = re.compile(r'%s\s*[=:]\s*(\S*)\s' % m, re.IGNORECASE)
+    #         s = p.search(data)
+    #         if s is not None:     
+    #             meta[m] = grabber[m](s.group(1))
 
-        # Fix step
-        if meta['step'] is None:
-            try:
-                n = int(data.split()[-1])
-            except:
-                self._step += 1
-                n = self._step
-            meta['step'] = n
-        return meta
+    #     # Fix step
+    #     if meta['step'] is None:
+    #         try:
+    #             n = int(data.split()[-1])
+    #         except:
+    #             self._step += 1
+    #             n = self._step
+    #         meta['step'] = n
+    #     return meta
 
     def _parse_cell(self):
         """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
-        # This is schizophrenic, move everything related to cell search here
         cell = None
         if self._index_cell:
             self.trajectory.seek(self._index_cell)
@@ -240,14 +254,12 @@ class TrajectoryXYZ(TrajectoryBase):
             name = data['id']
             if not name in self._map_id:
                 self._map_id.append(name)
-
             # Get positions and velocities
             r = numpy.array([data['x'], data['y'], data['z']], dtype=float)
             try:
                 v = numpy.array([data['vx'], data['vy'], data['vz']], dtype=float)
             except KeyError:
                 v = numpy.zeros(3)
-
             # Try to grab left over as a tag.
             try:
                 tag = data['tag']
@@ -311,38 +323,40 @@ class TrajectoryXYZ(TrajectoryBase):
                 self.trajectory.write((ndim*" %14.6f"+"\n") % tuple(self._cell.side))
         self.trajectory.close()
 
-# TODO: refactor xyz class to parse a predefined sequence of float/int/str with appropriate tags / metadata as RUMD -> drop cell
+
 class TrajectoryNeighbors(TrajectoryXYZ):
 
     """Neighbors info"""
 
     def __init__(self, filename, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename)
+        self.tags['step': 'time']
         # TODO: determine minimum value of index automatically
         self._offset = offset # neighbors produced by voronoi are indexed from 1
         self._netwon3 = False
         self._netwon3_message = False
 
-    def _parse_header(self, data):
-        """Internal xyz method to get header metadata."""        
-        meta = {'time':None, 'cell':None}
-        grabber = {'time':lambda x: int(x)}
-        for m in meta:
-            p = re.compile(r'%s\s*[=:]\s*(\S*)\s' % m, re.IGNORECASE)
-            s = p.search(data)
-            if s is not None:     
-                meta[m] = grabber[m](s.group(1))
+    # TODO: possible regression here if no 'time' tag is found
+    # def _parse_header(self, data):
+    #     """Internal xyz method to get header metadata."""        
+    #     meta = {'time':None, 'cell':None}
+    #     grabber = {'time':lambda x: int(x)}
+    #     for m in meta:
+    #         p = re.compile(r'%s\s*[=:]\s*(\S*)\s' % m, re.IGNORECASE)
+    #         s = p.search(data)
+    #         if s is not None:     
+    #             meta[m] = grabber[m](s.group(1))
 
-        # Fix step
-        meta['step'] = meta['time']
-        if meta['step'] is None:
-            try:
-                n = int(data.split()[-1])
-            except:
-                self._step += 1
-                n = self._step
-            meta['step'] = n
-        return meta
+    #     # Fix step
+    #     meta['step'] = meta['time']
+    #     if meta['step'] is None:
+    #         try:
+    #             n = int(data.split()[-1])
+    #         except:
+    #             self._step += 1
+    #             n = self._step
+    #         meta['step'] = n
+    #     return meta
 
     def read_sample(self, sample):
         self.trajectory.seek(self._index[sample])

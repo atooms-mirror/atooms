@@ -10,7 +10,25 @@ from utils import get_period
 
 class TrajectoryBase(object):
 
-    """Trajectory base class"""
+    """Trajectory base class.
+    
+    __init__ is supposed to deal with file existence, creating
+    handles, setup steps list.
+
+    Read and write implement the following template.
+
+    1. read_init() and write_init() are called only once to initialize
+    data structures (ex. counts samples and steps) or grab metadata
+    (stuff that doesn't change)
+    
+    2. read_sample() and write_sample() are used to actually
+    read/write a system
+    
+    Additionally, write_sample append the step to the step list
+    
+    In future implementation, we might pass a list of objects to be
+    written, to store for instance, integrator data and so on.
+    """
 
     suffix = None
 
@@ -23,14 +41,16 @@ class TrajectoryBase(object):
         # data from their format or can even ignore it entirely.
         self.fmt = []
         self.steps = []
-
         # These are cached properties
         self._grandcanonical = None
         self._timestep = None
         self._block_period = None
-
+        # Internal state
         self._initialized_write = False
         self._initialized_read = False
+        # Sanity checks
+        if not os.path.exists(self.filename):
+            raise IOError('trajectory file %s does not exist' % self.filename)
 
     def __len__(self):
         return len(self.steps)
@@ -84,23 +104,7 @@ class TrajectoryBase(object):
         warnings.warn('iterate instead of using samples') #, DeprecationWarning)
         return range(len(self.steps))
 
-    # Read and write implement the following template.
-    #
-    # 1. read_init() and write_init() are called only once to
-    # intialize data structures or grab metadata (stuff that doesn't
-    # change) 
-    #
-    # 2. read_sample() and write_sample() are used to actually
-    # read/write a system
-    #
-    # Additionally, write_sample append the stp to the step list
-    #
-    # In future implementation, we might pass a list of objects to be
-    # written, to store for instance, integrator data and so on.
-
     def read(self, index):
-        if not os.path.exists(self.filename):
-            raise IOError('trajectory file %s does not exist' % self.filename)
         if not self._initialized_read:
             self.read_init()
             self._initialized_read = True
@@ -117,7 +121,7 @@ class TrajectoryBase(object):
         self.steps.append(step)
 
     def read_init(self):
-        """It may setup data structures need by the trajectory. Need not be implemented."""
+        """It may setup data structures needed by the trajectory. Need not be implemented."""
         pass
 
     def write_init(self, system):

@@ -44,7 +44,7 @@ B 2.9 -2.9 0.0
         with trajectory.TrajectoryXYZ(self.finp_meta) as t:
             meta = t._read_metadata(0)
             self.assertEqual(t.steps, [1])
-            self.assertEqual(meta['mass'], ['1.0', '2.0'])
+            self.assertEqual(meta['mass'], [1, 2])
             self.assertEqual(t[0].particle[0].mass, 1.0)
             self.assertEqual(t[0].particle[1].mass, 2.0)
 
