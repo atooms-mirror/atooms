@@ -463,7 +463,8 @@ class Simulation(object):
         if self.output_path is None:
             return
         if self.STORAGE == 'directory':
-            rmf(glob.glob(self.output_path))
+            # This won't clear subdirectories
+            rmf(glob.glob(self.output_path + '/*'))
             mkdir(self.output_path)
         elif self.STORAGE == 'file':
             rmf(glob.glob(self.output_path + '*'))
