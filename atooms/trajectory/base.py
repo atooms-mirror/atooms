@@ -49,7 +49,7 @@ class TrajectoryBase(object):
         self._initialized_write = False
         self._initialized_read = False
         # Sanity checks
-        if not os.path.exists(self.filename):
+        if self.mode == 'r' and not os.path.exists(self.filename):
             raise IOError('trajectory file %s does not exist' % self.filename)
 
     def __len__(self):
