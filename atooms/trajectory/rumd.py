@@ -19,37 +19,53 @@ class TrajectoryRUMD(TrajectoryXYZ):
         # Use an internal counter for ioformat=2
         self._step = 0
         self._timestep = 1.0
-        super(TrajectoryRUMD, self,).__init__(filename, mode)
-        self.tags['step': 'timeStepIndex', 'cell': 'boxLengths']
+        super(TrajectoryRUMD, self,).__init__(filename, mode, tags={'timeStepIndex': 'step', 'boxLengths':'cell', 'sim_box':'cell'})
         # The minimum id for RUMD is 0
         self._min_id = 0
-        
-        if mode == 'r':
-            basename = os.path.basename(filename)
-            s = re.search(r'([a-zA-Z0-9]*)_\d*', basename)
-            if s:
-                base = s.group(1)
-            else:
-                base = ''
 
+
+    def _setup_steps(self):
+        super(TrajectoryRUMD, self,)._setup_steps()
+
+        # RUMD specific stuff
+        basename = os.path.basename(self.filename)
+        s = re.search(r'([a-zA-Z0-9]+)_(\d+)', basename)
+        if s:
+            base, step = s.group(1), s.group(2)
+            # For native rumd trajectories we add the block offset
             if base == 'block':
                 # Redefine samples and steps to make sure these are the absolute steps and samples
                 # This is important when trajectories are written in blocks.
                 # To extract the block index we look at the filename indexing.
                 # If the name is different the block index is set to zero and steps have no offset
-                s = re.search(r'%s_(\d*)' % basename, filename)
-                if s:
-                    iblock = int(s.group(1))
-                    # Redefine available steps to account for block offset
-                    dt = self.steps[-1]
-                    self.steps = [i+dt*iblock for i in self.steps]
+                iblock = int(step)
+                dt = self.steps[-1]
+                self.steps = [i+dt*iblock for i in self.steps]
             else:
                 # In case of non native RUMD filename, we assume the step
                 # is written after the basename.
-                # TODO: check if steps is recognized!
-                s = re.search(r'[a-zA-Z0-9]*_(\d*)', basename)
-                if s:
-                    self.steps = [int(s.group(1))]
+                if len(self.steps)==1:
+                    self.steps = [int(step)]
+
+    def _read_metadata(self, sample):
+        meta = super(TrajectoryRUMD, self,)._read_metadata(sample)
+        # RUMD specific stuff
+        if 'integrator' in meta:
+            self._timestep = meta['integrator'][1]
+        if 'sim_box' in meta:
+            # After sim_box there is a keyword for the box type which we ignore
+            meta['cell'] = meta['sim_box'][1:]
+        return meta
+
+    #     # Parse cell side. We take care of string in old format,
+    #     # in which case the whole string is returned. After sim_box
+    #     # there is a keyword for the box type which must be ignored
+    #     s = re.search(r'boxLengths=(\S*)', data)
+    #     if s is None:
+    #         s = re.search(r'sim_box=(\S*)', data)
+    #         side = s.group(1).split(',')[1:]
+    #     else:
+    #         side = s.group(1).split(',')
 
     # def _parse_step(self, data):
     #     s = re.search(r'timeStepIndex=(\d*)', data)

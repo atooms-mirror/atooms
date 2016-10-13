@@ -59,8 +59,7 @@ class TrajectoryXYZ(TrajectoryBase):
         TrajectoryBase.__init__(self, filename, mode)
         # This is the default column format.
         # TODO: Using vx, vy, vz in the header will grab the velocities
-        self.tags = {'step': 'step', 'cell': 'cell', 'columns': 'columns'}
-        self.tags.update(tags)
+        self.tags = tags
         self.fmt = ['id', 'x', 'y', 'z']
         self._timestep = 1.0
         self._cell = None
@@ -136,20 +135,8 @@ class TrajectoryXYZ(TrajectoryBase):
             try:
                 self.steps.append(meta['step'])
             except KeyError:
+                # If no step info is found, we add steps sequentially
                 self.steps.append(sample+1)
-
-        # # Fix case when no step entry is found
-        # if len(self.steps) == 0:
-        #     self.steps = range(1,len(self._index)+1)
-
-    def read_init(self):
-        # Grab cell from the end of file in case it is there
-        # TODO: add subclassable synonyms, ex step: 'Cfg', 'Step', ..., or even callbacks as last resort
-        try:
-            side = self._read_metadata(0)['cell']
-            self._cell = Cell(side)
-        except KeyError:
-            self._cell = self._parse_cell()
 
     def _read_metadata(self, sample):
         """Internal xyz method to get header metadata from comment line of given sample."""
@@ -166,10 +153,6 @@ class TrajectoryXYZ(TrajectoryBase):
             s = re.search(r'(\S*)[=:](\S*)', e)
             if s is not None:
                 tag, data = s.group(1), s.group(2)
-                # Apply a synonym dict to tag, e.g. to translat Cfg -> step
-                # TODO: Note that the same must be done if we want to write back the metadata
-                if tag in self.tags:
-                    tag = self.tags[tag]
                 # Remove dangling commas
                 data = data.strip(',')
                 # If there are commas, this is a list, else scalar.
@@ -178,7 +161,23 @@ class TrajectoryXYZ(TrajectoryBase):
                     meta[tag] = map(tipify, data.split(','))
                 else:
                     meta[tag] = tipify(data)
+
+        # Apply an alias dict to tags, e.g. to add step if Cfg was found instead
+        for alias, tag in self.tags.items():
+            try:
+                meta[tag] = meta[alias]
+            except KeyError:
+                pass
+
         return meta
+
+    def read_init(self):
+        # Grab cell from the end of file if it is there
+        try:
+            side = self._read_metadata(0)['cell']
+            self._cell = Cell(side)
+        except KeyError:
+            self._cell = self._parse_cell()
 
     # def _parse_header(self, data):
     #     """Internal xyz method to get header metadata."""

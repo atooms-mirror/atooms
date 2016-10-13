@@ -36,6 +36,15 @@ ioformat=1 dt=0.005000000 boxLengths=6.34960421,6.34960421,6.34960421 numTypes=2
 1       -1.813011      1.380848     -0.037014 1.0 1.0 0.0
 """
 
+xyz_io2 = """\
+4
+ioformat=2 timeStepIndex=1234 numTypes=4 integrator=IntegratorNVT,0.00400000019,0.346464646,0.200000003,0 sim_box=RectangularSimulationBox,5.65945244,5.65945244,5.65945244 mass=1.0,0.57,1e20,1e20 columns=type,x,y,z,imx,imy,imz,vx,vy,vz,fx,fy,fz,pe,vir
+0 1.859081030 0.200642005 -0.850564003 0 0 0 -0.956519008 -0.441635996 -0.600809991 0.0 0.0 0.0 0.0 0.0
+0 1.673092008 0.005931000 0.235958993 0 0 0 -0.661297977 -0.039301001 0.306021005 0.0 0.0 0.0 0.0 0.0
+0 -0.317158997 2.685316086 2.080347061 0 0 0 -0.229003996 -0.226451993 0.536197007 0.0 0.0 0.0 0.0 0.0
+0 -0.468039989 -0.332848012 1.445088983 0 0 0 -0.344832987 -0.324809015 -0.497487992 0.0 0.0 0.0 0.0 0.0
+"""
+
 # TODO: make test_backend a package
 
 class TestBackendRUMD(unittest.TestCase):
@@ -66,6 +75,14 @@ class TestBackendRUMD(unittest.TestCase):
         with open(self.finp2, 'w') as fh:
             fh.write(xyz_2)
         self.sim2 = rumdSimulation(self.finp2, verbose=False)
+
+        self.finp_io2 = '/tmp/test_adapter_rumd_io2.xyz'
+        with open(self.finp_io2, 'w') as fh:
+            fh.write(xyz_io2)
+
+        self.finp_io2_base = '/tmp/test_adapter_rumd_0000001.xyz'
+        with open(self.finp_io2_base, 'w') as fh:
+            fh.write(xyz_io2)
 
     def test_system(self):
         system = System(self.sim.sample)
@@ -100,6 +117,16 @@ class TestBackendRUMD(unittest.TestCase):
         system = System(self.sim.sample)
         t.write(system, 0)
         t.close()
+
+    def test_trajectory_read(self):
+        from atooms.trajectory import TrajectoryRUMD
+        with TrajectoryRUMD(self.finp_io2, 'r') as t:
+            self.assertEqual(t.steps, [1234])
+
+    def test_trajectory_read_base(self):
+        from atooms.trajectory import TrajectoryRUMD
+        with TrajectoryRUMD(self.finp_io2_base, 'r') as t:
+            self.assertEqual(t.steps, [1])
 
     def test_simulation(self):
         s = Simulation(Backend(self.sim), self.dout, steps = 1)
