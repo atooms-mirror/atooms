@@ -317,6 +317,7 @@ class System(object):
             pi.periodic_image = i
         return p
 
+
 class Trajectory(object):
 
     suffix = 'xyz'
@@ -324,11 +325,6 @@ class Trajectory(object):
     def __init__(self, filename, mode='w'):
         self.filename = filename
         self.mode = mode
-
-        # Remove the .gz extension from path. It will be added by rumd anyway
-        base, ext = os.path.splitext(self.filename)
-        if ext == '.gz':
-            self.filename = base
 
     def __enter__(self):
         return self
@@ -343,18 +339,15 @@ class Trajectory(object):
         pass
 
     def write(self, system, step):
-        f = self.filename 
-        if step is not None:
-            base, ext = os.path.splitext(f)
-            f = base + '_%011d' % step + ext
+        if step is None:
+            f = self.filename + '.' + self.suffix
+        else:
+            f = self.filename + ('_%011d.' % step) + self.suffix
         log.debug('writing config via backend to %s at step %s, %s' % (f, step, self.mode))
         system.sample.WriteConf(f, self.mode)
 
     def close(self):
-        # Assuming something has been written, unzip the trajectory file
-        # TODO: this won't unzip config_*gz files
-        if os.path.exists(self.filename + '.gz'):
-            os.system("gunzip -f %s.gz" % self.filename)
+        pass
     
 def single(sim_input, potential=None, T=None, dt=0.001, interval_energy=None, interval_config=None):
     from rumd import IntegratorNVT

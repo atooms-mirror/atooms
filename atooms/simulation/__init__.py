@@ -90,7 +90,7 @@ class WriterConfig(object):
             log.warning('config writing is request but output path is None')
             return
         # Note: we are passing but actually some trajectories store in directories
-        f = os.path.join(e.output_path, 'trajectory.' + e.trajectory.suffix)
+        f = os.path.join(e.output_path, 'trajectory/trajectory') # + e.trajectory.suffix)
         with e.trajectory(f, 'a') as t:
             t.write(e.system, e.steps)
 
@@ -454,21 +454,6 @@ class Simulation(object):
         except:
             return 0.0
 
-    def clear_output(self):
-        """Clear output path.
-        For directory storage, delete the whole directory.
-        For file storage, delete all files like <output_path>*.
-        """
-        import glob
-        if self.output_path is None:
-            return
-        if self.STORAGE == 'directory':
-            # This won't clear subdirectories
-            rmf(glob.glob(self.output_path + '/*'))
-            mkdir(self.output_path)
-        elif self.STORAGE == 'file':
-            rmf(glob.glob(self.output_path + '*'))
-
     # Our template consists of two steps: run_pre() and run_until()
     # Typically a backend will implement the until method.
     # It is recommended to *extend* (not override) the base run_pre() in subclasses
@@ -479,6 +464,11 @@ class Simulation(object):
         log.debug('calling backend pre at steps %d' % self.steps)
         if self.output_path is not None:
             self.backend.output_path = self.output_path
+            if self.STORAGE == 'directory':
+                if not self.restart:
+                    rmd(os.path.join(self.output_path, 'trajectory'))
+                mkdir(self.output_path)
+                mkdir(os.path.join(self.output_path, 'trajectory'))
         self.backend.run_pre(self.restart)
         barrier()
             
@@ -513,7 +503,6 @@ class Simulation(object):
             # Then notify non targeters unless we are restarting
             self.notify(self._targeters)
             if self.steps == 0:
-                self.clear_output()
                 self.notify(self._non_targeters)
             else:
                 self.notify(self._speedometers)
@@ -561,6 +550,7 @@ class Simulation(object):
         log.info('')
         log.info('atooms version: %s (%s)' % (__version__, __date__.split()[0]))
         log.info('simulation starts on: %s' % datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
+        log.info('output path: %s' % self.output_path)
         self._report()
         self._report_observers()
         
