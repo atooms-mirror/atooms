@@ -212,7 +212,6 @@ class System(object):
     
     def __init__(self, sample):
         self.sample = sample
-        # TODO: system may not have one right now, what will this give? A None?
         self.thermostat = Thermostat(self.sample.GetIntegrator())
         self.dynamics = MolecularDynamics(self.sample.GetIntegrator())
 
