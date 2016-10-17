@@ -46,11 +46,13 @@ class Test(unittest.TestCase):
         si.run(1000)
 
     def test_multi_writing(self):
-        # We should have 10 cfgs at the end. Note that energies are not zipped after calling run()...
+        import glob
         s = single(self.input_file, potential, T=0.80, dt=0.002, interval_energy=500, interval_config=500)
-        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', enable_speedometer=False)
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', enable_speedometer=False, config_interval=500)
         si.run(50000)
         si.run(5000)
+        ls = glob.glob('/tmp/test_rumd_multi/trajectory.d/*')
+        self.assertEqual(len(ls), 11)
 
     def test_multi_2(self):
         s = single(self.input_file, potential, T=0.80, dt=0.002)
