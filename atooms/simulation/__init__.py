@@ -89,8 +89,10 @@ class WriterConfig(object):
         if e.output_path is None:
             log.warning('config writing is request but output path is None')
             return
-        # Note: we are passing but actually some trajectories store in directories
-        f = os.path.join(e.output_path, 'trajectory/trajectory') # + e.trajectory.suffix)
+        if e.storage == 'directory':
+            f = e.base_path + '.d'
+        else:
+            f = e.output_path
         with e.trajectory(f, 'a') as t:
             t.write(e.system, e.steps)
 
@@ -103,7 +105,7 @@ class WriterThermo(object):
         if e.output_path is None:
             log.warning('thermo writing is request but output path is None')
             return
-        f = os.path.join(e.output_path, 'trajectory.thermo')
+        f = os.path.join(e.base_path + '.thermo')
         with open(f, 'a') as fh:
             fh.write('%d %g %g\n' % (e.steps, e.system.potential_energy(), e.rmsd))
 
@@ -220,7 +222,7 @@ class UserStop(object):
     def __call__(self, e):
         # To make it work in parallel we should broadcast and then rm 
         # or subclass userstop in classes that use parallel execution
-        if e.output_path is not None and self.STORAGE == 'directory':
+        if e.output_path is not None and self.storage == 'directory':
             log.debug('User Stop %s/STOP' % e.output_path)
             # TODO: support files as well
             if os.path.exists('%s/STOP' % e.output_path):
@@ -296,10 +298,6 @@ class Simulation(object):
     _WRITER_CONFIG = WriterConfig    
     _WRITER_CHECKPOINT = WriterCheckpoint
 
-    # Storage class attribute: backends can either dump to a directory
-    # or following a file suffix logic. Meant to be subclassed.
-    STORAGE = 'directory'
-
     def __init__(self, backend=DryRunBackend(),
                  output_path=None, 
                  steps=0, rmsd=None,
@@ -308,6 +306,7 @@ class Simulation(object):
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
                  enable_speedometer=True,
+                 storage='directory',
                  restart=False):
         """We expect input and output paths as input.
         Alternatively, input might be a system (or trajectory?) instance.
@@ -324,6 +323,7 @@ class Simulation(object):
         self.checkpoint_interval = checkpoint_interval
         self.checkpoint_number = checkpoint_number
         self.enable_speedometer = enable_speedometer
+        self.storage = storage
         # Convenience shortcuts (might be dropped in the future)
         if steps>0:
             self.target_steps = steps 
@@ -340,6 +340,12 @@ class Simulation(object):
         self.system = self.backend.system
         self.trajectory = self.backend.trajectory
 
+        # Storage and paths. We rely on the sole output_path, all
+        # other paths are defined based on it and on base_path
+        # property Paths are defined locally by writers. This would
+        # require some glue between run_pre() where we clean up the
+        # paths and the writers, like a cleanup() method of writer
+
         # Setup writer callbacks
         # TODO: if output_path is None we should disable writers
         self.targeter_rmsd_period = 10000
@@ -352,6 +358,16 @@ class Simulation(object):
 
     def __str__(self):
         return 'ATOOMS simulation (backend: %s)' % self.backend
+
+    @property
+    def base_path(self):
+        if self.output_path is not None:
+            if self.storage == 'directory':
+                return os.path.join(self.output_path, 'trajectory')
+            else:
+                return os.path.splitext(self.output_path)[0]
+        else:
+            return None
         
     def _setup(self):
         """Add all internal observers to callbacks"""
@@ -464,12 +480,20 @@ class Simulation(object):
         log.debug('calling backend pre at steps %d' % self.steps)
         if self.output_path is not None:
             self.backend.output_path = self.output_path
-            if self.STORAGE == 'directory':
-                if not self.restart:
-                    rmd(os.path.join(self.output_path, 'trajectory'))
-                mkdir(self.output_path)
-                mkdir(os.path.join(self.output_path, 'trajectory'))
+            # Clean up the trajectory folder if storage is directory 
+            if self.output_path is not None:
+                if self.storage == 'directory':
+                    # TODO: here we assume we know the config path, we should let the writer clear it
+                    path_config = self.base_path + '.d'
+                    if not self.restart:
+                        rmd(path_config)
+                    mkdir(self.output_path)
+                    mkdir(path_config)
         self.backend.run_pre(self.restart)
+        # If backend has reset the step because of restart, we update it.
+        # Note that in subclasses we may may overwrite this, because of own restarts
+        if self.restart:
+            self.steps = self.backend.steps 
         barrier()
             
     def run_until(self, n):
@@ -555,7 +579,7 @@ class Simulation(object):
         self._report_observers()
         
     def _report(self):
-        """Implemented by subclassed"""
+        """Implemented by subclasses"""
         pass
 
     def _report_observers(self):

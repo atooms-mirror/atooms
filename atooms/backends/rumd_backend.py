@@ -81,7 +81,7 @@ class RumdBackend(object):
         self._sim.sample.ReadConf(f)
         with open(f + '.step') as fh:
             self.steps = int(fh.read())
-        log.debug('rumd restarting from %d' % self.steps)
+        log.info('backend rumd restarting from %d' % self.steps)
 
     def run_pre(self, restart):
         # Copy of initial state. This way even upon repeated calls to
@@ -340,15 +340,22 @@ class Trajectory(object):
 
     def write(self, system, step):
         if step is None:
-            f = self.filename + '.' + self.suffix
+            f = self.filename # + '.' + self.suffix
         else:
-            f = self.filename + ('_%011d.' % step) + self.suffix
+            tag = '%011d.' % step
+            if os.path.isdir(self.filename):
+                f = os.path.join(self.filename, tag + self.suffix)
+            else:
+                f = self.filename + '.' + tag + '.' + self.suffix
         log.debug('writing config via backend to %s at step %s, %s' % (f, step, self.mode))
         system.sample.WriteConf(f, self.mode)
 
     def close(self):
-        pass
-    
+        # This only unzips files with no step info
+        if os.path.exists(self.filename + '.gz'):
+            os.system("gunzip -f %s.gz" % self.filename)
+
+
 def single(sim_input, potential=None, T=None, dt=0.001, interval_energy=None, interval_config=None):
     from rumd import IntegratorNVT
     from rumdSimulation import rumdSimulation
