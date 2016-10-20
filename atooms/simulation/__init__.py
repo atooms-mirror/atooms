@@ -86,9 +86,6 @@ class WriterConfig(object):
         return 'config'
 
     def __call__(self, e):
-        if e.output_path is None:
-            log.warning('config writing is request but output path is None')
-            return
         if e.storage == 'directory':
             f = e.base_path + '.d'
         else:
@@ -96,18 +93,24 @@ class WriterConfig(object):
         with e.trajectory(f, 'a') as t:
             t.write(e.system, e.steps)
 
+    def clear(self):
+        if e.storage == 'directory':
+            rmd(e.base_path + '.d')
+        else:
+            rmf(e.output_path)
+
 class WriterThermo(object):
 
     def __str__(self):
         return 'thermo'
 
     def __call__(self, e):
-        if e.output_path is None:
-            log.warning('thermo writing is request but output path is None')
-            return
-        f = os.path.join(e.base_path + '.thermo')
+        f = e.base_path + '.thermo'
         with open(f, 'a') as fh:
             fh.write('%d %g %g\n' % (e.steps, e.system.potential_energy(), e.rmsd))
+
+    def clear(self):
+        rmf(e.base_path + '.thermo')
 
 def sec2time(t):
     eta_d = t / (24.0*3600)
@@ -392,9 +395,10 @@ class Simulation(object):
             self.speedometer = Speedometer()
             self.add(self.speedometer, Scheduler(None, calls=20, target=self.target_steps))
         # TODO: if we are restarting and nsteps is increased, this will change the interval between cfgs
-        self.add(self.writer_thermo, Scheduler(self.thermo_interval, self.thermo_number, self.target_steps))
-        self.add(self.writer_config, Scheduler(self.config_interval, self.config_number, self.target_steps))
-        self.add(self.writer_checkpoint, Scheduler(self.checkpoint_interval, self.checkpoint_number, self.target_steps))
+        if self.output_path is not None:
+            self.add(self.writer_thermo, Scheduler(self.thermo_interval, self.thermo_number, self.target_steps))
+            self.add(self.writer_config, Scheduler(self.config_interval, self.config_number, self.target_steps))
+            self.add(self.writer_checkpoint, Scheduler(self.checkpoint_interval, self.checkpoint_number, self.target_steps))
 
     def add(self, callback, scheduler):
         """Register an observer (callback) to be called along with a scheduler"""
