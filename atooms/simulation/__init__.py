@@ -438,11 +438,9 @@ class Simulation(object):
 
     @property
     def rmsd(self):
-        # TODO: provide rmsd by species 07.12.2014
         try:
             return self.backend.rmsd
         except AttributeError:
-            log.warning('rmsd has not been subclassed')
             return 0.0
 
     def write_checkpoint(self):
