@@ -240,7 +240,7 @@ class Scheduler(object):
         self.interval = interval
         self.calls = calls
         self.target = target
-        # Main switch
+
         if interval>0:
             # Fixed interval.
             self.interval = interval
@@ -253,9 +253,6 @@ class Scheduler(object):
                 else:
                     # Dynamic scheduling
                     raise SchedulerError('dynamic scheduling not implemented')
-            # else:
-            #     # Scheduler is disabled
-            #     self.interval = 0 #sys.maxint
 
     def next(self, this):
         if self.interval>0:
@@ -305,8 +302,11 @@ class Simulation(object):
                  enable_speedometer=True,
                  storage='directory',
                  restart=False):
-        """We expect input and output paths as input.
-        Alternatively, input might be a system (or trajectory?) instance.
+        """
+        Perform a simulation using the specified *backend* and writing
+        output to *output_path*. If *storage* is 'directory',
+        *output_path* will be treated as a directory; otherwise,
+        *output_path* is the output trajectory file.
         """
         self.backend = backend
         self.restart = restart
@@ -343,7 +343,6 @@ class Simulation(object):
         # added in run_pre() to allow writers to cleanup their files.
 
         # Setup writer callbacks
-        # TODO: if output_path is None we should disable writers
         self.targeter_rmsd_period = 10000
         self.targeter_steps = self._TARGET_STEPS(self.target_steps)
         self.targeter_rmsd = self._TARGET_RMSD(self.target_rmsd)
@@ -419,6 +418,11 @@ class Simulation(object):
         else:
             log.debug('attempt to remove inexistent callback %s (dont worry)' % callback)
 
+    def notify(self, observers):
+        for o in observers:
+            log.debug('notify %s' % o)
+            o(self)
+
     @property
     def _targeters(self):
         return [o for o in self._callback if isinstance(o, Target)]
@@ -431,11 +435,6 @@ class Simulation(object):
     def _speedometers(self):
         return [o for o in self._callback if isinstance(o, Speedometer)]
 
-    def notify(self, observers):
-        for o in observers:
-            log.debug('notify %s' % o)
-            o(self)
-
     @property
     def rmsd(self):
         try:
@@ -444,20 +443,26 @@ class Simulation(object):
             return 0.0
 
     def write_checkpoint(self):
-        self.backend.write_checkpoint()
+        # Tolerate missing implementation
+        try:
+            self.backend.write_checkpoint()
+        except AttributeError:
+            pass
 
     def elapsed_wall_time(self):
         return time.time() - self.start_time
 
     def wall_time_per_step(self):
-        """Return the wall time in seconds per step.
+        """
+        Wall time per step in seconds.
         Can be conventiently subclassed by more complex simulation classes.
         """
         return self.elapsed_wall_time() / (self.steps-self.initial_steps)
 
     def wall_time_per_step_particle(self):
-        """Return the wall time in seconds per step and particle.
-        Can be conventiently subclassed by more complex simulation classes.
+        """
+        Wall time per step and particle in seconds.  Can be conventiently
+        subclassed by more complex simulation classes.
         """
         try:
             # Be tolerant if there is no reference to system
