@@ -14,6 +14,12 @@ class Test(unittest.TestCase):
         s = Simulation(steps = 10000)
         s.run()
 
+    def test_no_output(self):
+        # Disable writers completely
+        s = Simulation(output_path=None, steps = 10, enable_speedometer=False)
+        s.run()
+        self.assertEqual(len(s._non_targeters),0)
+
     def test_target(self):
         s = Simulation(output_path='/tmp/test_simulation', steps = 10000, thermo_interval = 2000, config_number = 10)
         s.run()

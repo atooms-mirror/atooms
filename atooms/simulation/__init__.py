@@ -65,13 +65,6 @@ class ParameterError(Exception):
 # * writer : these callbacks dump useful stuff to file
 # and of course general purpose callback can be passed to do whatever
 
-# It os the backend's responsibility to implement specific Writer observers.
-
-# TODO: several related todos on where to store output file paths. It
-# would make sense to keep them in Writers and delegate to them
-# (instead of having them in simulation objects). This would require being able
-# to access writers more directly.
-
 class WriterCheckpoint(object):
 
     def __str__(self):
@@ -86,9 +79,6 @@ class WriterConfig(object):
         return 'config'
 
     def __call__(self, e):
-        if e.output_path is None:
-            log.warning('config writing is request but output path is None')
-            return
         if e.storage == 'directory':
             f = e.base_path + '.d'
         else:
@@ -96,18 +86,27 @@ class WriterConfig(object):
         with e.trajectory(f, 'a') as t:
             t.write(e.system, e.steps)
 
+    def clear(self, e):
+        if e.storage == 'directory':
+            rmd([e.base_path + '.d'])
+        else:
+            if os.path.exists(e.output_path):
+                os.remove(e.output_path)
+
 class WriterThermo(object):
 
     def __str__(self):
         return 'thermo'
 
     def __call__(self, e):
-        if e.output_path is None:
-            log.warning('thermo writing is request but output path is None')
-            return
-        f = os.path.join(e.base_path + '.thermo')
+        f = e.base_path + '.thermo'
         with open(f, 'a') as fh:
             fh.write('%d %g %g\n' % (e.steps, e.system.potential_energy(), e.rmsd))
+
+    def clear(self, e):
+        f = e.base_path + '.thermo'
+        if os.path.exists(f):
+            os.remove(f)
 
 def sec2time(t):
     eta_d = t / (24.0*3600)
@@ -286,12 +285,10 @@ class Simulation(object):
 
     """Simulation base class."""
 
-    # TODO: write initial configuration as well
-
-    # Comvoluted trick to allow subclass to use custom observers for
-    # target and writer without overriding setup(): have class
-    # variables to point to the default observer classes that may be
-    # switched to custom ones in subclasses
+    # Trick to allow subclass to use custom observers for target and
+    # writer without overriding setup(): have class variables to point
+    # to the default observer classes that may be switched to custom
+    # ones in subclasses
     _TARGET_STEPS = TargetSteps
     _TARGET_RMSD = TargetRMSD
     _WRITER_THERMO = WriterThermo
@@ -342,9 +339,8 @@ class Simulation(object):
 
         # Storage and paths. We rely on the sole output_path, all
         # other paths are defined based on it and on base_path
-        # property Paths are defined locally by writers. This would
-        # require some glue between run_pre() where we clean up the
-        # paths and the writers, like a cleanup() method of writer
+        # property. Paths are defined locally by writers. Some glue is
+        # added in run_pre() to allow writers to cleanup their files.
 
         # Setup writer callbacks
         # TODO: if output_path is None we should disable writers
@@ -392,9 +388,10 @@ class Simulation(object):
             self.speedometer = Speedometer()
             self.add(self.speedometer, Scheduler(None, calls=20, target=self.target_steps))
         # TODO: if we are restarting and nsteps is increased, this will change the interval between cfgs
-        self.add(self.writer_thermo, Scheduler(self.thermo_interval, self.thermo_number, self.target_steps))
-        self.add(self.writer_config, Scheduler(self.config_interval, self.config_number, self.target_steps))
-        self.add(self.writer_checkpoint, Scheduler(self.checkpoint_interval, self.checkpoint_number, self.target_steps))
+        if self.output_path is not None:
+            self.add(self.writer_thermo, Scheduler(self.thermo_interval, self.thermo_number, self.target_steps))
+            self.add(self.writer_config, Scheduler(self.config_interval, self.config_number, self.target_steps))
+            self.add(self.writer_checkpoint, Scheduler(self.checkpoint_interval, self.checkpoint_number, self.target_steps))
 
     def add(self, callback, scheduler):
         """Register an observer (callback) to be called along with a scheduler"""
@@ -480,15 +477,19 @@ class Simulation(object):
         log.debug('calling backend pre at steps %d' % self.steps)
         if self.output_path is not None:
             self.backend.output_path = self.output_path
-            # Clean up the trajectory folder if storage is directory 
+
+            # Clean up the trajectory folder and files.
+            # Callbacks may implement their clean() methods
             if self.output_path is not None:
+                if not self.restart:
+                    for cbk in self._callback:
+                        try:
+                            cbk.clear(self)
+                        except AttributeError:
+                            pass
                 if self.storage == 'directory':
-                    # TODO: here we assume we know the config path, we should let the writer clear it
-                    path_config = self.base_path + '.d'
-                    if not self.restart:
-                        rmd(path_config)
                     mkdir(self.output_path)
-                    mkdir(path_config)
+
         self.backend.run_pre(self.restart)
         # If backend has reset the step because of restart, we update it.
         # Note that in subclasses we may may overwrite this, because of own restarts
