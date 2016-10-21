@@ -46,8 +46,14 @@ class System(object):
     def kinetic_energy(self):
         return total_kinetic_energy(self.particle) 
 
+    def kinetic_energy_per_particle(self):
+        return total_kinetic_energy(self.particle) / len(self.particle)
+
     def potential_energy(self):
         return self._potential_energy
+
+    def potential_energy_per_particle(self):
+        return self._potential_energy / len(self.particle)
 
     def mean_square_displacement(self, reference):
         return 0.0
