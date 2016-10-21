@@ -55,12 +55,12 @@ class TrajectoryXYZ(TrajectoryBase):
 
     # TODO: move all file init to write_init. Rename trajectory fh or something like this.
 
-    def __init__(self, filename, mode='r', tags={}):
+    def __init__(self, filename, mode='r', tags={}, fmt=['id','x','y','z']):
         TrajectoryBase.__init__(self, filename, mode)
         # This is the default column format.
         # TODO: Using vx, vy, vz in the header will grab the velocities
         self.tags = tags
-        self.fmt = ['id', 'x', 'y', 'z']
+        self.fmt = fmt
         self._timestep = 1.0
         self._cell = None
         self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
