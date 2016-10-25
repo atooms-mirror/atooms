@@ -1,9 +1,20 @@
 Atooms
 ======
 
-This is atooms - high-level library and tools for molecular simulations.
+This is atooms - a composable, high-level framework for molecular simulations.
 
 Copyright (C) 2010-2016 Daniele Coslovich <daniele.coslovich@umontpellier.fr>
+
+Examples
+--------
+
+Access particles' coordinates in a multi-configuration xyz trajectory file
+```python
+from atooms.trajectory import Trajectory
+
+for system in Trajectory('input.xyz'):
+    print system.particle[0].position
+```
 
 Features
 --------
@@ -12,16 +23,13 @@ Features
 - Flexible simulation interface with callback logic
 - Efficient molecular dynamics backends, e.g. RUMD
 
-Plugins
--------
+Adding packages to atooms namespace
+-----------------------------------
 
-Put your plugin packages under local/ add the path to your
-PYTHONPATH. In order for atooms to recognize your plugins under the
-namespace package atooms.plugins, your plugin structure should be
-the following
+Structure your package this way
 
-local/<yourplugin>/atooms/plugins
-local/<yourplugin>/atooms/plugins/__init__.py
+atooms/your_package
+atooms/your_package/__init__.py
 
 where __init__.py contains
 
@@ -29,3 +37,10 @@ where __init__.py contains
 from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 ```
+
+Add the package root folder to $PYTHONPATH. You can now import your package as
+
+```python
+import atooms.your_package
+```
+
