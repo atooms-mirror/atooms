@@ -11,5 +11,17 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-from pkgutil import extend_path
-__path__ = extend_path(__path__, __name__)
+"""
+atooms - A framework for molecular simulations.
+"""
+
+__author__ = "Daniele Coslovich <daniele.coslovich@umontpellier.fr>"
+
+try:
+    from _version import __version__, __date__
+except ImportError:
+    __version__ = "unknown"
+    __date__ = "unknown"
+
+# Number of spatial dimensions
+ndim = 3

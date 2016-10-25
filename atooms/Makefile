@@ -6,12 +6,10 @@ all: version
 
 test:
 	cd ..;	make test
+
 version:
-	@echo __version__ = \'$(VERSION)\' > _version.py
-	@echo __date__ = \'$(DATE)\' >> _version.py
-install:
-	cd ..;	python setup.py install --home=~
-todo:
-	todo.py .
+	@echo __version__ = \'$(VERSION)\' > core/_version.py
+	@echo __date__ = \'$(DATE)\' >> core/_version.py
+
 clean:
-	rm -f *.pyc
+	rm -f *.pyc */*.pyc
