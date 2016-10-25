@@ -36,6 +36,8 @@ from atooms.simulation import log
 from atooms.utils import rank, size, comm, barrier
 from atooms.utils import rmd, rmf, mkdir
 
+log.warn('this package is not maintained anymore, use atooms/parallel_tempering instead')
+
 # Writer callbacks specific to parallel tempering
 
 class WriterConfig(object):
