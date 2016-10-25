@@ -3,7 +3,7 @@
 
 import numpy 
 import random
-from atooms import ndim
+from atooms.core import ndim
 
 def periodic_vector(a, box):
     #return numpy.where(abs(a) > box/2, a-numpy.copysign(box, a), a)

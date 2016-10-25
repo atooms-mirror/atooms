@@ -2,7 +2,7 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 import numpy
-from atooms import ndim
+from atooms.core import ndim
 
 class Cell(object):
 

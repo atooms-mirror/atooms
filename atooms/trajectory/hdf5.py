@@ -4,7 +4,7 @@
 import numpy
 import h5py
 from base import TrajectoryBase
-from atooms import ndim
+from atooms.core import ndim
 from atooms.system import System
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
