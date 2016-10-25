@@ -6,7 +6,7 @@ local
 
 # Ignore version file in package.
 # It will be updated upon build/install
-atooms/_version.py
+atooms/core/_version.py
 
 dist
 build
