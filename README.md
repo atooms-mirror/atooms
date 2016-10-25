@@ -5,6 +5,13 @@ This is atooms - high-level library and tools for molecular simulations.
 
 Copyright (C) 2010-2016 Daniele Coslovich <daniele.coslovich@umontpellier.fr>
 
+Features
+--------
+- High-level interface to simulation objects
+- Handle and convert multiple trajectory formats 
+- Flexible simulation interface with callback logic
+- Efficient molecular dynamics backends, e.g. RUMD
+
 Plugins
 -------
 
