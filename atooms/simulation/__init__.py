@@ -10,7 +10,7 @@ import datetime
 import logging
 import copy
 
-from atooms import __version__, __date__
+from atooms.core import __version__, __date__
 from atooms.utils import mkdir, rmd, rmf
 from atooms.utils import rank, size, barrier
 from atooms.utils import ParallelFilter, MyFormatter
