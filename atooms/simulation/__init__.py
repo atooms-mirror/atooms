@@ -79,8 +79,10 @@ class WriterConfig(object):
         return 'config'
 
     def __call__(self, e):
+        # TODO: it is not clear here if storage refers to the trajectory or overall data!
         if e.storage == 'directory':
             f = e.base_path + '.d'
+            mkdir(f) # this is crucial otherwise the backend wont find the directory and write to file!
         else:
             f = e.output_path
         with e.trajectory(f, 'a') as t:
@@ -88,7 +90,7 @@ class WriterConfig(object):
 
     def clear(self, e):
         if e.storage == 'directory':
-            rmd([e.base_path + '.d'])
+            rmd(e.base_path + '.d')
         else:
             if os.path.exists(e.output_path):
                 os.remove(e.output_path)

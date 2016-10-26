@@ -341,7 +341,7 @@ class Trajectory(object):
         if step is None:
             f = self.filename # + '.' + self.suffix
         else:
-            tag = '%011d.' % step
+            tag = '%011d' % step
             if os.path.isdir(self.filename):
                 f = os.path.join(self.filename, tag + self.suffix)
             else:

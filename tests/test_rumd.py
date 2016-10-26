@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import glob
 import unittest
 try:
     from atooms.backends.rumd_backend import RumdBackend, single, multi
@@ -10,7 +11,7 @@ except ImportError:
 from atooms.simulation import Simulation, log
 from atooms.simulation.parallel_tempering import ParallelTempering
 
-#log.setLevel(10)
+log.setLevel(40)
 
 def potential():
     import rumd
@@ -46,29 +47,28 @@ class Test(unittest.TestCase):
         si.run(1000)
 
     def test_multi_writing(self):
-        import glob
         s = single(self.input_file, potential, T=0.80, dt=0.002, interval_energy=500, interval_config=500)
-        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', enable_speedometer=False, config_interval=500)
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi_writing', enable_speedometer=False, config_interval=500)
         si.run(50000)
         si.run(5000)
-        ls = glob.glob('/tmp/test_rumd_multi/trajectory.d/*')
+        ls = glob.glob('/tmp/test_rumd_multi_writing/trajectory.d/*')
         self.assertEqual(len(ls), 11)
 
     def test_multi_2(self):
         s = single(self.input_file, potential, T=0.80, dt=0.002)
-        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', steps=2000, 
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi_2', steps=2000, 
                         thermo_interval=100, config_interval=100, checkpoint_interval=100,
                         restart=False)
         si.run()
         s = single(s, potential, T=0.80, dt=0.002)
-        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', steps=1000, 
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi_2', steps=1000, 
                         thermo_interval=100, config_interval=100, checkpoint_interval=100,
                         restart=False)
         si.run()
 
     def test_multi_rmsd(self):
         s = single(self.input_file, potential, T=0.80, dt=0.002)
-        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi', 
+        si = Simulation(RumdBackend(s), output_path='/tmp/test_rumd_multi_rmsd', 
                         thermo_interval=100, config_interval=100, checkpoint_interval=100, steps=1000000000,
                         restart=False)
         si.run(rmsd=1.0)
@@ -85,8 +85,7 @@ class Test(unittest.TestCase):
         pt.run()
 
     def tearDown(self):
-        os.system('rm -rf /tmp/test_rumd_single')
-        os.system('rm -rf /tmp/test_rumd_rx')
+        os.system('rm -rf /tmp/test_rumd_*')
 
 if __name__ == '__main__':
     unittest.main()
