@@ -176,8 +176,11 @@ class MyFormatter(logging.Formatter):
             return '# %s' % record.msg
 
 # Logging API
-def setup_logging(name='root', level=40):
-    log = logging.getLogger(name)
+def setup_logging(name=None, level=40):
+    if name is None:
+        log = logging.getLogger()
+    else:
+        log = logging.getLogger(name)
     formatter = MyFormatter()
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.setFormatter(formatter)
