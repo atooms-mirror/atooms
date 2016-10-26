@@ -1,12 +1,10 @@
 Atooms
 ======
 
-This is atooms - a composable, high-level framework for molecular simulations.
+This is atooms - a high-level framework for atomistic simulations. 
 
-Copyright (C) 2010-2016 Daniele Coslovich <daniele.coslovich@umontpellier.fr>
-
-Examples
---------
+Getting started
+---------------
 
 Access particles' coordinates in a multi-configuration xyz trajectory file
 ```python
@@ -18,9 +16,9 @@ for system in Trajectory('input.xyz'):
 
 Features
 --------
-- High-level interface to simulation objects
+- High-level access to simulation objects and their properties
 - Handle and convert multiple trajectory formats 
-- Flexible simulation interface with callback logic
+- Generic simulation interface with callback logic
 - Efficient molecular dynamics backends, e.g. RUMD
 
 Adding packages to atooms namespace
@@ -44,3 +42,6 @@ Add the package root folder to $PYTHONPATH. You can now import your package as
 import atooms.your_package
 ```
 
+Authors
+-------
+Daniele Coslovich <daniele.coslovich@umontpellier.fr>
