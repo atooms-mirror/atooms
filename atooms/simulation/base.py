@@ -8,6 +8,7 @@ import os
 import time
 import datetime
 import copy
+import logging
 
 from atooms.core import __version__, __date__
 from atooms.utils import mkdir, rmd, rmf
@@ -15,6 +16,8 @@ from atooms.utils import rank, size, barrier
 from atooms.backends.dryrun import DryRunBackend
 
 from .observers import *
+
+log = logging.getLogger(__name__)
 
 class Simulation(object):
 

@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
-from atooms.simulation import Simulation, log
-
-log.setLevel(40)
+from atooms.simulation import Simulation
 
 class Test(unittest.TestCase):
 

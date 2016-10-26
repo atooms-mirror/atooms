@@ -4,8 +4,9 @@ import unittest
 import sys
 import os
 import numpy
-from atooms.simulation import log
+import logging
 
+log = logging.getLogger()
 log.setLevel(40)
 
 from atooms.simulation import Simulation

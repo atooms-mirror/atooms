@@ -8,10 +8,8 @@ try:
     SKIP = False
 except ImportError:
     SKIP = True
-from atooms.simulation import Simulation, log
+from atooms.simulation import Simulation
 from atooms.simulation.parallel_tempering import ParallelTempering
-
-log.setLevel(40)
 
 def potential():
     import rumd

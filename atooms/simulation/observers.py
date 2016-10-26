@@ -9,7 +9,6 @@ import time
 import datetime
 import logging
 
-from atooms.utils import ParallelFilter, MyFormatter
 from atooms.utils import mkdir, rmd, rmf
 
 # Different approaches are possible:
@@ -35,15 +34,7 @@ from atooms.utils import mkdir, rmd, rmf
 # * writer : these callbacks dump useful stuff to file
 # and of course general purpose callback can be passed to do whatever
 
-# Logging
-
-log = logging.getLogger('atooms')
-formatter = MyFormatter()
-handler = logging.StreamHandler(stream=sys.stdout)
-handler.setFormatter(formatter)
-log.addFilter(ParallelFilter())
-log.addHandler(handler)
-log.setLevel(logging.INFO)
+log = logging.getLogger(__name__)
 
 # Default exceptions
 

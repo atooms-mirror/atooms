@@ -175,6 +175,17 @@ class MyFormatter(logging.Formatter):
         else:
             return '# %s' % record.msg
 
+# Logging API
+def setup_logging(name='root', level=40):
+    log = logging.getLogger(name)
+    formatter = MyFormatter()
+    handler = logging.StreamHandler(stream=sys.stdout)
+    handler.setFormatter(formatter)
+    log.addFilter(ParallelFilter())
+    log.addHandler(handler)
+    log.setLevel(level)
+    return log
+
 def tipify(s):
     """Convert a string into the best matching type.
     Example: 2 -> int; 2.32 -> float; text -> str

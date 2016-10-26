@@ -3,4 +3,7 @@
 
 """Simulation base class with callback logic"""
 
-from base import *
+import logging
+logging.getLogger(__name__).addHandler(logging.NullHandler())
+
+from .base import *
