@@ -68,25 +68,24 @@ def composition(particle):
 
 def rotated(particle, cell):
     """Return a rotated list of particles around the main symmetry axis of the set."""
-    import numpy as np
     import math
 
-    def norm2(x):
-        return numpy.dot(x, x)
+    def norm2(vec):
+        return numpy.dot(vec, vec)
 
     def rotation(axis, theta):
         """
         Return the rotation matrix associated with counterclockwise rotation about
         the given axis by theta radians.
         """
-        axis = np.asarray(axis)
-        theta = np.asarray(theta)
-        axis = axis/math.sqrt(np.dot(axis, axis))
+        axis = numpy.asarray(axis)
+        theta = numpy.asarray(theta)
+        axis = axis/math.sqrt(numpy.dot(axis, axis))
         a = math.cos(theta/2.0)
         b, c, d = -axis*math.sin(theta/2.0)
         aa, bb, cc, dd = a*a, b*b, c*c, d*d
         bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
-        return np.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
+        return numpy.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
                          [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                          [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
@@ -126,28 +125,28 @@ class Particle(object):
     def move(self):
         pass
 
-    def nearest_image(self, p, cell):
-        """Transform self into the nearest image of p in the specified cell."""
-        rij = self.position - p.position
+    def nearest_image(self, particle, cell):
+        """Transform self into the nearest image of *particle* in the specified cell."""
+        rij = self.position - particle.position
         periodic_vector(rij, cell.side)
-        self.position = p.position + rij
+        self.position = particle.position + rij
         return self
 
-    def nearest_image_copy(self, p, cell):
-        """Return the nearest image of p in the specified cell."""
+    def nearest_image_copy(self, particle, cell):
+        """Return the nearest image of *particle* in the specified cell."""
         from copy import deepcopy
-        rij = self.position - p.position
+        rij = self.position - particle.position
         periodic_vector(rij, cell.side)
         image = deepcopy(self)
-        image.position = p.position + rij
+        image.position = particle.position + rij
         return image
 
-    def distance(self, p, cell=None):
+    def distance(self, particle, cell=None):
         """
-        Return distance from particle p.
-        If cell is provided compute distance from periodic image of p
+        Return distance from *particle*.
+        If *cell* is provided, return distance from the nearest image of *particle*.
         """
-        r = self.position - p.position
+        r = self.position - particle.position
         if cell:
             periodic_vector(r, cell.side)
         return r
@@ -157,7 +156,8 @@ class Particle(object):
         self.position = periodic_vector_safe(self.position, cell.side)
         return self
 
-    def maxwellian(self, T):
+    def maxwellian(self, temperature):
+        T = temperature
         vx = random.gauss(0, numpy.sqrt(T / self.mass))
         vy = random.gauss(0, numpy.sqrt(T / self.mass))
         vz = random.gauss(0, numpy.sqrt(T / self.mass))
