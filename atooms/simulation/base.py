@@ -3,16 +3,13 @@
 
 """Simulation base class with callback logic"""
 
-import sys
 import os
 import time
 import datetime
-import copy
 import logging
 
 from atooms.core import __version__, __date__
-from atooms.utils import mkdir, rmd, rmf
-from atooms.utils import rank, size, barrier
+from atooms.utils import mkdir, barrier
 from atooms.backends.dryrun import DryRunBackend
 
 from .observers import *
@@ -30,14 +27,14 @@ class Simulation(object):
     _TARGET_STEPS = TargetSteps
     _TARGET_RMSD = TargetRMSD
     _WRITER_THERMO = WriterThermo
-    _WRITER_CONFIG = WriterConfig    
+    _WRITER_CONFIG = WriterConfig
     _WRITER_CHECKPOINT = WriterCheckpoint
 
     def __init__(self, backend=DryRunBackend(),
-                 output_path=None, 
+                 output_path=None,
                  steps=0, rmsd=None,
                  target_steps=0, target_rmsd=None,
-                 thermo_interval=0, thermo_number=0, 
+                 thermo_interval=0, thermo_number=0,
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
                  enable_speedometer=True,
@@ -63,8 +60,8 @@ class Simulation(object):
         self.enable_speedometer = enable_speedometer
         self.storage = storage
         # Convenience shortcuts (might be dropped in the future)
-        if steps>0:
-            self.target_steps = steps 
+        if steps > 0:
+            self.target_steps = steps
         if rmsd is not None:
             self.target_rmsd = rmsd
 
@@ -104,7 +101,7 @@ class Simulation(object):
                 return os.path.splitext(self.output_path)[0]
         else:
             return None
-        
+
     def _setup(self):
         """Add all internal observers to callbacks"""
         # This is called in run() if we are not restarting.
@@ -139,7 +136,7 @@ class Simulation(object):
         # Keep targeters last
         if not isinstance(callback, Target):
             callback.scheduler = scheduler
-            self._callback.insert(0, callback)            
+            self._callback.insert(0, callback)
         else:
             callback.scheduler = scheduler
             self._callback.append(callback)
@@ -157,11 +154,11 @@ class Simulation(object):
         if callback in self._callback:
             self._callback.remove(callback)
         else:
-            log.debug('attempt to remove inexistent callback %s (dont worry)' % callback)
+            log.debug('attempt to remove inexistent callback %s (dont worry)', callback)
 
     def notify(self, observers):
         for o in observers:
-            log.debug('notify %s' % o)
+            log.debug('notify %s', o)
             o(self)
 
     @property
@@ -208,7 +205,7 @@ class Simulation(object):
         try:
             # Be tolerant if there is no reference to system
             return self.wall_time_per_step() / len(self.system.particle)
-        except:
+        except AttributeError:
             return 0.0
 
     # Our template consists of two steps: run_pre() and run_until()
@@ -218,7 +215,7 @@ class Simulation(object):
     # Having a read_checkpoint() stub method would be OK here.
     def run_pre(self):
         """Deal with restart conditions before run we call_until()"""
-        log.debug('calling backend pre at steps %d' % self.steps)
+        log.debug('calling backend pre at steps %d', self.steps)
         if self.output_path is not None:
             self.backend.output_path = self.output_path
 
@@ -238,19 +235,20 @@ class Simulation(object):
         # If backend has reset the step because of restart, we update it.
         # Note that in subclasses we may may overwrite this, because of own restarts
         if self.restart:
-            self.steps = self.backend.steps 
+            self.steps = self.backend.steps
         barrier()
-            
-    def run_until(self, n):
+
+    def run_until(self, steps):
         # /Design/: it is run_until responsability to set steps: self.steps = n
-        # Bear it in mind when subclassing 
-        self.backend.run_until(n)
-        self.backend.steps = n
-        self.steps = n
+        # Bear it in mind when subclassing
+        self.backend.run_until(steps)
+        self.backend.steps = steps
+        self.steps = steps
 
     def run(self, steps=None, rmsd=None):
         # If we are restaring we do not allow changing steps on the fly
-        if not self.restart or self.steps==0:
+        # TODO: spaghetti code
+        if not self.restart or self.steps == 0:
             if steps is not None:
                 self.target_steps = steps
                 self.target_rmsd = rmsd
@@ -275,7 +273,7 @@ class Simulation(object):
                 self.notify(self._non_targeters)
             else:
                 self.notify(self._speedometers)
-            log.info('starting at step: %d' % self.steps)
+            log.info('starting at step: %d', self.steps)
             log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
@@ -289,12 +287,12 @@ class Simulation(object):
                 # Observers are sorted such that targeters are last
                 # and checkpoint is last among writers
                 self.notify(next_obs)
-                
-        except SimulationEnd as s:
+
+        except SimulationEnd as err:
 
             # Checkpoint configuration at last step
             self.writer_checkpoint(self)
-            log.info('%s' % s.message)
+            log.info(err.message)
             # We ignore errors due to performed steps being zero
             try:
                 self._report_end()
@@ -313,16 +311,15 @@ class Simulation(object):
 
     def report(self):
         txt = '%s' % self
-        nch = len(txt)
         log.info('')
         log.info(txt)
         log.info('')
-        log.info('atooms version: %s (%s)' % (__version__, __date__.split()[0]))
-        log.info('simulation starts on: %s' % datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
-        log.info('output path: %s' % self.output_path)
+        log.info('atooms version: %s (%s)', __version__, __date__.split()[0])
+        log.info('simulation starts on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
+        log.info('output path: %s', self.output_path)
         self._report()
         self._report_observers()
-        
+
     def _report(self):
         """Implemented by subclasses"""
         pass
@@ -331,15 +328,15 @@ class Simulation(object):
         for f in self._callback:
             s = f.scheduler
             if isinstance(f, Target):
-                log.info('target %s: %s' % (f, f.target)) #, s.interval, s.calls))
+                log.info('target %s: %s', f, f.target)
             else:
-                log.info('writer %s: interval=%s calls=%s' % (f, s.interval, s.calls))
+                log.info('writer %s: interval=%s calls=%s', f, s.interval, s.calls)
 
     def _report_end(self):
-        log.info('simulation ended on: %s' % datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
-        log.info('final steps: %d' % self.steps)
-        log.info('final rmsd: %.2f' % self.rmsd)
-        log.info('wall time [s]: %.1f' % self.elapsed_wall_time())
-        log.info('average TSP [s/step/particle]: %.2e' % (self.wall_time_per_step_particle()))
+        log.info('simulation ended on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
+        log.info('final steps: %d', self.steps)
+        log.info('final rmsd: %.2f', self.rmsd)
+        log.info('wall time [s]: %.1f', self.elapsed_wall_time())
+        log.info('average TSP [s/step/particle]: %.2e', self.wall_time_per_step_particle())
 
 
