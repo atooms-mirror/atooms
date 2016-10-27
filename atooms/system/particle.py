@@ -1,31 +1,32 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-import numpy 
+import numpy
 import random
+import copy
 from atooms.core import ndim
 
-def periodic_vector(a, box):
+def periodic_vector(vec, box):
     #return numpy.where(abs(a) > box/2, a-numpy.copysign(box, a), a)
-    for i in xrange(a.shape[0]):
-        if a[i] > box[i]/2:
-            a[i] += - box[i]
-        elif a[i] < -box[i]/2:
-            a[i] += box[i]
-    return a
+    for i in xrange(vec.shape[0]):
+        if vec[i] > box[i]/2:
+            vec[i] += - box[i]
+        elif vec[i] < -box[i]/2:
+            vec[i] += box[i]
+    return vec
 
-def periodic_vector_safe(a, box):
-    return a - numpy.rint(a/box) * box
+def periodic_vector_safe(vec, box):
+    return vec - numpy.rint(vec/box) * box
 
-def periodic_vector_safe_opti(a, box, invbox):
-    return a - numpy.rint(a * invbox) * box
-    
+def periodic_vector_safe_opti(vec, box, invbox):
+    return vec - numpy.rint(vec * invbox) * box
+
 def fix_cm(particle):
     """ Subtract out the motion of the CM """
     vcm = velocity_cm(particle)
     for p in particle:
         p.velocity -= vcm
-    return p
+    return particle
 
 def velocity_cm(particle):
     """ Velocity of the center of mass of a list of particles """
@@ -57,7 +58,7 @@ def temperature(particle, ndof=None):
     return 2 * total_kinetic_energy(particle) / ndof
 
 def composition(particle):
-    """Return a tuple containing the number of particles 
+    """Return a tuple containing the number of particles
     of each species appearing the input particle list"""
     # TODO: check id normalization
     x = max([p.id for p in particle]) * [0]
@@ -93,12 +94,12 @@ def rotated(particle, cell):
     dist = [sum(p[0].distance(pi, cell)**2) for pi in p]
     dmax = max(dist)
     imax = dist.index(dmax)
-    z_axis = numpy.array([0,-1,0])
+    z_axis = numpy.array([0, -1, 0])
     pr_axis = p[0].position - p[imax].position
     ro_axis = numpy.cross(pr_axis, z_axis)
     theta = math.acos(numpy.dot(pr_axis, z_axis) / (norm2(pr_axis) * norm2(z_axis))**0.5)
     for pi in p:
-        pi.position = numpy.dot(rotation(ro_axis, theta), pi.position)            
+        pi.position = numpy.dot(rotation(ro_axis, theta), pi.position)
 
 class Particle(object):
 
@@ -107,21 +108,21 @@ class Particle(object):
     """
 
     def __init__(self,
-                 id       = 1,
-                 name     = 'A',
-                 mass     = 1.0,
-                 position = numpy.zeros(ndim),
-                 velocity = numpy.zeros(ndim),                 
-                 radius   = 0.5, # sigma=1.0
-                 tag      = None):
-        self.id       = id
-        self.name     = name
-        self.mass     = mass
-        self.radius   = radius
+                 id=1,
+                 name='A',
+                 mass=1.0,
+                 position=numpy.zeros(ndim),
+                 velocity=numpy.zeros(ndim),
+                 radius=0.5, # sigma=1.0
+                 tag=None):
+        self.id = id
+        self.name = name
+        self.mass = mass
+        self.radius = radius
         self.position = position
         self.velocity = velocity
-        self.tag      = tag
-    
+        self.tag = tag
+
     def move(self):
         pass
 
@@ -143,7 +144,7 @@ class Particle(object):
 
     def distance(self, p, cell=None):
         """
-        Return distance from particle p. 
+        Return distance from particle p.
         If cell is provided compute distance from periodic image of p
         """
         r = self.position - p.position
@@ -161,8 +162,3 @@ class Particle(object):
         vy = random.gauss(0, numpy.sqrt(T / self.mass))
         vz = random.gauss(0, numpy.sqrt(T / self.mass))
         self.velocity = numpy.array((vx, vy, vz))
-
-if __name__ == '__main__':
-    particle = Particle()
-    for key in  particle.__dict__.keys():
-        print key
