@@ -7,9 +7,9 @@ from atooms.core import ndim
 class Cell(object):
 
     """Cell class"""
-    
-    def __init__(self, side, origin = numpy.zeros(ndim)):
-        self.side   = numpy.array(side)
+
+    def __init__(self, side, origin=numpy.zeros(ndim)):
+        self.side = numpy.array(side)
         self.origin = origin
 
     @property
