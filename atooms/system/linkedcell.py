@@ -6,6 +6,7 @@ import numpy
 from collections import defaultdict
 
 def _pbc(t, N):
+    # TODO: fix undefined NN 
     for i in range(len(t)):
         if t[i] >= N[i]:
             t[i] -= NN
@@ -49,18 +50,18 @@ class LinkedCell(object):
                             self.__ghost_cells.append((ix, iy, iz))
 
         return self.__ghost_cells
-                    
+
     def _map_netwon(self):
         self._neigh_cell = {}
         for ix in range(self.n_cell[0]):
             for iy in range(self.n_cell[1]):
                 for iz in range(self.n_cell[2]):
                     self._neigh_cell[(ix, iy, iz)] = \
-                        [(ix+1, iy, iz  ), (ix+1, iy+1, iz  ), (ix  , iy+1, iz  ), (ix-1, iy+1, iz  ), 
+                        [(ix+1, iy, iz  ), (ix+1, iy+1, iz  ), (ix  , iy+1, iz  ), (ix-1, iy+1, iz  ),
                          (ix+1, iy, iz-1), (ix+1, iy+1, iz-1), (ix  , iy+1, iz-1), (ix-1, iy+1, iz-1),
                          (ix+1, iy, iz+1), (ix+1, iy+1, iz+1), (ix  , iy+1, iz+1), (ix-1, iy+1, iz+1),
                          (ix  , iy, iz+1)]
-                        
+
         # Use minimum image convention and transform keys into numpy arrays
         for i in self._neigh_cell:
             for j in range(len(self._neigh_cell[i])):
@@ -71,7 +72,7 @@ class LinkedCell(object):
         self.hbox = box / 2
         self.n_cell = (box / max(rcut)).astype(int)
         self._map_netwon()
-        
+
     def _index(self, pos, box):
         #return tuple(((pos + self.hbox) / box))
         return (pos + self.hbox) / box
