@@ -1,6 +1,8 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+# TODO: what about reading Npart and metadata in one shot? We could avoid separate calls to index and steps.
+
 import os
 import gzip
 import numpy
