@@ -252,6 +252,7 @@ class TrajectoryXYZ(TrajectoryBase):
         p = []
         for data in self._sampledata:
             # Get particle name and id and update local database if needed
+            # TODO: what if we dont have them?
             name = data['id']
             if not name in self._map_id:
                 self._map_id.append(name)
