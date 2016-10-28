@@ -22,14 +22,14 @@ def periodic_vector_safe_opti(vec, box, invbox):
     return vec - numpy.rint(vec * invbox) * box
 
 def fix_cm(particle):
-    """ Subtract out the motion of the CM """
+    """Subtract out the motion of the CM."""
     vcm = velocity_cm(particle)
     for p in particle:
         p.velocity -= vcm
     return particle
 
 def velocity_cm(particle):
-    """ Velocity of the center of mass of a list of particles """
+    """Velocity of the center of mass of a list of particles."""
     vcm = numpy.zeros_like(particle[0].velocity)
     mtot = 0.0
     for p in particle:
@@ -38,7 +38,7 @@ def velocity_cm(particle):
     return vcm / mtot
 
 def position_cm(particle):
-    """ Position of the center of mass of a list of particles """
+    """Position of the center of mass of a list of particles."""
     rcm = numpy.zeros_like(particle[0].position)
     mtot = 0.0
     for p in particle:
@@ -58,8 +58,10 @@ def temperature(particle, ndof=None):
     return 2 * total_kinetic_energy(particle) / ndof
 
 def composition(particle):
-    """Return a tuple containing the number of particles
-    of each species appearing the input particle list"""
+    """
+    Return a tuple containing the number of particles
+    of each species appearing the input particle list.
+    """
     # TODO: check id normalization
     x = max([p.id for p in particle]) * [0]
     for p in particle:
@@ -102,9 +104,7 @@ def rotated(particle, cell):
 
 class Particle(object):
 
-    """
-    Particle class
-    """
+    """Particle class."""
 
     def __init__(self,
                  id=1,
@@ -157,6 +157,10 @@ class Particle(object):
         return self
 
     def maxwellian(self, temperature):
+        """
+        Assign velocities to particle according to a Maxwell-Boltzmann
+        distribution at the given *temperature*.
+        """
         T = temperature
         vx = random.gauss(0, numpy.sqrt(T / self.mass))
         vy = random.gauss(0, numpy.sqrt(T / self.mass))

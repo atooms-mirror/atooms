@@ -1,6 +1,8 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+# TODO: what about reading Npart and metadata in one shot? We could avoid separate calls to index and steps.
+
 import os
 import gzip
 import numpy
@@ -248,6 +250,7 @@ class TrajectoryXYZ(TrajectoryBase):
         p = []
         for data in self._sampledata:
             # Get particle name and id and update local database if needed
+            # TODO: what if we dont have them?
             name = data['id']
             if not name in self._map_id:
                 self._map_id.append(name)
