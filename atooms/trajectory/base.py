@@ -2,16 +2,14 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 import os
-import sys
-import logging
 import warnings
 
-from utils import get_period
+from .utils import get_period
 
 class TrajectoryBase(object):
 
     """Trajectory base class.
-    
+
     __init__ is supposed to deal with file existence, creating
     handles, setup steps list.
 
@@ -20,12 +18,12 @@ class TrajectoryBase(object):
     1. read_init() and write_init() are called only once to initialize
     data structures (ex. counts samples and steps) or grab metadata
     (stuff that doesn't change)
-    
+
     2. read_sample() and write_sample() are used to actually
     read/write a system
-    
+
     Additionally, write_sample append the step to the step list
-    
+
     In future implementation, we might pass a list of objects to be
     written, to store for instance, integrator data and so on.
     """
@@ -35,7 +33,7 @@ class TrajectoryBase(object):
     def __init__(self, filename, mode='r'):
         """When mode is 'r', it must set the list of available steps."""
         self.filename = filename
-        self.mode  = mode
+        self.mode = mode
         # fmt is a list of strings describing data to be written by
         # write_sample(). Subclasses may use it to filter out some
         # data from their format or can even ignore it entirely.
@@ -129,26 +127,26 @@ class TrajectoryBase(object):
         pass
 
     # These methods must be implemented by subclasses
-    def read_sample(self, index): 
+    def read_sample(self, index):
         """It must return the sample (system) with the given index"""
         raise NotImplementedError()
-        
+
     def write_sample(self, system, step):
         """It must write a sample (system) to disk. Noting to return."""
         raise NotImplementedError()
 
     # To read/write timestep and block period sublcasses may implement
     # these methods. The default is dt=1 and blockperiod determined dynamically.
-    def read_timestep(self): 
+    def read_timestep(self):
         return 1.0
 
-    def write_timestep(self, value): 
+    def write_timestep(self, value):
         pass
 
-    def read_blockperiod(self): 
+    def read_blockperiod(self):
         return None
 
-    def write_blockperiod(self, value): 
+    def write_blockperiod(self, value):
         pass
 
     @property
@@ -186,7 +184,7 @@ class TrajectoryBase(object):
         ibl = 0
         jbl = 0
         prune_me = []
-        for k, i in enumerate(self.steps):
+        for i in self.steps:
             j = ibl*self.steps[self.block_period] + block[jbl]
             if i == j:
                 jbl += 1
@@ -201,7 +199,6 @@ class TrajectoryBase(object):
 
         for p in prune_me:
             pp = self.steps.index(p)
-            a = self.steps.pop(pp)
 
         # check if the number of steps is an integer multiple of
         # block period (we tolerate a rest of 1)
@@ -226,7 +223,7 @@ class TrajectoryBase(object):
     # Some additional useful properties
 
     @property
-    def grandcanonical(self): 
+    def grandcanonical(self):
         # In subclasses, cache it for efficiency, since we might have to discover it
         if self._grandcanonical is None:
             self._grandcanonical = False
@@ -246,7 +243,7 @@ class TrajectoryBase(object):
         """Estimate the time when the MSD reaches target_msd in units of sigma^2.
         Bounded by the actual maximum time of trajectory tmax.
         """
-        # TODO: when using decorators, this will introduce a diamond, let's move it to a generic function in post processing 
+        # TODO: when using decorators, this will introduce a diamond, let's move it to a generic function in post processing
         raise NotImplementedError('time_when_msd_is is broken')
         # self._unfold()
         # msd_total = numpy.sum((self._pos_unf[-1] - self._pos_unf[0])**2) / self._pos_unf[0].shape[0]
