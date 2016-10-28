@@ -98,10 +98,8 @@ class TrajectoryXYZ(TrajectoryBase):
         self._index = []
         self._index_cell = None
         fh = self.trajectory
-
-        # TODO: index lines at which first particle is found, not comment
         fh.seek(0)
-        l = 0
+        line = 0
         while True:
             data = fh.readline()
 
@@ -116,15 +114,15 @@ class TrajectoryXYZ(TrajectoryBase):
                 # This must be the side of the cell or some empty line
                 # TODO: move search for cell in a separate function, more general solution 
                 if data:
-                    self._index_cell = l
+                    self._index_cell = line
                 break
 
             # Store number of particles and skip npart+1 lines
-            self._index.append(l)
+            self._index.append(line)
             self._npart.append(npart)
             for i in range(npart+1):
                 d = fh.readline()
-            l = fh.tell()
+            line = fh.tell()
 
     def _setup_steps(self):
         """Define sample list."""
