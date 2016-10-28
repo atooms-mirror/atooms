@@ -3,9 +3,7 @@
 
 import copy
 import numpy
-from particle import position_cm, velocity_cm, fix_cm, total_kinetic_energy
-
-ndim = 3
+from .particle import position_cm, velocity_cm, fix_cm, total_kinetic_energy
 
 class System(object):
 
@@ -14,8 +12,8 @@ class System(object):
     def __init__(self, particle=[], cell=None, interaction=None, matrix=None, thermostat=None, dynamics=None):
         self.particle = particle
         self.interaction = interaction
-        self.cell     = cell
-        self.matrix   = matrix
+        self.cell = cell
+        self.matrix = matrix
         self.thermostat = thermostat
         self.dynamics = dynamics
         self._potential_energy = 0.0
@@ -28,7 +26,7 @@ class System(object):
     def number_of_species(self):
         return len(set(p.id for p in self.particle))
 
-    def add_porous_matrix(self,matrix):
+    def add_porous_matrix(self, matrix):
         self.matrix = copy.deepcopy(matrix)
 
     @property
@@ -41,10 +39,10 @@ class System(object):
         # Ideally, one could determine this via some additional attribute.
         if ndof is None:
             ndof = (len(self.particle)-1) * self.number_of_dimensions
-        return 2.0 / ndof * total_kinetic_energy(self.particle) 
+        return 2.0 / ndof * total_kinetic_energy(self.particle)
 
     def kinetic_energy(self):
-        return total_kinetic_energy(self.particle) 
+        return total_kinetic_energy(self.particle)
 
     def kinetic_energy_per_particle(self):
         return total_kinetic_energy(self.particle) / len(self.particle)
@@ -81,10 +79,11 @@ class System(object):
         # Time evolution is a behavior of a system.
         # But to avoid passing the whole object, we must unpack it
         if not self.dynamics is None:
-            self.dynamics.evolve(self.particle,self.cell,self.interaction,self.thermostat)
-        
-    def maxwellian(self, T):
+            self.dynamics.evolve(self.particle, self.cell, self.interaction, self.thermostat)
+
+    def maxwellian(self, temperature):
         """ Reset velocities to a Maxwellian distribution with fixed CM """
+        T = temperature
         for p in self.particle:
             p.maxwellian(T)
         fix_cm(self.particle)
@@ -94,9 +93,9 @@ class System(object):
         fac = (T/T_old)**0.5
         for p in self.particle:
             p.velocity *= fac
-        
+
     def dump(self, what, dim=slice(None), pslice=slice(None)):
-        """ Thrown pos or vel into a big (N, ndim) numpy array. 
+        """ Thrown pos or vel into a big (N, ndim) numpy array.
         It accepts particles slice although this should be handled via trajectory decorators"""
         if what == 'pos':
             return numpy.array([p.position[dim] for p in self.particle[pslice]])
