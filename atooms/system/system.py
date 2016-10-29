@@ -63,13 +63,13 @@ class System(object):
 
     def mean_square_displacement(self, reference):
         """
-        Compute the mean square displacement of the system's particles 
+        Compute the mean square displacement of the system's particles
         with respect to those in the *reference* system.
         """
         displ = []
         for pi, pj in zip(self.particle, reference.particle):
             rij = numpy.array(pi.distance(pj, self.cell))
-            displ.append(numpy.dot(rij,rij))
+            displ.append(numpy.dot(rij, rij))
         return sum(displ) / len(self.particle)
 
     @property
@@ -90,7 +90,7 @@ class System(object):
             self.dynamics.evolve(self.particle, self.cell, self.interaction, self.thermostat)
 
     def maxwellian(self, temperature):
-        """ Reset velocities to a Maxwellian distribution with fixed CM """
+        """Reset velocities to a Maxwellian distribution with fixed CM."""
         T = temperature
         for p in self.particle:
             p.maxwellian(T)
@@ -103,8 +103,12 @@ class System(object):
             p.velocity *= fac
 
     def dump(self, what, dim=slice(None), pslice=slice(None)):
-        """ Thrown pos or vel into a big (N, ndim) numpy array.
-        It accepts particles slice although this should be handled via trajectory decorators"""
+        """
+        Throw pos or vel into a big (N, ndim) numpy array.
+
+        It accepts particles slice although this should be handled via
+        trajectory decorators.
+        """
         if what == 'pos':
             return numpy.array([p.position[dim] for p in self.particle[pslice]])
         elif what == 'vel':
@@ -113,7 +117,7 @@ class System(object):
             return numpy.array([p.radius*2 for p in self.particle[pslice]])
 
     def scale(self, factor):
-        """Rescale cell and particles' coordinates by *factor*"""
+        """Rescale cell and particles' coordinates by *factor*."""
         for p in self.particle:
             p.position *= factor
         self.cell.side *= factor
