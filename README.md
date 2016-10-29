@@ -61,7 +61,7 @@ Alternatively, from the code repository
 ```
 git clone https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms.git
 cd atooms
-python setup.py install --home=~
+make install
 ```
 
 Additional packages 
