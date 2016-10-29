@@ -14,7 +14,7 @@ from rumdSimulation import rumdSimulation
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 
-log = logging.getLogger(__module__)
+log = logging.getLogger(__name__)
 
 class RumdBackend(object):
 
