@@ -3,7 +3,7 @@ Atooms
 
 This is atooms - a high-level framework for atomistic simulations.
 
-QUick start
+Quick start
 -----------
 
 Accessing particles' coordinates in a multi-configuration xyz trajectory file goes like this
