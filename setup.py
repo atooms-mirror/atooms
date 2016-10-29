@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
-import os
 from distutils.core import setup
+
+with open('README.md') as f:
+    readme = f.read()
 
 setup(name='atooms',
       version='0.1',
-      description='High-level library and tools for molecular simulations',
+      description='A framework for classical particle-based simulations',
+      long_description=readme,
       author='Daniele Coslovich',
       author_email='daniele.coslovich@umontpellier.fr',
       url='https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms',
