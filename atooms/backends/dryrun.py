@@ -3,8 +3,8 @@
 
 class DryRunBackend(object):
 
-    def __init__(self):
-        self.system = System()
+    def __init__(self, system):
+        self.system = system
         self.trajectory = Trajectory
         self.output_path = None
 
