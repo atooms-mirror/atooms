@@ -6,6 +6,74 @@ import random
 import copy
 from atooms.core import ndim
 
+
+class Particle(object):
+
+    """Particle class."""
+
+    def __init__(self,
+                 id=1,
+                 name='A',
+                 mass=1.0,
+                 position=numpy.zeros(ndim),
+                 velocity=numpy.zeros(ndim),
+                 radius=0.5, # sigma=1.0
+                 tag=None):
+        self.id = id
+        self.name = name
+        self.mass = mass
+        self.radius = radius
+        self.position = position
+        self.velocity = velocity
+        self.tag = tag
+
+    def move(self):
+        pass
+
+    def nearest_image(self, particle, cell):
+        """Transform self into the nearest image of *particle* in the specified cell."""
+        rij = self.position - particle.position
+        periodic_vector(rij, cell.side)
+        self.position = particle.position + rij
+        return self
+
+    def nearest_image_copy(self, particle, cell):
+        """Return the nearest image of *particle* in the specified cell."""
+        from copy import deepcopy
+        rij = self.position - particle.position
+        periodic_vector(rij, cell.side)
+        image = deepcopy(self)
+        image.position = particle.position + rij
+        return image
+
+    def distance(self, particle, cell=None):
+        """
+        Return distance from *particle*.
+        If *cell* is provided, return distance from the nearest image of *particle*.
+        """
+        r = self.position - particle.position
+        if cell:
+            periodic_vector(r, cell.side)
+        return r
+
+    def fold(self, cell):
+        """Fold self into central cell."""
+        self.position = periodic_vector_safe(self.position, cell.side)
+        return self
+
+    def maxwellian(self, temperature):
+        """
+        Assign velocities to particle according to a Maxwell-Boltzmann
+        distribution at the given *temperature*.
+        """
+        T = temperature
+        vx = random.gauss(0, numpy.sqrt(T / self.mass))
+        vy = random.gauss(0, numpy.sqrt(T / self.mass))
+        vz = random.gauss(0, numpy.sqrt(T / self.mass))
+        self.velocity = numpy.array((vx, vy, vz))
+
+# Utility functions
+
 def periodic_vector(vec, box):
     #return numpy.where(abs(a) > box/2, a-numpy.copysign(box, a), a)
     for i in xrange(vec.shape[0]):
@@ -101,68 +169,3 @@ def rotated(particle, cell):
     theta = math.acos(numpy.dot(pr_axis, z_axis) / (norm2(pr_axis) * norm2(z_axis))**0.5)
     for pi in p:
         pi.position = numpy.dot(rotation(ro_axis, theta), pi.position)
-
-class Particle(object):
-
-    """Particle class."""
-
-    def __init__(self,
-                 id=1,
-                 name='A',
-                 mass=1.0,
-                 position=numpy.zeros(ndim),
-                 velocity=numpy.zeros(ndim),
-                 radius=0.5, # sigma=1.0
-                 tag=None):
-        self.id = id
-        self.name = name
-        self.mass = mass
-        self.radius = radius
-        self.position = position
-        self.velocity = velocity
-        self.tag = tag
-
-    def move(self):
-        pass
-
-    def nearest_image(self, particle, cell):
-        """Transform self into the nearest image of *particle* in the specified cell."""
-        rij = self.position - particle.position
-        periodic_vector(rij, cell.side)
-        self.position = particle.position + rij
-        return self
-
-    def nearest_image_copy(self, particle, cell):
-        """Return the nearest image of *particle* in the specified cell."""
-        from copy import deepcopy
-        rij = self.position - particle.position
-        periodic_vector(rij, cell.side)
-        image = deepcopy(self)
-        image.position = particle.position + rij
-        return image
-
-    def distance(self, particle, cell=None):
-        """
-        Return distance from *particle*.
-        If *cell* is provided, return distance from the nearest image of *particle*.
-        """
-        r = self.position - particle.position
-        if cell:
-            periodic_vector(r, cell.side)
-        return r
-
-    def fold(self, cell):
-        """Fold self into central cell."""
-        self.position = periodic_vector_safe(self.position, cell.side)
-        return self
-
-    def maxwellian(self, temperature):
-        """
-        Assign velocities to particle according to a Maxwell-Boltzmann
-        distribution at the given *temperature*.
-        """
-        T = temperature
-        vx = random.gauss(0, numpy.sqrt(T / self.mass))
-        vy = random.gauss(0, numpy.sqrt(T / self.mass))
-        vz = random.gauss(0, numpy.sqrt(T / self.mass))
-        self.velocity = numpy.array((vx, vy, vz))
