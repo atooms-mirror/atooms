@@ -9,20 +9,18 @@ setup(name='atooms',
       author='Daniele Coslovich',
       author_email='daniele.coslovich@umontpellier.fr',
       url='https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms',
-      namespace_packages = ['atooms'],
-      packages=['atooms.backends', 
+      packages=['atooms',
+                'atooms.backends', 
                 'atooms.interaction',
                 'atooms.potential',
                 'atooms.simulation',
                 'atooms.system', 
                 'atooms.trajectory'],
-      install_requires=['numpy'],
       license='GPLv3',
-      package_data={'atooms': ['data/*']},
       classifiers={
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
           'Intended Audience :: Science/Research',
           'Programming Language :: Python',
           'Topic :: Scientific/Engineering',
       }
-     )
+)
