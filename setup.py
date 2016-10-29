@@ -6,7 +6,7 @@ with open('README.md') as f:
     readme = f.read()
 
 setup(name='atooms',
-      version='0.1',
+      version='1.0',
       description='A framework for classical particle-based simulations',
       long_description=readme,
       author='Daniele Coslovich',
