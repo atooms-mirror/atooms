@@ -356,7 +356,7 @@ class Trajectory(object):
 def single(sim_input, potential=None, T=None, dt=0.001, interval_energy=None, interval_config=None):
 
     if type(sim_input) is str:
-        sim = rumdSimulation.rumdSimulation(sim_input)
+        sim = rumdSimulation(sim_input)
         for pot in potential():
             sim.AddPotential(pot)
     else:
@@ -380,7 +380,7 @@ def multi(input_file, potential, T, dt):
     # Create simulation and integrators
     for i in range(size):
         if i == rank:
-            sim = [rumdSimulation.rumdSimulation(f) for f in input_file]
+            sim = [rumdSimulation(f) for f in input_file]
         barrier()
     igt = [rumd.IntegratorNVT(targetTemperature=Ti, timeStep=dti) for Ti, dti in zip(T, dt)]
 
