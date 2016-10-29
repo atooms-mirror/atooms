@@ -44,7 +44,7 @@ sim = Simulation(backend)
 sim.run(steps=10000)
 print sim.system.temperature, sim.system.density
 ```
-Of course, we just pretended to do 10000 steps! The DryRunBackend won't do any actual simulation, nor write anything to disk. Check out the available backends or write your own!
+Of course, we just pretend to do 10000 steps: the DryRunBackend won't do any actual simulation, nor write anything to disk. Check out the available backends or write your own!
 
 
 Features
@@ -54,13 +54,28 @@ Features
 - Generic simulation interface with callback logic
 - Efficient simulation backends, e.g. RUMD
 
+
+Installation
+------------
+From the python package index
+```
+pip install atooms
+```
+
+Alternatively from the code repository
+```
+git clone git@gitlab.info-ufr.univ-montp2.fr:atooms/atooms.git
+cd atooms
+python setup.py install --home=~
+```
+
 Additional packages 
 -------------------
-atooms is composable: it makes it easy to add new functionalities and just those you actually need.
-Some additional packages are available here https://gitlab.info-ufr.univ-montp2.fr/atooms.
+atooms is composable: it is easy to add new functionalities, but just those you actually need.
+Additional packages are available from the [https://gitlab.info-ufr.univ-montp2.fr/atooms](atooms repository).
 Once installed, they will be accessible in the atooms namespace.
 
-If you want to add your package to the atooms namespace, structure it this way
+If you want to add your own package to the atooms namespace, structure it this way
 ```bash
 atooms/your_package
 atooms/your_package/__init__.py
@@ -81,4 +96,4 @@ import atooms.your_package
 
 Authors
 -------
-Daniele Coslovich <daniele.coslovich@umontpellier.fr>
+Daniele Coslovich: http://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/
