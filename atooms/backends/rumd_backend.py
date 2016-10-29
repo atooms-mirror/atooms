@@ -363,6 +363,8 @@ def single(sim_input, potential=None, T=None, dt=0.001, interval_energy=None, in
         sim = sim_input
 
     itg = rumd.IntegratorNVT(targetTemperature=T, timeStep=dt)
+    sim.sample.SetVerbose(False)
+    sim.SetVerbose(False)
     sim.SetIntegrator(itg)
     sim.SetMomentumResetInterval(10000)
     sim.SetOutputScheduling("energies", "none")
@@ -405,4 +407,5 @@ def kalj():
     pot.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
     pot.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
     pot.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
+    pot.SetVerbose(False)
     return [pot]
