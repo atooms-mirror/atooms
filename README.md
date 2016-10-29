@@ -16,15 +16,10 @@ for system in Trajectory('input.xyz'):
 
 Let us compress the final configuration of the trajectory to unit density
 ```python
-rho = 1.0
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
-    factor = (system.density / rho)**(1./3)
-    for particle in system.particle:
-        particle.position *= factor
-    system.cell.side *= factor
+    system.density = 1.0
 ```
-Actually, the System class has a `rescale()` method to do just that. 
 
 We create a new trajectory file with just the rescaled configuration
 ```python
