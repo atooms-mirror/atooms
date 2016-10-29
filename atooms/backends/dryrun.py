@@ -1,9 +1,27 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+
+class Thermostat(object):
+
+    def __init__(self):
+        self._temperature = 1.0
+
+    def _get_temperature(self):
+        return self._temperature
+
+    def _set_temperature(self, value):
+        self._temperature = value
+
+    temperature = property(_get_temperature, _set_temperature, 'Temperature')
+
+
 class System(object):
-    
+
     def potential_energy(self):
+        return 0.
+
+    def kinetic_energy(self):
         return 0.
 
     def temperature(self):
@@ -14,7 +32,7 @@ class System(object):
 
     @property
     def thermostat(self):
-        pass
+        return Thermostat()
 
 
 class Trajectory(object):
@@ -35,7 +53,7 @@ class Trajectory(object):
 
     def __exit__(self, type, value, traceback):
         self.close()
-    
+                    
 
 class DryRunBackend(object):
 
