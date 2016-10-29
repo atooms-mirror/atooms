@@ -1,19 +1,22 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Adapters for RUMD simulation package"""
+"""Adapters for RUMD simulation package."""
 
 import sys
 import os
-import copy
-from atooms import simulation
-from atooms.simulation import log
-from rumd import *
+import numpy
+import logging
+
+import rumd
 from rumdSimulation import rumdSimulation
 
-class RumdBackend(object):
+from atooms.system.particle import Particle
+from atooms.system.cell import Cell
 
-    # TODO: check the use case of repeated run() without restart
+log = logging.getLogger(__module__)
+
+class RumdBackend(object):
 
     def __init__(self, sim, output_path=None, fixcm_interval=0):
         self.steps = 0
@@ -39,7 +42,7 @@ class RumdBackend(object):
     def _get_system(self):
         return System(self._sim.sample)
 
-    def _set_system(self, value): 
+    def _set_system(self, value):
         self._sim.sample = value.sample
 
     system = property(_get_system, _set_system, 'System')
@@ -49,7 +52,7 @@ class RumdBackend(object):
         return System(self._initial_sample)
 
     def __str__(self):
-        return 'RUMD v%s' % GetVersion()
+        return 'RUMD v%s' % rumd.GetVersion()
 
     @property
     def rmsd(self):
@@ -65,9 +68,9 @@ class RumdBackend(object):
         unf = self._sim.sample.GetPositions() + self._sim.sample.GetImages() * L
         return (sum(sum((unf-ref)**2)) / N)**0.5
 
-    def write_checkpoint(self):        
+    def write_checkpoint(self):
         if self.output_path is None:
-            log.warning('output_path is not set so we cannot write checkpoint  %d' % self.steps)
+            log.warning('output_path is not set so we cannot write checkpoint  %d', self.steps)
             return
         f = os.path.join(self.output_path, 'trajectory.chk')
         with Trajectory(f, 'w') as t:
@@ -77,11 +80,11 @@ class RumdBackend(object):
 
     def read_checkpoint(self):
         f = os.path.join(self.output_path, 'trajectory.chk')
-        log.debug('reading own restart file %s' % f)
+        log.debug('reading own restart file %s', f)
         self._sim.sample.ReadConf(f)
         with open(f + '.step') as fh:
             self.steps = int(fh.read())
-        log.info('backend rumd restarting from %d' % self.steps)
+        log.info('backend rumd restarting from %d', self.steps)
 
     def run_pre(self, restart):
         # Copy of initial state. This way even upon repeated calls to
@@ -89,7 +92,7 @@ class RumdBackend(object):
         # after this, so sample here is really the initial one.
         self._initial_sample = self._sim.sample.Copy()
         self._restart = restart
-        self._rumd_block_index = None        
+        self._rumd_block_index = None
 
         if self.output_path is not None:
             self._sim.sample.SetOutputDirectory(self.output_path + '/rumd')
@@ -110,11 +113,11 @@ class RumdBackend(object):
                 self.read_checkpoint()
             elif os.path.exists(self.output_path + '/rumd/LastComplete_restart.txt'):
                 # Use RUMD checkpoint
-                # @thomas unfortunately RUMD does not seem to write the last restart 
+                # @thomas unfortunately RUMD does not seem to write the last restart
                 # when the simulation is over therefore the last block is always rerun
-                # RUMD restart file contains the block index (block_index) 
+                # RUMD restart file contains the block index (block_index)
                 # and the step within the block (nstep) of the most recent backup
-                log.debug('reading rumd restart %s' % (self.output_path + '/rumd/LastComplete_restart.txt'))
+                log.debug('reading rumd restart %s', self.output_path + '/rumd/LastComplete_restart.txt')
                 with open(self.output_path + '/rumd/LastComplete_restart.txt') as fh:
                     ibl, nstep = fh.readline().split()
                 self._rumd_block_index = int(ibl)
@@ -124,43 +127,39 @@ class RumdBackend(object):
                 restart_files = glob.glob(self.output_path + '/rumd/restart*')
                 restart_files.sort()
                 for f in restart_files[:-1]:
-                    log.debug('removing restart file %s' % f)
+                    log.debug('removing restart file %s', f)
                     os.remove(f)
             else:
                 log.warn('restart requested but no checkpoint is found')
 
 
-    def run_until(self, n):
+    def run_until(self, steps):
         # 1. suppress all RUMD output and use custom writers. PROS:
         #    this way running batches of simulations will work without
         #    rereading the restart file (everything stays in memory)
         #    CONS: we loose native RUMD output, log-lin and we have to
         #    pass through atooms trajectory (=> implement system interface)
         #    or thorugh RUMD WriteSample with names after time steps
-        #    because WriteSample does not store step information!        
+        #    because WriteSample does not store step information!
         # 2. keep RUMD output. PROS: no need to recalculate things
         #    during the simulation, it should be more efficient from
         #    this point of view. CONS: we must read restart files at
         #    every batch. RUMD has a complicated output logic (blocks)
-                
+
         # If we use our own restart we must tell RUMD
         # to run only the difference n-self.steps. However, if we use
         # the native restart, we must keep n as is.
-        log.debug('RUMD running from %d to %d steps' % (self.steps, n))
+        log.debug('RUMD running from %d to %d steps', self.steps, steps)
         if self._rumd_block_index is not None:
             # Restart from RUMD checkpoint
-            self._sim.Run(n, restartBlock=self._rumd_block_index)
+            self._sim.Run(steps, restartBlock=self._rumd_block_index)
         else:
             # Not restarting or restart from our checkpoint.
             if self._restart:
                 # We must toggle it here to prevent future calls to pre to restart. TODO: why??
-                self._restart = False 
-            self._sim.Run(n-self.steps, suppressAllOutput=self._suppress_all_output, initializeOutput=False)
-            self.steps = n
-
-import numpy
-from atooms.system.particle import Particle
-from atooms.system.cell import Cell
+                self._restart = False
+            self._sim.Run(steps-self.steps, suppressAllOutput=self._suppress_all_output, initializeOutput=False)
+            self.steps = steps
 
 
 class Thermostat(object):
@@ -178,7 +177,7 @@ class Thermostat(object):
         info[4] = '1.0'
         info = ','.join(info)
         self._integrator.InitializeFromInfoString(info)
-        
+
     def _get_temperature(self):
         info = self._integrator.GetInfoString(18).split(',')
         return float(info[2])
@@ -190,7 +189,7 @@ class Thermostat(object):
         self._integrator.InitializeFromInfoString(info)
 
     temperature = property(_get_temperature, _set_temperature, 'Temperature')
-    
+
 
 class MolecularDynamics(object):
 
@@ -209,7 +208,7 @@ class MolecularDynamics(object):
 
 
 class System(object):
-    
+
     def __init__(self, sample):
         self.sample = sample
         self.thermostat = Thermostat(self.sample.GetIntegrator())
@@ -229,7 +228,7 @@ class System(object):
         result = cls.__new__(cls)
         memo[id(self)] = result
         result.__dict__.update(self.__dict__)
-        # Use Copy() method of sample, 
+        # Use Copy() method of sample,
         result.sample = self.sample.Copy()
         # We do not copy recursively, deepcopy fails when wrapping SWIG classes
         # from copy import deepcopy
@@ -267,7 +266,6 @@ class System(object):
         return mass
 
     def temperature(self):
-        npart = self.sample.GetNumberOfParticles()
         ndof = self.sample.GetNumberOfDOFs()
         vel = self.sample.GetVelocities()
         mass = self.__get_mass()
@@ -285,7 +283,7 @@ class System(object):
         # Unfold positions using periodic image information
         ref = reference.sample.GetPositions() + reference.sample.GetImages() * L
         unf = self.sample.GetPositions() + self.sample.GetImages() * L
-                
+
         return sum(sum((unf-ref)**2)) / N
 
     @property
@@ -331,10 +329,10 @@ class Trajectory(object):
     def __exit__(self, type, value, traceback):
         self.close()
 
-    def exclude(self, p):
+    def exclude(self, what):
         pass
 
-    def include(self, p):
+    def include(self, what):
         pass
 
     def write(self, system, step):
@@ -346,7 +344,7 @@ class Trajectory(object):
                 f = os.path.join(self.filename, tag + self.suffix)
             else:
                 f = self.filename + '.' + tag + '.' + self.suffix
-        log.debug('writing config via backend to %s at step %s, %s' % (f, step, self.mode))
+        log.debug('writing config via backend to %s at step %s, %s', f, step, self.mode)
         system.sample.WriteConf(f, self.mode)
 
     def close(self):
@@ -356,37 +354,35 @@ class Trajectory(object):
 
 
 def single(sim_input, potential=None, T=None, dt=0.001, interval_energy=None, interval_config=None):
-    from rumd import IntegratorNVT
-    from rumdSimulation import rumdSimulation
 
     if type(sim_input) is str:
-        sim = rumdSimulation(sim_input)
+        sim = rumdSimulation.rumdSimulation(sim_input)
         for pot in potential():
             sim.AddPotential(pot)
     else:
         sim = sim_input
 
-    itg = IntegratorNVT(targetTemperature=T, timeStep=dt)
+    itg = rumd.IntegratorNVT(targetTemperature=T, timeStep=dt)
     sim.SetIntegrator(itg)
     sim.SetMomentumResetInterval(10000)
-    sim.SetOutputScheduling("energies","none")
-    sim.SetOutputScheduling("trajectory","none")
+    sim.SetOutputScheduling("energies", "none")
+    sim.SetOutputScheduling("trajectory", "none")
     if interval_energy is not None:
-        sim.SetOutputScheduling("energies","linear",interval=interval_energy)
+        sim.SetOutputScheduling("energies", "linear", interval=interval_energy)
     if interval_config is not None:
-        sim.SetOutputScheduling("trajectory","linear",interval=interval_config)
+        sim.SetOutputScheduling("trajectory", "linear", interval=interval_config)
 
     return sim
 
 def multi(input_file, potential, T, dt):
     from atooms.utils import size, rank, barrier
-    
+
     # Create simulation and integrators
     for i in range(size):
         if i == rank:
-            sim = [rumdSimulation(f) for f in input_file]
+            sim = [rumdSimulation.rumdSimulation(f) for f in input_file]
         barrier()
-    igt = [IntegratorNVT(targetTemperature=Ti, timeStep=dti) for Ti, dti in zip(T, dt)]
+    igt = [rumd.IntegratorNVT(targetTemperature=Ti, timeStep=dti) for Ti, dti in zip(T, dt)]
 
     # Add potentials
     for s in sim:
@@ -404,7 +400,7 @@ def multi(input_file, potential, T, dt):
 # Forcefields
 
 def kalj():
-    pot = rumd.Pot_LJ_12_6(cutoff_method = rumd.ShiftedPotential)
+    pot = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
     pot.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
     pot.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
     pot.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)

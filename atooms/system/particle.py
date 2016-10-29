@@ -27,9 +27,6 @@ class Particle(object):
         self.velocity = velocity
         self.tag = tag
 
-    def move(self):
-        pass
-
     def nearest_image(self, particle, cell):
         """Transform self into the nearest image of *particle* in the specified cell."""
         rij = self.position - particle.position
@@ -61,16 +58,16 @@ class Particle(object):
         self.position = periodic_vector_safe(self.position, cell.side)
         return self
 
-    def maxwellian(self, temperature):
+    def maxwellian(self, T):
         """
         Assign velocities to particle according to a Maxwell-Boltzmann
-        distribution at the given *temperature*.
+        distribution at the given temperature *T*.
         """
-        T = temperature
         vx = random.gauss(0, numpy.sqrt(T / self.mass))
         vy = random.gauss(0, numpy.sqrt(T / self.mass))
         vz = random.gauss(0, numpy.sqrt(T / self.mass))
         self.velocity = numpy.array((vx, vy, vz))
+
 
 # Utility functions
 

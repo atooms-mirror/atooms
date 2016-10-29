@@ -1,6 +1,11 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+"""
+Dry run backend.
+
+For illustration purposes.
+"""
 
 class Thermostat(object):
 
@@ -53,7 +58,7 @@ class Trajectory(object):
 
     def __exit__(self, type, value, traceback):
         self.close()
-                    
+
 
 class DryRunBackend(object):
 
@@ -61,6 +66,7 @@ class DryRunBackend(object):
         self.system = system
         self.trajectory = Trajectory
         self.output_path = None
+        self.steps = 0
 
     def write_checkpoint(self):
         pass
@@ -72,8 +78,5 @@ class DryRunBackend(object):
     def run_pre(self, restart):
         pass
 
-    def run_until(self, n):
-        self.steps = n
-        pass
-
-
+    def run_until(self, steps):
+        self.steps = steps
