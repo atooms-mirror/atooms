@@ -44,7 +44,7 @@ sim = Simulation(backend)
 sim.run(steps=10000)
 print sim.system.temperature, sim.system.density
 ```
-Of course, we just pretended to do 10000 steps! the DryRunBackend won't do any actual simulation, nor write anything to disk. Check out the available backends or make your own!
+Of course, we just pretended to do 10000 steps! the DryRunBackend won't do any actual simulation, nor write anything to disk. Check out the available backends or write your own!
 
 
 Features
