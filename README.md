@@ -1,10 +1,10 @@
 Atooms
 ======
 
-This is atooms - a high-level framework for atomistic simulations. 
+This is atooms - a high-level framework for atomistic simulations.
 
-Getting started
----------------
+QUick start
+-----------
 
 Accessing particles' coordinates in a multi-configuration xyz trajectory file goes like this
 ```python
@@ -49,10 +49,10 @@ Of course, we just pretended to do 10000 steps! the DryRunBackend won't do any a
 
 Features
 --------
-- High-level access to simulation objects and their properties
-- Handle and convert multiple trajectory formats 
+- High-level access to simulation objects
+- Multiple trajectory formats
 - Generic simulation interface with callback logic
-- Efficient molecular dynamics backends, e.g. RUMD
+- Efficient simulation backends, e.g. RUMD
 
 Adding packages to atooms namespace
 -----------------------------------
