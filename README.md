@@ -24,7 +24,7 @@ with Trajectory('input.xyz') as trajectory:
         particle.position *= factor
     system.cell.side *= factor
 ```
-Actually, the System class has a ```rescale()``` method to do just that. 
+Actually, the System class has a `rescale()` method to do just that. 
 
 We create a new trajectory file with just the rescaled configuration
 ```python
