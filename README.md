@@ -1,7 +1,7 @@
 Atooms
 ======
 
-This is atooms - a high-level framework for atomistic simulations. It enables development of simulation and analysis tools using a natural, expressive language. This is achieved by splitting code into high-level layers written in python and efficient backends in C, CUDA or Fortran.
+This is atooms - a framework for atomistic simulations. It enables development of simulation and analysis tools using a natural, expressive language. This is achieved by splitting code into high-level layers written in python and efficient backends in C, CUDA or Fortran.
 
 Quick start
 -----------
