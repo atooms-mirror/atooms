@@ -105,7 +105,7 @@ class System(object):
             return numpy.array([p.radius*2 for p in self.particle[pslice]])
 
     def scale(self, factor):
-        """Affine displacement"""
+        """Rescale cell and particles' coordinates by *factor*"""
         for p in self.particle:
             p.position *= factor
         self.cell.side *= factor
