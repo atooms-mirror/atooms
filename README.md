@@ -1,12 +1,12 @@
 Atooms
 ======
 
-This is atooms - a framework for atomistic simulations. It enables development of simulation and analysis tools using a natural, expressive language. This is achieved by splitting code into high-level layers written in python and efficient backends in C, CUDA or Fortran.
+This is atooms - a framework for atomistic simulations. It enables development of simulation and analysis tools using a natural, expressive language but without sacrificing efficiency. This is achieved by splitting code into high-level python layers and backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
 
-Accessing particles' coordinates in a multi-configuration xyz trajectory file goes like this
+Accessing the coordinates of a particle from a multi-configuration xyz trajectory file goes like this
 ```python
 from atooms.trajectory import Trajectory
 
@@ -44,7 +44,7 @@ sim = Simulation(backend)
 sim.run(steps=10000)
 print sim.system.temperature, sim.system.density
 ```
-Of course, we just pretended to do 10000 steps! the DryRunBackend won't do any actual simulation, nor write anything to disk. Check out the available backends or write your own!
+Of course, we just pretended to do 10000 steps! The DryRunBackend won't do any actual simulation, nor write anything to disk. Check out the available backends or write your own!
 
 
 Features
@@ -54,10 +54,13 @@ Features
 - Generic simulation interface with callback logic
 - Efficient simulation backends, e.g. RUMD
 
-Adding packages to atooms namespace
------------------------------------
-If you want to add your package to the atooms namespace, structure it this way
+Additional packages 
+-------------------
+atooms is composable: it makes it easy to add new functionalities and just those you actually need.
+Some additional packages are available here https://gitlab.info-ufr.univ-montp2.fr/atooms.
+Once installed, they will be accessible in the atooms namespace.
 
+If you want to add your package to the atooms namespace, structure it this way
 ```bash
 atooms/your_package
 atooms/your_package/__init__.py
