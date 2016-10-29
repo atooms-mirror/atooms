@@ -1,7 +1,7 @@
 Atooms
 ======
 
-This is atooms - a framework for atomistic simulations. It enables development of simulation and analysis tools using a natural, expressive language but without sacrificing efficiency. This is achieved by splitting code into high-level python layers and backends written in C, CUDA or Fortran.
+This is atooms - a framework for classical, particle-based simulations. It enables development of simulation and analysis tools using a natural, expressive language, without sacrificing efficiency. This is achieved by splitting code into high-level python layers and backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
@@ -21,7 +21,7 @@ with Trajectory('input.xyz') as trajectory:
     system.density = 1.0
 ```
 
-We create a new trajectory file with just the rescaled configuration
+We create a new trajectory file containing just the rescaled configuration
 ```python
 from atooms.trajectory import TrajectoryXYZ
 
@@ -39,7 +39,7 @@ sim = Simulation(backend)
 sim.run(steps=10000)
 print sim.system.temperature, sim.system.density
 ```
-Of course, we just pretend to do 10000 steps: the DryRunBackend won't do any actual simulation, nor write anything to disk. Check out the available backends or write your own!
+Of course, we just pretend to do 10000 steps: the DryRunBackend won't do any actual simulation, nor write anything to disk. Check out the available backends in the `backend` package or write your own!
 
 
 Features
@@ -52,12 +52,12 @@ Features
 
 Installation
 ------------
-From the python package index
+From the python package index [coming up soon!]
 ```
 pip install atooms
 ```
 
-Alternatively from the code repository
+Alternatively, from the code repository
 ```
 git clone git@gitlab.info-ufr.univ-montp2.fr:atooms/atooms.git
 cd atooms
@@ -66,9 +66,9 @@ python setup.py install --home=~
 
 Additional packages 
 -------------------
-atooms is composable: it is easy to add new functionalities, but just those you actually need.
-Additional packages are available from the [https://gitlab.info-ufr.univ-montp2.fr/atooms](atooms repository).
-Once installed, they will be accessible in the atooms namespace.
+atooms is composable: it is easy to add new functionalities, and just those you actually need.
+Additional packages are available from the [atooms main repository](https://gitlab.info-ufr.univ-montp2.fr/atooms).
+These packages will be installed in the atooms namespace to prevent name clashing.
 
 If you want to add your own package to the atooms namespace, structure it this way
 ```bash
