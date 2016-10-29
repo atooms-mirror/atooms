@@ -33,8 +33,16 @@ class System(object):
     def density(self):
         return len(self.particle) / self.cell.volume
 
+    @density.setter
+    def density(self, rho):
+        # Note This will fail if cell is None
+        factor = (self.density / rho)**(1./3)
+        for particle in self.particle:
+            particle.position *= factor
+        self.cell.side *= factor
+
     def temperature(self, ndof=None):
-        # The n. of degrees of freedom can be passed to this method
+        # The n. of degrees of freedom can be passed to this method explicitly.
         # This way we can correct for missing translational invariance.
         # Ideally, one could determine this via some additional attribute.
         if ndof is None:
