@@ -9,7 +9,7 @@ try:
 except ImportError:
     SKIP = True
 from atooms.simulation import Simulation
-from atooms.simulation.parallel_tempering import ParallelTempering
+
 
 def potential():
     import rumd
@@ -71,16 +71,6 @@ class Test(unittest.TestCase):
                         restart=False)
         si.run(rmsd=1.0)
         si.run(rmsd=2.0)
-
-    def test_pt(self):
-        T = [1.0,0.95,0.9]
-        nr = len(T)
-        sa = [Simulation(RumdBackend(s, fixcm_interval=1000)) for s in multi(
-            [self.input_file]*nr, potential, T=T, dt=[0.002]*nr)]
-        pt = ParallelTempering(sa, T, '/tmp/test_rumd_rx', steps=5,
-                               swap_interval=10000, thermo_interval=1, config_interval=1, 
-                               checkpoint_interval=1, mute_config_except=[0], restart=False)
-        pt.run()
 
     def tearDown(self):
         os.system('rm -rf /tmp/test_rumd_*')
