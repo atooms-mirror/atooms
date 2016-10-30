@@ -14,7 +14,7 @@ from rumdSimulation import rumdSimulation
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 
-log = logging.getLogger(__module__)
+log = logging.getLogger(__name__)
 
 class RumdBackend(object):
 
@@ -356,13 +356,15 @@ class Trajectory(object):
 def single(sim_input, potential=None, T=None, dt=0.001, interval_energy=None, interval_config=None):
 
     if type(sim_input) is str:
-        sim = rumdSimulation.rumdSimulation(sim_input)
+        sim = rumdSimulation(sim_input)
         for pot in potential():
             sim.AddPotential(pot)
     else:
         sim = sim_input
 
     itg = rumd.IntegratorNVT(targetTemperature=T, timeStep=dt)
+    sim.sample.SetVerbose(False)
+    sim.SetVerbose(False)
     sim.SetIntegrator(itg)
     sim.SetMomentumResetInterval(10000)
     sim.SetOutputScheduling("energies", "none")
@@ -380,7 +382,7 @@ def multi(input_file, potential, T, dt):
     # Create simulation and integrators
     for i in range(size):
         if i == rank:
-            sim = [rumdSimulation.rumdSimulation(f) for f in input_file]
+            sim = [rumdSimulation(f) for f in input_file]
         barrier()
     igt = [rumd.IntegratorNVT(targetTemperature=Ti, timeStep=dti) for Ti, dti in zip(T, dt)]
 
@@ -405,4 +407,5 @@ def kalj():
     pot.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
     pot.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
     pot.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
+    pot.SetVerbose(False)
     return [pot]
