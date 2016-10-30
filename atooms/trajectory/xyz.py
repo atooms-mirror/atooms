@@ -80,7 +80,6 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         while True:
             line = self.fh.tell()
             data = self.fh.readline().strip()
-            self._index_header.append(line)
 
             # We break if file is over or we found an empty line
             if not data:
@@ -91,6 +90,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             # with the cell side (Lx,Ly,Lz) and we parse it some other way
             try:
                 npart = int(data)
+                self._index_header.append(line)
             except ValueError:
                 self._index_cell = line
                 break
@@ -496,6 +496,251 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         #     if not self._netwon3 and not self._netwon3_message:
         #         print 'Warning: enforcing 3rd law of Newton...'
         return s
+
+
+
+# Format callbacks
+
+def update_x(particle, data):
+    particle.position[0] = float(data)
+
+def update_y(particle, data):
+    particle.position[1] = float(data)
+
+def update_z(particle, data):
+    particle.position[2] = float(data)
+
+def update_vx(particle, data):
+    particle.velocity[0] = float(data)
+
+def update_vy(particle, data):
+    particle.velocity[1] = float(data)
+
+def update_vz(particle, data):
+    particle.velocity[2] = float(data)
+
+def update_name(particle, data):
+    particle.name = data
+
+def update_id(particle, metadata, minimum_id=1):
+    # TODO: sort particles by name, so that ids are chosen consistently. This is inefficient, a global db was better.
+    for p in particle:
+        if not p.name in metadata['id_map']:
+            metadata['id_map'].append(p.name)
+
+    # Assign ids to particles according to the updated database
+    for p in particle:
+        p.id = metadata['id_map'].index(p.name) + minimum_id
+
+def update_mass(particle, metadata):
+    # Fix the mass
+    try:
+        mass = map(float, metadata['mass'])
+    except KeyError:
+        return
+    mass_db = {}
+    for key, value in zip(metadata['id_map'], mass):
+        mass_db[key] = value
+    for p in particle:
+        p.mass = mass_db[p.name]
+
+
+class TrajectoryNewXYZ(TrajectoryBase):
+
+    """Trajectory with XYZ layout using memory leightweight indexed access."""
+
+    suffix = 'xyz'
+    # TODO: we can get this dynamically
+    fmt_callback = {'name': update_name, 
+                    'x': update_x,
+                    'y': update_y,
+                    'z': update_z,
+                    'vx': update_vx,
+                    'vy': update_vy,
+                    'vz': update_vz,
+    }
+
+    # TODO: move all file init to write_init. Rename trajectory fh or something like this.
+
+    def __init__(self, filename, mode='r', alias={}, fmt=['name', 'x', 'y', 'z']):
+        TrajectoryBase.__init__(self, filename, mode)
+        # This is the default column format.
+        # TODO: Using vx, vy, vz in the header will grab the velocities
+        self.alias = alias
+        self.fmt = fmt
+        self._cell = None
+        self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
+        self._min_id = 1 # minimum integer for ids, can be modified by subclasses
+        self._step = 0
+
+        if self.mode == 'r':
+            # TODO: allow reading xyz file from stdin. Seek wont work though, need to pass through tmp file
+            ext = os.path.splitext(self.filename)[1]
+            if ext == '.gz':
+                self.fh = gzip.open(self.filename)
+            else:
+                self.fh = open(self.filename, 'r')
+            # Internal index of lines to seek and tell.
+            # We may delay setup, moving to read_init() assuming
+            # self.steps becomes a property
+            self._setup_index()
+            self._setup_steps()
+        else:
+            self.fh = open(self.filename, self.mode)
+
+    def rewind(self):
+        self.fh.seek(0)
+        self._step = 0
+
+    def _setup_index(self):
+        """Sample indexing via tell / seek"""
+        self._index_sample = []
+        self._index_header = []
+        self._index_cell = None
+        self.fh.seek(0)
+        while True:
+            line = self.fh.tell()
+            data = self.fh.readline().strip()
+
+            # We break if file is over or we found an empty line
+            if not data:
+                break
+            
+            # The first line contains the number of particles
+            # If something went wrong, this could be the last line
+            # with the cell side (Lx,Ly,Lz) and we parse it some other way
+            try:
+                npart = int(data)
+                self._index_header.append(line)
+            except ValueError:
+                self._index_cell = line
+                break
+
+            # Skip npart+1 lines
+            d = self.fh.readline()
+            self._index_sample.append(self.fh.tell())
+            for i in range(npart):
+                d = self.fh.readline()
+
+    def _setup_steps(self):
+        """Find steps list."""
+        self.steps = []
+        for sample in range(len(self._index_sample)):
+            meta = self._read_metadata(sample)
+            try:
+                self.steps.append(meta['step'])
+            except KeyError:
+                # If no step info is found, we add steps sequentially
+                self.steps.append(sample+1)
+
+    def _read_metadata(self, sample):
+        """Internal xyz method to get header metadata from comment line of given *sample*.
+
+        We assume metadata fmt is a space-separated sequence of comma
+        separated entries such as:
+
+        columns:id,x,y,z step:10
+        columns=id,x,y,z step=10
+        """
+        # Go to line and skip Npart info
+        self.fh.seek(self._index_header[sample])
+        npart = int(self.fh.readline())
+        data = self.fh.readline()
+
+        # Fill metadata dictionary
+        meta = {}
+        meta['npart'] = npart
+        for e in data.split():
+            s = re.search(r'(\S*)[=:](\S*)', e)
+            if s is not None:
+                tag, data = s.group(1), s.group(2)
+                # Remove dangling commas
+                data = data.strip(',')
+                # If there are commas, this is a list, else a scalar.
+                # We convert the string to appropriate types
+                if ',' in data:
+                    meta[tag] = map(tipify, data.split(','))
+                else:
+                    meta[tag] = tipify(data)
+
+        # Apply an alias dict to tags, e.g. to add step if Cfg was found instead
+        for alias, tag in self.alias.items():
+            try:
+                meta[tag] = meta[alias]
+            except KeyError:
+                pass
+
+        return meta
+
+    def read_init(self):
+        # Grab cell from the end of file if it is there
+        try:
+            side = self._read_metadata(0)['cell']
+            self._cell = Cell(side)
+        except KeyError:
+            self._cell = self._parse_cell()
+
+    def read_sample(self, sample):
+        import copy
+        meta = self._read_metadata(sample)
+        self.fh.seek(self._index_sample[sample])
+        npart = meta['npart']
+        particle = []
+        for i in range(npart):
+            data = self.fh.readline().split()
+            p = Particle()
+            for i, key in enumerate(self.fmt):
+                self.fmt_callback[key](p, data[i])
+            # This deepcopy is necessary of the coordinate arrays are
+            # the same
+            particle.append(copy.deepcopy(p))
+        # Now we fix ids and other metadata
+        meta['id_map'] = []
+        update_id(particle, meta)
+        update_mass(particle, meta)
+        # See if we also have a cell
+        try:
+            cell = Cell(meta['side'])
+        except:
+            cell = self._cell
+        return System(particle, cell)
+
+    def _comment_header(self, step, system):
+        fmt = "step:%d columns:id,x,y,z" % step
+        if system.cell is not None:
+            fmt += " cell:" + ','.join(map(lambda x: '%s' % x, system.cell.side))
+        return fmt
+
+    def write_sample(self, system, step):
+        self._cell = system.cell
+        self.fh.write("%d\n" % len(system.particle))
+        self.fh.write(self._comment_header(step, system) + '\n')
+        ndim = len(system.particle[0].position)
+        if (abs(system.particle[0].velocity[0]) < 1e-15 and \
+           abs(system.particle[-1].velocity[-1]) < 1e-15) or \
+            (not 'vx' in self.fmt):
+            for p in system.particle:
+                # Check for tag, somewhat hard hack to write voronoi polyehdron
+                # TODO: could be improved 
+                tag = ''
+                if not p.tag is None and not isinstance(p.tag, list):
+                    tag = 4*" " + p.tag
+                self.fh.write(("%s"+ndim*" %14.6f"+tag+"\n") % ((p.name,) + tuple(p.position)))
+        else:
+            for p in system.particle:
+                self.fh.write(("%s"+2*ndim*" %14.6f"+"\n") % ((p.name,) + tuple(p.position) + tuple(p.velocity)))
+
+    def _parse_cell(self):
+        """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
+        cell = None
+        if self._index_cell:
+            self.fh.seek(self._index_cell)
+            side = numpy.fromstring(self.fh.readline(), sep=' ')
+            cell = Cell(side)
+        return cell
+
+    def close(self):
+        self.fh.close()
 
 if __name__ == '__main__':
     import atooms.trajectory as trj

@@ -4,7 +4,7 @@ import unittest
 import numpy
 
 from atooms.trajectory import Unfolded
-from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ
+from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryNewXYZ
 
 class TestXYZ(unittest.TestCase):
 
@@ -127,6 +127,11 @@ class TestSimpleXYZ(TestXYZ):
 
     def test_xyz_meta(self):
         pass
+
+class TestNewXYZ(TestXYZ):
+
+    Trajectory = TrajectoryNewXYZ
+
         
 if __name__ == '__main__':
     unittest.main(verbosity=0)
