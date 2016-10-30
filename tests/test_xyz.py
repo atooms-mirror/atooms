@@ -97,22 +97,6 @@ B 2.9 -2.9 0.0
                 for s in t:
                     pass
 
-    @unittest.skip('ikeda2 does not work')
-    def test_ikeda2_indexed(self):
-        f = '/tmp/test_xyz_ikeda2.xyz'
-        with open('/tmp/test_xyz_ikeda2.xyz', 'w') as fh:
-            fh.write("""\
-           2            2    0.12000000E+02    0.50000000E+03    0.20000000E+01
-    0.50050000E+07
-               1    0.1 0.2 0.3 1.1 1.2 1.3
-               2    -0.1 -0.2 -0.3 1.1 1.2 1.3
-    0.50100000E+07
-               1    1.1 1.2 1.3 1.1 1.2 1.3
-               2    -1.1 -1.2 -1.3 1.1 1.2 1.3
-""")
-        t = trajectory.TrajectoryXYZIkeda2Indexed(f)
-        self.assertEqual(t.steps, [5005000, 5010000])
-
     def test_xyz_with(self):
         r_ref = [[1., -1., 0.], [2.9, -2.9, 0.]]
         with trajectory.TrajectoryXYZ(self.finp) as t:
