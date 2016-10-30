@@ -3,11 +3,14 @@
 import unittest
 import numpy
 
-from atooms import trajectory 
+from atooms.trajectory import Unfolded
+from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ
 
 class TestXYZ(unittest.TestCase):
 
-    def setUp(self):
+    Trajectory = TrajectoryXYZ
+
+    def setUp(self):        
         self.finp = '/tmp/test_pbc.xyz'
         with open(self.finp, 'w') as fh:
             fh.write("""\
@@ -41,7 +44,7 @@ B 2.9 -2.9 0.0
 
 
     def test_xyz_meta(self):
-        with trajectory.TrajectoryXYZ(self.finp_meta) as t:
+        with self.Trajectory(self.finp_meta) as t:
             meta = t._read_metadata(0)
             self.assertEqual(t.steps, [1])
             self.assertEqual(meta['mass'], [1, 2])
@@ -50,14 +53,14 @@ B 2.9 -2.9 0.0
 
     def test_xyz_indexed(self):
         r_ref = [[1., -1., 0.], [2.9, -2.9, 0.]]
-        t = trajectory.TrajectoryXYZ(self.finp)
+        t = self.Trajectory(self.finp)
         self.assertEqual(t.steps, [1, 2, 3, 4])
         self.assertEqual(r_ref[0], list(t[0].particle[0].position))
         self.assertEqual(r_ref[1], list(t[0].particle[1].position))
 
     def test_xyz_indexed_unfolded(self):
-        t1 = trajectory.TrajectoryXYZ(self.finp)
-        t = trajectory.Unfolded(t1)
+        t1 = self.Trajectory(self.finp)
+        t = Unfolded(t1)
         t[0]
         t[1]
         self.assertEqual(list(t[2].particle[1].position), [3.1, -3.1, 0.0])
@@ -68,8 +71,8 @@ B 2.9 -2.9 0.0
     def test_xyz_indexed_unfolded_skip(self):
         """Test that unfolded trajectories can skip samples"""
         # Here we read all samples
-        t1 = trajectory.TrajectoryXYZ(self.finp)
-        t = trajectory.Unfolded(t1)
+        t1 = self.Trajectory(self.finp)
+        t = Unfolded(t1)
         t[0]
         t[1]
         t[2]
@@ -78,8 +81,8 @@ B 2.9 -2.9 0.0
         t.close()
 
         # Here we skip one sample
-        t1 = trajectory.TrajectoryXYZ(self.finp)
-        t1 = trajectory.Unfolded(t1)
+        t1 = self.Trajectory(self.finp)
+        t1 = Unfolded(t1)
         t1[0]
         s1 = t1[3]
         t1.close()
@@ -90,31 +93,40 @@ B 2.9 -2.9 0.0
 
     def test_xyz_unfolded(self):
         """Test reading unfolded after reading normal"""
-        with trajectory.TrajectoryXYZ(self.finp) as t1:
+        with self.Trajectory(self.finp) as t1:
             for s in t1:
                 pass
-            with  trajectory.Unfolded(t1) as t:
+            with Unfolded(t1) as t:
                 for s in t:
                     pass
 
     def test_xyz_with(self):
         r_ref = [[1., -1., 0.], [2.9, -2.9, 0.]]
-        with trajectory.TrajectoryXYZ(self.finp) as t:
+        with self.Trajectory(self.finp) as t:
             self.assertEqual(r_ref[0], list(t[0].particle[0].position))
             self.assertEqual(r_ref[1], list(t[0].particle[1].position))
 
-        with trajectory.TrajectoryXYZ(self.finp + '.out', 'w') as to:
-            with trajectory.TrajectoryXYZ(self.finp) as t:
+        with self.Trajectory(self.finp + '.out', 'w') as to:
+            with self.Trajectory(self.finp) as t:
                 to.write(t[0], 0)
                 
-        with trajectory.TrajectoryXYZ(self.finp + '.out') as to:
+        with self.Trajectory(self.finp + '.out') as to:
             self.assertEqual(r_ref[0], list(to[0].particle[0].position))
 
     def test_xyz_iter(self):
-        with trajectory.TrajectoryXYZ(self.finp) as t:
+        with self.Trajectory(self.finp) as t:
             for s in t:
                 s.particle
             t[-1]
+
+
+class TestSimpleXYZ(TestXYZ):
+
+    # TODO: refactor generic tests for trajectories like this :-)
+    Trajectory = TrajectorySimpleXYZ
+
+    def test_xyz_meta(self):
+        pass
         
 if __name__ == '__main__':
     unittest.main(verbosity=0)

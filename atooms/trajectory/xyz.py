@@ -49,6 +49,148 @@ class TrajectoryXYZBase(TrajectoryBase):
             self.fh.write(fmt % tuple([data[j][i] for j in range(ncols)]))
 
 
+class TrajectorySimpleXYZ(TrajectoryBase):
+
+    """Trajectory with simple xyz layout.
+    
+    It uses a memory light-weight indexed access.
+    """
+
+    suffix = 'xyz'
+
+    def __init__(self, filename, mode='r'):
+        TrajectoryBase.__init__(self, filename, mode)
+        self._cell = None
+        self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
+        self._min_id = 1 # minimum integer for ids, can be modified by subclasses
+        self.fh = open(self.filename, self.mode)
+        if self.mode == 'r':
+            # Internal index of lines to seek and tell.
+            # We may delay setup, moving to read_init() assuming
+            # self.steps becomes a property
+            self._setup_index()
+            self._setup_steps()
+
+    def _setup_index(self):
+        """Sample indexing via tell / seek"""
+        self._index_sample = []
+        self._index_header = []
+        self._index_cell = None
+        self.fh.seek(0)
+        while True:
+            line = self.fh.tell()
+            data = self.fh.readline().strip()
+            self._index_header.append(line)
+
+            # We break if file is over or we found an empty line
+            if not data:
+                break
+            
+            # The first line contains the number of particles
+            # If something goes wrong, this could be the last line
+            # with the cell side (Lx,Ly,Lz) and we parse it some other way
+            try:
+                npart = int(data)
+            except ValueError:
+                self._index_cell = line
+                break
+
+            # Skip npart+1 lines
+            d = self.fh.readline()
+            self._index_sample.append(self.fh.tell())
+            for i in range(npart):
+                d = self.fh.readline()
+
+    def _read_metadata(self, sample):
+        """Internal xyz method to get header metadata from comment line of given *sample*.
+
+        We assume metadata format is a space-separated sequence of
+        comma separated entries such as:
+
+        columns:id,x,y,z step:10
+        columns=id,x,y,z step=10
+        """
+        # Go to line and skip Npart info
+        self.fh.seek(self._index_header[sample])
+        npart = int(self.fh.readline())
+        data = self.fh.readline()
+
+        # Fill metadata dictionary
+        meta = {}
+        meta['npart'] = npart
+        for e in data.split():
+            s = re.search(r'(\S*)[=:](\S*)', e)
+            if s is not None:
+                tag, data = s.group(1), s.group(2)
+                # Remove dangling commas
+                data = data.strip(',')
+                # If there are commas, this is a list, else a scalar.
+                # We convert the string to appropriate types
+                if ',' in data:
+                    meta[tag] = map(tipify, data.split(','))
+                else:
+                    meta[tag] = tipify(data)
+        return meta
+
+    def _setup_steps(self):
+        """Find steps list."""
+        self.steps = []
+        for sample in range(len(self._index_sample)):
+            meta = self._read_metadata(sample)
+            try:
+                self.steps.append(meta['step'])
+            except KeyError:
+                # If no step info is found, we add steps sequentially
+                self.steps.append(sample+1)
+
+    def read_init(self):
+        # Grab cell from the end of file if it is there
+        try:
+            side = self._read_metadata(0)['cell']
+            self._cell = Cell(side)
+        except KeyError:
+            self._cell = self._parse_cell()
+
+    def _parse_cell(self):
+        """Internal emergency method to grab the cell."""
+        cell = None
+        if self._index_cell:
+            self.fh.seek(self._index_cell)
+            side = numpy.fromstring(self.fh.readline(), sep=' ')
+            cell = Cell(side)
+        return cell
+
+    def read_sample(self, sample):
+        meta = self._read_metadata(sample)
+        self.fh.seek(self._index_sample[sample])
+        particle = []
+        for j in range(meta['npart']):
+            data = self.fh.readline().strip().split()
+            name = data[0]
+            r = numpy.array(data[1:4], dtype=float)
+            particle.append(Particle(name=name, position=r))
+
+        #update_ids(particle, self._map_id, self._min_id)
+        return System(particle, self._cell)
+
+    def _comment_header(self, step, system):
+        fmt = "step:%d columns:id,x,y,z" % step
+        if system.cell is not None:
+            fmt += " cell:" + ','.join(map(lambda x: '%s' % x, system.cell.side))
+        return fmt
+
+    def write_sample(self, system, step):
+        self.fh.write("%s\n" % len(system.particle))
+        self.fh.write(self._comment_header(step, system) + '\n')
+        ndim = len(system.particle[0].position)
+        fmt = "%s" + ndim*" %14.6f" + "\n"
+        for p in system.particle:
+            self.fh.write(fmt % ((p.name,) + tuple(p.position)))
+
+    def close(self):
+        self.fh.close()
+
+
 class TrajectoryXYZ(TrajectoryBase):
 
     """Trajectory with XYZ layout using memory leightweight indexed access."""
@@ -59,8 +201,6 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def __init__(self, filename, mode='r', tags={}, fmt=['id','x','y','z']):
         TrajectoryBase.__init__(self, filename, mode)
-        # This is the default column format.
-        # TODO: Using vx, vy, vz in the header will grab the velocities
         self.tags = tags
         self.fmt = fmt
         self._timestep = 1.0
@@ -89,10 +229,6 @@ class TrajectoryXYZ(TrajectoryBase):
             self._setup_steps()
         else:
             raise ValueError('Specify mode (r/w) for file %s (invalid: %s)' % (self.filename, self.mode))
-
-    def rewind(self):
-        self.trajectory.seek(0)
-        self._step = 0
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
@@ -326,37 +462,16 @@ class TrajectoryXYZ(TrajectoryBase):
 
 class TrajectoryNeighbors(TrajectoryXYZ):
 
-    """Neighbors info"""
+    """Neighbors trajectory."""
 
     def __init__(self, filename, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename)
         self.tags['step': 'time']
         # TODO: determine minimum value of index automatically
+        # TODO: possible regression here if no 'time' tag is found
         self._offset = offset # neighbors produced by voronoi are indexed from 1
         self._netwon3 = False
         self._netwon3_message = False
-
-    # TODO: possible regression here if no 'time' tag is found
-    # def _parse_header(self, data):
-    #     """Internal xyz method to get header metadata."""        
-    #     meta = {'time':None, 'cell':None}
-    #     grabber = {'time':lambda x: int(x)}
-    #     for m in meta:
-    #         p = re.compile(r'%s\s*[=:]\s*(\S*)\s' % m, re.IGNORECASE)
-    #         s = p.search(data)
-    #         if s is not None:     
-    #             meta[m] = grabber[m](s.group(1))
-
-    #     # Fix step
-    #     meta['step'] = meta['time']
-    #     if meta['step'] is None:
-    #         try:
-    #             n = int(data.split()[-1])
-    #         except:
-    #             self._step += 1
-    #             n = self._step
-    #         meta['step'] = n
-    #     return meta
 
     def read_sample(self, sample):
         self.trajectory.seek(self._index[sample])
