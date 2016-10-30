@@ -45,6 +45,7 @@ class Sliced(object):
         return object.__new__(cls)
 
     def __init__(self, component, uslice):
+        # TODO: does this work now?!
         self._sliced_samples = range(len(self.steps))[uslice]
         self.steps = self.steps[uslice]
 

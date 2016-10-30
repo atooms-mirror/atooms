@@ -253,3 +253,96 @@ class TrajectoryBase(object):
         """Returns a timeseries of a callback results"""
         for i, s in enumerate(self):
             yield self.steps[i], callback(s, *args, **kwargs)
+
+import os
+
+class SuperTrajectory(TrajectoryBase):
+
+    """ Collection of subtrajectories """
+
+    # Ppproach inefficient for large number of files (init takes some time)
+    # The path of a supertrajectory should be the directory containing all the files? Mmmhh
+
+    def __init__(self, files, trajectoryclass, mode='r', variable=False, periodic=True):
+        self.subtrajectories = [trajectoryclass(f, mode=mode) for f in files]
+        f = os.path.dirname(self.subtrajectories[0].filename) + '/'
+        super(SuperTrajectory, self).__init__(f, mode)
+        self._timestep = 1.0
+        self.variable = variable
+
+        # This is a bad hack to tolerate rumd hydiosincracies
+        # Enforce all subt have the same length, the last one gets dropped
+        if not self.variable:
+            l = len(self.subtrajectories[0])
+            prune = []
+            for i in range(len(self.subtrajectories)):
+                if l != len(self.subtrajectories[i]):
+                    prune.append(i)
+            for i in prune:
+                self.subtrajectories.pop(i)
+
+        # Make sure subtrajectories are sorted by increasing step
+        self.subtrajectories.sort(key=lambda x : x.steps[0])
+
+        # Mapping between samples and files that store them.
+        # In simple cases we could get away with a modulo but this would work
+        # e.g. when subtrajectories have different length
+        self.steps = []
+        self._map = []
+        for i, t in enumerate(self.subtrajectories):
+            # Check that neighboring subtrajectories
+            # do not overlap at first/last step
+            # The last block of course is not checked.
+            if i > 0:
+                if t.steps[0] == self.steps[-1]:
+                    self.steps.pop(-1)
+                    self._map.pop(-1)
+
+            # TODO: drop zipping of steps and samples
+            for sample, step in zip(t.samples, t.steps):
+                self._map.append((i, sample))
+                self.steps.append(step)
+
+        # TODO: fix last block getting trimmed by check_block_period with rumd
+
+        # Now it's better check the block period
+        # Only check that if sampling is expected to be periodic.
+        if periodic:
+            self._check_block_period()
+
+    def read_sample(self, sample):
+        i, j = self._map[sample]
+        return self.subtrajectories[i].read_sample(j)
+
+
+class SuperTrajectory2(TrajectoryBase):
+
+    """Collection of subtrajectories"""
+
+    # Optimized version
+
+    def __init__(self, files, trajectoryclass, mode='r'):
+        """Group list of files into a single trajectory"""
+        self.files = files
+        if len(self.files) == 0:
+            raise ValueError('no files found in %s' % self.files)
+        f = os.path.dirname(self.files[0])
+        super(SuperTrajectory2, self).__init__(f, mode)
+        self.trajectoryclass = trajectoryclass
+        self._timestep = 1.0
+
+        # Make sure subtrajectories are sorted by increasing step
+        self.files.sort()
+        self._map = []
+        for i, f in enumerate(self.files):
+            # This is slow... just to get the step index....
+            with self.trajectoryclass(f) as t:
+                self._map.append((t.steps[0], f))
+            #self._map.append((i, f))
+        self.steps = [i[0] for i in self._map]
+
+    def read_sample(self, sample):
+        step, f = self._map[sample]
+        with self.trajectoryclass(f) as t:
+            return t[0]
+
