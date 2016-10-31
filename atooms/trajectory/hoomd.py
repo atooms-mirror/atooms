@@ -1,24 +1,26 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Trajectory formats for 3rd party simulation packages"""
+"""HOOMD trajectory format"""
 
 import os
 import tarfile
 import numpy
 
-from base import TrajectoryBase
+from .base import TrajectoryBase
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
 
 from xml.etree import ElementTree
 
+
 def map_label_id(names):
     lab = {}
     for i, key in enumerate(sorted(set(names))):
         lab[key] = i
     return lab
+
 
 class TrajectoryHOOMD(TrajectoryBase):
 
@@ -28,12 +30,12 @@ class TrajectoryHOOMD(TrajectoryBase):
 
         TrajectoryBase.__init__(self, fname, mode)
         base = os.path.basename(fname.split('.tgz')[0])
-        
+
         if mode == 'r':
             self.__tmp_path = '/tmp/' + base
             try:
                 os.makedirs(self.__tmp_path)
-            except:
+            except IOError:
                 pass
 
             tar = tarfile.open(fname)
@@ -67,14 +69,6 @@ class TrajectoryHOOMD(TrajectoryBase):
         # TODO: rewind automatically when unfolding and restarting from a previous sample
         raise NotImplementedError()
 
-    def close(self):
-        # clean up
-        if self.mode == 'r':
-            import shutil
-            shutil.rmtree(self.__tmp_path)
-        elif self.mode == 'w:gz':
-            self._tar.close()
-
     def __read_one(self, fname):
         tree = ElementTree.parse(fname)
         root = tree.getroot()
@@ -86,6 +80,7 @@ class TrajectoryHOOMD(TrajectoryBase):
         except:
             vel = None
         typ = cfg.find('type')
+        # TODO: use tipify here
         pos_list = [map(float, r.split()) for r in pos.text.strip().split('\n')]
         box_list = [float(box.attrib[r]) for r in ['lx', 'ly', 'lz']]
         typ_list = typ.text.strip().split('\n')
@@ -102,7 +97,7 @@ class TrajectoryHOOMD(TrajectoryBase):
         if vel is None:
             particle = [Particle(name=t, id=lab[t], position=numpy.array(p)) for p, t in zip(pos, typ)]
         else:
-            particle = [Particle(name=t, id=lab[t], position=numpy.array(p), velocity=numpy.array(v)) 
+            particle = [Particle(name=t, id=lab[t], position=numpy.array(p), velocity=numpy.array(v))
                         for p, t, v in zip(pos, typ, vel)]
         cell = Cell(numpy.array(box))
         return System(particle, cell)
@@ -150,3 +145,10 @@ class TrajectoryHOOMD(TrajectoryBase):
             self._tar.add(fname)
             os.remove(fname)
 
+    def close(self):
+        # clean up
+        if self.mode == 'r':
+            import shutil
+            shutil.rmtree(self.__tmp_path)
+        elif self.mode == 'w:gz':
+            self._tar.close()
