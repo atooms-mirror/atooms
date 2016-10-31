@@ -3,7 +3,8 @@
 
 import numpy
 import h5py
-from base import TrajectoryBase
+
+from .base import TrajectoryBase
 from atooms.core import ndim
 from atooms.system import System
 from atooms.system.particle import Particle
@@ -11,6 +12,7 @@ from atooms.system.cell import Cell
 from atooms.interaction.interaction import Interaction
 from atooms.potential.potential import PairPotential
 from atooms.potential.cutoff import CutOff
+
 
 class _SafeFile(h5py.File):
     # TODO: decorate hdf5 class so that error messages contain the path of the offending file
@@ -34,10 +36,10 @@ def _write_datasets(fh, group, datasets):
     for name, dataset in datasets.items():
         fh[group + name] = dataset
 
-           
+
 class TrajectoryHDF5(TrajectoryBase):
 
-    """ Trajectory layout based on HDF5 libraries """
+    """Trajectory layout based on HDF5 library. """
 
     suffix = 'h5'
 
@@ -56,7 +58,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 if type(self.trajectory[entry]) == h5py.highlevel.Dataset:
                     self.general_info[entry] = self.trajectory[entry]
             try:
-                # get steps list (could be cached and put in init_read())           
+                # get steps list (could be cached and put in init_read())
                 self.steps = [d[0] for d in self.trajectory['trajectory/realtime/stepindex'].values()]
                 # private list of samples. This solves the problem that samples may start from 0
                 # or 1 depending on the code that initially produced the data
@@ -68,7 +70,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
             # Block period
             self._block_period = self.read_blockperiod()
-            
+
         elif self.mode == 'w' or self.mode == 'r+' or self.mode == "w-":
             self.trajectory = _SafeFile(self.filename, self.mode)
 
@@ -117,7 +119,7 @@ class TrajectoryHDF5(TrajectoryBase):
             # Check that species id are ok (problems might arise when converting from RUMD
             if min([p.id for p in particle]) < 1:
                 raise ValueError('Particles ids are smaller than 1. Use NormalizeId decorator to fix this.')
- 
+
             particle_h5 = {'number_of_species': [len(list(set([p.id for p in particle])))], #particle.numberSpecies(),
                            'number_of_particles': [len(particle)],
                            'identity': [p.id for p in particle],
@@ -127,7 +129,7 @@ class TrajectoryHDF5(TrajectoryBase):
                            'position': [p.position for p in particle],
                            'velocity': [p.velocity for p in particle],
                            }
-            _write_datasets(self.trajectory, group, particle_h5)              
+            _write_datasets(self.trajectory, group, particle_h5)
 
         # Matrix
         group = '/initialstate/matrix/'
@@ -143,7 +145,7 @@ class TrajectoryHDF5(TrajectoryBase):
                          'mass': [p.mass for p in matrix],
                          'position': [p.position for p in matrix],
                          }
-            _write_datasets(self.trajectory, group, matrix_h5)              
+            _write_datasets(self.trajectory, group, matrix_h5)
 
         # Cell
         group = '/initialstate/cell/'
@@ -166,7 +168,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 raise TypeError('interaction must be list')
             self.trajectory.copy(system.interaction, '/initialstate/interaction/')
             #self.write_interaction([system.interaction])
-        
+
     def write_interaction(self, interaction):
         rgr = '/initialstate/interaction/'
         self.trajectory.create_group_safe('/initialstate/')
@@ -267,7 +269,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 if entry == 'element' : ele = group[entry][:]
                 if entry == 'mass'    : mas = group[entry][:]
                 if entry == 'position': pos = group[entry][:]
-            matrix = [Particle(spe[i],ele[i],mas[i],pos[i,:]) for i in range(len(spe))] 
+            matrix = [Particle(spe[i],ele[i],mas[i],pos[i,:]) for i in range(len(spe))]
             self._system.add_porous_matrix(matrix)
 
         return self._system
@@ -277,7 +279,6 @@ class TrajectoryHDF5(TrajectoryBase):
         if not 'interaction' in self.trajectory['/initialstate']:
             return None
 
-        group = self.trajectory['/initialstate/interaction']
         n = self.trajectory['/initialstate/interaction/number_of_interactions'][0]
         interactions = []
         for i in range(n):
@@ -292,7 +293,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 params = {}
                 for k, v in zip(sg['parameters_name'][:], sg['parameters'][:]):
                     params[k] = v
-                p = PairPotential(sg['potential'][0], params, sg['interacting_species'][:], 
+                p = PairPotential(sg['potential'][0], params, sg['interacting_species'][:],
                                   CutOff(sg['cutoff_scheme'][0], sg['cutoff_radius'][0]),
                                   sg['lookup_points'][0])
 
@@ -301,6 +302,7 @@ class TrajectoryHDF5(TrajectoryBase):
         return interactions
 
     def read_sample(self, sample, unfolded=False):
+        # TODO: due to unfolded argument this differs from the base class method Can we drop this?
         # We must increase sample by 1 if we iterate over samples with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
@@ -342,7 +344,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Try update radii. This must be done after setting defaults
         try:
-            r = group['radius' + csample][:]           
+            r = group['radius' + csample][:]
             for i, pi in enumerate(p):
                 pi.radius = r[i]
             self.include(['radius'])
@@ -369,7 +371,7 @@ class TrajectoryHDF5(TrajectoryBase):
             self._system.interaction.total_energy = group['energy' + csample][0]
             self._system.interaction.total_virial = group['virial' + csample][0]
             self._system.interaction.total_stress = group['stress' + csample][:]
-        
+
         return System(p, self._system.cell, self._system.interaction)
 
     def add_interaction(self, ff):
@@ -397,6 +399,3 @@ class TrajectoryHDF5(TrajectoryBase):
         # Cleanup
         ref.close()
         os.remove(f_ref)
-
-if __name__ == '__main__':
-    add_interaction_hdf5('/tmp/1', '/home/coslo/codes/atooms/forcefields/LJ.ff')
