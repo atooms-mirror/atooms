@@ -5,6 +5,7 @@
 
 import os
 import re
+import glob
 
 from atooms.trajectory.xyz import TrajectoryXYZ
 from atooms.trajectory import SuperTrajectory
@@ -55,16 +56,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
             meta['cell'] = meta['sim_box'][1:]
         return meta
 
-    #     # Parse cell side. We take care of string in old format,
-    #     # in which case the whole string is returned. After sim_box
-    #     # there is a keyword for the box type which must be ignored
-    #     s = re.search(r'boxLengths=(\S*)', data)
-    #     if s is None:
-    #         s = re.search(r'sim_box=(\S*)', data)
-    #         side = s.group(1).split(',')[1:]
-    #     else:
-    #         side = s.group(1).split(',')
-
     # def _parse_step(self, data):
     #     s = re.search(r'timeStepIndex=(\d*)', data)
     #     print s
@@ -87,27 +78,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
         #     side = s.group(1).split(',')[1:]
         # else:
         #     side = s.group(1).split(',')
-
-    # def _parse_cell(self):
-    #     self.trajectory.seek(0)
-    #     self.trajectory.readline()
-    #     data = self.trajectory.readline()
-    #     # TODO: improve parsing of timestep dt in xyz indexed files, we put it into _parse_cell() for the moment. We could have a parse metadata that returns a dict.
-    #     # s = re.search(r'dt=(\S*)', data)
-    #     # if s is None:
-    #     #     self._timestep = 1.0
-    #     # else:
-    #     #     self._timestep = float(s.group(1))
-    #     # Parse cell side. We take care of string in old format,
-    #     # in which case the whole string is returned. After sim_box
-    #     # there is a keyword for the box type which must be ignored
-    #     s = re.search(r'boxLengths=(\S*)', data)
-    #     if s is None:
-    #         s = re.search(r'sim_box=(\S*)', data)
-    #         side = s.group(1).split(',')[1:]
-    #     else:
-    #         side = s.group(1).split(',')
-    #     return Cell(numpy.array(side, dtype=float))
 
     def _comment_header(self, step, system):
 
@@ -136,7 +106,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
         # We do not write the cell here in this format
         self.trajectory.close()
 
-import glob
 
 class SuperTrajectoryRUMD(SuperTrajectory):
 
