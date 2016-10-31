@@ -119,6 +119,46 @@ B 2.9 -2.9 0.0
                 s.particle
             t[-1]
 
+    def test_xyz_ids(self):
+        # Test ids ordering
+        finp = '/tmp/test_meta.xyz'
+        with open(finp, 'w') as fh:
+            fh.write("""\
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
+B 1.0 -1.0 0.0
+A 2.9 -2.9 0.0
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
+C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+""")
+        with self.Trajectory(finp) as th:
+            th._id_min = 1
+            self.assertEqual(th[0].particle[0].id, 2)
+            self.assertEqual(th[0].particle[1].id, 1)
+            self.assertEqual(th[1].particle[0].id, 3)
+            self.assertEqual(th[1].particle[1].id, 2)
+
+    def test_xyz_mass(self):
+        finp = '/tmp/test_meta.xyz'
+        with open(finp, 'w') as fh:
+            fh.write("""\
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
+B 1.0 -1.0 0.0
+A 2.9 -2.9 0.0
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
+C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+""")
+        with self.Trajectory(finp) as th:
+            th._id_min = 1
+            self.assertEqual(th[0].particle[0].mass, 2.0)
+            self.assertEqual(th[0].particle[1].mass, 1.0)
+            self.assertEqual(th[1].particle[0].mass, 3.0)
+            self.assertEqual(th[1].particle[1].mass, 2.0)
 
 class TestSimpleXYZ(TestXYZ):
 
@@ -128,9 +168,8 @@ class TestSimpleXYZ(TestXYZ):
     def test_xyz_meta(self):
         pass
 
-class TestNewXYZ(TestXYZ):
-
-    Trajectory = TrajectoryNewXYZ
+    def test_xyz_mass(self):
+        pass
 
         
 if __name__ == '__main__':
