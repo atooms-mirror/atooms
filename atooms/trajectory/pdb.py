@@ -12,10 +12,9 @@ class TrajectoryPDB(TrajectoryBase):
 
     suffix = 'pdb'
 
-    def __init__(self, filename, mode='r'):
+    def __init__(self, filename):
         super(TrajectoryPDB, self).__init__(filename)
-        if mode == 'w':
-            self.trajectory = open(self.filename, 'w')
+        self.trajectory = open(self.filename, self.mode)
 
     def write_sample(self, system, step):
         self._system = system
