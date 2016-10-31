@@ -1,11 +1,10 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-# TODO: what about reading Npart and metadata in one shot? We could avoid separate calls to index and steps.
-
 import os
 import numpy
 import re
+import copy
 
 from .base import TrajectoryBase
 from .utils import gopen
@@ -13,41 +12,6 @@ from atooms.utils import tipify
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
-
-
-class TrajectoryXYZBase(TrajectoryBase):
-
-    suffix = 'xyz'
-
-    def __init__(self, filename, mode='r'):
-        TrajectoryBase.__init__(self, filename, mode)
-        self.fmt = []
-        self.cbk_write = []
-        self.cbk_read = []
-        self.fh = open(self.filename, self.mode)
-
-    def write_sample(self, system, step):
-        # Check that all arrays in data have the same length
-        # TODO: hey whats the status of this cbk thing?
-        data = [[f(p) for p in system.particle] for f in self.cbk_write]
-        nlines = len(data[0])
-        ncols = len(data)
-        lengths_ok = map(lambda x: len(x) == nlines, data)
-        if not all(lengths_ok):
-            raise ValueError('All arrays must have the same length')
-
-        # Write in xyz format
-        self.fh.write('%d\n' % nlines)
-        # Comment line: concatenate metadata
-        line = 'step: %d; ' % step 
-        line += 'columns:' + ','.join(self.fmt)
-        self.fh.write(line + '\n')
-        # Write data. This is inefficient but
-        # we cannot use numpy.savetxt because there is no append mode.
-        fmt = '%s ' * len(data)
-        fmt = fmt[:-1] + '\n'
-        for i in range(nlines):
-            self.fh.write(fmt % tuple([data[j][i] for j in range(ncols)]))
 
 
 class TrajectorySimpleXYZ(TrajectoryBase):
@@ -523,28 +487,6 @@ def update_vz(particle, data):
 def update_name(particle, data):
     particle.name = data
 
-def update_id(particle, metadata, minimum_id=1):
-    # TODO: sort particles by name, so that ids are chosen consistently. This is inefficient and unsafe, get back to global db.
-    for p in particle:
-        if not p.name in metadata['id_map']:
-            metadata['id_map'].append(p.name)
-
-    # Assign ids to particles according to the updated database
-    for p in particle:
-        p.id = metadata['id_map'].index(p.name) + minimum_id
-
-def update_mass(particle, metadata):
-    # Fix the mass
-    try:
-        mass = map(float, metadata['mass'])
-    except KeyError:
-        return
-    mass_db = {}
-    for key, value in zip(metadata['id_map'], mass):
-        mass_db[key] = value
-    for p in particle:
-        p.mass = mass_db[p.name]
-
 
 class TrajectoryNewXYZ(TrajectoryBase):
 
@@ -574,9 +516,9 @@ class TrajectoryNewXYZ(TrajectoryBase):
         TrajectoryBase.__init__(self, filename, mode)
         self.alias = alias
         self.fmt = fmt
+        self.minimum_id = 1 # minimum integer for ids, can be modified by subclasses
         self._cell = None
-        self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
-        self._min_id = 1 # minimum integer for ids, can be modified by subclasses
+        self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
         self.fh = gopen(self.filename, self.mode)
 
         if self.mode == 'r':
@@ -666,6 +608,31 @@ class TrajectoryNewXYZ(TrajectoryBase):
 
         return meta
 
+    def update_id(self, particle):
+        """Update chemical ids of *particle* list and global database id_map."""
+        # We keep the id database sorted by name.
+        for p in particle:
+            if not p.name in self._id_map:
+                self._id_map.append(p.name)
+                self._id_map.sort()
+
+        # Assign ids to particles according to the updated database
+        for p in particle:
+            p.id = self._id_map.index(p.name) + self.minimum_id
+
+    def update_mass(self, particle, metadata):
+        """Fix the masses of *particle* list."""
+        try:
+            mass = map(float, metadata['mass'])
+        except KeyError:
+            return
+        # We assume masses read from the header metadata are sorted by name
+        mass_db = {}
+        for key, value in zip(self._id_map, mass):
+            mass_db[key] = value
+        for p in particle:
+            p.mass = mass_db[p.name]
+
     def read_init(self):
         # Grab cell from the end of file if it is there
         try:
@@ -675,10 +642,9 @@ class TrajectoryNewXYZ(TrajectoryBase):
             self._cell = self._parse_cell()
 
     def read_sample(self, sample):
-        import copy
         meta = self._read_metadata(sample)
-        self.fh.seek(self._index_sample[sample])
         npart = meta['npart']
+        self.fh.seek(self._index_sample[sample])
         particle = []
         for i in range(npart):
             data = self.fh.readline().split()
@@ -689,9 +655,9 @@ class TrajectoryNewXYZ(TrajectoryBase):
             # the same
             particle.append(copy.deepcopy(p))
         # Now we fix ids and other metadata
-        meta['id_map'] = []
-        update_id(particle, meta)
-        update_mass(particle, meta)
+        self.update_id(particle)
+        self.update_mass(particle, meta)
+
         # See if we also have a cell
         try:
             cell = Cell(meta['side'])
