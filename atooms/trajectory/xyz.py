@@ -1,7 +1,6 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-import os
 import numpy
 import re
 import copy
@@ -17,7 +16,7 @@ from atooms.system import System
 class TrajectorySimpleXYZ(TrajectoryBase):
 
     """Trajectory with simple xyz layout.
-    
+
     It uses a memory light-weight indexed access.
     """
 
@@ -28,7 +27,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         self._cell = None
         self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
         self._id_min = 1 # minimum integer for ids, can be modified by subclasses
-        self.fh = open(self.filename, self.mode)
+        self.trajectory = open(self.filename, self.mode)
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
             # We may delay setup, moving to read_init() assuming
@@ -41,15 +40,15 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         self._index_sample = []
         self._index_header = []
         self._index_cell = None
-        self.fh.seek(0)
+        self.trajectory.seek(0)
         while True:
-            line = self.fh.tell()
-            data = self.fh.readline().strip()
+            line = self.trajectory.tell()
+            data = self.trajectory.readline().strip()
 
             # We break if file is over or we found an empty line
             if not data:
                 break
-            
+
             # The first line contains the number of particles
             # If something goes wrong, this could be the last line
             # with the cell side (Lx,Ly,Lz) and we parse it some other way
@@ -61,10 +60,10 @@ class TrajectorySimpleXYZ(TrajectoryBase):
                 break
 
             # Skip npart+1 lines
-            d = self.fh.readline()
-            self._index_sample.append(self.fh.tell())
+            _ = self.trajectory.readline()
+            self._index_sample.append(self.trajectory.tell())
             for i in range(npart):
-                d = self.fh.readline()
+                _ = self.trajectory.readline()
 
     def _read_metadata(self, sample):
         """Internal xyz method to get header metadata from comment line of given *sample*.
@@ -76,9 +75,9 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         columns=id,x,y,z step=10
         """
         # Go to line and skip Npart info
-        self.fh.seek(self._index_header[sample])
-        npart = int(self.fh.readline())
-        data = self.fh.readline()
+        self.trajectory.seek(self._index_header[sample])
+        npart = int(self.trajectory.readline())
+        data = self.trajectory.readline()
 
         # Fill metadata dictionary
         meta = {}
@@ -92,7 +91,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
                 # If there are commas, this is a list, else a scalar.
                 # We convert the string to appropriate types
                 if ',' in data:
-                    meta[tag] = map(tipify, data.split(','))
+                    meta[tag] = [tipify(_) for _ in data.split(',')]
                 else:
                     meta[tag] = tipify(data)
         return meta
@@ -115,7 +114,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             if not p.name in self._id_map:
                 self._id_map.append(p.name)
                 self._id_map.sort()
-        
+
         # Assign ids to particles according to the updated database
         for p in particle:
             p.id = self._id_map.index(p.name) + self._id_min
@@ -132,17 +131,17 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         """Internal emergency method to grab the cell."""
         cell = None
         if self._index_cell:
-            self.fh.seek(self._index_cell)
-            side = numpy.fromstring(self.fh.readline(), sep=' ')
+            self.trajectory.seek(self._index_cell)
+            side = numpy.fromstring(self.trajectory.readline(), sep=' ')
             cell = Cell(side)
         return cell
 
     def read_sample(self, sample):
         meta = self._read_metadata(sample)
-        self.fh.seek(self._index_sample[sample])
+        self.trajectory.seek(self._index_sample[sample])
         particle = []
-        for j in range(meta['npart']):
-            data = self.fh.readline().strip().split()
+        for _ in range(meta['npart']):
+            data = self.trajectory.readline().strip().split()
             name = data[0]
             r = numpy.array(data[1:4], dtype=float)
             particle.append(Particle(name=name, position=r))
@@ -153,19 +152,19 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def _comment_header(self, step, system):
         fmt = "step:%d columns:id,x,y,z" % step
         if system.cell is not None:
-            fmt += " cell:" + ','.join(map(lambda x: '%s' % x, system.cell.side))
+            fmt += " cell:" + ','.join(['%s' % x for x in system.cell.side])
         return fmt
 
     def write_sample(self, system, step):
-        self.fh.write("%s\n" % len(system.particle))
-        self.fh.write(self._comment_header(step, system) + '\n')
+        self.trajectory.write("%s\n" % len(system.particle))
+        self.trajectory.write(self._comment_header(step, system) + '\n')
         ndim = len(system.particle[0].position)
         fmt = "%s" + ndim*" %14.6f" + "\n"
         for p in system.particle:
-            self.fh.write(fmt % ((p.name,) + tuple(p.position)))
+            self.trajectory.write(fmt % ((p.name,) + tuple(p.position)))
 
     def close(self):
-        self.fh.close()
+        self.trajectory.close()
 
 
 # Format callbacks
@@ -197,7 +196,7 @@ class TrajectoryXYZ(TrajectoryBase):
     """Trajectory with XYZ layout using memory leightweight indexed access."""
 
     suffix = 'xyz'
-    callback_read = {'name': update_name, 
+    callback_read = {'name': update_name,
                      'x': update_x,
                      'y': update_y,
                      'z': update_z,
@@ -206,13 +205,13 @@ class TrajectoryXYZ(TrajectoryBase):
                      'vz': update_vz,
     }
 
-    callback_write = {'name': lambda particle: particle.name, 
-                      'x': lambda particle: particle.position[0], 
-                      'y': lambda particle: particle.position[1], 
-                      'z': lambda particle: particle.position[2], 
-                      'vx': lambda particle: particle.velocity[0], 
-                      'vy': lambda particle: particle.velocity[1], 
-                      'vz': lambda particle: particle.velocity[2], 
+    callback_write = {'name': lambda particle: particle.name,
+                      'x': lambda particle: particle.position[0],
+                      'y': lambda particle: particle.position[1],
+                      'z': lambda particle: particle.position[2],
+                      'vx': lambda particle: particle.velocity[0],
+                      'vy': lambda particle: particle.velocity[1],
+                      'vz': lambda particle: particle.velocity[2],
     }
 
     def __init__(self, filename, mode='r', alias={}, fmt=['name', 'x', 'y', 'z']):
@@ -222,7 +221,7 @@ class TrajectoryXYZ(TrajectoryBase):
         self._id_min = 1 # minimum integer for ids, can be modified by subclasses
         self._cell = None
         self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
-        self.fh = gopen(self.filename, self.mode)
+        self.trajectory = gopen(self.filename, self.mode)
 
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
@@ -236,15 +235,15 @@ class TrajectoryXYZ(TrajectoryBase):
         self._index_sample = []
         self._index_header = []
         self._index_cell = None
-        self.fh.seek(0)
+        self.trajectory.seek(0)
         while True:
-            line = self.fh.tell()
-            data = self.fh.readline().strip()
+            line = self.trajectory.tell()
+            data = self.trajectory.readline().strip()
 
             # We break if file is over or we found an empty line
             if not data:
                 break
-            
+
             # The first line contains the number of particles
             # If something went wrong, this could be the last line
             # with the cell side (Lx,Ly,Lz) and we parse it some other way
@@ -256,10 +255,10 @@ class TrajectoryXYZ(TrajectoryBase):
                 break
 
             # Skip npart+1 lines
-            d = self.fh.readline()
-            self._index_sample.append(self.fh.tell())
+            _ = self.trajectory.readline()
+            self._index_sample.append(self.trajectory.tell())
             for i in range(npart):
-                d = self.fh.readline()
+                _ = self.trajectory.readline()
 
     def _setup_steps(self):
         """Find steps list."""
@@ -282,9 +281,9 @@ class TrajectoryXYZ(TrajectoryBase):
         columns=id,x,y,z step=10
         """
         # Go to line and skip Npart info
-        self.fh.seek(self._index_header[sample])
-        npart = int(self.fh.readline())
-        data = self.fh.readline()
+        self.trajectory.seek(self._index_header[sample])
+        npart = int(self.trajectory.readline())
+        data = self.trajectory.readline()
 
         # Fill metadata dictionary
         meta = {}
@@ -298,7 +297,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 # If there are commas, this is a list, else a scalar.
                 # We convert the string to appropriate types
                 if ',' in data:
-                    meta[tag] = map(tipify, data.split(','))
+                    meta[tag] = [tipify(_) for _ in data.split(',')]
                 else:
                     meta[tag] = tipify(data)
 
@@ -325,16 +324,15 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def update_mass(self, particle, metadata):
         """Fix the masses of *particle* list."""
+        # We assume masses read from the header metadata are sorted by name
         try:
-            mass = map(float, metadata['mass'])
+            mass_db = {}
+            for key, value in zip(self._id_map, metadata['mass']):
+                mass_db[key] = value
+            for p in particle:
+                p.mass = mass_db[p.name]
         except KeyError:
             return
-        # We assume masses read from the header metadata are sorted by name
-        mass_db = {}
-        for key, value in zip(self._id_map, mass):
-            mass_db[key] = value
-        for p in particle:
-            p.mass = mass_db[p.name]
 
     def read_init(self):
         # Grab cell from the end of file if it is there
@@ -347,10 +345,10 @@ class TrajectoryXYZ(TrajectoryBase):
     def read_sample(self, sample):
         meta = self._read_metadata(sample)
         npart = meta['npart']
-        self.fh.seek(self._index_sample[sample])
+        self.trajectory.seek(self._index_sample[sample])
         particle = []
         for i in range(npart):
-            data = self.fh.readline().split()
+            data = self.trajectory.readline().split()
             p = Particle()
             for i, key in enumerate(self.fmt):
                 self.callback_read[key](p, data[i])
@@ -364,16 +362,16 @@ class TrajectoryXYZ(TrajectoryBase):
         # See if we also have a cell
         try:
             cell = Cell(meta['side'])
-        except:
+        except KeyError:
             cell = self._cell
         return System(particle, cell)
 
     def _comment_header(self, step, system):
         # Comment line: concatenate metadata
-        line = 'step: %d; ' % step 
+        line = 'step: %d; ' % step
         line += 'columns:' + ','.join(self.fmt)
         if system.cell is not None:
-            line += " cell:" + ','.join(map(lambda x: '%s' % x, system.cell.side))
+            line += " cell:" + ','.join(['%s' % x for x in system.cell.side])
         return line
 
     def write_sample(self, system, step):
@@ -384,30 +382,30 @@ class TrajectoryXYZ(TrajectoryBase):
         # Check that all arrays in data have the same length
         nlines = len(data[0])
         ncols = len(data)
-        lengths_ok = map(lambda x: len(x) == nlines, data)
+        lengths_ok = [len(x) == nlines for x in data]
         if not all(lengths_ok):
             raise ValueError('All arrays must have the same length')
 
         # Write data. This is inefficient, but we cannot use
         # numpy.savetxt because there is no append mode.
-        self.fh.write('%d\n' % nlines)
-        self.fh.write(self._comment_header(step, system) + '\n')
+        self.trajectory.write('%d\n' % nlines)
+        self.trajectory.write(self._comment_header(step, system) + '\n')
         fmt = '%s ' * len(data)
         fmt = fmt[:-1] + '\n'
         for i in range(nlines):
-            self.fh.write(fmt % tuple([data[j][i] for j in range(ncols)]))
+            self.trajectory.write(fmt % tuple([data[j][i] for j in range(ncols)]))
 
     def _parse_cell(self):
         """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
         cell = None
         if self._index_cell:
-            self.fh.seek(self._index_cell)
-            side = numpy.fromstring(self.fh.readline(), sep=' ')
+            self.trajectory.seek(self._index_cell)
+            side = numpy.fromstring(self.trajectory.readline(), sep=' ')
             cell = Cell(side)
         return cell
 
     def close(self):
-        self.fh.close()
+        self.trajectory.close()
 
 
 class TrajectoryNeighbors(TrajectoryXYZ):
@@ -416,7 +414,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
 
     def __init__(self, filename, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename)
-        self.tags['step': 'time']
+        self.alias['step': 'time']
         # TODO: determine minimum value of index automatically
         # TODO: possible regression here if no 'time' tag is found
         self._offset = offset # neighbors produced by voronoi are indexed from 1
@@ -424,12 +422,11 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         self._netwon3_message = False
 
     def read_sample(self, sample):
-        self.trajectory.seek(self._index[sample])
-        self.trajectory.readline() # skip npart
-        self.trajectory.readline() # skip comment header
+        meta = self._read_metadata(sample)
+        self.trajectory.seek(self._index_sample[sample])
         s = System()
         s.neighbors = []
-        for j in range(self._npart[sample]):
+        for _ in range(meta['npart']):
             data = self.trajectory.readline().split()
             neigh = numpy.array(data, dtype=int)
             s.neighbors.append(neigh-self._offset)
@@ -446,13 +443,3 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         #     if not self._netwon3 and not self._netwon3_message:
         #         print 'Warning: enforcing 3rd law of Newton...'
         return s
-
-
-
-if __name__ == '__main__':
-    import atooms.trajectory as trj
-    t=trj.Trajectory('/home/coslo/projects/polydisperse_swap/data/misaki/const_volume/EQ/N8000/phi0.640/conv-configs/config.h5')
-    t1=trj.TrajectoryXYZBase('/tmp/1.xyz', 'w')
-    t1.fmt=['radius']
-    t1.cbk_write=[lambda x: x.radius]
-    t1.write(t[0], 0)
