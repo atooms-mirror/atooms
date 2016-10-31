@@ -17,6 +17,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
     def __init__(self, filename, mode='r'):
         # Use an internal counter for ioformat=2
+        # _step is unused
         self._step = 0
         self._timestep = 1.0
         super(TrajectoryRUMD, self,).__init__(filename, mode, tags={'timeStepIndex': 'step', 'boxLengths':'cell', 'sim_box':'cell'})
