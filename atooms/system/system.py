@@ -10,6 +10,8 @@ class System(object):
     """System class."""
 
     def __init__(self, particle=None, cell=None, interaction=None, matrix=None, thermostat=None, dynamics=None):
+        if particle is None:
+            particle = []
         self.particle = particle
         self.interaction = interaction
         self.cell = cell
