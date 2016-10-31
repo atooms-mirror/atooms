@@ -333,6 +333,8 @@ class TrajectoryXYZ(TrajectoryBase):
                 p.mass = mass_db[p.name]
         except KeyError:
             return
+        except TypeError:
+            return
 
     def read_init(self):
         # Grab cell from the end of file if it is there

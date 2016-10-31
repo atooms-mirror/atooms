@@ -4,7 +4,7 @@ import unittest
 import numpy
 
 from atooms.trajectory import Unfolded
-from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ
+from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD
 
 class TestXYZ(unittest.TestCase):
 
@@ -170,6 +170,12 @@ class TestSimpleXYZ(TestXYZ):
 
     def test_xyz_mass(self):
         pass
+
+
+class TestRumd(TestXYZ):
+
+    # TODO: refactor generic tests for trajectories like this :-)
+    Trajectory = TrajectoryRUMD
 
         
 if __name__ == '__main__':

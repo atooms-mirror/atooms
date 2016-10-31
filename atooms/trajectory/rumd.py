@@ -5,11 +5,9 @@
 
 import os
 import re
-import numpy
 
 from atooms.trajectory.xyz import TrajectoryXYZ
 from atooms.trajectory import SuperTrajectory
-from atooms.system.cell import Cell
 
 
 class TrajectoryRUMD(TrajectoryXYZ):
@@ -20,10 +18,9 @@ class TrajectoryRUMD(TrajectoryXYZ):
         # _step is unused
         self._step = 0
         self._timestep = 1.0
-        super(TrajectoryRUMD, self,).__init__(filename, mode, tags={'timeStepIndex': 'step', 'boxLengths':'cell', 'sim_box':'cell'})
+        super(TrajectoryRUMD, self,).__init__(filename, mode, alias={'timeStepIndex': 'step', 'boxLengths':'cell', 'sim_box':'cell'})
         # The minimum id for RUMD is 0
         self._min_id = 0
-
 
     def _setup_steps(self):
         super(TrajectoryRUMD, self,)._setup_steps()
@@ -45,7 +42,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
             else:
                 # In case of non native RUMD filename, we assume the step
                 # is written after the basename.
-                if len(self.steps)==1:
+                if len(self.steps) == 1:
                     self.steps = [int(step)]
 
     def _read_metadata(self, sample):
@@ -90,7 +87,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
         #     side = s.group(1).split(',')[1:]
         # else:
         #     side = s.group(1).split(',')
-        
+
     # def _parse_cell(self):
     #     self.trajectory.seek(0)
     #     self.trajectory.readline()
@@ -119,7 +116,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
                 if p.id == isp:
                     return i
             raise ValueError('no species %d found in system' % isp)
-            
+
         nsp = set([p.id for p in system.particle])
         mass = [system.particle[first_of_species(system, i)].mass for i in nsp]
         hdr = 'ioformat=1 dt=%g timeStepIndex=%d boxLengths=' + '%.8g,%.8g,%.8g' + ' numTypes=%d mass=' + '%.8g,'*(len(nsp)) + ' columns=type,x,y,z,vx,vy,vz\n'
@@ -142,7 +139,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
 import glob
 
 class SuperTrajectoryRUMD(SuperTrajectory):
-    
+
     def __new__(self, inp, variable=False, periodic=True, basename='block'):
         """ Takes a directory as input and get all block*gz files in there """
         if not os.path.isdir(inp):
