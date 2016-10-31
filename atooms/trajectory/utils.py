@@ -3,7 +3,17 @@
 
 import os
 import tarfile
+import gzip
 import re
+
+def gopen(filename, mode):
+    """Open a file recognizing gzipped files by extension."""
+    import gzip
+    ext = os.path.splitext(filename)[1]
+    if ext == '.gz':
+        return gzip.open(filename, mode)
+    else:
+        return open(filename, mode)
 
 def convert(inp, out, fout='', tag='', prefix='', force=True, exclude=[], include=[], stdout=False, callback=None, args={}):
     """Convert trajectory into a different format.

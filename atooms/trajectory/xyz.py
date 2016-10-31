@@ -4,15 +4,16 @@
 # TODO: what about reading Npart and metadata in one shot? We could avoid separate calls to index and steps.
 
 import os
-import gzip
 import numpy
 import re
 
-from base import TrajectoryBase
-from atooms.utils import tipify 
+from .base import TrajectoryBase
+from .utils import gopen
+from atooms.utils import tipify
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
+
 
 class TrajectoryXYZBase(TrajectoryBase):
 
@@ -523,7 +524,7 @@ def update_name(particle, data):
     particle.name = data
 
 def update_id(particle, metadata, minimum_id=1):
-    # TODO: sort particles by name, so that ids are chosen consistently. This is inefficient, a global db was better.
+    # TODO: sort particles by name, so that ids are chosen consistently. This is inefficient and unsafe, get back to global db.
     for p in particle:
         if not p.name in metadata['id_map']:
             metadata['id_map'].append(p.name)
@@ -551,46 +552,39 @@ class TrajectoryNewXYZ(TrajectoryBase):
 
     suffix = 'xyz'
     # TODO: we can get this dynamically
-    fmt_callback = {'name': update_name, 
-                    'x': update_x,
-                    'y': update_y,
-                    'z': update_z,
-                    'vx': update_vx,
-                    'vy': update_vy,
-                    'vz': update_vz,
+    callback_read = {'name': update_name, 
+                     'x': update_x,
+                     'y': update_y,
+                     'z': update_z,
+                     'vx': update_vx,
+                     'vy': update_vy,
+                     'vz': update_vz,
     }
 
-    # TODO: move all file init to write_init. Rename trajectory fh or something like this.
+    callback_write = {'name': lambda particle: particle.name, 
+                      'x': lambda particle: particle.position[0], 
+                      'y': lambda particle: particle.position[1], 
+                      'z': lambda particle: particle.position[2], 
+                      'vx': lambda particle: particle.velocity[0], 
+                      'vy': lambda particle: particle.velocity[1], 
+                      'vz': lambda particle: particle.velocity[2], 
+    }
 
     def __init__(self, filename, mode='r', alias={}, fmt=['name', 'x', 'y', 'z']):
         TrajectoryBase.__init__(self, filename, mode)
-        # This is the default column format.
-        # TODO: Using vx, vy, vz in the header will grab the velocities
         self.alias = alias
         self.fmt = fmt
         self._cell = None
         self._map_id = [] # list to map numerical ids (indexes) to chemical species (entries)
         self._min_id = 1 # minimum integer for ids, can be modified by subclasses
-        self._step = 0
+        self.fh = gopen(self.filename, self.mode)
 
         if self.mode == 'r':
-            # TODO: allow reading xyz file from stdin. Seek wont work though, need to pass through tmp file
-            ext = os.path.splitext(self.filename)[1]
-            if ext == '.gz':
-                self.fh = gzip.open(self.filename)
-            else:
-                self.fh = open(self.filename, 'r')
             # Internal index of lines to seek and tell.
             # We may delay setup, moving to read_init() assuming
             # self.steps becomes a property
             self._setup_index()
             self._setup_steps()
-        else:
-            self.fh = open(self.filename, self.mode)
-
-    def rewind(self):
-        self.fh.seek(0)
-        self._step = 0
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
@@ -690,7 +684,7 @@ class TrajectoryNewXYZ(TrajectoryBase):
             data = self.fh.readline().split()
             p = Particle()
             for i, key in enumerate(self.fmt):
-                self.fmt_callback[key](p, data[i])
+                self.callback_read[key](p, data[i])
             # This deepcopy is necessary of the coordinate arrays are
             # the same
             particle.append(copy.deepcopy(p))
@@ -706,29 +700,33 @@ class TrajectoryNewXYZ(TrajectoryBase):
         return System(particle, cell)
 
     def _comment_header(self, step, system):
-        fmt = "step:%d columns:id,x,y,z" % step
+        # Comment line: concatenate metadata
+        line = 'step: %d; ' % step 
+        line += 'columns:' + ','.join(self.fmt)
         if system.cell is not None:
-            fmt += " cell:" + ','.join(map(lambda x: '%s' % x, system.cell.side))
-        return fmt
+            line += " cell:" + ','.join(map(lambda x: '%s' % x, system.cell.side))
+        return line
 
     def write_sample(self, system, step):
-        self._cell = system.cell
-        self.fh.write("%d\n" % len(system.particle))
+        # Get write callbacks in the order specified by fmt (dict keys are unordered)
+        # and throw all data into a double list
+        cbk = [self.callback_write[key] for key in self.fmt]
+        data = [[f(p) for p in system.particle] for f in cbk]
+        # Check that all arrays in data have the same length
+        nlines = len(data[0])
+        ncols = len(data)
+        lengths_ok = map(lambda x: len(x) == nlines, data)
+        if not all(lengths_ok):
+            raise ValueError('All arrays must have the same length')
+
+        # Write data. This is inefficient, but we cannot use
+        # numpy.savetxt because there is no append mode.
+        self.fh.write('%d\n' % nlines)
         self.fh.write(self._comment_header(step, system) + '\n')
-        ndim = len(system.particle[0].position)
-        if (abs(system.particle[0].velocity[0]) < 1e-15 and \
-           abs(system.particle[-1].velocity[-1]) < 1e-15) or \
-            (not 'vx' in self.fmt):
-            for p in system.particle:
-                # Check for tag, somewhat hard hack to write voronoi polyehdron
-                # TODO: could be improved 
-                tag = ''
-                if not p.tag is None and not isinstance(p.tag, list):
-                    tag = 4*" " + p.tag
-                self.fh.write(("%s"+ndim*" %14.6f"+tag+"\n") % ((p.name,) + tuple(p.position)))
-        else:
-            for p in system.particle:
-                self.fh.write(("%s"+2*ndim*" %14.6f"+"\n") % ((p.name,) + tuple(p.position) + tuple(p.velocity)))
+        fmt = '%s ' * len(data)
+        fmt = fmt[:-1] + '\n'
+        for i in range(nlines):
+            self.fh.write(fmt % tuple([data[j][i] for j in range(ncols)]))
 
     def _parse_cell(self):
         """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
