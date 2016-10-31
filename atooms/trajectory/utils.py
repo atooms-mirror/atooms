@@ -16,6 +16,7 @@ def gopen(filename, mode):
         return open(filename, mode)
 
 def convert(inp, out, fout='', tag='', prefix='', force=True, exclude=[], include=[], stdout=False, callback=None, args={}):
+    # TODO: check these dangerous defaults
     """Convert trajectory into a different format.
 
     inp: input trajectory object
