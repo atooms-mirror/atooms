@@ -4,7 +4,7 @@ import unittest
 import numpy
 
 from atooms.trajectory import Unfolded
-from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryNewXYZ
+from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ
 
 class TestXYZ(unittest.TestCase):
 
