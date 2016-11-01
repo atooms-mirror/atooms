@@ -220,7 +220,6 @@ class TrajectoryXYZ(TrajectoryBase):
             alias = {}
         if fmt is None:
             fmt = ['name', 'x', 'y', 'z']
-        self.fmt = fmt
         self.alias = alias
         self.fmt = fmt
         self._id_min = 1 # minimum integer for ids, can be modified by subclasses
