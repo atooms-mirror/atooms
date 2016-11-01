@@ -17,12 +17,13 @@ class TrajectoryRUMD(TrajectoryXYZ):
     def __init__(self, filename, mode='r'):
         # Use an internal counter for ioformat=2
         self._timestep = 1.0
-        super(TrajectoryRUMD, self,).__init__(filename, mode, alias={'timeStepIndex': 'step', 'boxLengths':'cell', 'sim_box':'cell'})
+        alias = {'timeStepIndex': 'step', 'boxLengths':'cell', 'sim_box':'cell'}
+        super(TrajectoryRUMD, self).__init__(filename, mode, alias=alias)
         # The minimum id for RUMD is 0
         self._min_id = 0
 
     def _setup_steps(self):
-        super(TrajectoryRUMD, self,)._setup_steps()
+        super(TrajectoryRUMD, self)._setup_steps()
 
         # RUMD specific stuff
         basename = os.path.basename(self.filename)
@@ -45,27 +46,22 @@ class TrajectoryRUMD(TrajectoryXYZ):
                     self.steps = [int(step)]
 
     def _read_metadata(self, sample):
-        meta = super(TrajectoryRUMD, self,)._read_metadata(sample)
-        # RUMD specific stuff
+        meta = super(TrajectoryRUMD, self)._read_metadata(sample)
+        # RUMD specific stuff that can't be handled as aliases.
         if 'integrator' in meta:
             self._timestep = meta['integrator'][1]
+            meta['dt'] = meta['integrator'][1]
         if 'sim_box' in meta:
             # After sim_box there is a keyword for the box type which we ignore
             meta['cell'] = meta['sim_box'][1:]
         return meta
 
-#    def read_init(self):
-        # TODO: fixme!
-        #self._timestep = self._read_metadata(0)['dt']
-        # # Parse cell side. We take care of string in old format,
-        # # in which case the whole string is returned. After sim_box
-        # # there is a keyword for the box type which must be ignored
-        # s = re.search(r'boxLengths=(\S*)', data)
-        # if s is None:
-        #     s = re.search(r'sim_box=(\S*)', data)
-        #     side = s.group(1).split(',')[1:]
-        # else:
-        #     side = s.group(1).split(',')
+    def read_timestep(self):
+        meta = self._read_metadata(0)
+        if 'dt' in meta:
+            return meta['dt']
+        else:
+            return 1.0
 
     def _comment_header(self, step, system):
 
