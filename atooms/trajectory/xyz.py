@@ -214,10 +214,14 @@ class TrajectoryXYZ(TrajectoryBase):
                       'vz': lambda particle: particle.velocity[2],
     }
 
-    def __init__(self, filename, mode='r', alias={}, fmt=['name', 'x', 'y', 'z']):
+    def __init__(self, filename, mode='r', alias=None, fmt=None):
         TrajectoryBase.__init__(self, filename, mode)
-        self.alias = alias
         self.fmt = fmt
+        if alias is None:
+            alias = {}
+        if fmt is None:
+            fmt = ['name', 'x', 'y', 'z']
+        self.alias = alias
         self._id_min = 1 # minimum integer for ids, can be modified by subclasses
         self._cell = None
         self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
