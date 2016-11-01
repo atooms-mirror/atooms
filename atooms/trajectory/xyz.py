@@ -232,6 +232,8 @@ class TrajectoryXYZ(TrajectoryBase):
             # We may delay setup, moving to read_init() assuming
             # self.steps becomes a property
             self._setup_index()
+            # Warning: setting up steps require aliases to be defined in
+            # init and not later.
             self._setup_steps()
 
     def _setup_index(self):
