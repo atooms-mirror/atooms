@@ -5,7 +5,6 @@
 import unittest
 import numpy
 
-from atooms.trajectory.decorators import Unfolded
 from atooms.trajectory import TrajectoryXYZ
 
 class TestDecorators(unittest.TestCase):
@@ -28,15 +27,26 @@ A -2.9 -2.9 0.0
 step:3
 A 1.2 -1.2 0.0
 A -2.9 2.9 0.0
+2
+step:4
+A 1.2 -1.2 0.0
+A -2.9 2.9 0.0
 6.0 6.0 6.0
 """)
 
     def test_unfolded_jump(self):
+        from atooms.trajectory.decorators import Unfolded
         with self.Trajectory(self.finp) as th:
             with Unfolded(th) as tu:
                 self.assertEqual(list(tu[2].particle[1].position), [3.1, -3.1, 0.0]) # unfolded
                 self.assertEqual(list(th[2].particle[1].position), [-2.9, 2.9, 0.0]) # original
 
+    def test_sliced(self):
+        from atooms.trajectory.decorators import Sliced
+        with Sliced(self.Trajectory(self.finp), slice(0, 2, 1)) as th:
+            self.assertEqual(th.steps, [1, 2])
+            self.assertEqual(list(th[-1].particle[0].position), [1.1, -1.1, 0.0])
+            self.assertEqual(list(th[-1].particle[1].position), [-2.9,-2.9, 0.0])
         
 if __name__ == '__main__':
     unittest.main(verbosity=0)

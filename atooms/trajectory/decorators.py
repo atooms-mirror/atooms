@@ -38,14 +38,13 @@ class Sliced(object):
 
     # This is still necessary. slicing via __getitem__ has a large memory fingerprint
     # since we couldnt write it as a generator (maybe it is possible?)
-    # TODO: adjust uslice to pick up blocks without truncating them!
+    # TODO: adjust uslice to pick up blocks without truncating them
 
     def __new__(cls, component, uslice):
         cls = type('Sliced', (Sliced, component.__class__), component.__dict__)
         return object.__new__(cls)
 
     def __init__(self, component, uslice):
-        # TODO: does this work now?!
         self._sliced_samples = range(len(self.steps))[uslice]
         self.steps = self.steps[uslice]
 
