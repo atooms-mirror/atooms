@@ -222,6 +222,7 @@ class TrajectoryXYZ(TrajectoryBase):
         if fmt is None:
             fmt = ['name', 'x', 'y', 'z']
         self.alias = alias
+        self.fmt = fmt
         self._id_min = 1 # minimum integer for ids, can be modified by subclasses
         self._cell = None
         self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
