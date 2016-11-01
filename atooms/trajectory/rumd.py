@@ -16,8 +16,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
     def __init__(self, filename, mode='r'):
         # Use an internal counter for ioformat=2
-        # _step is unused
-        self._step = 0
         self._timestep = 1.0
         super(TrajectoryRUMD, self,).__init__(filename, mode, alias={'timeStepIndex': 'step', 'boxLengths':'cell', 'sim_box':'cell'})
         # The minimum id for RUMD is 0
@@ -55,16 +53,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
             # After sim_box there is a keyword for the box type which we ignore
             meta['cell'] = meta['sim_box'][1:]
         return meta
-
-    # def _parse_step(self, data):
-    #     s = re.search(r'timeStepIndex=(\d*)', data)
-    #     print s
-    #     if s is None:
-    #         self._step += 1
-    #         n = self._step
-    #     else:
-    #         n = s.group(1)
-    #     return int(n)
 
 #    def read_init(self):
         # TODO: fixme!
