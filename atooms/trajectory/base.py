@@ -28,6 +28,21 @@ class TrajectoryBase(object):
     written, to store for instance, integrator data and so on.
     """
 
+    # TODO: there is a problem with putting metatdata reading in read_init. It means that steps and timestep are not known before calling read(). These should then be properties that get initialized by calling read_init, rather than their specific read_timestep, read_steps methods
+
+    # We might consider renaming, although it is a bad idea.
+    # What init methods are supposed to be is parsing / writing metadata.
+    # read_init -> read_metadata
+    # write_init -> write_metadata
+
+    # metadata is:
+    # read: dt, steps, cell (if invariant). Subclasses may have additional simulation info: integration algorithm etc
+    # write, dt, cell (if invariant)
+
+    # steps wants to become a property then.
+
+    # in xyz, rename read_metadata -> read_header
+
     suffix = None
 
     def __init__(self, filename, mode='r'):

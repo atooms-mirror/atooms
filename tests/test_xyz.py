@@ -108,6 +108,9 @@ B 2.9 -2.9 0.0
 
         with self.Trajectory(self.finp + '.out', 'w') as to:
             with self.Trajectory(self.finp) as t:
+                # This is necessary because timestep is not copied automatically
+                # and if the class tries to read it, it won't find 
+                to.timestep = t.timestep
                 to.write(t[0], 0)
                 
         with self.Trajectory(self.finp + '.out') as to:
@@ -176,6 +179,32 @@ class TestRumd(TestXYZ):
 
     # TODO: refactor generic tests for trajectories like this :-)
     Trajectory = TrajectoryRUMD
+
+    def setUp(self):
+        super(TestRumd, self).setUp()
+        ioformat_1 = """\
+2
+ioformat=1 dt=0.005000000 boxLengths=6.000000000,6.000000000,6.000000000 numTypes=2 Nose-Hoover-Ps=-0.154678583 Barostat-Pv=0.000000000 mass=1.000000000,1.000000000 columns=type,x,y,z,imx,imy,imz,vx,vy,vz,fx,fy,fz,pe,vir
+0 2.545111895 -0.159052730 -2.589233398 0 0 1 -0.955896854 -2.176721811 0.771060944 14.875996590 -28.476327896 -15.786120415 -5.331668218 22.538120270
+0 -2.089187145 1.736116767 1.907819748 0 0 -1 -0.717318892 -0.734904408 0.904034972 -28.532371521 13.714955330 0.387423307 -7.276362737 11.813765526
+"""
+        
+        with open('/tmp/test_rumd.xyz', 'w') as fh:
+            fh.write(ioformat_1)
+            self.input_file = fh.name
+
+    def test_read_write(self):
+        with TrajectoryRUMD(self.input_file) as th, \
+             TrajectoryRUMD(self.input_file + 'out', 'w') as th_out:
+            self.assertEqual(th.timestep, 0.005)
+            self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
+            th_out.timestep = th.timestep
+            for i, system in enumerate(th):
+                th_out.write(system, th.steps[i])
+        with TrajectoryRUMD(self.input_file + 'out') as th:
+            self.assertEqual(th.timestep, 0.005)
+            self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
+            
 
         
 if __name__ == '__main__':

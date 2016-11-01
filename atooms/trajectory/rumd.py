@@ -57,6 +57,8 @@ class TrajectoryRUMD(TrajectoryXYZ):
         return meta
 
     def read_timestep(self):
+        if self.mode != 'r':
+            raise ValueError('time step not set, cannot read it in write mode')
         meta = self._read_metadata(0)
         if 'dt' in meta:
             return meta['dt']
