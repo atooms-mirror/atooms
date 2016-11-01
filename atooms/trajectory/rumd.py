@@ -15,8 +15,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
     # TODO: allow reading unfolded configuration by parsing the box image integers
 
     def __init__(self, filename, mode='r'):
-        # Use an internal counter for ioformat=2
-        self._timestep = 1.0
         alias = {'timeStepIndex': 'step', 'boxLengths':'cell', 'sim_box':'cell'}
         super(TrajectoryRUMD, self).__init__(filename, mode, alias=alias)
         # The minimum id for RUMD is 0
@@ -49,7 +47,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
         meta = super(TrajectoryRUMD, self)._read_metadata(sample)
         # RUMD specific stuff that can't be handled as aliases.
         if 'integrator' in meta:
-            self._timestep = meta['integrator'][1]
             meta['dt'] = meta['integrator'][1]
         if 'sim_box' in meta:
             # After sim_box there is a keyword for the box type which we ignore
