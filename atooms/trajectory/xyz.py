@@ -216,11 +216,11 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def __init__(self, filename, mode='r', alias=None, fmt=None):
         TrajectoryBase.__init__(self, filename, mode)
-        self.fmt = fmt
         if alias is None:
             alias = {}
         if fmt is None:
             fmt = ['name', 'x', 'y', 'z']
+        self.fmt = fmt
         self.alias = alias
         self.fmt = fmt
         self._id_min = 1 # minimum integer for ids, can be modified by subclasses
