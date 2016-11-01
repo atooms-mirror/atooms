@@ -197,8 +197,6 @@ class TrajectoryXYZ(TrajectoryBase):
 
     """Trajectory with XYZ layout using memory leightweight indexed access."""
 
-    # TODO: read columns/fmt from header
-
     suffix = 'xyz'
     callback_read = {'name': update_name,
                      'type': update_name, # alias
