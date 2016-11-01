@@ -1,7 +1,7 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-# To properly implement decorators in python see 
+# To properly implement decorators in python see
 # http://stackoverflow.com/questions/3118929/implementing-the-decorator-pattern-in-python
 # asnwer by Alec Thomas. if we don't subclass at runtime we won't be able to use the decorated
 # mathod in other non-subclassed methods.
@@ -25,7 +25,7 @@ class Centered(object):
     def read_sample(self, sample):
         # If we have subtracted it yet, we return immediately
         if sample in self.__done:
-            return            
+            return
         self.__done.append(sample)
         s = super(Centered, self).read_sample(sample)
         for p in s.particle:
@@ -52,7 +52,7 @@ class Sliced(object):
     def read_sample(self, sample):
         i = self._sliced_samples[sample]
         return super(Sliced, self).read_sample(i)
-        
+
 
 class Unfolded(object):
 
@@ -64,7 +64,7 @@ class Unfolded(object):
 
     def __init__(self, component):
         self._initialized_read = False
-    
+
     def read_init(self):
         s = super(Unfolded, self).read_init()
         # Cache the initial sample and cell
@@ -89,7 +89,7 @@ class Unfolded(object):
 
         s = super(Unfolded, self).read_sample(sample)
         self._last_read = sample
-      
+
         # Unfold positions
         # Note that since L can be variable we get it at each step
         # TODO: I am not entirely sure this is correct with NPT.
@@ -145,7 +145,8 @@ class TrajectoryDecorator(object):
 
     # Subclass component at runtime
     def __new__(cls, component, cb_read_initial_state):
-        cls = type('TrajectoryDecorator', (TrajectoryDecorator, component.__class__), component.__dict__)
+        cls = type('TrajectoryDecorator', (TrajectoryDecorator, component.__class__),
+                   component.__dict__)
         return object.__new__(cls)
 
     # Object initialization
@@ -173,7 +174,7 @@ class NormalizeId(object):
         cls = type('NormalizeId', (NormalizeId, component.__class__), component.__dict__)
         return object.__new__(cls)
 
-    def __init__(self, component): 
+    def __init__(self, component):
         pass
 
     def _normalize(self, pl):
@@ -197,12 +198,12 @@ class Sorted(object):
         cls = type('Sorted', (Sorted, component.__class__), component.__dict__)
         return object.__new__(cls)
 
-    def __init__(self, component): 
+    def __init__(self, component):
         pass
 
     def read_sample(self, *args, **kwargs):
         s = super(Sorted, self).read_sample(*args, **kwargs)
-        s.particle.sort(key = lambda a : a.id)
+        s.particle.sort(key=lambda a: a.id)
         return s
 
 
@@ -217,7 +218,7 @@ class MatrixFlat(object):
     def __init__(self, component):
         self._component = component # actually unnecessary
         self._matrix = None
-        
+
     def __setup_matrix(self, s):
 
         if self._matrix is not None:
@@ -233,7 +234,7 @@ class MatrixFlat(object):
             self._matrix[-1].id += max_isp
 
         # Sort matrix particles by index
-        self._matrix.sort(key = lambda a : a.id)
+        self._matrix.sort(key=lambda a: a.id)
 
     def read_sample(self, *args, **kwargs):
         s = super(MatrixFlat, self).read_sample(*args, **kwargs)
@@ -244,7 +245,7 @@ class MatrixFlat(object):
 
 
 class Filter(object):
-    
+
     """Apply a filter that transforms each read sample in a trajectory"""
 
     def __new__(cls, component, filt, *args, **kwargs):
@@ -260,10 +261,13 @@ class Filter(object):
 
     def read_sample(self, sample):
         sy = super(Filter, self).read_sample(sample)
-        # Apply filter to the system, that's all        
-        # HACK!: when further decorating the class, the referenced function becomes a bound method of the decorated class and therefore passes the first argument (self)
-        # Workaround is to always expect a trajectory and forcibly add self if no further decorators are added
-        # TODO: we should catch the rihgt exception here, otherwise errors from the callbacks are caught here as well
+        # Apply filter to the system, that's all
+        # HACK!: when further decorating the class, the referenced
+        # function becomes a bound method of the decorated class and
+        # therefore passes the first argument (self). Workaround is
+        # to always expect a trajectory and forcibly add self if no
+        # further decorators are added.
+        # TODO: we should catch the right exception here, otherwise errors from the callbacks are caught here as well
         try:
             return self.filt(sy, *self._args, **self._kwargs)
         except:
@@ -275,7 +279,8 @@ import random
 class AffineDeformation(object):
 
     def __new__(cls, component, scale):
-        cls = type('AffineDeformation', (AffineDeformation, component.__class__), component.__dict__)
+        cls = type('AffineDeformation', (AffineDeformation, component.__class__),
+                   component.__dict__)
         return object.__new__(cls)
 
     def __init__(self, component, scale=0.01):
@@ -293,6 +298,6 @@ class AffineDeformation(object):
         return s
 
 
-def filter_id(s, species):
-    s.particle = filter(lambda p: p.id == species, s.particle)
+def filter_id(system, species):
+    system.particle = [p for p in system.particle if p.id == species]
     return s
