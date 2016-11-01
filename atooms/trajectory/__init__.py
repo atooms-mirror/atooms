@@ -3,10 +3,13 @@
 
 import os
 import sys
+import logging
 
 from .utils import convert, split
 from .base import SuperTrajectory, SuperTrajectory2
 from .decorators import *
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 # Factory method which mimics an abstract factory class
 __factory_map = {}

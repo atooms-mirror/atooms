@@ -4,6 +4,7 @@
 import numpy
 import re
 import copy
+import logging
 
 from .base import TrajectoryBase
 from .utils import gopen
@@ -12,6 +13,7 @@ from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
 
+log = logging.getLogger(__name__)
 
 class TrajectorySimpleXYZ(TrajectoryBase):
 
@@ -199,6 +201,8 @@ class TrajectoryXYZ(TrajectoryBase):
 
     suffix = 'xyz'
     callback_read = {'name': update_name,
+                     'type': update_name, # alias
+                     'id': update_name, # alias
                      'x': update_x,
                      'y': update_y,
                      'z': update_z,
@@ -208,6 +212,8 @@ class TrajectoryXYZ(TrajectoryBase):
     }
 
     callback_write = {'name': lambda particle: particle.name,
+                      'type': lambda particle: particle.name,
+                      'id': lambda particle: particle.name,
                       'x': lambda particle: particle.position[0],
                       'y': lambda particle: particle.position[1],
                       'z': lambda particle: particle.position[2],
@@ -353,17 +359,25 @@ class TrajectoryXYZ(TrajectoryBase):
             self._cell = self._parse_cell()
 
     def read_sample(self, sample):
+        # Use columns if they are found in the header, or stick to the
+        # default format.
         meta = self._read_metadata(sample)
-        npart = meta['npart']
+        try:
+            fmt = meta['columns']
+        except KeyError:
+            fmt = self.fmt
+        # Read sample now
         self.trajectory.seek(self._index_sample[sample])
         particle = []
-        for i in range(npart):
+        for i in range(meta['npart']):
             data = self.trajectory.readline().split()
             p = Particle()
-            for i, key in enumerate(self.fmt):
-                self.callback_read[key](p, data[i])
-            # This deepcopy is necessary of the coordinate arrays are
-            # the same
+            for i, key in enumerate(fmt):
+                try:
+                    self.callback_read[key](p, data[i])
+                except KeyError:
+                    log.warning('missing read callback for key %s' % key)
+            # Deepcopy, otherwise coordinate arrays are the same
             particle.append(copy.deepcopy(p))
         # Now we fix ids and other metadata
         self.update_id(particle)
