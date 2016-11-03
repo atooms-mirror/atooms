@@ -192,6 +192,15 @@ def update_vz(particle, data):
 def update_name(particle, data):
     particle.name = data
 
+def update_radius(particle, data):
+    particle.radius = float(data)
+
+def update_tag(particle, data):
+    particle.tag = data
+
+# def update(particle, data, what):
+#     particle.gettatr(what) = tipify(data)
+
 
 class TrajectoryXYZ(TrajectoryBase):
 
@@ -203,6 +212,8 @@ class TrajectoryXYZ(TrajectoryBase):
     callback_read = {'name': update_name,
                      'type': update_name, # alias
                      'id': update_name, # alias
+                     'tag': update_tag,
+                     'radius': update_radius,
                      'x': update_x,
                      'y': update_y,
                      'z': update_z,
