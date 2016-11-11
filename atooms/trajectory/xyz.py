@@ -403,7 +403,7 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def _comment_header(self, step, system):
         # Comment line: concatenate metadata
-        line = 'step: %d; ' % step
+        line = 'step:%d ' % step
         line += 'columns:' + ','.join(self.fmt)
         if system.cell is not None:
             line += " cell:" + ','.join(['%s' % x for x in system.cell.side])
