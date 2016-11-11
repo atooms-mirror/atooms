@@ -111,6 +111,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
 
     def update_id(self, particle):
         """Update chemical ids of *particle* list and global database id_map."""
+        # TODO: use sets instead
         # We keep the id database sorted by name.
         for p in particle:
             if not p.name in self._id_map:
