@@ -16,8 +16,15 @@ class CutOff(object):
     def is_zero(self, rsquare):
         return rsquare > self.radius**2
 
-    def tailor(self, rsquare):
-        raise NotImplementedError()
+    def tailor(self, rsquare, u0, u1):
+        if self.name in ['cs', 'CS']:
+            self.vcut = u0
+        else:
+            raise NotImplementedError()
 
-    def smooth(self, rsquare):
-        raise NotImplementedError()
+    def smooth(self, rsquare, u0, u1):
+        if self.name in ['cs', 'CS']:
+            u0 = u0 - self.vcut
+        else:
+            raise NotImplementedError()
+        return u0, u1

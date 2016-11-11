@@ -13,17 +13,17 @@ class PairPotentialBase(object):
         self.species = species
         self.cutoff = cutoff
         self.npoints = npoints
-
-        self._lookup = None
+        self._tailor()
 
     def _tailor(self):
-        pass
+        u0, u1 = self._compute(self.cutoff.radius**2)
+        self.cutoff.tailor(self.cutoff.radius**2, u0, u1)
 
     def is_zero(self, rsquare):
-        self.cutoff.is_zero(rsquare)
+        return self.cutoff.is_zero(rsquare)
 
     def tabulate(self):
-        rcut = 2.5
+        rcut = self.cutoff.radius
         rmin = 0.01
         rmax = rcut+0.05
         rsq = numpy.ndarray(self.npoints)
@@ -47,19 +47,22 @@ class PairPotentialBase(object):
         #         u1[i] = max(u1)
         return rsq, u0, u1
 
+    def _compute(self, rsquare):
+        raise NotImplementedError()
+
     def compute(self, rsquare):
-        raise NotImplementedError()
+        u0, u1 = self._compute(rsquare)
+        u0, u1 = self.cutoff.smooth(rsquare, u0, u1)
+        return u0, u1
 
-    def compute_analytical(self, rsquare):
-        raise NotImplementedError()
+def NullPotential(PairPotentialBase):
 
-    def write_potential(self, fh, rmin, rmax, nr=100):
-        pass
-
+    def _compute(rsquare):
+        return 0.0, 0.0
 
 # factory method
 
-__factory_map = {'base' : PairPotentialBase}
+__factory_map = {'null': NullPotential}
 
 def PairPotential(name, *args, **kwargs):
 
