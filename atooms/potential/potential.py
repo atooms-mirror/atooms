@@ -7,12 +7,11 @@ class PairPotentialBase(object):
 
     interacting_bodies = 2
 
-    def __init__(self, name, params, species, cutoff=None, npoints=20000):
+    def __init__(self, name, params, species, cutoff=None):
         self.name = name
         self.params = params
         self.species = species
         self.cutoff = cutoff
-        self.npoints = npoints
         self._tailor()
 
     def _tailor(self):
@@ -22,16 +21,17 @@ class PairPotentialBase(object):
     def is_zero(self, rsquare):
         return self.cutoff.is_zero(rsquare)
 
-    def tabulate(self):
+    def tabulate(self, npoints=20000):
+        self.npoints = npoints
         rcut = self.cutoff.radius
         rmin = 0.01
         rmax = rcut+0.05
-        rsq = numpy.ndarray(self.npoints)
-        u0 = numpy.ndarray(self.npoints)
-        u1 = numpy.ndarray(self.npoints)
-        drsq = rmax**2 / (self.npoints-1)
+        rsq = numpy.ndarray(npoints)
+        u0 = numpy.ndarray(npoints)
+        u1 = numpy.ndarray(npoints)
+        drsq = rmax**2 / (npoints-1)
         #for i in range(self.npoints-1,0,-1):
-        for i in range(1,self.npoints):
+        for i in range(1,npoints):
             rsq[i] = i*drsq
             if not self.is_zero(rsq[i]):
                 u0[i], u1[i] = self.compute(rsq[i])
