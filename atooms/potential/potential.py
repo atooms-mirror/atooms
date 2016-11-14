@@ -7,11 +7,12 @@ class PairPotentialBase(object):
 
     interacting_bodies = 2
 
-    def __init__(self, name, params, species, cutoff=None):
+    def __init__(self, name, params, species, cutoff=None, hard_core=0.0, npoints=20000):
         self.name = name
         self.params = params
         self.species = species
         self.cutoff = cutoff
+        self.hard_core = hard_core
         self._tailor()
 
     def _tailor(self):
@@ -21,8 +22,9 @@ class PairPotentialBase(object):
     def is_zero(self, rsquare):
         return self.cutoff.is_zero(rsquare)
 
-    def tabulate(self, npoints=20000):
-        self.npoints = npoints
+    def tabulate(self, npoints=None):
+        if npoints is not None:
+            self.npoints = npoints
         rcut = self.cutoff.radius
         rmin = 0.01
         rmax = rcut+0.05
@@ -51,6 +53,8 @@ class PairPotentialBase(object):
         raise NotImplementedError()
 
     def compute(self, rsquare):
+        if rsquare < self.hard_core**2:
+            u0, u1 = float("inf"), float("inf")
         u0, u1 = self._compute(rsquare)
         u0, u1 = self.cutoff.smooth(rsquare, u0, u1)
         return u0, u1
