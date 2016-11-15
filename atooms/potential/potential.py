@@ -14,14 +14,18 @@ class PairPotentialBase(object):
         self.cutoff = cutoff
         self.hard_core = hard_core
         self.npoints = npoints
-        self._tailor()
-
-    def _tailor(self):
-        u0, u1 = self._compute(self.cutoff.radius**2)
-        self.cutoff.tailor(self.cutoff.radius**2, u0, u1)
-
-    def is_zero(self, rsquare):
-        return self.cutoff.is_zero(rsquare)
+        
+        # Adjust the cutoff to the potential.
+        if cutoff is not None:
+            u0, u1 = self._compute(self.cutoff.radius**2)
+            # If _compute() is not implemented, we ignore the error.
+            # This way we can use the base potential as a placeholder
+            # to move parameters around, e.g. in writing trajectories
+            # or forcefields.
+            try:
+                self.cutoff.tailor(self.cutoff.radius**2, u0, u1)
+            except NotImplementedError:
+                pass              
 
     def tabulate(self, npoints=None):
         if npoints is None:
@@ -61,10 +65,15 @@ class PairPotentialBase(object):
             u0, u1 = self.cutoff.smooth(rsquare, u0, u1)
         return u0, u1
 
+    def is_zero(self, rsquare):
+        return self.cutoff.is_zero(rsquare)
+
+
 def NullPotential(PairPotentialBase):
 
     def _compute(rsquare):
         return 0.0, 0.0
+
 
 # factory method
 
