@@ -13,6 +13,7 @@ class PairPotentialBase(object):
         self.species = species
         self.cutoff = cutoff
         self.hard_core = hard_core
+        self.npoints = npoints
         self._tailor()
 
     def _tailor(self):
