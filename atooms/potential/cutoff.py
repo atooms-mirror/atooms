@@ -19,12 +19,16 @@ class CutOff(object):
     def tailor(self, rsquare, u0, u1):
         if self.name in ['cs', 'CS']:
             self.vcut = u0
+        elif self.name in ['c', 'cut']:
+            pass
         else:
             raise NotImplementedError()
 
     def smooth(self, rsquare, u0, u1):
         if self.name in ['cs', 'CS']:
             u0 = u0 - self.vcut
+        elif self.name in ['c', 'cut']:
+            pass
         else:
             raise NotImplementedError()
         return u0, u1
