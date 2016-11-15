@@ -23,8 +23,8 @@ class Particle(object):
         self.name = name
         self.mass = mass
         self.radius = radius
-        self.position = position
-        self.velocity = velocity
+        self.position = numpy.asarray(position)
+        self.velocity = numpy.asarray(velocity)
         self.tag = tag
 
     def nearest_image(self, particle, cell):
