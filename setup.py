@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 with open('README.md') as f:
     readme = f.read()
@@ -12,13 +12,7 @@ setup(name='atooms',
       author='Daniele Coslovich',
       author_email='daniele.coslovich@umontpellier.fr',
       url='https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms',
-      packages=['atooms',
-                'atooms.backends', 
-                'atooms.interaction',
-                'atooms.potential',
-                'atooms.simulation',
-                'atooms.system', 
-                'atooms.trajectory'],
+      packages=find_packages(exclude=('tests', 'docs')),
       license='GPLv3',
       classifiers={
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
