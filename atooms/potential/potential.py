@@ -23,8 +23,8 @@ class PairPotentialBase(object):
         return self.cutoff.is_zero(rsquare)
 
     def tabulate(self, npoints=None):
-        if npoints is not None:
-            self.npoints = npoints
+        if npoints is None:
+            npoints = self.npoints
         rcut = self.cutoff.radius
         rmin = 0.01
         rmax = rcut+0.05
