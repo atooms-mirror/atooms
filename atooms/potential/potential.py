@@ -17,14 +17,14 @@ class PairPotentialBase(object):
         
         # Adjust the cutoff to the potential.
         if cutoff is not None:
-            u0, u1 = self._compute(self.cutoff.radius**2)
-            # If _compute() is not implemented, we ignore the error.
-            # This way we can use the base potential as a placeholder
-            # to move parameters around, e.g. in writing trajectories
-            # or forcefields.
             try:
+                u0, u1 = self._compute(self.cutoff.radius**2)
                 self.cutoff.tailor(self.cutoff.radius**2, u0, u1)
             except NotImplementedError:
+                # If _compute() is not implemented, we ignore the error.
+                # This way we can use the base potential as a placeholder
+                # to move parameters around, e.g. in writing trajectories
+                # or forcefields.
                 pass              
 
     def tabulate(self, npoints=None):
