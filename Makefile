@@ -25,7 +25,10 @@ version:
 	cd atooms; make; cd ..
 
 install: version
-	python setup.py install --home=~
+	python setup.py install --user
+
+develop:
+	python setup.py develop --user
 
 clean:
 	rm -f atooms/*pyc  atooms/*/*pyc tests/*pyc

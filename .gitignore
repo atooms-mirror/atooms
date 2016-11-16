@@ -11,5 +11,7 @@ atooms/core/_version.py
 dist
 build
 MANIFEST
+*.egg-info
 
 rumd_timing_info.dat
+
