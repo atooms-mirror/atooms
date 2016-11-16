@@ -1,3 +1,4 @@
+# TODO: this should be an API
 def chain(input_file, output_dir, potential, T, steps=None, rmsd=None, dt=0.004, rc=2.5):
     import rumd
     from rumdSimulation import rumdSimulation
@@ -19,17 +20,3 @@ def chain(input_file, output_dir, potential, T, steps=None, rmsd=None, dt=0.004,
             # Chain with previous output file
             inp = '%s/final.xyz.gz' % out_dir
             last_steps = si.steps
-
-def rx(input_file, output_dir_root, output_dir, potential, Tl, dt, nsteps, swap_period, config_period, seed, rmsd=None):
-    """
-    Tl: list of temperatures
-    output_dir_rott: root directory for pt
-    output_dir: list of output directories, should match lengths of Tl
-    potential: function returning a list of rumd potentials
-    """
-    sim = rx(input_file, potential, Tl, dt)
-    sim_adapter = [Simulation(s, output_dir_root + '/replica/%d' % i) for i, s in enumerate(sim)]
-    rx_sim = ParallelTempering(output_dir_root, output_dir, zip(Tl, dt), sim_adapter, swap_period, seed=seed,
-                               target_steps=nsteps, target_rmsd=rmsd, thermo_period=1, config_period=config_period, 
-                               checkpoint_period=config_period, restart=True)
-    yield rx_sim
