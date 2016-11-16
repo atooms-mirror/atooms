@@ -4,10 +4,6 @@ import unittest
 import sys
 import os
 import numpy
-import logging
-
-log = logging.getLogger()
-log.setLevel(40)
 
 from atooms.simulation import Simulation
 try:
@@ -54,7 +50,6 @@ class TestBackendRUMD(unittest.TestCase):
         if SKIP:
             self.skipTest('no rumd')
 
-        self.fout = '/tmp/test_adapter_rumd_out.xyz.gz'
         self.dout = '/tmp/test_adapter_rumd_out'
         self.finp = '/tmp/test_adapter_rumd_in.xyz'
         with open(self.finp, 'w') as fh:
@@ -113,8 +108,8 @@ class TestBackendRUMD(unittest.TestCase):
         for mref, m in zip(numpy.array([1.,1.,1.,2.]), [pi.mass for pi in p]):
             self.assertAlmostEqual(m, mref)
 
-    def test_trajectory(self):
-        t = Trajectory(self.fout, 'w')
+    def test_trajectory_one_step(self):
+        t = Trajectory(self.dout + '_one_step', 'w')
         system = System(self.sim.sample)
         t.write(system, 0)
         t.close()
@@ -162,15 +157,10 @@ class TestBackendRUMD(unittest.TestCase):
             os.remove(self.finp)
         if os.path.exists(self.finp2):
             os.remove(self.finp2)
-        if os.path.exists(self.fout):
-            os.remove(self.fout)
         if os.path.exists(self.dout):
             shutil.rmtree(self.dout)
 
 if __name__ == '__main__':
-    # import logging
-    # l = logging.getLogger()
-    # l.setLevel('DEBUG')
     unittest.main(verbosity=0)
 
 

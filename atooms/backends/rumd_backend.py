@@ -72,17 +72,15 @@ class RumdBackend(object):
         if self.output_path is None:
             log.warning('output_path is not set so we cannot write checkpoint  %d', self.steps)
             return
-        f = os.path.join(self.output_path, 'trajectory.chk')
-        with Trajectory(f, 'w') as t:
+        with Trajectory(self.output_path + '.chk', 'w') as t:
             t.write(self.system, None)
-        with open(f + '.step', 'w') as fh:
+        with open(self.output_path + '.chk.step', 'w') as fh:
             fh.write('%d' % self.steps)
 
     def read_checkpoint(self):
-        f = os.path.join(self.output_path, 'trajectory.chk')
         log.debug('reading own restart file %s', f)
-        self._sim.sample.ReadConf(f)
-        with open(f + '.step') as fh:
+        self._sim.sample.ReadConf(self.output_path + '.chk')
+        with open(self.output_path + '.chk.step') as fh:
             self.steps = int(fh.read())
         log.info('backend rumd restarting from %d', self.steps)
 
@@ -108,9 +106,11 @@ class RumdBackend(object):
             if self.output_path is None:
                 log.warn('it does not make sense to restart when writing is disabled')
                 return
-            if os.path.exists(os.path.join(self.output_path, 'trajectory.chk')):
+
+            if os.path.exists(self.output_path + '.chk'):
                 # Use our own checkpoint file. We ignore RUMD checkpoint
                 self.read_checkpoint()
+
             elif os.path.exists(self.output_path + '/rumd/LastComplete_restart.txt'):
                 # Use RUMD checkpoint
                 # @thomas unfortunately RUMD does not seem to write the last restart
@@ -336,14 +336,15 @@ class Trajectory(object):
         pass
 
     def write(self, system, step):
+        """If step is not None, output will follow a folder-based logic and filename will be considered as the root folder
+        """
         if step is None:
-            f = self.filename # + '.' + self.suffix
+            f = self.filename
         else:
-            tag = '%011d' % step
-            if os.path.isdir(self.filename):
-                f = os.path.join(self.filename, tag + self.suffix)
-            else:
-                f = self.filename + '.' + tag + '.' + self.suffix
+            fbase = '%011d.%s' % (step, self.suffix)
+            f = os.path.join(self.filename, fbase)
+            if not os.path.exists(self.filename):
+                os.makedirs(self.filename)
         log.debug('writing config via backend to %s at step %s, %s', f, step, self.mode)
         system.sample.WriteConf(f, self.mode)
 

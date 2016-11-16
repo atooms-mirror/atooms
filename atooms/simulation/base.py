@@ -38,13 +38,16 @@ class Simulation(object):
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
                  enable_speedometer=True,
-                 storage='directory',
                  restart=False):
         """
         Perform a simulation using the specified *backend* and writing
-        output to *output_path*. If *storage* is 'directory',
-        *output_path* will be treated as a directory; otherwise,
-        *output_path* is the output trajectory file.
+        output to *output_path*.
+
+        Paths. To define output paths we rely on output_path, all
+        other paths are defined based on it and on its
+        base_path. Paths can then be defined locally by writers. Some
+        glue is added in run_pre() to allow writers to cleanup their
+        files.
         """
         self.backend = backend
         self.restart = restart
@@ -58,7 +61,6 @@ class Simulation(object):
         self.checkpoint_interval = checkpoint_interval
         self.checkpoint_number = checkpoint_number
         self.enable_speedometer = enable_speedometer
-        self.storage = storage
         # Convenience shortcuts (might be dropped in the future)
         if steps > 0:
             self.target_steps = steps
@@ -75,10 +77,11 @@ class Simulation(object):
         self.system = self.backend.system
         self.trajectory = self.backend.trajectory
 
-        # Storage and paths. We rely on the sole output_path, all
-        # other paths are defined based on it and on base_path
-        # property. Paths are defined locally by writers. Some glue is
-        # added in run_pre() to allow writers to cleanup their files.
+        # Make sure the dirname of output_path exists. For instance,
+        # if output_path is data/trajectory.xyz, then data/ should
+        # exist. This creates the data/ folder and its parents folders.
+        if self.output_path is not None:
+            mkdir(os.path.dirname(self.output_path))
 
         # Setup writer callbacks
         self.targeter_rmsd_period = 10000
@@ -91,16 +94,14 @@ class Simulation(object):
 
     def __str__(self):
         return 'ATOOMS simulation (backend: %s)' % self.backend
-
+    
     @property
     def base_path(self):
-        if self.output_path is not None:
-            if self.storage == 'directory':
-                return os.path.join(self.output_path, 'trajectory')
-            else:
-                return os.path.splitext(self.output_path)[0]
-        else:
+        # TODO: this if is not needed. If output_path is None, writers should never be called and simply disabled.
+        if self.output_path is None:
             return None
+        else:
+            return os.path.splitext(self.output_path)[0]
 
     def _setup(self):
         """Add all internal observers to callbacks"""
@@ -219,21 +220,19 @@ class Simulation(object):
         if self.output_path is not None:
             self.backend.output_path = self.output_path
 
-            # Clean up the trajectory folder and files.
-            # Callbacks may implement their clean() methods
-            if self.output_path is not None:
-                if not self.restart:
-                    for cbk in self._callback:
-                        try:
-                            cbk.clear(self)
-                        except AttributeError:
-                            pass
-                if self.storage == 'directory':
-                    mkdir(self.output_path)
+            if not self.restart:
+                # Clean up the trajectory folder and files.
+                # Callbacks may implement their clean() methods
+                for cbk in self._callback:
+                    try:
+                        cbk.clear(self)
+                    except AttributeError:
+                        pass
 
         self.backend.run_pre(self.restart)
-        # If backend has reset the step because of restart, we update it.
-        # Note that in subclasses we may may overwrite this, because of own restarts
+        # If backend has reset the step because of restart, we update
+        # it. Note that subclasses may overwrite this, because of
+        # their own restart handling.
         if self.restart:
             self.steps = self.backend.steps
         barrier()
@@ -247,6 +246,7 @@ class Simulation(object):
 
     def run(self, steps=None, rmsd=None):
         # If we are restaring we do not allow changing steps on the fly
+        # Changing target_steps when restarting might have side effects like non constant writing interval.
         # TODO: spaghetti code
         if not self.restart or self.steps == 0:
             if steps is not None:
@@ -257,7 +257,6 @@ class Simulation(object):
             self.steps = 0
             self.backend.steps = 0
             self._setup()
-
         self.run_pre()
         self.initial_steps = self.steps
         self.report()

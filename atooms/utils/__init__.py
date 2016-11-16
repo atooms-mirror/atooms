@@ -169,9 +169,9 @@ class ParallelFilter(logging.Filter):
 class MyFormatter(logging.Formatter):
     def format(self, record):
         if record.levelname in ['WARNING', 'ERROR']:
-            return '# %s: %s' % (record.levelname, record.msg)
+            return '# ' + record.levelname + ' ' + record.msg % record.args
         else:
-            return '# %s' % record.msg
+            return '# ' + record.msg % record.args
 
 # Logging API
 def setup_logging(name=None, level=40):

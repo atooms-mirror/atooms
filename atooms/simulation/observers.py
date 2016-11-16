@@ -5,11 +5,10 @@
 
 import sys
 import os
+import shutil
 import time
 import datetime
 import logging
-
-from atooms.utils import mkdir, rmd
 
 # Different approaches are possible:
 # 1. use callable classes passing args to __init__ and interval to add()
@@ -64,21 +63,15 @@ class WriterConfig(object):
         return 'config'
 
     def __call__(self, sim):
-        # TODO: it is not clear here if storage refers to the trajectory or overall data!
-        if sim.storage == 'directory':
-            f = sim.base_path + '.d'
-            mkdir(f) # this is crucial otherwise the backend wont find the directory and write to file!
-        else:
-            f = sim.output_path
-        with sim.trajectory(f, 'a') as t:
+        with sim.trajectory(sim.output_path, 'a') as t:
             t.write(sim.system, sim.steps)
 
     def clear(self, sim):
-        if sim.storage == 'directory':
-            rmd(sim.base_path + '.d')
-        else:
-            if os.path.exists(sim.output_path):
-                os.remove(sim.output_path)
+        # TODO: refactor as rm()
+        if os.path.isdir(sim.output_path):
+            shutil.rmtree(sim.output_path)
+        elif os.path.isfile(sim.output_path):
+            os.remove(sim.output_path)
 
 class WriterThermo(object):
 
