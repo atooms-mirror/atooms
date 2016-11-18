@@ -28,6 +28,7 @@ class PairPotentialBase(object):
                 pass              
 
     def tabulate(self, npoints=None):
+        # We tabulate one point more than the cutoff, so that the value for discontinuous potential is not smoothed.
         if npoints is None:
             npoints = self.npoints
         rcut = self.cutoff.radius
@@ -40,10 +41,10 @@ class PairPotentialBase(object):
         #for i in range(self.npoints-1,0,-1):
         for i in range(1,npoints):
             rsq[i] = i*drsq
-            if not self.is_zero(rsq[i]):
-                u0[i], u1[i] = self.compute(rsq[i])
-            else:
+            if self.is_zero(rsq[i-2]):
                 u0[i], u1[i] = 0, 0
+            else:
+                u0[i], u1[i] = self.compute(rsq[i])
         rsq[0] = 0.0
         u0[0] = max(u0)
         u1[0] = max(u1)
