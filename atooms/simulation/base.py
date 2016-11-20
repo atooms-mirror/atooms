@@ -183,6 +183,7 @@ class Simulation(object):
 
     def write_checkpoint(self):
         # Tolerate missing implementation
+        # TODO: we should really check for write_checkpoint
         try:
             self.backend.write_checkpoint()
         except AttributeError:
