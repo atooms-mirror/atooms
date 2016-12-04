@@ -28,8 +28,6 @@ class PairPotentialTest(unittest.TestCase):
         rsq, u0, u1 = p.tabulate()
         self.assertAlmostEqual(u0[2], -0.870024506431)
         self.assertAlmostEqual(u1[2], -1.85584204277)
-        self.assertAlmostEqual(u0[-1], 0.0)
-        self.assertAlmostEqual(u1[-1], 0.0)
 
     def test_interacting_system(self):
         p = LennardJones('LJ', {"epsilon":1.0, "sigma":1.0}, [1,1], CutOff("CS", 2.5))
