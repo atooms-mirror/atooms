@@ -466,7 +466,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
 
     def __init__(self, filename, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename)
-        self.alias['step': 'time']
+        self.alias['step'] = 'time'
         # TODO: determine minimum value of index automatically
         # TODO: possible regression here if no 'time' tag is found
         self._offset = offset # neighbors produced by voronoi are indexed from 1
