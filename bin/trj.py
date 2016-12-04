@@ -9,6 +9,7 @@ from atooms.utils import fractional_slice, add_first_last_skip
 trj_map = {
     'auto': trajectory.Trajectory,
     'xyz' : trajectory.TrajectoryXYZ,
+    'simplexyz' : trajectory.TrajectorySimpleXYZ,
     'rumd': trajectory.TrajectoryRUMD,
     'hoomd': trajectory.TrajectoryHOOMD,
     'lammps': trajectory.TrajectoryLAMMPS,

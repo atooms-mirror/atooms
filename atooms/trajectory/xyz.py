@@ -172,36 +172,46 @@ class TrajectorySimpleXYZ(TrajectoryBase):
 
 # Format callbacks
 
-def update_x(particle, data):
-    particle.position[0] = float(data)
-
-def update_y(particle, data):
-    particle.position[1] = float(data)
-
-def update_z(particle, data):
-    particle.position[2] = float(data)
-
-def update_vx(particle, data):
-    particle.velocity[0] = float(data)
-
-def update_vy(particle, data):
-    particle.velocity[1] = float(data)
-
-def update_vz(particle, data):
-    particle.velocity[2] = float(data)
-
 def update_name(particle, data):
-    particle.name = data
+    particle.name = data[0]
+    return data[1:]
 
 def update_radius(particle, data):
-    particle.radius = float(data)
+    particle.radius = float(data[0])
+    return data[1:]
 
 def update_tag(particle, data):
-    particle.tag = data
+    particle.tag = data[0:]
+    return data[1:]
+
+def update_name(particle, data):
+    particle.name = data[0]
+    return data[1:]
+
+def update_position(particle, data):
+    ndim = 3
+    # It is crucial to assing position, not to use the slice!
+    # Otherwise we get a reference, not a copy.
+    particle.position = numpy.array(data[0:ndim], dtype=float)
+    return data[ndim:]
+
+def update_velocity(particle, data):
+    ndim = 3
+    particle.velocity = numpy.array(data[0:ndim], dtype=float)
+    return data[ndim:]
 
 # def update(particle, data, what):
 #     particle.gettatr(what) = tipify(data)
 
+def _optimize_fmt(fmt):
+    if 'x' in fmt:
+        fmt[fmt.index('x')] = 'pos'
+    if 'vx' in fmt:
+        fmt[fmt.index('vx')] = 'vel'
+    for tag in ['y', 'z', 'vy', 'vz']:
+        if tag in fmt:
+            fmt.remove(tag)
+    return fmt
 
 class TrajectoryXYZ(TrajectoryBase):
 
@@ -213,17 +223,15 @@ class TrajectoryXYZ(TrajectoryBase):
                      'id': update_name, # alias
                      'tag': update_tag,
                      'radius': update_radius,
-                     'x': update_x,
-                     'y': update_y,
-                     'z': update_z,
-                     'vx': update_vx,
-                     'vy': update_vy,
-                     'vz': update_vz,
+                     'pos': update_position,
+                     'vel': update_velocity,
     }
 
     callback_write = {'name': lambda particle: particle.name,
                       'type': lambda particle: particle.name,
                       'id': lambda particle: particle.name,
+                      'pos': lambda particle: particle.position,
+                      'vel': lambda particle: particle.velocity,
                       'x': lambda particle: particle.position[0],
                       'y': lambda particle: particle.position[1],
                       'z': lambda particle: particle.position[2],
@@ -237,7 +245,7 @@ class TrajectoryXYZ(TrajectoryBase):
         if alias is None:
             alias = {}
         if fmt is None:
-            fmt = ['name', 'x', 'y', 'z']
+            fmt = ['name', 'pos']
         self.alias = alias
         self.fmt = fmt
         self._id_min = 1 # minimum integer for ids, can be modified by subclasses
@@ -283,7 +291,7 @@ class TrajectoryXYZ(TrajectoryBase):
             self._index_sample.append(self.trajectory.tell())
             for i in range(npart):
                 _ = self.trajectory.readline()
-
+            
     def _setup_steps(self):
         """Find steps list."""
         self.steps = []
@@ -376,19 +384,19 @@ class TrajectoryXYZ(TrajectoryBase):
             fmt = meta['columns']
         except KeyError:
             fmt = self.fmt
+        fmt = _optimize_fmt(fmt)
         # Read sample now
         self.trajectory.seek(self._index_sample[sample])
         particle = []
         for i in range(meta['npart']):
             data = self.trajectory.readline().split()
             p = Particle()
-            for i, key in enumerate(fmt):
+            for key in fmt:
                 try:
-                    self.callback_read[key](p, data[i])
+                    data = self.callback_read[key](p, data)
                 except KeyError:
                     log.warning('missing read callback for key %s' % key)
-            # Deepcopy, otherwise coordinate arrays are the same
-            particle.append(copy.deepcopy(p))
+            particle.append(p)
         # Now we fix ids and other metadata
         self.update_id(particle)
         self.update_mass(particle, meta)
@@ -422,12 +430,20 @@ class TrajectoryXYZ(TrajectoryBase):
 
         # Write data. This is inefficient, but we cannot use
         # numpy.savetxt because there is no append mode.
+        # TODO. actually it can if the handle remains open...
+        def array_fmt(arr):
+            """Remove commas and [] from numpy array repr."""
+            out = numpy.array2string(arr, separator=' ')
+            return out[1:-1]
+        numpy.set_string_function(array_fmt, repr=False)
+
         self.trajectory.write('%d\n' % nlines)
         self.trajectory.write(self._comment_header(step, system) + '\n')
         fmt = '%s ' * len(data)
         fmt = fmt[:-1] + '\n'
         for i in range(nlines):
-            self.trajectory.write(fmt % tuple([data[j][i] for j in range(ncols)]))
+            out = fmt % tuple([data[j][i] for j in range(ncols)])
+            self.trajectory.write(out)
 
     def _parse_cell(self):
         """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
