@@ -380,31 +380,33 @@ class TrajectoryXYZ(TrajectoryBase):
         # Use columns if they are found in the header, or stick to the
         # default format.
         meta = self._read_metadata(sample)
-        try:
+        if 'columns' in meta:
             fmt = meta['columns']
-        except KeyError:
+        else:
             fmt = self.fmt
         fmt = _optimize_fmt(fmt)
+        # Add null callbacks for missing fmt entries
+        for key in [key for key in fmt if key not in self.callback_read]:
+            self.callback_read[key] = None
+
         # Read sample now
         self.trajectory.seek(self._index_sample[sample])
         particle = []
         for i in range(meta['npart']):
-            data = self.trajectory.readline().split()
             p = Particle()
+            data = self.trajectory.readline().split()
             for key in fmt:
-                try:
+                if self.callback_read[key] is not None:
                     data = self.callback_read[key](p, data)
-                except KeyError:
-                    log.warning('missing read callback for key %s' % key)
             particle.append(p)
         # Now we fix ids and other metadata
         self.update_id(particle)
         self.update_mass(particle, meta)
 
-        # See if we also have a cell
-        try:
+        # Check if we also have a cell
+        if 'side' in meta:
             cell = Cell(meta['side'])
-        except KeyError:
+        else:
             cell = self._cell
         return System(particle, cell)
 
