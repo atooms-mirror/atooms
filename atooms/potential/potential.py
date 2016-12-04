@@ -59,11 +59,11 @@ class PairPotentialBase(object):
         raise NotImplementedError()
 
     def compute(self, rsquare):
-        if rsquare < self.hard_core**2:
-            u0, u1 = float("inf"), float("inf")
-        else:
-            u0, u1 = self._compute(rsquare)
-            u0, u1 = self.cutoff.smooth(rsquare, u0, u1)
+        # if rsquare < self.hard_core**2:
+        #     u0, u1 = float("inf"), float("inf")
+        # else:
+        u0, u1 = self._compute(rsquare)
+        u0, u1 = self.cutoff.smooth(rsquare, u0, u1)
         return u0, u1
 
     def is_zero(self, rsquare):
