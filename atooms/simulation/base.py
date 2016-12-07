@@ -37,8 +37,9 @@ class Simulation(object):
                  thermo_interval=0, thermo_number=0,
                  config_interval=0, config_number=0,
                  checkpoint_interval=0, checkpoint_number=0,
-                 enable_speedometer=True,
-                 restart=False):
+                 enable_speedometer=False,
+                 restart=False,
+                 storage=None):
         """
         Perform a simulation using the specified *backend* and writing
         output to *output_path*.
@@ -91,6 +92,9 @@ class Simulation(object):
         self.writer_config = self._WRITER_CONFIG()
         self.writer_checkpoint = self._WRITER_CHECKPOINT()
         self.speedometer = Speedometer()
+
+        if storage is not None:
+            log.warning('storage has been removed')
 
     def __str__(self):
         return 'ATOOMS simulation (backend: %s)' % self.backend
@@ -278,6 +282,7 @@ class Simulation(object):
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [c.scheduler.next(self.steps) for c in self._callback]
+                print [(c, c.scheduler.next(self.steps)) for c in self._callback]
                 next_step = min(all_steps)
                 # Find observers indexes corresponding to minimum step
                 # then get all corresponding observers
