@@ -24,7 +24,8 @@ class TrajectoryRUMD(TrajectoryXYZ):
         super(TrajectoryRUMD, self)._setup_steps()
 
         # RUMD specific stuff
-        basename = os.path.basename(self.filename)
+        basename_ext = os.path.basename(self.filename)
+        basename = basename_ext.split('.')[0]
         s = re.search(r'([a-zA-Z0-9]+)_(\d+)', basename)
         if s:
             base, step = s.group(1), s.group(2)
@@ -38,10 +39,16 @@ class TrajectoryRUMD(TrajectoryXYZ):
                 dt = self.steps[-1]
                 self.steps = [i+dt*iblock for i in self.steps]
             else:
-                # In case of non native RUMD filename, we assume the step
-                # is written after the basename.
+                # In case of non native RUMD filename, we assume the
+                # step is written after the basename. Also, we only
+                # overwrite it if the trajectory is one step only,
+                # i.e. we have a collection of files rather than a single file.
                 if len(self.steps) == 1:
                     self.steps = [int(step)]
+        if s is None:
+            s = re.search(r'(\d+).xyz.gz', basename)
+            if s and len(self.steps) == 1:
+                self.steps = [int(basename)]
 
     def _read_metadata(self, sample):
         meta = super(TrajectoryRUMD, self)._read_metadata(sample)
