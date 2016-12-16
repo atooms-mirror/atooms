@@ -348,16 +348,16 @@ class SuperTrajectory2(TrajectoryBase):
 
         # Make sure subtrajectories are sorted by increasing step
         self.files.sort()
-        self._map = []
+        self.steps = []
         for i, f in enumerate(self.files):
-            # This is slow... just to get the step index....
+            # This is slow, just to get the step index.
+            # If we accept not to have the steps list updated at this stage
+            # we can optimize this by about 10% on xyz files (16.12.2016)
             with self.trajectoryclass(f) as t:
-                self._map.append((t.steps[0], f))
-            #self._map.append((i, f))
-        self.steps = [i[0] for i in self._map]
+                self.steps.append(t.steps[0])
 
     def read_sample(self, sample):
-        step, f = self._map[sample]
+        f = self.files[sample]
         with self.trajectoryclass(f) as t:
             return t[0]
 
