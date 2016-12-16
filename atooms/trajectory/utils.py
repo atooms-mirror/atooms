@@ -29,9 +29,9 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, exclude=[], includ
     # If the input trajectory lies in a directory, the new trajectory is located
     # in a companion directory prefixed by tag. The basename is config
 
-    # Check that we have some files there
-    if len(inp) == 0:
-        raise IOError('no samples in trajectory (%s)' % inp.filename)
+    # # Check that we have some files there
+    # if len(inp) == 0:
+    #     raise IOError('no samples in trajectory (%s)' % inp.filename)
 
     if stdout:
         filename = '/dev/stdout'
@@ -39,15 +39,16 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, exclude=[], includ
         if len(fout) > 0:
             filename = fout
         elif os.path.isdir(inp.filename):
-            if tag == '':
-                if prefix == '':
-                    tag = '-conv'
+            # if tag == '':
+            #     if prefix == '':
+            #         tag = '-conv'
             d = os.path.dirname(inp.filename)
             b = os.path.basename(inp.filename)
             dirname = os.path.join(d, prefix + b) + tag
-            from pyutils.utils import mkdir
-            mkdir(dirname)
-            filename = dirname + '/config.' + out.suffix
+            filename = dirname + '.' + out.suffix
+            # from pyutils.utils import mkdir
+            # mkdir(dirname)
+            # filename = dirname + '/config.' + out.suffix
         else:
             filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix    
 
