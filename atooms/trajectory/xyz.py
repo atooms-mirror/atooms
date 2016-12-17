@@ -85,7 +85,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         meta = {}
         meta['npart'] = npart
         for e in data.split():
-            s = re.search(r'(\S*)[=:](\S*)', e)
+            s = re.search(r'(\S+)\W*[=:]\W*(\S+)', e)
             if s is not None:
                 tag, data = s.group(1), s.group(2)
                 # Remove dangling commas
@@ -321,7 +321,7 @@ class TrajectoryXYZ(TrajectoryBase):
         meta = {}
         meta['npart'] = npart
         for e in data.split():
-            s = re.search(r'(\S*)[=:](\S*)', e)
+            s = re.search(r'(\S+)\W*[=:]\W*(\S+)', e)
             if s is not None:
                 tag, data = s.group(1), s.group(2)
                 # Remove dangling commas
@@ -465,10 +465,10 @@ class TrajectoryNeighbors(TrajectoryXYZ):
     """Neighbors trajectory."""
 
     def __init__(self, filename, offset=1):
-        super(TrajectoryNeighbors, self).__init__(filename)
-        self.alias['step'] = 'time'
+        super(TrajectoryNeighbors, self).__init__(filename, alias={'time':'step'})
         # TODO: determine minimum value of index automatically
         # TODO: possible regression here if no 'time' tag is found
+        print self.steps
         self._offset = offset # neighbors produced by voronoi are indexed from 1
         self._netwon3 = False
         self._netwon3_message = False
