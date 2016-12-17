@@ -317,6 +317,9 @@ class TrajectoryXYZ(TrajectoryBase):
         npart = int(self.trajectory.readline())
         data = self.trajectory.readline()
 
+        # Remove spaces around : or =
+        data = re.sub(r'\W*[=:]\W*', ':', data)
+        
         # Fill metadata dictionary
         meta = {}
         meta['npart'] = npart
