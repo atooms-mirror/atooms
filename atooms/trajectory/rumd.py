@@ -45,8 +45,9 @@ class TrajectoryRUMD(TrajectoryXYZ):
                 # i.e. we have a collection of files rather than a single file.
                 if len(self.steps) == 1:
                     self.steps = [int(step)]
+
         if s is None:
-            s = re.search(r'(\d+).xyz.gz', basename)
+            s = re.search(r'^(\d+)$', basename)
             if s and len(self.steps) == 1:
                 self.steps = [int(basename)]
 
