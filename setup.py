@@ -13,6 +13,7 @@ setup(name='atooms',
       author_email='daniele.coslovich@umontpellier.fr',
       url='https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms',
       packages=find_packages(exclude=('tests', 'docs')),
+      scripts=['bin/trj.py'],
       license='GPLv3',
       classifiers={
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
