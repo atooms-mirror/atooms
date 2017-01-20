@@ -282,7 +282,6 @@ class Simulation(object):
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [c.scheduler.next(self.steps) for c in self._callback]
-                print [(c, c.scheduler.next(self.steps)) for c in self._callback]
                 next_step = min(all_steps)
                 # Find observers indexes corresponding to minimum step
                 # then get all corresponding observers
