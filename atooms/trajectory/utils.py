@@ -56,6 +56,7 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, exclude=[], includ
         with out(filename, 'w') as conv:
             conv.exclude(exclude)
             conv.include(include)
+            conv.precision = inp.precision
             conv.timestep = inp.timestep
             conv.block_period = inp.block_period
             # TODO: Zipping t, t.steps is causing a massive mem leak!

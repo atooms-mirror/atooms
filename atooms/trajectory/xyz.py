@@ -435,10 +435,11 @@ class TrajectoryXYZ(TrajectoryBase):
 
         # Write data. This is inefficient, but we cannot use
         # numpy.savetxt because there is no append mode.
-        # TODO. actually it can if the handle remains open...
+        # TODO: actually it can if the handle remains open...
+        # TODO: move this to init
         def array_fmt(arr):
             """Remove commas and [] from numpy array repr."""
-            out = numpy.array2string(arr, separator=' ')
+            out = numpy.array2string(arr, separator=' ', precision=self.precision)
             return out[1:-1]
         numpy.set_string_function(array_fmt, repr=False)
 

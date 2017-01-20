@@ -87,6 +87,9 @@ class Scaling(object):
         return s
 
 def main(t, args):
+    if args.precision is not None:        
+        t.precision = args.precision
+
     if args.flatten_steps:
         t.steps = range(1,len(t)+1)
     tn = trajectory.NormalizeId(t)
@@ -109,7 +112,7 @@ def main(t, args):
         tt = Scaling(ts, scale, args.temperature)
     else:
         tt = ts
-        
+
     if args.vel:
         fout = trajectory.convert(tt, trj_map[args.out], tag=args.tag, stdout=args.stdout, include=['vx','vy','vz'])
     else:
@@ -137,6 +140,7 @@ parser.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_
 parser.add_argument(      '--step',    dest='step', action='store', default=None, type=int, help='')
 parser.add_argument(      '--rho',     dest='rho', type=float, default=None, help='new density')
 parser.add_argument('-T', '--temperature',dest='temperature', type=float, default=None, help='new temperature')
+parser.add_argument(      '--precision',dest='precision', type=int, default=None, help='write precision')
 parser.add_argument(nargs='+',         dest='file',type=str, help='input files')
 args = parser.parse_args()
 
@@ -157,7 +161,7 @@ else:
         if not os.path.exists(finp):
             logging.warn('file %s does not exists, skipping it.' % finp)
             continue
-        with trj_map[args.inp](finp) as t:
+        with trj_map[args.inp](finp) as t:            
             try:
                 main(t, args)
             except IOError, e:

@@ -53,6 +53,7 @@ class TrajectoryBase(object):
         # write_sample(). Subclasses may use it to filter out some
         # data from their format or can even ignore it entirely.
         self.fmt = []
+        self.precision = 6
         self.steps = []
         # These are cached properties
         self._grandcanonical = None
