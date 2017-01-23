@@ -65,7 +65,9 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=
         else:
             filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix    
 
-    if not os.path.exists(filename) or force:
+    if not stdout or (os.path.exists(filename) and not force):
+        print 'File exists, conversion skipped'
+    else:
         with out(filename, 'w') as conv:
             format_output(conv, fmt, include, exclude)
             conv.precision = inp.precision

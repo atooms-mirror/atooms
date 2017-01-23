@@ -123,8 +123,9 @@ def main(t, args):
             add_interaction_hdf5(fout, args.ff)
         else:
             raise IOError('force field file does not exist')
-
-    print '%s' % fout
+    
+    if not args.stdout:
+        print '%s' % fout
 
 
 parser = argparse.ArgumentParser()
