@@ -342,14 +342,17 @@ class TrajectoryHDF5(TrajectoryBase):
             pi.name = r.name
             pi.radius = r.radius
 
-        # Try update radii. This must be done after setting defaults
+        # Try update radii. This must be done after setting defaults.
+        # TODO: not sure output formatting should be set when reading samples.
         try:
             r = group['radius' + csample][:]
             for i, pi in enumerate(p):
                 pi.radius = r[i]
-            self.include(['radius'])
+            if 'radius' not in self.fmt:
+                self.fmt.append('radius')
         except:
-            self.exclude(['radius'])
+            if 'radius' in self.fmt:
+                self.fmt.remove('radius')
 
         # Read cell
         group = self.trajectory['/trajectory/cell']

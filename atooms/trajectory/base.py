@@ -101,39 +101,6 @@ class TrajectoryBase(object):
     def close(self):
         pass
 
-    def format_output(self, fmt=None, include=None, exclude=None):
-        """
-        Modify output format.
-
-        Either provide a new format, such as ['id', 'x', 'y'], or
-        specify explicit patterns to exclude or include.
-        """
-        if fmt is not None:
-            self.fmt = fmt
-            return
-
-        # Exclude and/or include lists of patterns from output format
-        if exclude is not None:
-            for pattern in exclude:
-                if pattern in self.fmt:
-                    self.fmt.remove(pattern)
-        if include is not None:
-            for pattern in include:
-                if pattern in self.fmt:
-                    self.fmt.append(pattern)
-
-    def exclude(self, patterns):
-        """Exclude a list of patterns from data format"""
-        for p in patterns:
-            if p in self.fmt:
-                self.fmt.remove(p)
-
-    def include(self, patterns):
-        """Include patterns in data format"""
-        for p in patterns:
-            if not p in self.fmt:
-                self.fmt.append(p)
-
     @property
     def samples(self):
         warnings.warn('iterate instead of using samples') #, DeprecationWarning)

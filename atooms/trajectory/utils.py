@@ -15,6 +15,29 @@ def gopen(filename, mode):
     else:
         return open(filename, mode)
 
+def format_output(trj, fmt=None, include=None, exclude=None):
+    """
+    Modify output format of an input trajectory.
+
+    Either provide a new format, such as ['id', 'x', 'y'], or
+    specify explicit patterns to exclude or include.
+    """
+    if fmt is not None:
+        # Reset the output format
+        trj.fmt = fmt
+    else:
+        # Exclude and/or include lists of patterns from output format
+        if exclude is not None:
+            for pattern in exclude:
+                if pattern in trj.fmt:
+                    trj.fmt.remove(pattern)
+        if include is not None:
+            for pattern in include:
+                if pattern in trj.fmt:
+                    trj.fmt.append(pattern)
+
+    return trj
+
 def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=[], include=[], stdout=False, callback=None, args={}):
     # TODO: check these dangerous defaults
     """Convert trajectory into a different format.
@@ -54,7 +77,7 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=
 
     if not os.path.exists(filename) or force:
         with out(filename, 'w') as conv:
-            conv.format_output(fmt, include, exclude)
+            format_output(conv, fmt, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
             conv.block_period = inp.block_period

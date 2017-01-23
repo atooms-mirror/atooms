@@ -329,12 +329,6 @@ class Trajectory(object):
     def __exit__(self, type, value, traceback):
         self.close()
 
-    def exclude(self, what):
-        pass
-
-    def include(self, what):
-        pass
-
     def write(self, system, step):
         """If step is not None, output will follow a folder-based logic and filename will be considered as the root folder
         """
