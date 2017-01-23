@@ -87,6 +87,12 @@ class Scaling(object):
         return s
 
 def main(t, args):
+    # If no output format is provided we use the input one
+    if len(args.out) == 0:
+        out_class = t.__class__
+    else:
+        out_class = trj_map[args.out]
+
     if args.precision is not None:
         t.precision = args.precision
 
@@ -113,7 +119,7 @@ def main(t, args):
     else:
         tt = ts
 
-    fout = trajectory.convert(tt, trj_map[args.out], tag=args.tag,
+    fout = trajectory.convert(tt, out_class, tag=args.tag,
                               stdout=args.stdout, fmt=args.fmt,
                               include=args.fmt_include.split(','),
                               exclude=args.fmt_exclude.split(','))
@@ -147,14 +153,12 @@ parser.add_argument(      '--precision',dest='precision', type=int, default=None
 parser.add_argument(nargs='+',         dest='file',type=str, help='input files')
 args = parser.parse_args()
 
-if len(args.out) == 0:
-    raise ValueError('You must provide an output format')
-
-if not args.out in trj_map:
+if len(args.out)>0 and not args.out in trj_map:
     raise ValueError('Unknown output format')
 
 if args.out  == 'auto':
     raise ValueError('Cannot use factory for output format')
+
 
 if args.gather:
     with trajectory.SuperTrajectory2(args.file, trj_map[args.inp]) as t:
@@ -164,7 +168,8 @@ else:
         if not os.path.exists(finp):
             logging.warn('file %s does not exists, skipping it.' % finp)
             continue
-        with trj_map[args.inp](finp) as t:            
+        with trj_map[args.inp](finp) as t:
+
             try:
                 main(t, args)
             except IOError, e:
