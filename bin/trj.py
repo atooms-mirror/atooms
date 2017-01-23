@@ -87,7 +87,7 @@ class Scaling(object):
         return s
 
 def main(t, args):
-    if args.precision is not None:        
+    if args.precision is not None:
         t.precision = args.precision
 
     if args.flatten_steps:
@@ -113,10 +113,10 @@ def main(t, args):
     else:
         tt = ts
 
-    if args.vel:
-        fout = trajectory.convert(tt, trj_map[args.out], tag=args.tag, stdout=args.stdout, include=['vx','vy','vz'])
-    else:
-        fout = trajectory.convert(tt, trj_map[args.out], tag=args.tag, stdout=args.stdout)
+    fout = trajectory.convert(tt, trj_map[args.out], tag=args.tag,
+                              stdout=args.stdout, fmt=args.fmt,
+                              include=args.fmt_include.split(','),
+                              exclude=args.fmt_exclude.split(','))
 
     if args.ff:
         if os.path.exists(args.ff):
@@ -129,7 +129,9 @@ def main(t, args):
 
 parser = argparse.ArgumentParser()
 parser = add_first_last_skip(parser)
-parser.add_argument('-V', '--velocity',dest='vel', action='store_true', help='dump velocities')
+parser.add_argument(      '--fmt',     dest='fmt', type=str, default=None, help='format patterns')
+parser.add_argument('-I', '--fmt-include', dest='fmt_include', type=str, default='', help='include patterns in format')
+parser.add_argument('-E', '--fmt-exclude', dest='fmt_exclude', type=str, default='', help='exclude patterns from format')
 parser.add_argument('-i', '--fmt-inp', dest='inp', type=str, default='auto', help='input format ')
 parser.add_argument('-o', '--fmt-out', dest='out', type=str, default='', help='output format for conversion')
 parser.add_argument('-S', '--stdout',  dest='stdout', action='store_true', help='dump to stdout')

@@ -15,7 +15,7 @@ def gopen(filename, mode):
     else:
         return open(filename, mode)
 
-def convert(inp, out, fout='', tag='', prefix='', force=True, exclude=[], include=[], stdout=False, callback=None, args={}):
+def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=[], include=[], stdout=False, callback=None, args={}):
     # TODO: check these dangerous defaults
     """Convert trajectory into a different format.
 
@@ -54,8 +54,7 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, exclude=[], includ
 
     if not os.path.exists(filename) or force:
         with out(filename, 'w') as conv:
-            conv.exclude(exclude)
-            conv.include(include)
+            conv.format_output(fmt, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
             conv.block_period = inp.block_period
