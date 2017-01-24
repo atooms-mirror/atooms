@@ -107,7 +107,7 @@ class TrajectoryBase(object):
             self.read_init()
             self._initialized_read = True
         s = self.read_sample(index)
-        for cbk in self.callback:
+        for cbk in self.callbacks:
             s = cbk(s)
         return s
 

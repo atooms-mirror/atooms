@@ -47,6 +47,23 @@ A -2.9 2.9 0.0
             self.assertEqual(th.steps, [1, 2])
             self.assertEqual(list(th[-1].particle[0].position), [1.1, -1.1, 0.0])
             self.assertEqual(list(th[-1].particle[1].position), [-2.9,-2.9, 0.0])
+
+    def test_callback(self):
+        def cbk_1(system):
+            for p in system.particle:
+                p.position *= 2
+            return system
+
+        def cbk_2(system):
+            for p in system.particle:
+                p.position -= 1.0
+            return system
+
+        with self.Trajectory(self.finp) as th:
+            th.register_callback(cbk_1)
+            th.register_callback(cbk_2)
+            self.assertEqual(th.steps, [1, 2, 3, 4])
+            self.assertEqual(list(th[-1].particle[0].position), [1.2*2-1.0, -1.2*2-1.0, 0.0*2-1.0])
         
 if __name__ == '__main__':
     unittest.main(verbosity=0)

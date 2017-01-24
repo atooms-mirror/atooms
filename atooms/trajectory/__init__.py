@@ -6,7 +6,7 @@ import sys
 import logging
 
 from .utils import convert, split
-from .base import SuperTrajectory, SuperTrajectory2
+from .base import SuperTrajectory
 from .decorators import *
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
