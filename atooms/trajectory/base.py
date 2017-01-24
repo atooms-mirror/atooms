@@ -193,16 +193,6 @@ class TrajectoryBase(object):
         """Total simulation time."""
         return self.steps[-1] * self.timestep
 
-    def time_when_msd_is(self, msd_target, sigma=1.0):
-        """Estimate the time when the MSD reaches target_msd in units of sigma^2.
-        Bounded by the actual maximum time of trajectory tmax.
-        """
-        # TODO: when using decorators, this will introduce a diamond, let's move it to a generic function in post processing
-        raise NotImplementedError('time_when_msd_is is broken')
-        # self._unfold()
-        # msd_total = numpy.sum((self._pos_unf[-1] - self._pos_unf[0])**2) / self._pos_unf[0].shape[0]
-        # return min(1.0, msd_target * sigma**2 / msd_total) * self.steps[-1] * self.timestep
-
     def timeseries(self, callback, *args, **kwargs):
         """Returns a timeseries of a callback results"""
         for i, s in enumerate(self):
