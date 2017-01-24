@@ -49,6 +49,7 @@ class TrajectoryBase(object):
         """When mode is 'r', it must set the list of available steps."""
         self.filename = filename
         self.mode = mode
+        self.callbacks = []
         # fmt is a list of strings describing data to be written by
         # write_sample(). Subclasses may use it to filter out some
         # data from their format or can even ignore it entirely.
@@ -105,7 +106,10 @@ class TrajectoryBase(object):
         if not self._initialized_read:
             self.read_init()
             self._initialized_read = True
-        return self.read_sample(index)
+        s = self.read_sample(index)
+        for cbk in self.callback:
+            s = cbk(s)
+        return s
 
     def write(self, system, step):
         if self.mode == 'r':
@@ -133,6 +137,11 @@ class TrajectoryBase(object):
     def write_sample(self, system, step):
         """It must write a sample (system) to disk. Noting to return."""
         raise NotImplementedError()
+
+    # Callbacks will be applied to the output of read_sample()
+    def register_callback(self, cbk):
+        if cbk not in self.callbacks:
+            self.callbacks.append(cbk)
 
     # To read/write timestep and block period sublcasses may implement
     # these methods. The default is dt=1 and blockperiod determined dynamically.
@@ -199,7 +208,7 @@ class TrajectoryBase(object):
             yield self.steps[i], callback(s, *args, **kwargs)
 
 
-class SuperTrajectory2(TrajectoryBase):
+class SuperTrajectory(TrajectoryBase):
 
     """Collection of subtrajectories"""
 
