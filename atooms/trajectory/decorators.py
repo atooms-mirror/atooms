@@ -11,6 +11,34 @@
 import random
 import numpy
 
+# Callback versions
+
+def center(system):
+    """Center particles in the box. It wont check if that is done multiple times."""
+    for p in system.particle:
+        p.position -= system.cell.side / 2.0
+    return system
+
+def normalize_id(system):
+    def _normalize(pl):
+        pid = [p.id for p in pl]
+        id_min = numpy.min(pid)
+        if id_min == 0:
+            for p in pl:
+                p.id += 1
+        return pl
+    system.particle = _normalize(system.particle)
+    return system
+
+def sort(system):
+    return sorted(system.particle, key=lambda a: a.id)
+
+def filter_id(system, species):
+    system.particle = [p for p in system.particle if p.id == species]
+    return system
+
+# Class decorators
+
 class Centered(object):
 
     """Center positions in the box on the fly."""
@@ -32,6 +60,7 @@ class Centered(object):
         for p in s.particle:
             p.position -= s.cell.side / 2.0
         return s
+
 
 class Sliced(object):
 
@@ -105,6 +134,7 @@ class Unfolded(object):
         for i in xrange(len(pos)):
             s.particle[i].position = self._old[i][:]
         return s
+
 
 # TODO: see if we can avoid reading anything on construction
 # TODO: how to better handle conversions between subclasses? We cannot use _convert() because we rely on close() method being called
@@ -270,8 +300,3 @@ class AffineDeformation(object):
         for p in s.particle:
             p.position *= scale
         return s
-
-
-def filter_id(system, species):
-    system.particle = [p for p in system.particle if p.id == species]
-    return s
