@@ -41,7 +41,39 @@ metafmt:space,comma columns:id,x,y,z mass:1.0,2.0 step:1 cell:5.0,5.0,5.0
 A 1.0 -1.0 0.0
 B 2.9 -2.9 0.0
 """)
+        # Test 4-dim file
+        self.finp_4d = '/tmp/test_4d.xyz'
+        with open(self.finp_4d, 'w') as fh:
+            fh.write("""\
+2
+metafmt:space,comma columns:id,pos ndim:4 mass:1.0,2.0 step:1
+A 1.0 -1.0 0.0 1.0
+B 2.9 -2.9 0.0 2.0
+2
+metafmt:space,comma columns:id,pos mass:1.0,2.0 step:1 cell:5.0,5.0,5.0,5.0
+A 1.0 -1.0 0.0 1.0
+B 2.9 -2.9 0.0 2.0
+2
+metafmt:space,comma columns:id,pos mass:1.0,2.0 step:1 cell:5.0,5.0,5.0
+A 1.0 -1.0 0.0 1.0
+B 2.9 -2.9 0.0 2.0
+""")
 
+    def test_xyz_4d(self):
+        with self.Trajectory(self.finp_4d) as t:
+            meta = t._read_metadata(0)
+            self.assertEqual(meta['ndim'], 4)
+            self.assertEqual(len(t[0].particle[0].position), 4)
+            self.assertEqual(t[0].particle[1].position[3], 2.0)
+            # Test to check we grab ndim from the n. of cell coordinates
+            meta = t._read_metadata(1)
+            self.assertEqual(meta['ndim'], 4)
+            self.assertEqual(len(t[1].particle[0].position), 4)
+            self.assertEqual(t[1].particle[1].position[3], 2.0)
+            # This last test shows that when cell has 3 coords, we are back to ndim=3
+            meta = t._read_metadata(2)
+            self.assertEqual(meta['ndim'], 3)
+            self.assertEqual(len(t[2].particle[0].position), 3)
 
     def test_xyz_meta(self):
         with self.Trajectory(self.finp_meta) as t:
@@ -167,6 +199,9 @@ class TestSimpleXYZ(TestXYZ):
 
     # TODO: refactor generic tests for trajectories like this :-)
     Trajectory = TrajectorySimpleXYZ
+
+    def test_xyz_4d(self):
+        pass
 
     def test_xyz_meta(self):
         pass

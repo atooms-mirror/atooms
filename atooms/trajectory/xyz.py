@@ -172,31 +172,31 @@ class TrajectorySimpleXYZ(TrajectoryBase):
 
 # Format callbacks
 
-def update_name(particle, data):
+def update_name(particle, data, meta):
     particle.name = data[0]
     return data[1:]
 
-def update_radius(particle, data):
+def update_radius(particle, data, meta):
     particle.radius = float(data[0])
     return data[1:]
 
-def update_tag(particle, data):
+def update_tag(particle, data, meta):
     particle.tag = data[0:]
     return data[1:]
 
-def update_name(particle, data):
+def update_name(particle, data, meta):
     particle.name = data[0]
     return data[1:]
 
-def update_position(particle, data):
-    ndim = 3
+def update_position(particle, data, meta):
+    ndim = meta['ndim']
     # It is crucial to assing position, not to use the slice!
     # Otherwise we get a reference, not a copy.
     particle.position = numpy.array(data[0:ndim], dtype=float)
     return data[ndim:]
 
-def update_velocity(particle, data):
-    ndim = 3
+def update_velocity(particle, data, meta):
+    ndim = meta['ndim']
     particle.velocity = numpy.array(data[0:ndim], dtype=float)
     return data[ndim:]
 
@@ -343,6 +343,14 @@ class TrajectoryXYZ(TrajectoryBase):
             except KeyError:
                 pass
 
+        # Fix dimensions based on side of cell.
+        # Fallback to ndim metadata or 3.
+        try:
+            if not 'ndim' in meta:
+                meta['ndim'] = len(meta['cell'])
+        except KeyError:
+            meta['ndim'] = 3 # default
+
         return meta
 
     def update_id(self, particle):
@@ -400,7 +408,7 @@ class TrajectoryXYZ(TrajectoryBase):
             data = self.trajectory.readline().split()
             for key in fmt:
                 if self.callback_read[key] is not None:
-                    data = self.callback_read[key](p, data)
+                    data = self.callback_read[key](p, data, meta)
             particle.append(p)
         # Now we fix ids and other metadata
         self.update_id(particle)
