@@ -141,3 +141,49 @@ def get_period(data):
             iold = i
             delta_old = delta
     return 1
+
+def check_block_period(trj):
+    """Perform some consistency checks on periodicity of non linear sampling."""
+    if trj.block_period == 1:
+        return
+    block = trj.steps[0:trj.block_period]
+
+    ibl = 0
+    jbl = 0
+    prune_me = []
+    for i in trj.steps:
+        j = ibl*trj.steps[trj.block_period] + block[jbl]
+        if i == j:
+            jbl += 1
+            if jbl == trj.block_period:
+                ibl += 1
+                jbl = 0
+        else:
+            prune_me.append(i)
+
+    if len(prune_me) > 0:
+        print '\n# ', len(prune_me), ' samples will be pruned'
+
+    for p in prune_me:
+        pp = trj.steps.index(p)
+
+    # check if the number of steps is an integer multiple of
+    # block period (we tolerate a rest of 1)
+    rest = len(trj.steps) % trj.block_period
+    if rest > 1:
+        trj.steps = trj.steps[:-rest]
+        #raise ValueError('block was truncated')
+
+    # final test, after pruning spurious samples we should have a period
+    # sampling, otherwise there was some error
+    nbl = len(trj.steps) / trj.block_period
+    for i in range(nbl):
+        i0 = trj.steps[i*trj.block_period]
+        current = trj.steps[i*trj.block_period:(i+1)*trj.block_period]
+        current = [ii-i0 for ii in current]
+        if not current == block:
+            print 'periodicity issue at block %i out of %i' % (i, nbl)
+            print 'current     :', current
+            print 'finger print:', block
+            raise ValueError('block does not match finger print')
+

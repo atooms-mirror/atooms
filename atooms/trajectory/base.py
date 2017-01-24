@@ -174,51 +174,6 @@ class TrajectoryBase(object):
         self._block_period = value
         self.write_blockperiod(value)
 
-    def _check_block_period(self):
-        """Perform some consistency checks on periodicity of non linear sampling."""
-        if self.block_period == 1:
-            return
-        block = self.steps[0:self.block_period]
-
-        ibl = 0
-        jbl = 0
-        prune_me = []
-        for i in self.steps:
-            j = ibl*self.steps[self.block_period] + block[jbl]
-            if i == j:
-                jbl += 1
-                if jbl == self.block_period:
-                    ibl += 1
-                    jbl = 0
-            else:
-                prune_me.append(i)
-
-        if len(prune_me) > 0:
-            print '\n# ', len(prune_me), ' samples will be pruned'
-
-        for p in prune_me:
-            pp = self.steps.index(p)
-
-        # check if the number of steps is an integer multiple of
-        # block period (we tolerate a rest of 1)
-        rest = len(self.steps) % self.block_period
-        if rest > 1:
-            self.steps = self.steps[:-rest]
-            #raise ValueError('block was truncated')
-
-        # final test, after pruning spurious samples we should have a period
-        # sampling, otherwise there was some error
-        nbl = len(self.steps) / self.block_period
-        for i in range(nbl):
-            i0 = self.steps[i*self.block_period]
-            current = self.steps[i*self.block_period:(i+1)*self.block_period]
-            current = [ii-i0 for ii in current]
-            if not current == block:
-                print 'periodicity issue at block %i out of %i' % (i, nbl)
-                print 'current     :', current
-                print 'finger print:', block
-                raise ValueError('block does not match finger print')
-
     # Some additional useful properties
 
     @property
