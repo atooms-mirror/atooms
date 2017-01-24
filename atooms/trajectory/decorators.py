@@ -8,6 +8,7 @@
 
 """Trajectory decorators."""
 
+import random
 import numpy
 
 class Centered(object):
@@ -139,31 +140,6 @@ class MatrixFix(object):
         s.particle = [p for p in s.particle if not p.id in self.matrix_species]
         return s
 
-# TODO: can we write a base Trajectory Decorator like this?
-class TrajectoryDecorator(object):
-
-    # Subclass component at runtime
-    def __new__(cls, component, cb_read_initial_state):
-        cls = type('TrajectoryDecorator', (TrajectoryDecorator, component.__class__),
-                   component.__dict__)
-        return object.__new__(cls)
-
-    # Object initialization
-    def __init__(self, component, cb_read_initial_state):
-        self._component = component # actually unnecessary
-        self._cb_read_initial_state = cb_read_initial_state
-        #self._cb_read = cb_read
-
-    def _init_read(self):
-        s = super(TrajectoryDecorator, self)._init_read()
-        self._cb_read_initial_state(self, s)
-        return s
-
-    # def read(self, sample):
-    #     s = super(TrajectoryDecorator, self).read(sample)
-    #     self._cb_read(s, sample)
-    #     return s
-
 
 class NormalizeId(object):
 
@@ -188,6 +164,7 @@ class NormalizeId(object):
         s = super(NormalizeId, self).read_sample(*args, **kwargs)
         s.particle = self._normalize(s.particle)
         return s
+
 
 class Sorted(object):
 
@@ -271,8 +248,6 @@ class Filter(object):
             return self.filt(sy, *self._args, **self._kwargs)
         except:
             return self.filt(self, sy, *self._args, **self._kwargs)
-
-import random
 
 
 class AffineDeformation(object):
