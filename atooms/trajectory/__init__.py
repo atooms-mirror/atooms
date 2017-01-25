@@ -3,58 +3,93 @@
 
 import os
 import sys
+import inspect
 import logging
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 from .utils import convert, split
 from .base import SuperTrajectory
 from .decorators import *
 
-logging.getLogger(__name__).addHandler(logging.NullHandler())
-
-# Factory method which mimics an abstract factory class
-__factory_map = {}
-
-from xyz import *
+# Import all trajectories
+from xyz import TrajectorySimpleXYZ, TrajectoryXYZ, TrajectoryNeighbors
 from pdb import TrajectoryPDB
-__factory_map['xyz'] = TrajectoryXYZ
-__factory_map['pdb'] = TrajectoryPDB
-
 from hoomd import TrajectoryHOOMD
-__factory_map['tgz'] = TrajectoryHOOMD
-
 from rumd import TrajectoryRUMD, SuperTrajectoryRUMD
 from lammps import TrajectoryLAMMPS
-
 try:
     from hdf5 import TrajectoryHDF5
-    __factory_map['h5'] = TrajectoryHDF5
-    __factory_map['dat'] = TrajectoryHDF5
 except:
     pass
 
-# Load plugins (if plugins are found)
-try:
-    from atooms.plugins.trajectory import *
-except:
-    # No plugins found
-    pass
+# Load third party trajectories (if any).
+# Perhaps use some dynamic import http://stackoverflow.com/questions/301134/dynamic-module-import-in-python ?
+# try:
+#     from atooms.trajectory.plugins import *
+# except:
+#     pass
 
-# TODO: trajectories should implement a method to check if a file
-# is of their own format or not, to avoid relying on suffix
-# check out http://stackoverflow.com/questions/456672/class-factory-in-python
+def factory(extra_module=None):
+    classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+    trajectories = [c for c in classes if c[0].startswith('Trajectory')] 
+    if extra_module is not None:
+        classes = inspect.getmembers(sys.modules[extra_module], inspect.isclass)
+        trajectories += [c for c in classes if c[0].startswith('Trajectory')] 
+    __factory_suf = {}
+    __factory_fmt = {}
+    for trj_name, trj_class in trajectories:
+        # We extract the name of the trajectory and lowercase it
+        fmt = trj_name[len('Trajectory'):].lower()
+        try:
+            __factory_suf[trj_class.suffix] = trj_class
+            __factory_fmt[fmt] = trj_class
+        except AttributeError:
+            pass
 
-# def Trajectory(filename, fmt=None, **kwargs):
-# Make interface consistent with base, fmt is specified thorugh extension only
-# It should be called Trajectory(fname, mode='w', fmt='h5') or
-# Trajectory(fname, 'w', fmt='h5')
-def Trajectory(filename, mode='r', fmt='' ): #, *args, **kwargs):
-    """ Factory class shortcut """
+    # Lock some common suffixes to specific formats
+    __factory_suf['xyz'] = TrajectoryXYZ
+    return __factory_fmt, __factory_suf
+
+available_formats = factory()[0]
+
+# # List all imported trajectory classes, store their names and suffixes
+# # to setup the factory.
+# classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+# trajectories = [c for c in classes if c[0].startswith('Trajectory')] 
+
+# # Factory method which mimics an abstract factory class.
+# __factory_suf = {}
+# __factory_fmt = {}
+# for trj_name, trj_class in trajectories:
+#     # We extract the name of the trajectory and lowercase it
+#     fmt = trj_name[len('Trajectory'):].lower()
+#     try:
+#         __factory_suf[trj_class.suffix] = trj_class
+#         __factory_fmt[fmt] = trj_class
+#     except AttributeError:
+#         pass
+
+# # This variable can be used to inspect available trajectory classes
+# available_formats = __factory_fmt
+
+# # Lock some common suffixes to specific formats
+# __factory_suf['xyz'] = TrajectoryXYZ
+
+# Trajectories should implement a method to check if a file is of
+# their own format or not, to avoid relying on suffix check out
+# http://stackoverflow.com/questions/456672/class-factory-in-python.
+# However, one would have to deal with conflicts manually, so the
+# setting above is fine imo.
+
+def Trajectory(filename, mode='r', fmt=None):
+    """Factory class shortcut."""
+    # If we are passed an explicit format, we use that
+    if fmt is not None:
+        return __factory_fmt[fmt](filename, mode)
+    
     suffix = os.path.splitext(filename)[-1].replace('.', '')
-    if not suffix in __factory_map:
-        # always try hdf5 to accomodate non standard suffixes
-        # we could even search within the path... :-)
-        suffix = 'h5'
-        #raise ValueError('unknown file type %s' % suffix)
-        
-    return __factory_map.get(suffix)(filename, mode)
-#    return __factory_map.get(suffix)(filename, **kwargs)
+    if suffix in __factory_suf:
+        return __factory_suf[suffix](filename, mode)
+    else:
+        raise ValueError('unknown file suffix %s' % suffix)

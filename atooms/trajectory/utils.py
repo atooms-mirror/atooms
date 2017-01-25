@@ -1,4 +1,3 @@
-
 """Useful functions to manipulate trajectories."""
 
 import os
@@ -52,6 +51,14 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=
     # If the input trajectory lies in a directory, the new trajectory is located
     # in a companion directory prefixed by tag. The basename is config
 
+    # If out is a string, we look for a matching trajectory format
+    # else we assume out is a trajectory class
+    from atooms.trajectory import available_formats
+    if isinstance(out, basestring):
+        out_class = available_formats[out]
+    else:
+        out_class = out
+
     if stdout:
         filename = '/dev/stdout'
     else:
@@ -63,12 +70,12 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=
             dirname = os.path.join(d, prefix + b) + tag
             filename = dirname + '.' + out.suffix
         else:
-            filename = os.path.splitext(inp.filename)[0] + tag + '.' + out.suffix    
+            filename = os.path.splitext(inp.filename)[0] + tag + '.' + out_class.suffix
 
-    if not stdout or (os.path.exists(filename) and not force):
+    if not stdout and (os.path.exists(filename) and not force):
         print 'File exists, conversion skipped'
     else:
-        with out(filename, 'w') as conv:
+        with out_class(filename, 'w') as conv:
             format_output(conv, fmt, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
@@ -120,7 +127,7 @@ def get_step_from_path(f):
 def sort_files_steps(files, steps):
     file_steps = zip(files, steps)
     file_steps.sort(key = lambda a : a[1])
-    new_files = [a[0] for a in file_steps] 
+    new_files = [a[0] for a in file_steps]
     new_steps = [a[1] for a in file_steps]
     return new_files, new_steps
 
@@ -186,4 +193,3 @@ def check_block_period(trj):
             print 'current     :', current
             print 'finger print:', block
             raise ValueError('block does not match finger print')
-

@@ -6,15 +6,19 @@ import argparse
 from atooms import trajectory
 from atooms.utils import fractional_slice, add_first_last_skip
 
-trj_map = {
-    'auto': trajectory.Trajectory,
-    'xyz' : trajectory.TrajectoryXYZ,
-    'simplexyz' : trajectory.TrajectorySimpleXYZ,
-    'rumd': trajectory.TrajectoryRUMD,
-    'hoomd': trajectory.TrajectoryHOOMD,
-    'lammps': trajectory.TrajectoryLAMMPS,
-    'hdf5': trajectory.TrajectoryHDF5,
-    }
+from atooms.trajectory.plugins.dummy import TrajectoryDummy
+
+#trajectory.factory(__name__)
+
+def print_available_formats():
+    print 'Available trajectory formats:'
+    for name, class_name in trajectory.available_formats.items():
+        if class_name.__doc__:
+            docline = class_name.__doc__.split('\n')[0].rstrip('.')
+        else:
+            docline = '...no description...'
+        print ' -', name, ':', docline
+    print
 
 def add_interaction_hdf5(finp, ff, tag=None):
     """Add interaction to hdf5 file"""
@@ -88,10 +92,10 @@ class Scaling(object):
 
 def main(t, args):
     # If no output format is provided we use the input one
-    if len(args.out) == 0:
+    if args.out is None:
         out_class = t.__class__
     else:
-        out_class = trj_map[args.out]
+        out_class = args.out
 
     if args.precision is not None:
         t.precision = args.precision
@@ -136,11 +140,12 @@ def main(t, args):
 
 parser = argparse.ArgumentParser()
 parser = add_first_last_skip(parser)
-parser.add_argument(      '--fmt',     dest='fmt', type=str, default=None, help='format patterns')
+parser.add_argument(      '--fmt-available', dest='fmt_available', action='store_true', help='list available formats')
+parser.add_argument(      '--fmt-patterns', dest='fmt', type=str, default=None, help='format patterns')
 parser.add_argument('-I', '--fmt-include', dest='fmt_include', type=str, default='', help='include patterns in format')
 parser.add_argument('-E', '--fmt-exclude', dest='fmt_exclude', type=str, default='', help='exclude patterns from format')
-parser.add_argument('-i', '--fmt-inp', dest='inp', type=str, default='auto', help='input format ')
-parser.add_argument('-o', '--fmt-out', dest='out', type=str, default='', help='output format for conversion')
+parser.add_argument('-i', '--fmt-inp', dest='inp', type=str, default=None, help='input format ')
+parser.add_argument('-o', '--fmt-out', dest='out', type=str, default=None, help='output format for conversion')
 parser.add_argument('-S', '--stdout',  dest='stdout', action='store_true', help='dump to stdout')
 parser.add_argument('-t', '--tag',     dest='tag', type=str, default='', help='tag to add before suffix')
 parser.add_argument('-F', '--ff',      dest='ff', type=str, default='', help='force field file')
@@ -150,26 +155,34 @@ parser.add_argument(      '--step',    dest='step', action='store', default=None
 parser.add_argument(      '--rho',     dest='rho', type=float, default=None, help='new density')
 parser.add_argument('-T', '--temperature',dest='temperature', type=float, default=None, help='new temperature')
 parser.add_argument(      '--precision',dest='precision', type=int, default=None, help='write precision')
-parser.add_argument(nargs='+',         dest='file',type=str, help='input files')
+parser.add_argument(nargs='*',         dest='file',type=str, help='input files')
 args = parser.parse_args()
 
-if len(args.out)>0 and not args.out in trj_map:
-    raise ValueError('Unknown output format')
+if args.fmt_available:
+    print_available_formats()
+    sys.exit()
+
+if len(args.file)==0:
+    parser.print_help()
+
+if args.out is not None and not args.out in trajectory.available_formats:
+    print_available_formats()   
+    raise ValueError('Unknown output format %s' % args.out)
 
 if args.out  == 'auto':
     raise ValueError('Cannot use factory for output format')
 
 
 if args.gather:
-    with trajectory.SuperTrajectory2(args.file, trj_map[args.inp]) as t:
+    with trajectory.SuperTrajectory2(args.file,
+                                     trajectory.available_formats[args.inp]) as t:
         main(t, args)
 else:
     for finp in args.file:
         if not os.path.exists(finp):
             logging.warn('file %s does not exists, skipping it.' % finp)
             continue
-        with trj_map[args.inp](finp) as t:
-
+        with trajectory.Trajectory(finp, fmt=args.inp) as t:
             try:
                 main(t, args)
             except IOError, e:
