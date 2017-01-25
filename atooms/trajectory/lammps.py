@@ -113,6 +113,8 @@ class TrajectoryLAMMPS(TrajectoryBase):
 
     """Trajectory layout for LAMMPS with additional .data file"""
 
+    suffix = '.tgz'
+
     def __init__(self, fname, mode='r'):
 
         TrajectoryBase.__init__(self, fname, mode)
