@@ -64,6 +64,29 @@ A -2.9 2.9 0.0
             th.register_callback(cbk_2)
             self.assertEqual(th.steps, [1, 2, 3, 4])
             self.assertEqual(list(th[-1].particle[0].position), [1.2*2-1.0, -1.2*2-1.0, 0.0*2-1.0])
+
+    def test_callback_args(self):
+        def cbk_1(system, scale):
+            for p in system.particle:
+                p.position *= scale
+            return system
+        def cbk_2(system, offset):
+            for p in system.particle:
+                p.position -= offset
+            return system
+        def cbk_3(system, memory):
+            """Callback that modifies a mutable."""
+            memory.append(1)
+            return system
+
+        memo = []
+        with self.Trajectory(self.finp) as th:
+            th.register_callback(cbk_1, 2.0)
+            th.register_callback(cbk_2, offset=1.0)
+            th.register_callback(cbk_3, memo)
+            self.assertEqual(th.steps, [1, 2, 3, 4])
+            self.assertEqual(list(th[-1].particle[0].position), [1.2*2-1.0, -1.2*2-1.0, 0.0*2-1.0])
+            self.assertEqual(memo, [1])
         
 if __name__ == '__main__':
     unittest.main(verbosity=0)

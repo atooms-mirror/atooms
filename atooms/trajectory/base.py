@@ -107,8 +107,8 @@ class TrajectoryBase(object):
             self.read_init()
             self._initialized_read = True
         s = self.read_sample(index)
-        for cbk in self.callbacks:
-            s = cbk(s)
+        for cbk, args, kwargs in self.callbacks:
+            s = cbk(s, *args, **kwargs)
         return s
 
     def write(self, system, step):
@@ -139,9 +139,9 @@ class TrajectoryBase(object):
         raise NotImplementedError()
 
     # Callbacks will be applied to the output of read_sample()
-    def register_callback(self, cbk):
+    def register_callback(self, cbk, *args, **kwargs):
         if cbk not in self.callbacks:
-            self.callbacks.append(cbk)
+            self.callbacks.append([cbk, args, kwargs])
 
     # To read/write timestep and block period sublcasses may implement
     # these methods. The default is dt=1 and blockperiod determined dynamically.
