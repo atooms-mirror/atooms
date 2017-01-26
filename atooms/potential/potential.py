@@ -39,15 +39,16 @@ class PairPotentialBase(object):
         u1 = numpy.ndarray(npoints)
         drsq = rmax**2 / (npoints-1)
         #for i in range(self.npoints-1,0,-1):
-        for i in range(1,npoints):
+        rsq[0] = 0.0
+        rsq[1] = drsq
+        u0[0], u1[0] = self.compute(rsq[1])
+        u0[1], u1[1] = self.compute(rsq[1])
+        for i in range(2,npoints):
             rsq[i] = i*drsq
             if self.is_zero(rsq[i-2]):
                 u0[i], u1[i] = 0, 0
             else:
                 u0[i], u1[i] = self.compute(rsq[i])
-        rsq[0] = 0.0
-        u0[0] = max(u0)
-        u1[0] = max(u1)
         # for i in range(self.npoints):
         #     if math.isnan(u0[i]):
         #         u0[i] = max(u0)
