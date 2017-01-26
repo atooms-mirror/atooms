@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import logging
 import argparse
 from atooms import trajectory
+# Load plugin trajectory modules
+from atooms.plugins.trajectory import *
 from atooms.utils import fractional_slice, add_first_last_skip
-
-from atooms.trajectory.plugins.dummy import TrajectoryDummy
-
-#trajectory.factory(__name__)
 
 def print_available_formats():
     print 'Available trajectory formats:'
-    for name, class_name in trajectory.available_formats.items():
+    for name, class_name in trajectory.Trajectory.formats.items():
         if class_name.__doc__:
             docline = class_name.__doc__.split('\n')[0].rstrip('.')
         else:
@@ -141,7 +140,7 @@ def main(t, args):
 parser = argparse.ArgumentParser()
 parser = add_first_last_skip(parser)
 parser.add_argument(      '--fmt-available', dest='fmt_available', action='store_true', help='list available formats')
-parser.add_argument(      '--fmt-patterns', dest='fmt', type=str, default=None, help='format patterns')
+parser.add_argument(      '--fmt-fields', dest='fmt', type=str, default=None, help='format fields')
 parser.add_argument('-I', '--fmt-include', dest='fmt_include', type=str, default='', help='include patterns in format')
 parser.add_argument('-E', '--fmt-exclude', dest='fmt_exclude', type=str, default='', help='exclude patterns from format')
 parser.add_argument('-i', '--fmt-inp', dest='inp', type=str, default=None, help='input format ')
@@ -158,6 +157,9 @@ parser.add_argument(      '--precision',dest='precision', type=int, default=None
 parser.add_argument(nargs='*',         dest='file',type=str, help='input files')
 args = parser.parse_args()
 
+# Update trajectory factory with plugin modules
+trajectory.Trajectory.update(__name__)
+
 if args.fmt_available:
     print_available_formats()
     sys.exit()
@@ -171,7 +173,6 @@ if args.out is not None and not args.out in trajectory.available_formats:
 
 if args.out  == 'auto':
     raise ValueError('Cannot use factory for output format')
-
 
 if args.gather:
     with trajectory.SuperTrajectory2(args.file,
