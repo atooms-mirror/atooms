@@ -19,15 +19,16 @@ def center(system):
         p.position -= system.cell.side / 2.0
     return system
 
-def normalize_id(system):
-    def _normalize(pl):
-        pid = [p.id for p in pl]
-        id_min = numpy.min(pid)
-        if id_min == 0:
-            for p in pl:
-                p.id += 1
-        return pl
-    system.particle = _normalize(system.particle)
+def normalize_id(system, alphabetic=False):
+    map_ids = {1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E'}
+    pid = [p.id for p in system.particle]
+    id_min = numpy.min(pid)
+    if id_min == 0:
+        for p in system.particle:
+            p.id += 1
+    if alphabetic:
+        for p in system.particle:
+            p.name = map_ids[p.id]
     return system
 
 def sort(system):

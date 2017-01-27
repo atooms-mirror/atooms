@@ -105,16 +105,17 @@ def main(t, args):
     if args.flatten_steps:
         t.steps = range(1,len(t)+1)
     tn = trajectory.NormalizeId(t)
+    t.register_callback(trajectory.decorators.normalize_id, args.alphabetic_ids)
 
     if args.step:
         step = t.steps.index(args.step)
-        ts = trajectory.Sliced(tn, slice(step, step+1))
+        ts = trajectory.Sliced(t, slice(step, step+1))
     else:
         # Define slice
-        sl = fractional_slice(args.first, args.last, args.skip, len(tn))
+        sl = fractional_slice(args.first, args.last, args.skip, len(t))
         # Here we could you a trajectory slice t[sl] but this will load 
         # everything in ram (getitem doesnt provide a generator)
-        ts = trajectory.Sliced(tn, sl)
+        ts = trajectory.Sliced(t, sl)
 
     # Change density and
     if args.rho is not None or args.temperature is not None:
@@ -157,6 +158,7 @@ parser.add_argument(      '--step',    dest='step', action='store', default=None
 parser.add_argument(      '--rho',     dest='rho', type=float, default=None, help='new density')
 parser.add_argument('-T', '--temperature',dest='temperature', type=float, default=None, help='new temperature')
 parser.add_argument(      '--precision',dest='precision', type=int, default=None, help='write precision')
+parser.add_argument(      '--alphabetic',dest='alphabetic_ids', action='store_true', help='reassign names alphabetically')
 parser.add_argument(nargs='*',         dest='file',type=str, help='input files')
 args = parser.parse_args()
 
