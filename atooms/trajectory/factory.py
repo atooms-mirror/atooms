@@ -60,7 +60,7 @@ class TrajectoryFactory(object):
         # Lock some common suffixes to specific formats
         self.suffixes['xyz'] = TrajectoryXYZ
 
-    def __call__(self, filename, mode, fmt=None):
+    def __call__(self, filename, mode='r', fmt=None):
         if fmt is not None:
             return self.formats[fmt](filename, mode)
     
