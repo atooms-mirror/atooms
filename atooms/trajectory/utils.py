@@ -53,9 +53,9 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=
 
     # If out is a string, we look for a matching trajectory format
     # else we assume out is a trajectory class
-    from atooms.trajectory import available_formats
+    from atooms.trajectory import Trajectory
     if isinstance(out, basestring):
-        out_class = available_formats[out]
+        out_class = Trajectory.formats[out]
     else:
         out_class = out
 
