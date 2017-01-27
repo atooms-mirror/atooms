@@ -33,6 +33,7 @@ import os
 import sys
 import inspect
 from .xyz import TrajectoryXYZ
+from .hdf5 import TrajectoryHDF5
 
 # Note: trajectories should implement a method to check if a file is
 # of their own format or not, to avoid relying on suffix check out
@@ -68,4 +69,8 @@ class TrajectoryFactory(object):
         if suffix in self.suffixes:
             return self.suffixes[suffix](filename, mode)
         else:
-            raise ValueError('unknown file suffix %s' % suffix)
+            # Fallback to hdf5
+            try:
+                return TrajectoryHDF5(filename, mode)
+            except:
+                raise ValueError('unknown file format for %s' % filename)
