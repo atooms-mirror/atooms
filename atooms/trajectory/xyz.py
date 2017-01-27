@@ -252,7 +252,6 @@ class TrajectoryXYZ(TrajectoryBase):
         self._cell = None
         self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
         self.trajectory = gopen(self.filename, self.mode)
-
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
             # We may delay setup, moving to read_init() assuming
@@ -476,8 +475,8 @@ class TrajectoryNeighbors(TrajectoryXYZ):
 
     """Neighbors trajectory."""
 
-    def __init__(self, filename, offset=1):
-        super(TrajectoryNeighbors, self).__init__(filename, alias={'time':'step'})
+    def __init__(self, filename, mode='r', offset=1):
+        super(TrajectoryNeighbors, self).__init__(filename, mode=mode, alias={'time':'step'})
         # TODO: determine minimum value of index automatically
         # TODO: possible regression here if no 'time' tag is found
         self._offset = offset # neighbors produced by voronoi are indexed from 1
