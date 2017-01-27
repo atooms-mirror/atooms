@@ -104,7 +104,7 @@ class System(object):
         for p in self.particle:
             p.velocity *= fac
 
-    def dump(self, what, dim=slice(None), pslice=slice(None)):
+    def dump(self, what, dim=slice(None), pslice=slice(None), order='C'):
         """
         Throw pos or vel into a big (N, ndim) numpy array.
 
@@ -112,9 +112,9 @@ class System(object):
         trajectory decorators.
         """
         if what == 'pos':
-            return numpy.array([p.position[dim] for p in self.particle[pslice]])
+            return numpy.array([p.position[dim] for p in self.particle[pslice]], order=order)
         elif what == 'vel':
-            return numpy.array([p.velocity[dim] for p in self.particle[pslice]])
+            return numpy.array([p.velocity[dim] for p in self.particle[pslice]], order=order)
         elif what == 'sigma':
             return numpy.array([p.radius*2 for p in self.particle[pslice]])
 
