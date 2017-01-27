@@ -6,7 +6,10 @@ import logging
 import argparse
 from atooms import trajectory
 # Load plugin trajectory modules
-from atooms.plugins.trajectory import *
+try:
+    from atooms.plugins.trajectory import *
+except:
+    pass
 from atooms.utils import fractional_slice, add_first_last_skip
 
 def print_available_formats():
@@ -167,7 +170,7 @@ if args.fmt_available:
 if len(args.file)==0:
     parser.print_help()
 
-if args.out is not None and not args.out in trajectory.available_formats:
+if args.out is not None and not args.out in trajectory.Trajectory.formats:
     print_available_formats()   
     raise ValueError('Unknown output format %s' % args.out)
 
