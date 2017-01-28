@@ -213,6 +213,7 @@ def _optimize_fmt(fmt):
             fmt.remove(tag)
     return fmt
 
+
 class TrajectoryXYZ(TrajectoryBase):
 
     """Trajectory with XYZ layout using memory leightweight indexed access."""
@@ -227,19 +228,6 @@ class TrajectoryXYZ(TrajectoryBase):
                      'vel': update_velocity,
     }
 
-    callback_write = {'name': lambda particle: particle.name,
-                      'type': lambda particle: particle.name,
-                      'id': lambda particle: particle.name,
-                      'pos': lambda particle: particle.position,
-                      'vel': lambda particle: particle.velocity,
-                      'x': lambda particle: particle.position[0],
-                      'y': lambda particle: particle.position[1],
-                      'z': lambda particle: particle.position[2],
-                      'vx': lambda particle: particle.velocity[0],
-                      'vy': lambda particle: particle.velocity[1],
-                      'vz': lambda particle: particle.velocity[2],
-    }
-
     def __init__(self, filename, mode='r', alias=None, fmt=None):
         TrajectoryBase.__init__(self, filename, mode)
         if alias is None:
@@ -247,7 +235,18 @@ class TrajectoryXYZ(TrajectoryBase):
         if fmt is None:
             fmt = ['name', 'pos']
         self.alias = alias
+        self.shortcuts = {'pos': 'position',
+                          'x': 'position[0]',
+                          'y': 'position[1]',
+                          'z': 'position[2]',
+                          'vel': 'velocity',
+                          'vx': 'velocity[0]',
+                          'vy': 'velocity[1]',
+                          'vz': 'velocity[2]',
+                          'id': 'name',
+                          'type': 'name'}
         self.fmt = fmt
+        self._fmt = None
         self._id_min = 1 # minimum integer for ids, can be modified by subclasses
         self._cell = None
         self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
@@ -260,6 +259,20 @@ class TrajectoryXYZ(TrajectoryBase):
             # Warning: setting up steps require aliases to be defined in
             # init and not later.
             self._setup_steps()
+
+        _prec = '%14.' + str(self.precision) + 'f'
+        def array_fmt(arr):
+            """Remove commas and [] from numpy array repr."""
+            # %g allows to format both float and int but it's 2x slower
+            return ' '.join([_prec % x for x in arr])
+            # if arr.dtype == 'float64':
+            #     #return ' '.join(['%.' + str(self.precision) + 'f' % x for x in arr])
+            #     return ' '.join(['%14.6f' % x for x in arr])
+            # elif arr.dtype == 'int64':
+            #     return ' '.join(['%i' % x for x in arr])
+            # else:
+            #     return ' '.join(['%s' % x for x in arr])
+        numpy.set_string_function(array_fmt, repr=False)
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
@@ -301,6 +314,15 @@ class TrajectoryXYZ(TrajectoryBase):
             except KeyError:
                 # If no step info is found, we add steps sequentially
                 self.steps.append(sample+1)
+
+    def _expand_shortcuts(self):
+        _fmt = []
+        for field in self.fmt:
+            try:
+                _fmt.append(self.shortcuts[field])
+            except KeyError:
+                _fmt.append(field)
+        return _fmt
 
     def _read_metadata(self, sample):
         """Internal xyz method to get header metadata from comment line of given *sample*.
@@ -429,34 +451,13 @@ class TrajectoryXYZ(TrajectoryBase):
         return line
 
     def write_sample(self, system, step):
-        # Get write callbacks in the order specified by fmt (dict keys are unordered)
-        # and throw all data into a double list
-        cbk = [self.callback_write[key] for key in self.fmt]
-        data = [[f(p) for p in system.particle] for f in cbk]
-        # Check that all arrays in data have the same length
-        nlines = len(data[0])
-        ncols = len(data)
-        lengths_ok = [len(x) == nlines for x in data]
-        if not all(lengths_ok):
-            raise ValueError('All arrays must have the same length')
-
-        # Write data. This is inefficient, but we cannot use
-        # numpy.savetxt because there is no append mode.
-        # TODO: actually it can if the handle remains open...
-        # TODO: move this to init
-        def array_fmt(arr):
-            """Remove commas and [] from numpy array repr."""
-            out = numpy.array2string(arr, separator=' ', precision=self.precision)
-            return out[1:-1]
-        numpy.set_string_function(array_fmt, repr=False)
-
-        self.trajectory.write('%d\n' % nlines)
+        if self._fmt is None:
+            self._fmt = self._expand_shortcuts()
+        self.trajectory.write('%d\n' % len(system.particle))
         self.trajectory.write(self._comment_header(step, system) + '\n')
-        fmt = '%s ' * len(data)
-        fmt = fmt[:-1] + '\n'
-        for i in range(nlines):
-            out = fmt % tuple([data[j][i] for j in range(ncols)])
-            self.trajectory.write(out)
+        fmt = ' '.join(['{0.' + field + '}' for field in self._fmt]) + '\n'
+        for p in system.particle:
+            self.trajectory.write(fmt.format(p))
 
     def _parse_cell(self):
         """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
