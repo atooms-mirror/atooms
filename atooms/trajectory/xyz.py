@@ -234,6 +234,10 @@ class TrajectoryXYZ(TrajectoryBase):
             alias = {}
         if fmt is None:
             fmt = ['name', 'pos']
+        self.fmt = fmt
+        self._fmt = None
+        self._fmt_float = True
+        self._done_format_setup = False
         self.alias = alias
         self.shortcuts = {'pos': 'position',
                           'x': 'position[0]',
@@ -245,8 +249,6 @@ class TrajectoryXYZ(TrajectoryBase):
                           'vz': 'velocity[2]',
                           'id': 'name',
                           'type': 'name'}
-        self.fmt = fmt
-        self._fmt = None
         self._id_min = 1 # minimum integer for ids, can be modified by subclasses
         self._cell = None
         self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
@@ -260,19 +262,25 @@ class TrajectoryXYZ(TrajectoryBase):
             # init and not later.
             self._setup_steps()
 
-        _prec = '%14.' + str(self.precision) + 'f'
-        def array_fmt(arr):
-            """Remove commas and [] from numpy array repr."""
-            # %g allows to format both float and int but it's 2x slower
-            return ' '.join([_prec % x for x in arr])
-            # if arr.dtype == 'float64':
-            #     #return ' '.join(['%.' + str(self.precision) + 'f' % x for x in arr])
-            #     return ' '.join(['%14.6f' % x for x in arr])
-            # elif arr.dtype == 'int64':
-            #     return ' '.join(['%i' % x for x in arr])
-            # else:
-            #     return ' '.join(['%s' % x for x in arr])
-        numpy.set_string_function(array_fmt, repr=False)
+    def _setup_format(self):
+        if not self._done_format_setup:
+            self._done_format_setup = True
+            # %g allows to format both float and int but it's 2x slower.
+            # This switch is for performance
+            if self._fmt_float:
+                _fmt = '%14.' + str(self.precision) + 'f'
+            else:
+                _fmt = '%g'
+            def array_fmt(arr):
+                """Remove commas and [] from numpy array repr."""
+                # Passing a scalar will trigger an error (gotcha: even
+                # when casting numpy array to list, the elements remain of
+                # numpy type and this function gets called! (4% slowdown)
+                try:
+                    return ' '.join([_fmt % x for x in arr])
+                except:
+                    return _fmt % arr
+            numpy.set_string_function(array_fmt, repr=False)
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
@@ -451,6 +459,7 @@ class TrajectoryXYZ(TrajectoryBase):
         return line
 
     def write_sample(self, system, step):
+        self._setup_format()
         if self._fmt is None:
             self._fmt = self._expand_shortcuts()
         self.trajectory.write('%d\n' % len(system.particle))
