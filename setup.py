@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from distutils.core import setup
 
 with open('README.md') as f:
     readme = f.read()
@@ -12,7 +15,9 @@ setup(name='atooms',
       author='Daniele Coslovich',
       author_email='daniele.coslovich@umontpellier.fr',
       url='https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms',
-      packages=find_packages(exclude=('tests', 'docs')),
+      packages=['atooms', 'atooms/backends', 'atooms/core', 
+                'atooms/interaction', 'atooms/potential', 'atooms/simulation', 
+                'atooms/system', 'atooms/trajectory', 'atooms/utils'],
       scripts=['bin/trj.py'],
       license='GPLv3',
       classifiers={
