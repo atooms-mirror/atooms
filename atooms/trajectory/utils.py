@@ -13,7 +13,7 @@ def gopen(filename, mode):
         return gzip.open(filename, mode)
     elif ext == '.bz2':
         import bz2
-        return bz2.open(filename, mode)
+        return bz2.BZ2File(filename, mode)
     else:
         return open(filename, mode)
 
