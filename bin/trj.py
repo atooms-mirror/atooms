@@ -5,22 +5,20 @@ import sys
 import logging
 import argparse
 from atooms import trajectory
-# Load plugin trajectory modules
-try:
-    from atooms.plugins.trajectory import *
-except:
-    pass
 from atooms.utils import fractional_slice, add_first_last_skip
 
 def print_available_formats():
     print 'Available trajectory formats:'
-    for name, class_name in trajectory.Trajectory.formats.items():
+    fmts = trajectory.Trajectory.formats
+    maxlen = max([len(name) for name in fmts])
+    for name in sorted(fmts):
+        class_name = fmts[name]
         if class_name.__doc__:
             docline = class_name.__doc__.split('\n')[0].rstrip('.')
         else:
             docline = '...no description...'
-        print ' -', name, ':', docline
-    print
+        fmt = ' - %-' + str(maxlen) + 's : %s'
+        print  fmt % (name, docline)
 
 def add_interaction_hdf5(finp, ff, tag=None):
     """Add interaction to hdf5 file"""
@@ -161,9 +159,6 @@ parser.add_argument(      '--precision',dest='precision', type=int, default=None
 parser.add_argument(      '--alphabetic',dest='alphabetic_ids', action='store_true', help='reassign names alphabetically')
 parser.add_argument(nargs='*',         dest='file',type=str, help='input files')
 args = parser.parse_args()
-
-# Update trajectory factory with plugin modules
-trajectory.Trajectory.update(__name__)
 
 if args.fmt_available:
     print_available_formats()
