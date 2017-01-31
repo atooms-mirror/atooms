@@ -6,11 +6,14 @@ import gzip
 import re
 
 def gopen(filename, mode):
-    """Open a file recognizing gzipped files by extension."""
-    import gzip
+    """Open a file recognizing gzipped and bzipped files by extension."""
     ext = os.path.splitext(filename)[1]
     if ext == '.gz':
+        import gzip
         return gzip.open(filename, mode)
+    elif ext == '.bz2':
+        import bz2
+        return bz2.open(filename, mode)
     else:
         return open(filename, mode)
 
