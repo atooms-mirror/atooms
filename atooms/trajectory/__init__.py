@@ -32,3 +32,10 @@ except:
 from .factory import TrajectoryFactory
 Trajectory = TrajectoryFactory()
 Trajectory.update(__name__)
+
+# Update factory with plugins modules
+import pkgutil
+import atooms.plugins
+for _, mod_name, _ in pkgutil.iter_modules(atooms.plugins.__path__, prefix='atooms.plugins.'):
+    m = __import__(mod_name)
+    Trajectory.update(mod_name)
