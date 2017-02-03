@@ -59,6 +59,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
         if 'sim_box' in meta:
             # After sim_box there is a keyword for the box type which we ignore
             meta['cell'] = meta['sim_box'][1:]
+            meta['ndim'] = len(meta['cell'])
         return meta
 
     def read_timestep(self):
