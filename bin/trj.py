@@ -164,6 +164,9 @@ if args.fmt_available:
     print_available_formats()
     sys.exit()
 
+if args.fmt is not None:
+    args.fmt = args.fmt.split(',')
+
 if len(args.file)==0:
     parser.print_help()
 
