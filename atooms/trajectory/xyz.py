@@ -440,6 +440,8 @@ class TrajectoryXYZ(TrajectoryBase):
             for key in fmt:
                 if self.callback_read[key] is not None:
                     data = self.callback_read[key](p, data, meta)
+                else:
+                    data = data[1:]
             particle.append(p)
         # Now we fix ids and other metadata
         self.update_id(particle)
