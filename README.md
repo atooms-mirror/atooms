@@ -1,7 +1,7 @@
 Atooms
 ======
 
-Atooms is a framework for classical, particle-based simulations written in python. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
+Atooms is a framework for particle-based simulations written in python. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
@@ -61,7 +61,7 @@ Plugins
 It is easy to add your own trajectory formats by subclassing any of the
 Trajectory classes. Just create a package called `atooms_plugins` and add your trajectory modules there. They will be available to all client codes that use atooms.
 
-For instance, suppose your custom trajectory class is called `TrajectoryTest` and is found in the directory
+For instance, suppose your custom trajectory class is called `TrajectoryTest` and is found in 
 `atooms_plugins/test.py` relative to the current directory. You can convert a simple xyz file to
 your new trajectory format like this
 
