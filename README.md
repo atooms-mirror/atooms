@@ -1,7 +1,7 @@
 Atooms
 ======
 
-Atooms is a framework for particle-based simulations written in python. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
+Atooms is a framework for particle-based simulations, written in python. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
