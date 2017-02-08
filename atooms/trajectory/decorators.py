@@ -1,25 +1,26 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-# To properly implement decorators in python see
-# http://stackoverflow.com/questions/3118929/implementing-the-decorator-pattern-in-python
-# asnwer by Alec Thomas. if we don't subclass at runtime we won't be able to use the decorated
-# mathod in other non-subclassed methods.
-
 """Trajectory decorators."""
 
 import random
 import numpy
 
-# Callback versions
+
+# Callbacks
 
 def center(system):
-    """Center particles in the box. It wont check if that is done multiple times."""
+    """Center particles in the simulation cell.
+    It wont check if that is done multiple times.
+    """
     for p in system.particle:
         p.position -= system.cell.side / 2.0
     return system
 
 def normalize_id(system, alphabetic=False):
+    """Change species id's so as to start from 1 (fortran
+    convention). Species names can be reassigned alphabetically.
+    """
     map_ids = {1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E'}
     pid = [p.id for p in system.particle]
     id_min = numpy.min(pid)
@@ -32,13 +33,30 @@ def normalize_id(system, alphabetic=False):
     return system
 
 def sort(system):
+    """Sort particles by species id."""
     return sorted(system.particle, key=lambda a: a.id)
 
 def filter_id(system, species):
+    """Only return particles with given species."""
     system.particle = [p for p in system.particle if p.id == species]
     return system
 
+def scale_system(system, rho):
+    """Change density of system to rho by rescaling the cell."""
+    rho_old = system.density
+    x = (rho_old / rho)**(1./3)
+    system.cell.side *= x
+    for p in system.particle:
+        p.position *= x
+    return system
+
+
 # Class decorators
+
+# To properly implement decorators in python see
+# http://stackoverflow.com/questions/3118929/implementing-the-decorator-pattern-in-python
+# asnwer by Alec Thomas. if we don't subclass at runtime we won't be able to use the decorated
+# mathod in other non-subclassed methods.
 
 class Centered(object):
 
