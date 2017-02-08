@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-"""Molecular dynamics simulation driver"""
+"""Simple molecular dynamics simulation driver using RUMD backend."""
 
 import sys
 import os
 from atooms.adapters.rumd_backend import Simulation, single
 from atooms.simulation import log
-from atooms.simulation.parallel_tempering import ParallelTempering
 
 def main(params):
     # TODO: dump params to a file in output_dir
