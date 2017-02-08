@@ -122,6 +122,10 @@ def temperature(particle, ndof=None):
         ndof = ndim * (len(particle) - 1)
     return 2 * total_kinetic_energy(particle) / ndof
 
+def species(particle):
+    """Return list of distinct species (ids) of particles."""
+    return list(set([p.id for p in particle]))
+
 def composition(particle, nsp=None):
     """
     Return a tuple containing the number of particles

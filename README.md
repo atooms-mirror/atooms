@@ -1,7 +1,7 @@
 Atooms
 ======
 
-Atooms is a framework for classical, particle-based simulations written in python. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
+Atooms is a framework for particle-based simulations, written in python. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
@@ -56,18 +56,20 @@ $ trj.py -i rumd -o xyz --stdout input.xyz.gz > output.xyz
 $ trj.py -i rumd -o xyz --fmt-fields 'id,pos,vel' input.xyz.gz 
 ```
 
-It is easy to add your own formats by subclassing any of the
-Trajectory classes in the trajectory package. Just copy your custom
-trajectory format as a python module under `atooms/plugins` and it
-will become automatically available. 
+Plugins
+-------
+It is easy to add your own trajectory formats by subclassing any of the
+Trajectory classes. Just create a package called `atooms_plugins` and add your trajectory modules there. They will be available to all client codes that use atooms.
 
-Suppose your trajectory class is called `TrajectoryTest` and lies in
-module `atooms/plugins/test.py`. You can convert a simple xyz file to
+For instance, suppose your custom trajectory class is called `TrajectoryTest` and is found in 
+`atooms_plugins/test.py` relative to the current directory. You can convert a simple xyz file to
 your new trajectory format like this
 
 ```bash
 $ trj.py -i xyz -o test output.xyz > output.test
 ```
+
+Remember to add an empty `__init__.py` file at the root of `atooms_plugins`. Incidentally this package can be put anywhere in your `PYTHONPATH`.
 
 Features
 --------
@@ -110,7 +112,7 @@ from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 ```
 
-Add the package root folder to $PYTHONPATH. Now you can import your package as
+Add the package root folder to $PYTHONPATH. You can now import your package as
 
 ```python
 import atooms.your_package
