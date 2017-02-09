@@ -55,7 +55,9 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=
     # in a companion directory prefixed by tag. The basename is config
 
     # If out is a string, we look for a matching trajectory format
-    # else we assume out is a trajectory class
+    # else we assume out is a trajectory class.
+    # If out is None, we rely on the factory guessing the format
+    # from the filename suffix.
     from atooms.trajectory import Trajectory
     if isinstance(out, basestring):
         out_class = Trajectory.formats[out]
