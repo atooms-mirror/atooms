@@ -33,7 +33,10 @@ import os
 import sys
 import inspect
 from .xyz import TrajectoryXYZ
-from .hdf5 import TrajectoryHDF5
+try:
+    from .hdf5 import TrajectoryHDF5
+except ImportError:
+    pass
 
 # Note: trajectories should implement a method to check if a file is
 # of their own format or not, to avoid relying on suffix check out
