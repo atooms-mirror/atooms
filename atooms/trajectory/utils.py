@@ -40,13 +40,13 @@ def format_output(trj, fmt=None, include=None, exclude=None):
 
     return trj
 
-def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=[], include=[], stdout=False, callback=None, args={}):
+def convert(inp, out, fout, tag='', prefix='', force=True, fmt=None, exclude=[], include=[], callback=None, args={}):
     # TODO: check these dangerous defaults
     """Convert trajectory into a different format.
 
     inp: input trajectory object
     out: output trajectory class
-    tag: optional string to be prepended before the output suffix
+    fout: output file
 
     Return: name of converted trajectory file
     """
@@ -64,23 +64,10 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=
     else:
         out_class = out
 
-    if stdout:
-        filename = '/dev/stdout'
-    else:
-        if len(fout) > 0:
-            filename = fout
-        elif os.path.isdir(inp.filename):
-            d = os.path.dirname(inp.filename)
-            b = os.path.basename(inp.filename)
-            dirname = os.path.join(d, prefix + b) + tag
-            filename = dirname + '.' + out.suffix
-        else:
-            filename = os.path.splitext(inp.filename)[0] + tag + '.' + out_class.suffix
-
-    if not stdout and (os.path.exists(filename) and not force):
+    if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
         print 'File exists, conversion skipped'
     else:
-        with out_class(filename, 'w') as conv:
+        with out_class(fout, 'w') as conv:
             format_output(conv, fmt, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
@@ -98,8 +85,7 @@ def convert(inp, out, fout='', tag='', prefix='', force=True, fmt=None, exclude=
                     system = callback(system, args)
                 conv.write(system, inp.steps[i])
 
-    return filename
-
+    return fout
 
 def split(inp, selection=slice(None), index='step', archive=False):
     """Split the trajectory into independent trajectory files, one per sample."""

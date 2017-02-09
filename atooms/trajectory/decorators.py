@@ -41,8 +41,8 @@ def filter_id(system, species):
     system.particle = [p for p in system.particle if p.id == species]
     return system
 
-def scale_system(system, rho):
-    """Change density of system to rho by rescaling the cell."""
+def set_density(system, rho):
+    """Set density of system to rho by rescaling the cell."""
     rho_old = system.density
     x = (rho_old / rho)**(1./3)
     system.cell.side *= x
@@ -50,6 +50,15 @@ def scale_system(system, rho):
         p.position *= x
     return system
 
+def set_temperature(system, T):
+    """Set system temperature by reassigning velocities."""
+    for p in system.particle:
+        p.maxwellian(self.T)
+    from atooms.system.particle import velocity_cm
+    v_cm = velocity_cm(system.particle)
+    for p in system.particle:
+        p.velocity -= v_cm
+    return system
 
 # Class decorators
 
