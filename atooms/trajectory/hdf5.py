@@ -36,6 +36,50 @@ def _write_datasets(fh, group, datasets):
     for name, dataset in datasets.items():
         fh[group + name] = dataset
 
+def add_interaction_hdf5(finp, ff, tag=None):
+    """Add interaction to hdf5 file"""
+    import os
+    import glob
+    import h5py
+
+    if os.path.exists(ff):
+        raise IOError('force field file does not exist')
+
+    pid = os.getpid()
+    f_ref = '/tmp/cnv_%s.h5' % pid
+    # TODO: we can cache a ref file if ff is the same
+    os.system('system.x -n 2 -f %s %s 1>/dev/null 2>/dev/null' % (ff, f_ref))
+    ref = h5py.File(f_ref, 'r')
+
+    # TODO: can this tag de bropped?
+    if tag:
+        d = os.path.dirname(finp) + '_' + opts.tag
+        if not os.path.exists(d):
+            os.makedirs(d)
+        fout = d + '/' + os.path.basename(finp)
+    else:
+        fout = finp + '.bak'
+        
+    # Add interaction
+    os.system('/bin/cp %s %s' % (finp, fout))
+    h5 = h5py.File(fout , 'r+')
+    # Make sure interaction does not exist
+    try:
+        del h5['initialstate/interaction']
+    except:
+        pass
+    h5.copy(ref['initialstate/interaction'], 'initialstate/interaction')
+    h5.close()
+
+    if tag is None:
+        os.remove(finp)
+        os.rename(fout, finp)
+
+    # Final cleanup
+    ref.close()
+    for f in glob.glob(f_ref + '*'):
+        os.remove(f)
+
 
 class TrajectoryHDF5(TrajectoryBase):
 
