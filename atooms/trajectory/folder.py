@@ -28,23 +28,24 @@ class TrajectoryFolder(TrajectoryBase):
         TrajectoryBase.__init__(self, filename, mode)
         self.file_pattern = file_pattern
         self.step_pattern = step_pattern
-        # See if trajectory is packed as a compressed tar file.
-        # If so, configurations will be extracted inplace and deleted at the end.
-        try:
-            dirname = tempfile.mkdtemp()
-            with tarfile.open(filename) as th:
-                th.extractall(path=dirname)
-                files = [os.path.join(dirname, f.name) for f in th.getmembers()]
-            self.dirname = dirname
-            self.archive = True
-        except:
-            if not os.path.isdir(filename):
-                raise IOError("Directory expected (%s)" % filename)
-            self.dirname = filename
-            self.archive = False
-            files = glob.glob(os.path.join(self.dirname, self.file_pattern))
+        if mode == 'r':
+            # See if trajectory is packed as a compressed tar file.
+            # If so, configurations will be extracted inplace and deleted at the end.
+            try:
+                dirname = tempfile.mkdtemp()
+                with tarfile.open(filename) as th:
+                    th.extractall(path=dirname)
+                    files = [os.path.join(dirname, f.name) for f in th.getmembers()]
+                self.dirname = dirname
+                self.archive = True
+            except:
+                if not os.path.isdir(filename):
+                    raise IOError("Directory expected (%s)" % filename)
+                self.dirname = filename
+                self.archive = False
+                files = glob.glob(os.path.join(self.dirname, self.file_pattern))
 
-        self.files, self.steps = self._get_file_steps(files)
+            self.files, self.steps = self._get_file_steps(files)
 
     def _get_step(self, fileinp):
         # Make sure we only test the basename (avoid metching
