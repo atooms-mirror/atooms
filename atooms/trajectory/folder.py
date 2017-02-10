@@ -19,6 +19,7 @@ import re
 import tarfile
 import tempfile
 
+from atooms.utils import rmd
 from atooms.trajectory.base import TrajectoryBase
 
 
@@ -76,7 +77,7 @@ class TrajectoryFolder(TrajectoryBase):
 
     def close(self):
         if self.archive:
-            os.rmdir(self.dirname)
+            rmd(self.dirname)
 
 
 
