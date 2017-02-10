@@ -47,28 +47,25 @@ The DryRunBackend is just a dummy backend and won't do any actual simulation. Ch
 
 Trajectory conversion
 ---------------------
-Atooms ships with a command line tool to convert between various trajectory formats. For instance, the following will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
+Atooms ships with a command line tool to convert between various trajectory formats. For instance, the following command will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
 
 ```bash
 $ trj.py -i rumd -o xyz input.xyz.gz output.xyz
 ```
-Dropping the output file, will dump the new trajectory to standard output.
+If you don't specifiy the output file path, the trajectory will be written to standard output.
 
 `trj.py` has various options to control the format of the output file. For instance, it is possible to include the particles' velocities in the output file by changing the output fields
 
 ```bash
 $ trj.py -i rumd -o xyz --fmt-fields 'id,pos,vel' input.xyz.gz output.xyz
 ```
-To get a list of the available trajectory formats
+Type `trj.py --help` to get a list of available trjactory formats.
 
-```bash
-$ trj.py --fmt-available
-```
 
-Plugins
--------
+Custom trajectory formats 
+-------------------------
 It is easy to add a new trajectory format by subclassing any of the
-existing Trajectory classes. Just create a package called
+existing trajectory classes. Just create a package called
 `atooms_plugins` and add your trajectory modules there. They will be automatically
 available to all client codes that use atooms.
 
