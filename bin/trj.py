@@ -95,7 +95,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--tag', dest='tag', type=str, default='', help='tag to add before suffix')
     parser.add_argument('-F', '--ff', dest='ff', type=str, default='', help='force field file')
     parser.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
-    parser.add_argument(      '--cell', dest='cell', type=float, default=None, help='set cell side')
+    parser.add_argument(      '--side', dest='side', type=float, default=None, help='set cell side')
     parser.add_argument(      '--density', dest='rho', type=float, default=None, help='new density')
     parser.add_argument('-T', '--temperature', dest='temperature', type=float, default=None, help='new temperature')
     parser.add_argument(      '--precision', dest='precision', type=int, default=None, help='write precision')
