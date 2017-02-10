@@ -10,8 +10,8 @@ from atooms import trajectory
 from atooms.utils import fractional_slice, add_first_last_skip
 
 
-def print_available_formats():
-    print 'Available trajectory formats:'
+def available_formats():
+    txt = 'available trajectory formats:\n'
     fmts = trajectory.Trajectory.formats
     maxlen = max([len(name) for name in fmts])
     for name in sorted(fmts):
@@ -20,8 +20,9 @@ def print_available_formats():
             docline = class_name.__doc__.split('\n')[0].rstrip('.')
         else:
             docline = '...no description...'
-        fmt = ' - %-' + str(maxlen) + 's : %s'
-        print  fmt % (name, docline)
+        fmt = '  %-' + str(maxlen) + 's : %s\n'
+        txt += fmt % (name, docline)
+    return txt
 
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
@@ -44,7 +45,7 @@ def main(args):
 
     # Define slice.
     # We interpret --first N --last N as a request of step N
-    if args.last == args.first:
+    if args.last == args.first and args.last is not None:
         args.last += 1
     sl = fractional_slice(args.first, args.last, args.skip, len(t))
     # Here we could you a trajectory slice t[sl] but this will load
@@ -77,9 +78,9 @@ def main(args):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(epilog=available_formats(), 
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser = add_first_last_skip(parser)
-    parser.add_argument(      '--fmt-available', dest='fmt_available', action='store_true', help='list available formats')
     parser.add_argument(      '--fmt-fields', dest='fmt', help='format fields')
     parser.add_argument('-I', '--fmt-include', dest='fmt_include', type=str, default='', help='include patterns in format')
     parser.add_argument('-E', '--fmt-exclude', dest='fmt_exclude', type=str, default='', help='exclude patterns from format')
@@ -95,10 +96,6 @@ if __name__ == '__main__':
     parser.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
     parser.add_argument(nargs='?', dest='file_out', default='-', help='output file')
     args = parser.parse_args()
-
-    if args.fmt_available:
-        print_available_formats()
-        sys.exit()
 
     if args.fmt is not None:
         args.fmt = args.fmt.split(',')
