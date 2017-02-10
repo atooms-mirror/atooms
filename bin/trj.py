@@ -45,7 +45,7 @@ def main(args):
 
     # Define slice.
     # We interpret --first N --last N as a request of step N
-    if args.last == args.first:
+    if args.last == args.first and args.last is not None:
         args.last += 1
     sl = fractional_slice(args.first, args.last, args.skip, len(t))
     # Here we could you a trajectory slice t[sl] but this will load
