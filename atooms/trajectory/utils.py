@@ -184,3 +184,21 @@ def check_block_period(trj):
             print 'current     :', current
             print 'finger print:', block
             raise ValueError('block does not match finger print')
+
+def dump(trajectory, what='pos'):
+    """Dump coordinates as a list of (npart, ndim) numpy arrays if the
+    trajectory is grandcanonical or as (nsteps, npart, ndim) numpy
+    array if it is not grandcanonical.
+    """
+    if trajectory.grandcanonical:
+        data = []
+        for i, s in enumerate(trajectory):
+            data[i].append(s.dump(what))
+    else:
+        data = numpy.zeros([len(trajectory.steps), \
+                            len(trajectory[0].particle), \
+                            len(trajectory[0].cell.side)])
+        for i, s in enumerate(trajectory):
+            data[i] = s.dump(what)
+
+    return data
