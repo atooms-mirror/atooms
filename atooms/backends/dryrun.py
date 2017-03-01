@@ -4,21 +4,32 @@
 """
 Dry run backend.
 
-For illustration purposes.
+It just exposes a minimal backend interface.
 """
 
-class Thermostat(object):
 
-    def __init__(self):
-        self._temperature = 1.0
+class DryRunBackend(object):
 
-    def _get_temperature(self):
-        return self._temperature
+    def __init__(self, system=None):
+        self.system = system
+        if self.system is None:
+            self.system = System()
+        self.trajectory = Trajectory
+        self.output_path = None
+        self.steps = 0
 
-    def _set_temperature(self, value):
-        self._temperature = value
+    def write_checkpoint(self):
+        pass
 
-    temperature = property(_get_temperature, _set_temperature, 'Temperature')
+    @property
+    def rmsd(self):
+        return 0.0
+
+    def run_pre(self, restart):
+        pass
+
+    def run_until(self, steps):
+        self.steps = steps
 
 
 class System(object):
@@ -40,17 +51,17 @@ class System(object):
         return Thermostat()
 
 
+class Thermostat(object):
+
+    def __init__(self):
+        self.temperature = 1.0
+
+
 class Trajectory(object):
 
     suffix = 'dry'
 
     def __init__(self, filename, mode='r'):
-        pass
-
-    def write(self, system, step):
-        pass
-
-    def close(self):
         pass
 
     def __enter__(self):
@@ -59,24 +70,10 @@ class Trajectory(object):
     def __exit__(self, type, value, traceback):
         self.close()
 
-
-class DryRunBackend(object):
-
-    def __init__(self, system=System()):
-        self.system = system
-        self.trajectory = Trajectory
-        self.output_path = None
-        self.steps = 0
-
-    def write_checkpoint(self):
+    def write(self, system, step):
         pass
 
-    @property
-    def rmsd(self):
-        return 0.0
-
-    def run_pre(self, restart):
+    def close(self):
         pass
 
-    def run_until(self, steps):
-        self.steps = steps
+
