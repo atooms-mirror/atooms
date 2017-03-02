@@ -27,7 +27,7 @@ version:
 install: version
 	python setup.py install --user
 
-develop:
+develop: version
 	python setup.py develop --user
 
 clean:
