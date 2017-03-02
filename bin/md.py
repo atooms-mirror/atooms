@@ -19,8 +19,8 @@ def main(params):
                      checkpoint_interval=params.config_interval,
                      steps=params.steps,
                      restart=params.restart)
-    sa.add(WriterThermo, Scheduler(params.thermo_interval))
-    sa.add(WriterConfig, Scheduler(params.config_interval))
+    sa.add(WriterThermo(), Scheduler(params.thermo_interval))
+    sa.add(WriterConfig(), Scheduler(params.config_interval))
     sa.run()
 
 if __name__ == '__main__':
