@@ -17,11 +17,13 @@ atooms - A framework for molecular simulations.
 
 __author__ = "Daniele Coslovich <daniele.coslovich@umontpellier.fr>"
 
+from _version import __version__
+
 try:
-    from _version import __version__, __date__
+    from _commit import __commit__, __date__
 except ImportError:
-    __version__ = "unknown"
-    __date__ = "unknown"
+    __commit__ = ""
+    __date__ = ""
 
 # Number of spatial dimensions
 ndim = 3

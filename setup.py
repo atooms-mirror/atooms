@@ -8,8 +8,11 @@ except ImportError:
 with open('README.md') as f:
     readme = f.read()
 
+with open('atooms/core/_version.py') as f:
+    exec(f.read())
+
 setup(name='atooms',
-      version='1.0',
+      version=__version__,
       description='A framework for classical particle-based simulations',
       long_description=readme,
       author='Daniele Coslovich',
