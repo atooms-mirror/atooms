@@ -39,6 +39,7 @@ class Simulation(object):
         self.max_steps = steps
         self.checkpoint_scheduler = Scheduler(checkpoint_interval)
         self.enable_speedometer = enable_speedometer
+        self._targeter_steps = TargetSteps(self.max_steps)
 
         # Internal variables
         self._callback = []
@@ -56,13 +57,6 @@ class Simulation(object):
         if self.output_path is not None:
             mkdir(os.path.dirname(self.output_path))
 
-        # Setup writer callbacks
-        # self.targeter_rmsd_period = 10000
-        # self.targeter_steps = self._TARGET_STEPS(self.max_steps)
-        # self.targeter_rmsd = self._TARGET_RMSD(self.target_rmsd)
-        # self.writer_thermo = self._WRITER_THERMO()
-        # self.writer_config = self._WRITER_CONFIG()
-        # self.writer_checkpoint = self._WRITER_CHECKPOINT()
         self.speedometer = None
         if enable_speedometer:
             self.speedometer = Speedometer()
@@ -90,15 +84,6 @@ class Simulation(object):
             callback.scheduler = scheduler
             self._callback.append(callback)
 
-        # TODO: drop
-        # # Enforce checkpoint is last among non_targeters
-        # try:
-        #     idx = self._callback.index(self.writer_checkpoint)
-        #     cnt = len(self._non_targeters)
-        #     self._callback.insert(cnt-1, self._callback.pop(idx))
-        # except ValueError:
-        #     pass
-
     def remove(self, callback):
         """Remove an observer (callback)"""
         if callback in self._callback:
@@ -125,7 +110,6 @@ class Simulation(object):
 
     def write_checkpoint(self):
         # Tolerate missing implementation
-        # TODO: we should really check for write_checkpoint
         try:
             self.backend.write_checkpoint()
         except AttributeError:
@@ -200,8 +184,13 @@ class Simulation(object):
         if not self.restart or self.steps == 0:
             if steps is not None:
                 self.max_steps = steps
+                self._targeter_steps.target = self.max_steps
             self.steps = 0
             self.backend.steps = 0
+
+        # We target max steps 
+        if not self._targeter_steps in self._callback:
+            self.add(self._targeter_steps, Scheduler(self.max_steps))
 
         self.run_pre()
         self.initial_steps = self.steps
@@ -213,8 +202,6 @@ class Simulation(object):
         try:
             # Before entering the simulation, check if we can quit right away
             self.notify(self._targeters)
-            if self.steps >= self.max_steps:
-                raise SimulationEnd
             # Then notify non targeters unless we are restarting
             if self.steps == 0:
                 self.notify(self._non_targeters)
@@ -226,7 +213,7 @@ class Simulation(object):
                 # Run simulation until any of the observers need to be called
                 all_steps = [c.scheduler.next(self.steps) for c in self._callback]
                 next_checkpoint = self.checkpoint_scheduler.next(self.steps)
-                next_step = min(all_steps + [next_checkpoint, self.max_steps])
+                next_step = min(all_steps + [next_checkpoint])
 
                 self.run_until(next_step)
 
@@ -238,8 +225,6 @@ class Simulation(object):
                 # Observers should be sorted such that targeters are
                 # last to avoid cropping output files
                 self.notify(next_observers)
-                if self.steps == self.max_steps:
-                    raise SimulationEnd
                 if self.steps == next_checkpoint:
                     self.write_checkpoint()
 
