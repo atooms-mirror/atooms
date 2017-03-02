@@ -49,14 +49,6 @@ class SchedulerError(Exception):
 
 # Writers
 
-class WriterCheckpoint(object):
-
-    def __str__(self):
-        return 'checkpoint'
-
-    def __call__(self, sim):
-        sim.write_checkpoint()
-
 class WriterConfig(object):
 
     def __str__(self):
