@@ -66,7 +66,7 @@ class Simulation(object):
         self.speedometer = None
         if enable_speedometer:
             self.speedometer = Speedometer()
-            self.add(self.speedometer, Scheduler(None, calls=20, target=self.target_steps))
+            self.add(self.speedometer, Scheduler(None, calls=20, target=self.max_steps))
 
     def __str__(self):
         return 'ATOOMS simulation (backend: %s)' % self.backend
