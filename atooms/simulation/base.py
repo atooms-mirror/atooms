@@ -8,7 +8,7 @@ import time
 import datetime
 import logging
 
-from atooms.core import __version__, __date__
+from atooms.core import __version__, __commit__, __date__
 from atooms.utils import mkdir, barrier
 from atooms.backends.dryrun import DryRunBackend
 
@@ -318,7 +318,7 @@ class Simulation(object):
         log.info('')
         log.info(txt)
         log.info('')
-        log.info('atooms version: %s (%s)', __version__, __date__.split()[0])
+        log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__.split()[0])
         log.info('simulation starts on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
         log.info('output path: %s', self.output_path)
         self._report()
