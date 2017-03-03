@@ -195,6 +195,7 @@ class Simulation(object):
         self._targeter_steps = TargetSteps(self.max_steps)
         self.add(self._targeter_steps, Scheduler(self.max_steps))
 
+        self.report_header()
         self.run_pre()
         self.initial_steps = self.steps
         self.report()
@@ -251,11 +252,13 @@ class Simulation(object):
         finally:
             log.info('goodbye')
 
-    def report(self):
+    def report_header(self):
         txt = '%s' % self
         log.info('')
         log.info(txt)
-        log.info('')
+        log.info('')      
+
+    def report(self):
         log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__.split()[0])
         log.info('simulation starts on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
         log.info('output path: %s', self.output_path)
