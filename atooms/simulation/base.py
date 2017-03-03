@@ -37,8 +37,8 @@ class Simulation(object):
         self.restart = restart
         self.output_path = output_path # can be None, file or directory
         self.max_steps = steps
-        self.checkpoint_scheduler = Scheduler(checkpoint_interval)
         self.enable_speedometer = enable_speedometer
+        self._checkpoint_scheduler = Scheduler(checkpoint_interval)
         self._targeter_steps = TargetSteps(self.max_steps)
 
         # Internal variables
@@ -75,7 +75,11 @@ class Simulation(object):
 
     def add(self, callback, scheduler):
         """Register an observer (callback) to be called along with a scheduler"""
-        # There are certainly more elegant ways of sorting Writers < Checkpoint < Target but anyway...
+        # If the callback is already there we replace it
+        # This allows to update targets / schedules on the way
+        if callback in self._callback:
+            self._callback.remove(callback)
+
         # Keep targeters last
         if not isinstance(callback, Target):
             callback.scheduler = scheduler
@@ -184,13 +188,12 @@ class Simulation(object):
         if not self.restart or self.steps == 0:
             if steps is not None:
                 self.max_steps = steps
-                self._targeter_steps.target = self.max_steps
             self.steps = 0
             self.backend.steps = 0
 
-        # We target max steps 
-        if not self._targeter_steps in self._callback:
-            self.add(self._targeter_steps, Scheduler(self.max_steps))
+        # Targeter for max steps. Note that this will the replace an existing one.
+        self._targeter_steps = TargetSteps(self.max_steps)
+        self.add(self._targeter_steps, Scheduler(self.max_steps))
 
         self.run_pre()
         self.initial_steps = self.steps
@@ -212,9 +215,8 @@ class Simulation(object):
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [c.scheduler.next(self.steps) for c in self._callback]
-                next_checkpoint = self.checkpoint_scheduler.next(self.steps)
+                next_checkpoint = self._checkpoint_scheduler.next(self.steps)
                 next_step = min(all_steps + [next_checkpoint])
-
                 self.run_until(next_step)
 
                 # Find observers indexes corresponding to minimum step
