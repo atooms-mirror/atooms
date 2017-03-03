@@ -257,11 +257,11 @@ class Simulation(object):
         log.info('')
         log.info(txt)
         log.info('')      
-
-    def report(self):
         log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__.split()[0])
         log.info('simulation starts on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
         log.info('output path: %s', self.output_path)
+
+    def report(self):
         self._report()
         self._report_observers()
 
