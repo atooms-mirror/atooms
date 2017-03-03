@@ -54,7 +54,7 @@ class Test(unittest.TestCase):
         si.run(1000)
 
     def test_multi_writing(self):
-        s = single(self.input_file, potential, T=0.80, dt=0.002, interval_energy=500, interval_config=500)
+        s = single(self.input_file, potential, T=0.80, dt=0.002)
         si = Simulation(RumdBackend(s),
                         output_path='/tmp/test_rumd_multi_writing/trajectory',
                         enable_speedometer=False)

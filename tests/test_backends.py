@@ -5,7 +5,7 @@ import sys
 import os
 import numpy
 
-from atooms.simulation import Simulation
+from atooms.simulation import Simulation, TargetRMSD, Scheduler
 try:
     import rumd
     from rumdSimulation import rumdSimulation
@@ -135,7 +135,8 @@ class TestBackendRUMD(unittest.TestCase):
         self.assertGreater(s.rmsd, 0.0)
 
     def test_target_rmsd(self):
-        s = Simulation(Backend(self.sim), self.dout, rmsd = 0.3, steps=sys.maxint)
+        s = Simulation(Backend(self.sim), self.dout, steps=sys.maxint)
+        s.add(TargetRMSD(0.3), Scheduler(10))
         s.run()
         self.assertGreater(s.steps, 1)
         self.assertGreater(s.rmsd, 0.3)
