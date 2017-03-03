@@ -26,7 +26,7 @@ from atooms.trajectory.base import TrajectoryBase
 class TrajectoryFolder(TrajectoryBase):
 
     def __init__(self, filename, mode='r', file_pattern='*', step_pattern='(\d*)'):
-        TrajectoryBase.__init__(self, filename, mode)
+        TrajectoryBase.__init__(self, filename.rstrip('/'), mode)
         self.file_pattern = file_pattern
         self.step_pattern = step_pattern
         if mode == 'r':
