@@ -97,7 +97,7 @@ class RumdBackend(object):
             fh.write('%d' % self.steps)
 
     def read_checkpoint(self):
-        log.debug('reading own restart file %s', f)
+        log.debug('reading own restart file %s', self.output_path + '.chk')
         self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
         with open(self.output_path + '.chk.step') as fh:
             self.steps = int(fh.read())
