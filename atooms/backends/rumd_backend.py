@@ -28,7 +28,7 @@ class RumdBackend(object):
         # Keep a reference of the Trajectory backend class
         self.trajectory = Trajectory
         # Setup internal rumd simulation instance. It is exposed as rumd_simulation.
-        self.rumd_simulation = rumdSimulation(input_file)
+        self.rumd_simulation = rumdSimulation(input_file, verbose=False)
         self.rumd_simulation.SetVerbose(False)
         self.rumd_simulation.sample.SetVerbose(False)
         self.rumd_simulation.sample.EnableBackup(False)
