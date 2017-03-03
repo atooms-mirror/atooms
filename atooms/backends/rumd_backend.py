@@ -101,7 +101,7 @@ class RumdBackend(object):
         self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
         with open(self.output_path + '.chk.step') as fh:
             self.steps = int(fh.read())
-        log.info('backend rumd restarting from %d', self.steps)
+        log.info('restarting backend from step %d', self.steps)
 
     def run_pre(self, restart):
         # Copy of initial state. This way even upon repeated calls to
