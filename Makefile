@@ -1,3 +1,7 @@
+COMMIT = $$(git describe --abbrev=6 --always 2>/dev/null || echo 0)
+COMMIT_DIRTY = $$(git describe --abbrev=6 --dirty --always 2>/dev/null || echo 0)
+DATE=$$(git show -s --format=%ci $(COMMIT))
+
 .PHONY: all dist test todo todo_critical dist_rumd install clean
 
 all: version
@@ -22,7 +26,8 @@ dist_rumd:
 	tar cvf adapter_rumd.tar tests/test_adapters.py atooms/adapters/rumd.py
 
 version:
-	cd atooms; make; cd ..
+	@echo __commit__ = \'$(COMMIT_DIRTY)\' > atooms/core/_commit.py
+	@echo __date__ = \'$(DATE)\' >> atooms/core/_commit.py
 
 install: version
 	python setup.py install --user
