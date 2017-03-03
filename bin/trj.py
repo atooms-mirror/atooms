@@ -24,12 +24,25 @@ def available_formats():
         txt += fmt % (name, docline)
     return txt
 
+def info(trajectory):
+    print 'path            :', trajectory.filename
+    print 'format          :', trajectory.__class__
+    print 'number of steps :', len(trajectory)
+    print 'final step      :', trajectory.steps[-1]
+    print 'final time      :', trajectory.times[-1]
+    print 'timestep        :', trajectory.timestep
+    print 
+
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
     if args.file_out == '-':
         args.file_out = '/dev/stdout'
 
     t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
+
+    if args.info:
+        info(t)
+        return
 
     # If no output format is provided we use the input one
     if args.out is None:
@@ -100,6 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('-T', '--temperature', dest='temperature', type=float, default=None, help='new temperature')
     parser.add_argument(      '--precision', dest='precision', type=int, default=None, help='write precision')
     parser.add_argument(      '--alphabetic',dest='alphabetic_ids', action='store_true', help='reassign names alphabetically')
+    parser.add_argument(      '--info', dest='info', action='store_true', help='print info')
     parser.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
     parser.add_argument(nargs='?', dest='file_out', default='-', help='output file')
     args = parser.parse_args()
