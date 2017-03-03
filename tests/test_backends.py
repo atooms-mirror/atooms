@@ -54,17 +54,16 @@ class TestBackendRUMD(unittest.TestCase):
         with open(self.finp, 'w') as fh:
             fh.write(xyz)
 
-        self.sim = rumdSimulation(self.finp, verbose=False)
-        self.sim.SetOutputScheduling("energies", "none")
-        self.sim.SetOutputScheduling("trajectory", "none")
-        self.sim.sample.SetOutputDirectory(self.dout)
-        self.sim.suppressAllOutput = True
+        self.backend = Backend(self.finp)
+        self.sim = self.backend.rumd_simulation
+        self.backend.rumd_simulation.sample.SetOutputDirectory(self.dout)
+        self.backend.rumd_simulation.suppressAllOutput = True
         p = rumd.Pot_LJ_12_6(cutoff_method = rumd.ShiftedPotential)
         p.SetVerbose(False)
         p.SetParams(0, 0, 1., 1., 2.5)
-        self.sim.SetPotential(p)
-        i = rumd.IntegratorNVT(targetTemperature=2.0, timeStep=0.002)
-        self.sim.SetIntegrator(i)
+        self.backend.rumd_simulation.SetPotential(p)
+        itg = rumd.IntegratorNVT(targetTemperature=2.0, timeStep=0.002)
+        self.backend.rumd_simulation.SetIntegrator(itg)
 
         self.finp2 = '/tmp/test_adapter_rumd_in2.xyz'
         with open(self.finp2, 'w') as fh:
@@ -124,25 +123,25 @@ class TestBackendRUMD(unittest.TestCase):
             self.assertEqual(t.steps, [1])
 
     def test_simulation(self):
-        s = Simulation(Backend(self.sim), self.dout, steps = 1)
+        s = Simulation(self.backend, self.dout, steps = 1)
         system = System(self.sim.sample)
         s.system = system
         s.run()
 
     def test_rmsd(self):
-        s = Simulation(Backend(self.sim), self.dout, steps = 1)
+        s = Simulation(self.backend, self.dout, steps = 1)
         s.run()
         self.assertGreater(s.rmsd, 0.0)
 
     def test_target_rmsd(self):
-        s = Simulation(Backend(self.sim), self.dout, steps=sys.maxint)
+        s = Simulation(self.backend, self.dout, steps=sys.maxint)
         s.add(TargetRMSD(0.3), Scheduler(10))
         s.run()
         self.assertGreater(s.steps, 1)
         self.assertGreater(s.rmsd, 0.3)
 
     def test_checkpoint(self):
-        s = Simulation(Backend(self.sim), self.dout, steps = 10, checkpoint_interval = 10)
+        s = Simulation(self.backend, self.dout, steps = 10, checkpoint_interval = 10)
         s.run()
         # TODO: this will fail, change test for existence of chk file
         # self.assertTrue(os.path.exists(s.trajectory.filename + '.chk'))
