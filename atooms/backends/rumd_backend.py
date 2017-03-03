@@ -42,7 +42,6 @@ class RumdBackend(object):
         # We expect a function that returns a list of potentials
         if potential is not None:
             for pot in potential():
-                pot.SetVerbose(False)
                 self.rumd_simulation.AddPotential(pot)
         # Wrap some rumd integrators.
         if integrator is not None:
