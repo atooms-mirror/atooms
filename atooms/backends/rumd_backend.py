@@ -18,32 +18,50 @@ log = logging.getLogger(__name__)
 
 class RumdBackend(object):
 
-    def __init__(self, sim, output_path=None, fixcm_interval=0):
+    # TODO: add switch to use RUMD checkpoint
+
+    def __init__(self, input_file, potential=None,
+                 integrator=None, temperature=None, dt=0.001,
+                 output_path=None, fixcm_interval=0):
         self.steps = 0
-        self.fixcm_interval = fixcm_interval
-        self._sim = sim
-        self._sim.sample.EnableBackup(False)
-        self._sim.sample.SetVerbose(False)
-        self._sim.SetVerbose(False)
-        self._sim.SetMomentumResetInterval(self.fixcm_interval)
         self.output_path = output_path
-        # TODO: need some switch to use or not RUMD checkpoint. If checkpoint_interval is set e.g. we suppress RUMD's one
         # Keep a reference of the Trajectory backend class
         self.trajectory = Trajectory
+        # Setup internal rumd simulation instance. It is exposed as rumd_simulation.
+        self.rumd_simulation = rumdSimulation(input_file)
+        self.rumd_simulation.SetVerbose(False)
+        self.rumd_simulation.sample.SetVerbose(False)
+        self.rumd_simulation.sample.EnableBackup(False)
+        self.rumd_simulation.SetVerbose(False)
+        self.rumd_simulation.SetMomentumResetInterval(fixcm_interval)
+        self.rumd_simulation.SetBlockSize(sys.maxint)
+        # By default we mute RUMD output.
+        self.rumd_simulation.SetOutputScheduling("energies", "none")
+        self.rumd_simulation.SetOutputScheduling("trajectory", "none")
+        # We expect a function that returns a list of potentials
+        if potential is not None:
+            for pot in potential():
+                self.rumd_simulation.AddPotential(pot)
+        # Wrap some rumd integrators.
+        if integrator is not None:
+            if integrator in ['nvt', 'NVT']:
+                itg = rumd.IntegratorNVT(targetTemperature=temperature, 
+                                         timeStep=dt)
+            elif integrator in ['nve', 'NVE']:
+                itg = rumd.IntegratorNVE(timeStep=dt)
+            self.rumd_simulation.SetIntegrator(itg)
+        
         # Copy of initial state (it is not always enough to do it in run_pre())
-        self._initial_sample = self._sim.sample.Copy()
-        # We set RUMD block to infinity unless the user set it already
-        if self._sim.blockSize is None:
-            self._sim.SetBlockSize(sys.maxint)
+        self._initial_sample = self.rumd_simulation.sample.Copy()
         # Handle output
         self._suppress_all_output = True
         self._restart = False # internal restart toggle
 
     def _get_system(self):
-        return System(self._sim.sample)
+        return System(self.rumd_simulation.sample)
 
     def _set_system(self, value):
-        self._sim.sample = value.sample
+        self.rumd_simulation.sample = value.sample
 
     system = property(_get_system, _set_system, 'System')
 
@@ -58,14 +76,14 @@ class RumdBackend(object):
     def rmsd(self):
         """ Compute the mean square displacement between actual sample and the reference sample """
         # TODO: not sure it is the backend responsibility
-        if self._sim.sample is self._initial_sample:
+        if self.rumd_simulation.sample is self._initial_sample:
             raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
         ndim = 3 # hard coded
-        N = self._sim.sample.GetNumberOfParticles()
-        L = [self._sim.sample.GetSimulationBox().GetLength(i) for i in range(ndim)]
+        N = self.rumd_simulation.sample.GetNumberOfParticles()
+        L = [self.rumd_simulation.sample.GetSimulationBox().GetLength(i) for i in range(ndim)]
         # Unfold positions using periodic image information
         ref = self._initial_sample.GetPositions() + self._initial_sample.GetImages() * L
-        unf = self._sim.sample.GetPositions() + self._sim.sample.GetImages() * L
+        unf = self.rumd_simulation.sample.GetPositions() + self.rumd_simulation.sample.GetImages() * L
         return (sum(sum((unf-ref)**2)) / N)**0.5
 
     def write_checkpoint(self):
@@ -79,7 +97,7 @@ class RumdBackend(object):
 
     def read_checkpoint(self):
         log.debug('reading own restart file %s', f)
-        self._sim.sample.ReadConf(self.output_path + '.chk')
+        self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
         with open(self.output_path + '.chk.step') as fh:
             self.steps = int(fh.read())
         log.info('backend rumd restarting from %d', self.steps)
@@ -88,19 +106,19 @@ class RumdBackend(object):
         # Copy of initial state. This way even upon repeated calls to
         # run() we still get the right rmsd Note restart is handled
         # after this, so sample here is really the initial one.
-        self._initial_sample = self._sim.sample.Copy()
+        self._initial_sample = self.rumd_simulation.sample.Copy()
         self._restart = restart
         self._rumd_block_index = None
 
         if self.output_path is not None:
-            self._sim.sample.SetOutputDirectory(self.output_path + '/rumd')
+            self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
 
         if not self._restart:
             # We initialize RUMD writers state. Since we make 0 steps,
             # this won't create the output dir Note: RUMD complains if
             # we attempt to run some steps and we dont suppress output
             # without initializing the writers.
-            self._sim.Run(0, suppressAllOutput=True, initializeOutput=True)
+            self.rumd_simulation.Run(0, suppressAllOutput=True, initializeOutput=True)
         else:
             log.debug('restart attempt')
             if self.output_path is None:
@@ -152,13 +170,13 @@ class RumdBackend(object):
         log.debug('RUMD running from %d to %d steps', self.steps, steps)
         if self._rumd_block_index is not None:
             # Restart from RUMD checkpoint
-            self._sim.Run(steps, restartBlock=self._rumd_block_index)
+            self.rumd_simulation.Run(steps, restartBlock=self._rumd_block_index)
         else:
             # Not restarting or restart from our checkpoint.
             if self._restart:
                 # We must toggle it here to prevent future calls to pre to restart. TODO: why??
                 self._restart = False
-            self._sim.Run(steps-self.steps, suppressAllOutput=self._suppress_all_output, initializeOutput=False)
+            self.rumd_simulation.Run(steps-self.steps, suppressAllOutput=self._suppress_all_output, initializeOutput=False)
             self.steps = steps
 
 
@@ -347,30 +365,6 @@ class Trajectory(object):
         if os.path.exists(self.filename + '.gz'):
             os.system("gunzip -f %s.gz" % self.filename)
 
-
-def single(sim_input, potential=None, T=None, dt=0.001, interval_energy=None, interval_config=None):
-
-    if type(sim_input) is str:
-        sim = rumdSimulation(sim_input)
-        for pot in potential():
-            sim.AddPotential(pot)
-    else:
-        sim = sim_input
-
-    itg = rumd.IntegratorNVT(targetTemperature=T, timeStep=dt)
-    sim.sample.SetVerbose(False)
-    sim.SetVerbose(False)
-    sim.SetIntegrator(itg)
-    sim.SetMomentumResetInterval(10000)
-    sim.SetOutputScheduling("energies", "none")
-    sim.SetOutputScheduling("trajectory", "none")
-    if interval_energy is not None:
-        sim.SetOutputScheduling("energies", "linear", interval=interval_energy)
-    if interval_config is not None:
-        sim.SetOutputScheduling("trajectory", "linear", interval=interval_config)
-
-    return sim
-
 def multi(input_file, potential, T, dt):
     from atooms.utils import size, rank, barrier
 
@@ -394,13 +388,3 @@ def multi(input_file, potential, T, dt):
 
     return sim
 
-# Forcefields
-
-def kalj():
-    pot = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
-    pot.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
-    pot.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
-    pot.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
-    pot.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
-    pot.SetVerbose(False)
-    return [pot]
