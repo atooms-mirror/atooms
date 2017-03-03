@@ -36,11 +36,13 @@ class RumdBackend(object):
         self.rumd_simulation.SetMomentumResetInterval(fixcm_interval)
         self.rumd_simulation.SetBlockSize(sys.maxint)
         # By default we mute RUMD output.
+        # self.rumd_simulation.sample.SetOutputDirectory(output_path)
         self.rumd_simulation.SetOutputScheduling("energies", "none")
         self.rumd_simulation.SetOutputScheduling("trajectory", "none")
         # We expect a function that returns a list of potentials
         if potential is not None:
             for pot in potential():
+                pot.SetVerbose(False)
                 self.rumd_simulation.AddPotential(pot)
         # Wrap some rumd integrators.
         if integrator is not None:
