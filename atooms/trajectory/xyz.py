@@ -454,6 +454,15 @@ class TrajectoryXYZ(TrajectoryBase):
             cell = self._cell
         return System(particle, cell)
 
+    def read_timestep(self):
+        meta = self._read_metadata(0)
+        if 'dt' in meta:
+            return meta['dt']
+        elif 'timestep' in meta:
+            return meta['timestep']
+        else:
+            return 1.0
+
     def _comment_header(self, step, system):
         # Comment line: concatenate metadata
         line = 'step:%d ' % step
