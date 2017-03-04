@@ -200,9 +200,6 @@ def update_velocity(particle, data, meta):
     particle.velocity = numpy.array(data[0:ndim], dtype=float)
     return data[ndim:]
 
-# def update(particle, data, what):
-#     particle.gettatr(what) = tipify(data)
-
 def _optimize_fmt(fmt):
     if 'x' in fmt:
         fmt[fmt.index('x')] = 'pos'
@@ -424,12 +421,12 @@ class TrajectoryXYZ(TrajectoryBase):
         meta = self._read_metadata(sample)
         if 'columns' in meta:
             fmt = meta['columns']
+            # Fix single column
+            if type(fmt) != list:
+                fmt = [fmt]
         else:
             fmt = self.fmt
         fmt = _optimize_fmt(fmt)
-        # Add null callbacks for missing fmt entries
-        for key in [key for key in fmt if key not in self.callback_read]:
-            self.callback_read[key] = None
 
         # Read sample now
         self.trajectory.seek(self._index_sample[sample])
@@ -438,9 +435,12 @@ class TrajectoryXYZ(TrajectoryBase):
             p = Particle()
             data = self.trajectory.readline().split()
             for key in fmt:
-                if self.callback_read[key] is not None:
+                # If the key is associated to a explicit callback, go for it.
+                # Otherwise we throw the field in an particle attribute named key.
+                if key in self.callback_read:
                     data = self.callback_read[key](p, data, meta)
                 else:
+                    p.__dict__[key] = tipify(data[0])
                     data = data[1:]
             particle.append(p)
         # Now we fix ids and other metadata
