@@ -365,27 +365,3 @@ class Trajectory(object):
         # This only unzips files with no step info
         if os.path.exists(self.filename + '.gz'):
             os.system("gunzip -f %s.gz" % self.filename)
-
-def multi(input_file, potential, T, dt):
-    from atooms.utils import size, rank, barrier
-
-    # Create simulation and integrators
-    for i in range(size):
-        if i == rank:
-            sim = [rumdSimulation(f) for f in input_file]
-        barrier()
-    igt = [rumd.IntegratorNVT(targetTemperature=Ti, timeStep=dti) for Ti, dti in zip(T, dt)]
-
-    # Add potentials
-    for s in sim:
-        s.SetOutputScheduling("energies", "none")
-        s.SetOutputScheduling("trajectory", "none")
-        for p in potential():
-            s.AddPotential(p)
-
-    for s, i in zip(sim, igt):
-        s.SetMomentumResetInterval(0)
-        s.SetIntegrator(i)
-
-    return sim
-
