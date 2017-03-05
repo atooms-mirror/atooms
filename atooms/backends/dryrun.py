@@ -34,6 +34,9 @@ class DryRunBackend(object):
 
 class System(object):
 
+    def __init__(self):
+        self.thermostat = Thermostat()
+
     def potential_energy(self):
         return 0.
 
@@ -45,10 +48,6 @@ class System(object):
 
     def mean_square_displacement(self, reference):
         return 0.
-
-    @property
-    def thermostat(self):
-        return Thermostat()
 
 
 class Thermostat(object):
