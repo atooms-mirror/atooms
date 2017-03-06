@@ -6,60 +6,57 @@ Atooms is a python framework for particle-based simulations. It makes it easy to
 Quick start
 -----------
 
-This simple example will show how to manipulate particles from a trajectory file. Accessing the coordinates of the first particle in your system goes like this
+This simple example will show how to manipulate particles from a trajectory file and run a simulation using one of the molecular dynamics backends. Accessing the coordinates of the particles in your system goes like this:
 ```python
 from atooms.trajectory import Trajectory
 
 for system in Trajectory('input.xyz'):
     print 'The position of particle 0 is', system.particle[0].position
 ```
-In this example, the trajectory format (xyz) will be simply guessed from the file extension.
 
-Let us change the density of the final configuration to unity
+Let us change the density of the final configuration to unity:
 ```python
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
     system.density = 1.0
 ```
-Note that trajectories composed by multiple samples support iteration and slicing, just like lists.
+Note how trajectories with multiple frames support iteration and slicing, just like lists.
 
-Now we create a new trajectory file containing this "rescaled" configuration
+We store this new configuration in a trajectory file suitable for RUMD:
 ```python
-from atooms.trajectory import TrajectoryXYZ
+from atooms.trajectory import TrajectoryRUMD
 
-with TrajectoryXYZ('output.xyz', 'w') as trajectory:
+with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
     trajectory.write(system, step=0)
 ```
-Here, we explicitly used the `TrajectoryXYZ` class instead of the factory class `Trajectory`.
 
-We are ready to start a simulation from the rescaled configuration. We must specify which backend will carry out the simulation and pass it to a Simulation instance
+We are ready to start an NVE simulation from the rescaled configuration:
+
 ```python
-from atooms.backends.dryrun import DryRunBackend
+from atooms.backends.rumd import RumdBackend
 from atooms.simulation import Simulation
 
-backend = DryRunBackend(system)
+backend = RumdBackend('rescaled.xyz.gz', output_path='/tmp/output_dir', integrator='nve')
 sim = Simulation(backend)
 sim.run(steps=10000)
 print sim.system.temperature, sim.system.density
 ```
-The DryRunBackend is just a dummy backend and won't do any actual simulation. Check out the available backends in the `backend` package or write your own!
-
 
 Trajectory conversion
 ---------------------
-Atooms ships with a command line tool to convert between various trajectory formats. For instance, the following command will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
+Atooms provides a command line tool to convert between various trajectory formats. The following command will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
 
 ```bash
 $ trj.py -i rumd -o xyz input.xyz.gz output.xyz
 ```
-If you don't specifiy the output file path, the trajectory will be written to standard output.
+If you don't specify the output path, the trajectory is written to standard output. This useful for quick inspection of complex trajectory formats or for piping into sed / awk.
 
-`trj.py` has various options to control the format of the output file. For instance, it is possible to include the particles' velocities in the output file by changing the output fields
+`trj.py` has various options to control the format of the output file. For instance, it is possible to include the particles' velocities in the output file by changing the output fields:
 
 ```bash
 $ trj.py -i rumd -o xyz --fmt-fields 'id,pos,vel' input.xyz.gz output.xyz
 ```
-Type `trj.py --help` to get a list of available trjactory formats.
+Type `trj.py --help` to get a list of options and supported trajectory formats.
 
 
 Custom trajectory formats 
@@ -69,10 +66,10 @@ existing trajectory classes. Just create a package called
 `atooms_plugins` and add your trajectory modules there. They will be automatically
 available to all client codes that use atooms.
 
-Suppose you added a custom trajectory class `TrajectoryABC` to
+Suppose you wrote a custom trajectory class `TrajectoryABC` in
 `atooms_plugins/test.py` (the last path is relative to the current
-directory). You can convert an existing xyz trajectory to your custom
-format like this
+directory). You can now convert an existing xyz trajectory to your custom
+format:
 
 ```bash
 $ trj.py output.xyz output.abc
