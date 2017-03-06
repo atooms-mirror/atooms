@@ -6,7 +6,7 @@ Atooms is a python framework for particle-based simulations. It makes it easy to
 Quick start
 -----------
 
-This simple example shows how to modify particles' properties and how to run a simulation using the RUMD backend. 
+This simple example shows how to modify particles' properties and how to run a simulation using the [RUMD](http://rumd.org) backend. 
 Accessing the coordinates of the particles in a trajectory file goes like this:
 ```python
 from atooms.trajectory import Trajectory
