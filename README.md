@@ -6,7 +6,8 @@ Atooms is a python framework for particle-based simulations. It makes it easy to
 Quick start
 -----------
 
-This simple example will show how to manipulate particles from a trajectory file and run a simulation using one of the molecular dynamics backends. Accessing the coordinates of the particles in your system goes like this:
+This simple example shows how to modify particles' properties and how to run a simulation using the RUMD backend. 
+Accessing the coordinates of the particles in a trajectory file goes like this:
 ```python
 from atooms.trajectory import Trajectory
 
@@ -31,15 +32,21 @@ with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
 ```
 
 We are ready to start an NVE simulation from the rescaled configuration:
-
 ```python
 from atooms.backends.rumd import RumdBackend
 from atooms.simulation import Simulation
 
-backend = RumdBackend('rescaled.xyz.gz', output_path='/tmp/output_dir', integrator='nve')
+backend = RumdBackend('rescaled.xyz.gz', forcefield_file='lj_rumd.py', 
+                      output_path='/tmp/output_dir', integrator='nve')
 sim = Simulation(backend)
 sim.run(steps=10000)
 print sim.system.temperature, sim.system.density
+```
+The forcefield file `lj_rumd.py` must contain a list of RUMD potentials (available in `data/`).
+
+The same simulation can be ran from the command line using the wrapper `bin/md.py`:
+```shell
+ bin/md.py -i rescaled.xyz.gz --ff lj_rumd.py -n 10000 -I nve /tmp/output_dir
 ```
 
 Trajectory conversion
@@ -49,7 +56,7 @@ Atooms provides a command line tool to convert between various trajectory format
 ```bash
 $ trj.py -i rumd -o xyz input.xyz.gz output.xyz
 ```
-If you don't specify the output path, the trajectory is written to standard output. This useful for quick inspection of complex trajectory formats or for piping into sed / awk.
+If you don't specify the output path, the trajectory is written to standard output. This is useful for quick inspection of complex trajectory formats or for piping into sed / awk.
 
 `trj.py` has various options to control the format of the output file. For instance, it is possible to include the particles' velocities in the output file by changing the output fields:
 
