@@ -33,6 +33,7 @@ def info(trajectory):
     print 'final step           :', trajectory.steps[-1]
     print 'final time           :', trajectory.times[-1]
     print 'timestep             :', trajectory.timestep
+    print 'block period         :', trajectory.block_period
     print 'grandcanonical       :', trajectory.grandcanonical
 
 def main(args):
