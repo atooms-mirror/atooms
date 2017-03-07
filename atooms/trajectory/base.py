@@ -143,6 +143,10 @@ class TrajectoryBase(object):
         if cbk not in self.callbacks:
             self.callbacks.append([cbk, args, kwargs])
 
+    def add_callback(self, cbk, *args, **kwargs):
+        """Same as register_callback."""
+        self.register_callback(cbk, *args, **kwargs)
+
     # To read/write timestep and block period sublcasses may implement
     # these methods. The default is dt=1 and blockperiod determined dynamically.
     def read_timestep(self):
