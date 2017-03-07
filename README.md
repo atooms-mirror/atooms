@@ -6,47 +6,29 @@ Atooms is a python framework for particle-based simulations. It makes it easy to
 Quick start
 -----------
 
-This simple example shows how to modify particles' properties and how to run a simulation using the [RUMD](http://rumd.org) backend. 
-Accessing the coordinates of the particles in a trajectory file goes like this:
+The idea is to provide a convenient interface to the basic objects at the core of molecular dynamics or Monte Carlo simulations.
+In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format). Accessing the coordinates of the particles in a trajectory file goes like this:
 ```python
 from atooms.trajectory import Trajectory
 
-for system in Trajectory('input.xyz'):
-    print 'The position of particle 0 is', system.particle[0].position
+with Trajectory('input.xyz') as trajectory:
+    for system in trajectory:
+        print 'The position of particle 0 is', system.particle[0].position
 ```
+Note that trajectories support iteration and slicing, just like lists. 
 
-Let us change the density of the final configuration to unity:
+We can modify the density of the final configuration to unity and store this new configuration in a different trajectory format. Here we use a format suitable for the [RUMD](http://rumd.org) backend:
 ```python
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
-    system.density = 1.0
-```
-Note how trajectories with multiple frames support iteration and slicing, just like lists.
+    factor = (system.density / rho)**(1./3)
+    for particle in system.particle:
+        particle.position *= factor
+    system.cell.side *= factor
 
-We store this new configuration in a trajectory file suitable for RUMD:
-```python
 from atooms.trajectory import TrajectoryRUMD
-
-with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
+with TrajectoryRUMD('trajectory.xyz.gz', 'w') as trajectory:
     trajectory.write(system, step=0)
-```
-
-We are ready to start an NVE simulation from the rescaled configuration:
-```python
-from atooms.backends.rumd import RumdBackend
-from atooms.simulation import Simulation
-
-backend = RumdBackend('rescaled.xyz.gz', forcefield_file='lj_rumd.py', 
-                      output_path='/tmp/output_dir', integrator='nve')
-sim = Simulation(backend)
-sim.run(steps=10000)
-print sim.system.temperature, sim.system.density
-```
-The forcefield file `lj_rumd.py` must contain a list of RUMD potentials (available in `data/`).
-
-The same simulation can be ran from the command line using the wrapper `bin/md.py`:
-```shell
- bin/md.py -i rescaled.xyz.gz --ff lj_rumd.py -n 10000 -I nve /tmp/output_dir
 ```
 
 Trajectory conversion
@@ -54,22 +36,15 @@ Trajectory conversion
 Atooms provides a command line tool to convert between various trajectory formats. The following command will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
 
 ```bash
-$ trj.py -i rumd -o xyz input.xyz.gz output.xyz
+$ trj.py -i rumd -o xyz trajectory.xyz.gz output.xyz
 ```
 If you don't specify the output path, the trajectory is written to standard output. This is useful for quick inspection of complex trajectory formats or for piping into sed / awk.
 
-`trj.py` has various options to control the format of the output file. For instance, it is possible to include the particles' velocities in the output file by changing the output fields:
-
-```bash
-$ trj.py -i rumd -o xyz --fmt-fields 'id,pos,vel' input.xyz.gz output.xyz
-```
-Type `trj.py --help` to get a list of options and supported trajectory formats.
-
+`trj.py` provides means to fine tune the format of the output file. Type `trj.py --help` to get a list of options and supported trajectory formats.
 
 Custom trajectory formats 
 -------------------------
-It is easy to add a new trajectory format by subclassing any of the
-existing trajectory classes. Just create a package called
+It is easy to add new trajectory formats by subclassing existing trajectory classes. Just create a package called
 `atooms_plugins` and add your trajectory modules there. They will be automatically
 available to all client codes that use atooms.
 
@@ -85,11 +60,22 @@ $ trj.py output.xyz output.abc
 Remember to add an empty `__init__.py` file at the root of `atooms_plugins`. 
 Actually, the `atooms_plugins` package can be put anywhere in your `PYTHONPATH`.
 
-Additional features
+Simulation backends
 -------------------
-- High-level access to simulation objects
-- Generic simulation interface with callback logic
-- Efficient simulation backends, e.g. RUMD
+
+Atooms has a generic simulation interface with callback logic that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation "backend" that exposes a minimal but unified interface. This is a quick example how to run 10000 molecular dynamics steps using the [RUMD](http://rumd.org) backend:
+
+```python
+from atooms.backends.rumd import RumdBackend
+from atooms.simulation import Simulation
+
+backend = RumdBackend('rescaled.xyz.gz', forcefield_file='lj_rumd.py', 
+                      output_path='/tmp/outdir', integrator='nve')
+sim = Simulation(backend)
+sim.run(10000)
+print 'Final temperature and density', sim.system.temperature, sim.system.density
+```
+The forcefield file `lj_rumd.py` (available in `data/`) defines the interaction potential.
 
 
 Installation
