@@ -31,6 +31,20 @@ with TrajectoryRUMD('trajectory.xyz.gz', 'w') as trajectory:
     trajectory.write(system, step=0)
 ```
 
+Installation
+------------
+From the python package index [coming up soon!]
+```
+pip install atooms
+```
+
+Alternatively, from the code repository
+```
+git clone https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms.git
+cd atooms
+make install
+```
+
 Trajectory conversion
 ---------------------
 Atooms provides a command line tool to convert between various trajectory formats. The following command will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
@@ -79,24 +93,9 @@ print 'Final temperature and density', sim.system.temperature, sim.system.densit
 ```
 The forcefield file `lj_rumd.py` (available in `data/`) defines the interaction potential.
 
-
-Installation
-------------
-From the python package index [coming up soon!]
-```
-pip install atooms
-```
-
-Alternatively, from the code repository
-```
-git clone https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms.git
-cd atooms
-make install
-```
-
 Additional packages 
 -------------------
-atooms is composable: it is easy to add new functionalities, and just those you actually need.
+Atooms is composable: it is easy to add new functionalities, and just those you actually need.
 Additional packages are available from the [atooms main repository](https://gitlab.info-ufr.univ-montp2.fr/atooms).
 These packages will be installed in the atooms namespace to prevent name clashing.
 
