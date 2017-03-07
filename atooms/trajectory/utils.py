@@ -4,6 +4,7 @@ import os
 import tarfile
 import gzip
 import re
+import numpy
 
 def gopen(filename, mode):
     """Open a file recognizing gzipped and bzipped files by extension."""
