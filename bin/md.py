@@ -11,12 +11,9 @@ def main(params):
     # TODO: dump params to a file in output_dir
     if params.verbose:
         setup_logging(level=10)
-    with open(params.forcefield) as f:
-        exec(f.read())
-    potential = locals()['_potential']
     if params.T is not None:
         params.integrator = 'nvt'
-    s = RumdBackend(params.input_file, potential,
+    s = RumdBackend(params.input_file, params.forcefield,
                     integrator=params.integrator,
                     temperature=params.T, dt=params.dt)
     sa = Simulation(s, output_path=os.path.join(params.output_dir, 'trajectory'),

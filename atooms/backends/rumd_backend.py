@@ -20,7 +20,7 @@ class RumdBackend(object):
 
     # TODO: add switch to use RUMD checkpoint
 
-    def __init__(self, input_file, potential=None,
+    def __init__(self, input_file, forcefield_file=None,
                  integrator=None, temperature=None, dt=0.001,
                  output_path=None, fixcm_interval=0):
         self.steps = 0
@@ -39,10 +39,10 @@ class RumdBackend(object):
         # self.rumd_simulation.sample.SetOutputDirectory(output_path)
         self.rumd_simulation.SetOutputScheduling("energies", "none")
         self.rumd_simulation.SetOutputScheduling("trajectory", "none")
-        # We expect a function that returns a list of potentials
-        if potential is not None:
-            for pot in potential():
-                self.rumd_simulation.AddPotential(pot)
+        # We parse the forcefield file. 
+        # It should provide a list of potentials named forcefield
+        if forcefield_file is not None:
+            self._parse_forcefield(forcefield_file)
         # Wrap some rumd integrators.
         if integrator is not None:
             if integrator in ['nvt', 'NVT']:
@@ -57,6 +57,14 @@ class RumdBackend(object):
         # Handle output
         self._suppress_all_output = True
         self._restart = False # internal restart toggle
+
+    def _parse_forcefield(self, forcefield_file):
+        with open(forcefield_file) as fh:
+            exec(fh.read())
+        if not 'potential' in locals():
+            raise ValueError('forcefield file should contain a list of potentials named potential')
+        for pot in potential:
+            self.rumd_simulation.AddPotential(pot)
 
     def _get_system(self):
         return System(self.rumd_simulation.sample)
