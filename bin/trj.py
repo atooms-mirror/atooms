@@ -91,6 +91,7 @@ def main(args):
                               exclude=args.fmt_exclude.split(','))
 
     if args.ff:
+        from atooms.trajectory.hdf5 import add_interaction_hdf5
         add_interaction_hdf5(fout, args.ff)
     
     if args.file_out != '/dev/stdout':

@@ -42,9 +42,6 @@ def add_interaction_hdf5(finp, ff, tag=None):
     import glob
     import h5py
 
-    if os.path.exists(ff):
-        raise IOError('force field file does not exist')
-
     pid = os.getpid()
     f_ref = '/tmp/cnv_%s.h5' % pid
     # TODO: we can cache a ref file if ff is the same
