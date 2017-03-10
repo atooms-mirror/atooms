@@ -21,6 +21,7 @@ try:
     from .hdf5 import TrajectoryHDF5
 except:
     pass
+from .ram import TrajectoryRam
 
 # We build an instance of trajectory factory here and update the
 # trajectory classes. Client code can update the factory with new
