@@ -231,11 +231,9 @@ class Simulation(object):
                 if self.steps == next_checkpoint:
                     self.write_checkpoint()
 
-        except SimulationEnd as err:
-
+        except SimulationEnd:
             # Checkpoint configuration at last step
             self.write_checkpoint()
-            log.info(err.message)
             # We ignore errors due to performed steps being zero
             try:
                 self._report_end()
