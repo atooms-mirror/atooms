@@ -10,6 +10,17 @@ DEFAULT_LOGGING_FORMAT = '[%(levelname)s/%(processName)s] %(message)s'
 
 _logger = None
 
+# We define the logging handler here to avoid "No handler found" warnings.
+# Client classes should use this instead of logging.NullHandler
+import logging
+try:
+    from logging import NullHandler
+except ImportError:
+    # Python <= 2.6
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
 def log_to_stderr(level=None):
     '''
     Turn on logging and add a handler which prints to stderr
@@ -104,6 +115,7 @@ class Timer(object):
         try:
             return MPI.Wtime()
         except:
+            return time.clock()
             return 0.0
 
 

@@ -5,7 +5,8 @@ import os
 import sys
 import logging
 
-logging.getLogger(__name__).addHandler(logging.NullHandler())
+from atooms.utils import NullHandler
+logging.getLogger(__name__).addHandler(NullHandler())
 
 from .utils import convert, split
 from .base import SuperTrajectory
