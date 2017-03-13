@@ -192,7 +192,7 @@ class Simulation(object):
             self.backend.steps = 0
 
         # Targeter for max steps. Note that this will the replace an existing one.
-        self._targeter_steps = TargetSteps(self.max_steps)
+        self._targeter_steps.target = self.max_steps
         self.add(self._targeter_steps, Scheduler(self.max_steps))
 
         self.report_header()
