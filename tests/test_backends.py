@@ -160,6 +160,6 @@ class TestBackendRUMD(unittest.TestCase):
             shutil.rmtree(self.dout)
 
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    unittest.main()
 
 

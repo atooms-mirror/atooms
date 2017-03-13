@@ -72,6 +72,6 @@ A -2.9 2.9 0.0
             self.assertEqual(memo, [1])
         
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    unittest.main()
 
 

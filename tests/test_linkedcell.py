@@ -21,6 +21,6 @@ class TestLinkedCell(unittest.TestCase):
         l.compute(pos, box)
 
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    unittest.main()
 
 

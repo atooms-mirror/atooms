@@ -28,6 +28,6 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(system.density, density_old*1.1)
 
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    unittest.main()
 
 

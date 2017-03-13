@@ -229,13 +229,13 @@ ioformat=1 dt=0.005000000 boxLengths=6.000000000,6.000000000,6.000000000 numType
             self.input_file = fh.name
 
     def test_read_write(self):
-        with TrajectoryRUMD(self.input_file) as th, \
-             TrajectoryRUMD(self.input_file + 'out', 'w') as th_out:
-            self.assertEqual(th.timestep, 0.005)
-            self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
-            th_out.timestep = th.timestep
-            for i, system in enumerate(th):
-                th_out.write(system, th.steps[i])
+        with TrajectoryRUMD(self.input_file) as th:
+            with TrajectoryRUMD(self.input_file + 'out', 'w') as th_out:
+                self.assertEqual(th.timestep, 0.005)
+                self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
+                th_out.timestep = th.timestep
+                for i, system in enumerate(th):
+                    th_out.write(system, th.steps[i])
         with TrajectoryRUMD(self.input_file + 'out') as th:
             self.assertEqual(th.timestep, 0.005)
             self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
@@ -243,6 +243,6 @@ ioformat=1 dt=0.005000000 boxLengths=6.000000000,6.000000000,6.000000000 numType
 
         
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    unittest.main()
 
 

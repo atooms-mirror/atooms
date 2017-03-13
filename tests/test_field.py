@@ -18,6 +18,6 @@ class TestField(unittest.TestCase):
 #            self.assertEqual(th[1], numpy.array([-1., -2.]))
 
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    unittest.main()
 
 
