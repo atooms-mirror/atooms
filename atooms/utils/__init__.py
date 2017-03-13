@@ -192,7 +192,7 @@ def setup_logging(name=None, level=40):
     else:
         log = logging.getLogger(name)
     formatter = MyFormatter()
-    handler = logging.StreamHandler(stream=sys.stdout)
+    handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
     # From the doc: "Note that filters attached to handlers are
     # consulted before an event is emitted by the handler, whereas
