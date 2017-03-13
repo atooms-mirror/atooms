@@ -4,6 +4,7 @@
 """Simulation base class with callback logic"""
 
 import logging
-logging.getLogger(__name__).addHandler(logging.NullHandler())
+from atooms.utils import NullHandler
+logging.getLogger(__name__).addHandler(NullHandler())
 
 from .base import *

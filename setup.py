@@ -24,10 +24,10 @@ setup(name='atooms',
                 'atooms/utils'],
       scripts=['bin/trj.py'],
       license='GPLv3',
-      classifiers={
+      classifiers=[
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
           'Intended Audience :: Science/Research',
           'Programming Language :: Python',
           'Topic :: Scientific/Engineering',
-      }
+      ]
 )
