@@ -121,10 +121,11 @@ class System(object):
         # Listify input variables
         if type(what) is str:
             what_list = [what]
+            dtype_list = [dtype]
         else:
             what_list = what
-        if dtype is None:
-            dtype_list = [None] * len(what_list)
+            if dtype is None:
+                dtype_list = [None] * len(what_list)
 
         aliases = {'pos': 'particle.position', 
                    'vel': 'particle.velocity',
@@ -141,7 +142,7 @@ class System(object):
             attr = what_aliased.split('.')[-1]
             # Make array of attributes    
             if what_aliased.startswith('particle'):
-                data = numpy.array([p.__getattribute__(attr) for p in self.particle], dtype=dtype)
+                data = numpy.array([p.__getattribute__(attr) for p in self.particle], dtype=dtype, order=order)
             else:
                 raise ValueError('Unknown attribute %s' % what_aliased)
             # We transpose the array if F order is requested (only meaningful for 2d arrays)
