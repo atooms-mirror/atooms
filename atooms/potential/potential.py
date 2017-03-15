@@ -14,9 +14,12 @@ class PairPotentialBase(object):
         self.cutoff = cutoff
         self.hard_core = hard_core
         self.npoints = npoints
-        
-        # Adjust the cutoff to the potential.
-        if cutoff is not None:
+        self._adjusted = False
+
+    def _adjust(self):
+        """Adjust the cutoff to the potential."""
+        self._adjusted = True
+        if self.cutoff is not None:
             try:
                 u0, u1 = self._compute(self.cutoff.radius**2)
                 self.cutoff.tailor(self.cutoff.radius**2, u0, u1)
@@ -63,6 +66,8 @@ class PairPotentialBase(object):
         # if rsquare < self.hard_core**2:
         #     u0, u1 = float("inf"), float("inf")
         # else:
+        if not self._adjusted:
+            self._adjust()
         u0, u1 = self._compute(rsquare)
         u0, u1 = self.cutoff.smooth(rsquare, u0, u1)
         return u0, u1
