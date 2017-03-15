@@ -58,6 +58,9 @@ class Particle(object):
         self.position = periodic_vector_safe(self.position, cell.side)
         return self
 
+    def diameter(self):
+        return self.radius * 2
+
     def maxwellian(self, T):
         """
         Assign velocities to particle according to a Maxwell-Boltzmann
@@ -173,3 +176,16 @@ def rotated(particle, cell):
     theta = math.acos(numpy.dot(pr_axis, z_axis) / (norm2(pr_axis) * norm2(z_axis))**0.5)
     for pi in p:
         pi.position = numpy.dot(rotation(ro_axis, theta), pi.position)
+
+
+def overlaps(particle, cell):
+    """Check presence of overlaps between particles."""
+    x = []
+    for i, pi in enumerate(particle):
+        for j, pj in enumerate(particle):
+            if j <= i: continue
+            d = sum(pi.distance(pj, cell)**2)**0.5
+            if d < (pi.radius+pj.radius):
+                x.append((i, j))
+    return len(x) > 0, x
+
