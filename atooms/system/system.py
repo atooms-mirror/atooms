@@ -142,7 +142,7 @@ class System(object):
             attr = what_aliased.split('.')[-1]
             # Make array of attributes    
             if what_aliased.startswith('particle'):
-                data = numpy.array([p.__getattribute__(attr) for p in self.particle], dtype=dtype, order=order)
+                data = numpy.array([p.__getattribute__(attr) for p in self.particle], dtype=dtype)
             else:
                 raise ValueError('Unknown attribute %s' % what_aliased)
             # We transpose the array if F order is requested (only meaningful for 2d arrays)
