@@ -27,6 +27,14 @@ class Test(unittest.TestCase):
         system.density = density_old*1.1
         self.assertAlmostEqual(system.density, density_old*1.1)
 
+    def test_dump(self):
+        self.assertAlmostEqual(self.ref.dump('ids')[-1],
+                               self.ref.dump('particle.id')[-1])
+        self.assertAlmostEqual(self.ref.dump('pos')[-1][-1],
+                               self.ref.dump('particle.position')[-1][-1])
+        self.assertAlmostEqual(self.ref.dump('vel')[-1][-1],
+                               self.ref.dump('particle.velocity')[-1][-1])
+
 if __name__ == '__main__':
     unittest.main()
 

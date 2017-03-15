@@ -104,22 +104,66 @@ class System(object):
         for p in self.particle:
             p.velocity *= fac
 
-    def dump(self, what, dim=slice(None), pslice=slice(None), order='C'):
-        """
-        Throw pos or vel into a big (N, ndim) numpy array.
+    def dump(self, what, pslice=slice(None), order='C', dtype=None):
+        """Dump system properties into numpy arrays.
 
-        It accepts particles slice although this should be handled via
-        trajectory decorators.
+        `what` can be either a string or a list. In the latter case a
+        dict is returned. Each entry in what should be of the form
+        particle.<attribute> or cell.<attribute>. The following
+        aliases are allowed: pos, vel, ids, box.
+        
+        Particles' coordinates are thrown into (N, ndim)
+        arrays if `order` is C or (ndim, N) arrays if `order` is F.
+
+        It accepts particle slices `pslice` to filter out some
+        particles. This can be also handled via trajectory decorators.
         """
-        if what == 'pos':
-            return numpy.array([p.position[dim] for p in self.particle[pslice]], order=order)
-        elif what == 'vel':
-            return numpy.array([p.velocity[dim] for p in self.particle[pslice]], order=order)
-        elif what == 'sigma':
-            return numpy.array([p.radius*2 for p in self.particle[pslice]])
+        # Listify input variables
+        if type(what) is str:
+            what_list = [what]
+        else:
+            what_list = what
+        if dtype is None:
+            dtype_list = [None] * len(what_list)
+
+        aliases = {'pos': 'particle.position', 
+                   'vel': 'particle.velocity',
+                   'ids': 'particle.id'}
+
+        dump_db = {}
+        for what, dtype in zip(what_list, dtype_list):
+            # Accept some aliases
+            if what in aliases:
+                what_aliased = aliases[what]
+            else:
+                what_aliased = what
+            # Extract the requested attribute
+            attr = what_aliased.split('.')[-1]
+            # Make array of attributes    
+            if what_aliased.startswith('particle'):
+                data = numpy.array([p.__getattribute__(attr) for p in self.particle], dtype=dtype)
+            else:
+                raise ValueError('Unknown attribute %s' % what_aliased)
+            # We transpose the array if F order is requested (only meaningful for 2d arrays)
+            if order == 'F':
+                data = numpy.transpose(data)
+            dump_db[what] = data
+
+        # If what is a string or we only have one entry we return an
+        # array, otherwise we return the whole dict
+        if len(what_list) == 1:
+            return dump_db.values()[0]
+        else:
+            return dump_db
 
     def scale(self, factor):
         """Rescale cell and particles' coordinates by *factor*."""
         for p in self.particle:
             p.position *= factor
         self.cell.side *= factor
+
+    def report(self):
+        txt =  "number of particles: %d\n" % len(self.particle)
+        if self.cell is not None:
+            txt += "cell side: %s\n" % self.cell.side
+        return txt
