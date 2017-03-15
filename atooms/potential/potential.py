@@ -30,13 +30,17 @@ class PairPotentialBase(object):
                 # or forcefields.
                 pass              
 
-    def tabulate(self, npoints=None):
+    def tabulate(self, npoints=None, rmax=None):
         # We tabulate one point more than the cutoff, so that the value for discontinuous potential is not smoothed.
         if npoints is None:
             npoints = self.npoints
-        rcut = self.cutoff.radius
+        if self.cutoff is not None:
+            rmax = self.cutoff.radius + 0.05
+        else:
+            if rmax is None:
+                raise ValueError('rmax is needed to tabulate a cutoff-less potential')
+            
         rmin = 0.01
-        rmax = rcut+0.05
         rsq = numpy.ndarray(npoints)
         u0 = numpy.ndarray(npoints)
         u1 = numpy.ndarray(npoints)
@@ -69,11 +73,15 @@ class PairPotentialBase(object):
         if not self._adjusted:
             self._adjust()
         u0, u1 = self._compute(rsquare)
-        u0, u1 = self.cutoff.smooth(rsquare, u0, u1)
+        if self.cutoff is not None:
+            u0, u1 = self.cutoff.smooth(rsquare, u0, u1)
         return u0, u1
 
     def is_zero(self, rsquare):
-        return self.cutoff.is_zero(rsquare)
+        if self.cutoff is not None:
+            return self.cutoff.is_zero(rsquare)
+        else:
+            return False
 
 
 def NullPotential(PairPotentialBase):
