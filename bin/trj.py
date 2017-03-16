@@ -28,6 +28,7 @@ def info(trajectory):
     print 'path                 :', trajectory.filename
     print 'format               :', trajectory.__class__
     print 'number of frames     :', len(trajectory)
+    print 'number density       :', trajectory[0].density
     if len(trajectory)>1:
         print 'steps between frames :', (trajectory.steps[1]-trajectory.steps[0])
         print 'time between frames  :', (trajectory.times[1]-trajectory.times[0])
