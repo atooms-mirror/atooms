@@ -63,7 +63,7 @@ class Simulation(object):
             self.add(self.speedometer, Scheduler(None, calls=20, target=self.max_steps))
 
     def __str__(self):
-        return 'ATOOMS simulation (backend: %s)' % self.backend
+        return 'atooms simulation via %s backend' % self.backend
     
     @property
     def base_path(self):
@@ -256,6 +256,10 @@ class Simulation(object):
         log.info(txt)
         log.info('')      
         log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__.split()[0])
+        try:
+            log.info('backend version: %s', self.backend.version)
+        except:
+            pass
         log.info('simulation starts on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
         log.info('output path: %s', self.output_path)
 
