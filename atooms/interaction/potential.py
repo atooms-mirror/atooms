@@ -70,7 +70,7 @@ class PairPotential(object):
         for i in range(2,npoints):
             rsq[i] = i*drsq
             if self.is_zero(rsq[i-2]):
-                u0[i], u1[i], _ = 0, 0
+                u0[i], u1[i] = 0, 0
             else:
                 u0[i], u1[i], _ = self.compute(rsq[i])
         return rsq, u0, u1
