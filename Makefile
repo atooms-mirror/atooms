@@ -9,6 +9,13 @@ all: version
 pull:
 	git pull
 
+doc:
+        # pdoc does play nice with namespace packages
+	mv atooms/__init__.py atooms/__init__.py.bak
+	touch atooms/__init__.py
+	pdoc --overwrite --html-dir docs --html atooms
+	mv atooms/__init__.py.bak atooms/__init__.py
+
 dist:
 	python setup.py sdist
 
