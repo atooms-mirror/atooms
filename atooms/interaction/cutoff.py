@@ -25,10 +25,11 @@ class CutOff(object):
             raise NotImplementedError()
 
     def smooth(self, rsquare, u):
+        u_new = list(u)
         if self.name in ['cs', 'CS']:
-            u[0] = u[0] - self.vcut
+            u_new[0] = u[0] - self.vcut
         elif self.name in ['c', 'cut']:
             pass
         else:
             raise NotImplementedError()
-        return u
+        return u_new
