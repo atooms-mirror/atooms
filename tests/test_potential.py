@@ -11,11 +11,6 @@ from atooms.system import System
 from atooms.system.cell import Cell
 from atooms.interaction import Interaction, PairPotential, CutOff
 
-try:
-    import h5py
-    HAS_HDF5 = True
-except:
-    HAS_HDF5 = False
 
 class PairPotentialTest(unittest.TestCase):
 

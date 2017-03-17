@@ -9,9 +9,9 @@ from atooms.core import ndim
 from atooms.system import System
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
-from atooms.interaction.interaction import Interaction
-from atooms.potential.potential import PairPotential
-from atooms.potential.cutoff import CutOff
+from atooms.interaction import Interaction
+from atooms.interaction.potential import PairPotential
+from atooms.interaction.cutoff import CutOff
 
 
 class _SafeFile(h5py.File):
@@ -229,7 +229,7 @@ class TrajectoryHDF5(TrajectoryBase):
             for j, phi in enumerate(term.potential):
                 pgr = igr + '/potential_%d/' % (j+1)
                 self.trajectory.create_group_safe(pgr)
-                self.trajectory[pgr + 'potential'] = [phi.name]
+                self.trajectory[pgr + 'potential'] = [str(phi)]
                 self.trajectory[pgr + 'interacting_bodies'] = [phi.interacting_bodies]
                 self.trajectory[pgr + 'interacting_species'] = phi.species
                 self.trajectory[pgr + 'parameters_number'] = [len(phi.params)]

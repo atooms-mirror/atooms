@@ -35,11 +35,11 @@ class PairPotential(object):
         if self.func in _factory:
             self.func = _factory[func]
 
-    def __str__():
+    def __str__(self):
         if type(self.func) is str:
-            return func
+            return self.func
         else:
-            return func.__name__
+            return self.func.__name__
 
     def _adjust(self):
         """Adjust the cutoff to the potential."""

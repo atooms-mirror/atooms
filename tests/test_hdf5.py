@@ -8,7 +8,7 @@ except:
     HAS_HDF5 = False
 
 from atooms.system import System, Cell, Particle
-from atooms.interaction import Interaction, CutOff
+from atooms.interaction import Interaction, CutOff, PairPotential
 from atooms.trajectory.utils import format_output
 
 class PairPotentialTest(unittest.TestCase):
