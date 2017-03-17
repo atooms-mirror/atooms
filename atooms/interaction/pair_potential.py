@@ -1,6 +1,3 @@
-# This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
-
 import numpy
 
 class PairPotentialBase(object):
@@ -21,8 +18,8 @@ class PairPotentialBase(object):
         self._adjusted = True
         if self.cutoff is not None:
             try:
-                u0, u1 = self._compute(self.cutoff.radius**2)
-                self.cutoff.tailor(self.cutoff.radius**2, u0, u1)
+                u = self._compute(self.cutoff.radius**2)
+                self.cutoff.tailor(self.cutoff.radius**2, u)
             except NotImplementedError:
                 # If _compute() is not implemented, we ignore the error.
                 # This way we can use the base potential as a placeholder
@@ -31,7 +28,8 @@ class PairPotentialBase(object):
                 pass              
 
     def tabulate(self, npoints=None, rmax=None):
-        # We tabulate one point more than the cutoff, so that the value for discontinuous potential is not smoothed.
+        # We tabulate one point more than the cutoff, so that the
+        # value for discontinuous potential is not smoothed.
         if npoints is None:
             npoints = self.npoints
         if self.cutoff is not None:
@@ -45,22 +43,16 @@ class PairPotentialBase(object):
         u0 = numpy.ndarray(npoints)
         u1 = numpy.ndarray(npoints)
         drsq = rmax**2 / (npoints-1)
-        #for i in range(self.npoints-1,0,-1):
-        rsq[0] = 0.0
-        rsq[1] = drsq
-        u0[0], u1[0] = self.compute(rsq[1])
-        u0[1], u1[1] = self.compute(rsq[1])
+
+        rsq[0], rsq[1] = 0.0, drsq
+        u0[0], u1[0], _ = self.compute(rsq[1])
+        u0[1], u1[1], _ = self.compute(rsq[1])
         for i in range(2,npoints):
             rsq[i] = i*drsq
             if self.is_zero(rsq[i-2]):
-                u0[i], u1[i] = 0, 0
+                u0[i], u1[i], _ = 0, 0
             else:
-                u0[i], u1[i] = self.compute(rsq[i])
-        # for i in range(self.npoints):
-        #     if math.isnan(u0[i]):
-        #         u0[i] = max(u0)
-        #     if math.isnan(u1[i]):
-        #         u1[i] = max(u1)
+                u0[i], u1[i], _ = self.compute(rsq[i])
         return rsq, u0, u1
 
     def _compute(self, rsquare):
@@ -72,10 +64,10 @@ class PairPotentialBase(object):
         # else:
         if not self._adjusted:
             self._adjust()
-        u0, u1 = self._compute(rsquare)
+        u = self._compute(rsquare)
         if self.cutoff is not None:
-            u0, u1 = self.cutoff.smooth(rsquare, u0, u1)
-        return u0, u1
+            u = self.cutoff.smooth(rsquare, u)
+        return u
 
     def is_zero(self, rsquare):
         if self.cutoff is not None:
@@ -84,10 +76,22 @@ class PairPotentialBase(object):
             return False
 
 
+def lennard_jones(rsq, epsilon, sigma):
+    sigsq = sigma**2
+    u = 4 * epsilon * ((sigsq/rsq)**6 - (sigsq/rsq)**3)
+    w = 24 * epsilon * (2*(sigsq/rsq)**6 - (sigsq/rsq)**3) / rsq
+    h = 0.0
+    return u, w, h
+
 def NullPotential(PairPotentialBase):
 
-    def _compute(rsquare):
-        return 0.0, 0.0
+    def _compute(rsq):
+        return 0.0, 0.0, 0.0
+
+class LennardJones(PairPotentialBase):
+
+    def _compute(self, rsq):
+        return lennard_jones(rsq, **self.params)
 
 
 # factory method
