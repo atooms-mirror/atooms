@@ -27,7 +27,7 @@ import logging
 
 from atooms.core import __version__, __commit__, __date__
 from atooms.utils import mkdir, barrier
-from atooms.backends.dryrun import DryRunBackend
+from .backends import DryRunBackend
 from .observers import *
 
 log = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class Simulation(object):
 
     """Simulation base class."""
 
-    def __init__(self, backend, output_path=None, steps=0,
+    def __init__(self, backend=None, output_path=None, steps=0,
                  checkpoint_interval=0, enable_speedometer=False,
                  restart=False):
         """
@@ -58,6 +58,14 @@ class Simulation(object):
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
         self._targeter_steps = TargetSteps(self.max_steps)
 
+        # Make sure the dirname of output_path exists. For instance,
+        # if output_path is data/trajectory.xyz, then data/ should
+        # exist. This creates the data/ folder and its parents folders.
+        if self.output_path is not None:
+            mkdir(os.path.dirname(self.output_path))
+        if self.backend is None:
+            self.backend = DryRunBackend()
+
         # Internal variables
         self._callback = []
         self.steps = 0
@@ -67,12 +75,6 @@ class Simulation(object):
         # used to store configurations, although this is not used in base class
         self.system = self.backend.system
         self.trajectory = self.backend.trajectory
-
-        # Make sure the dirname of output_path exists. For instance,
-        # if output_path is data/trajectory.xyz, then data/ should
-        # exist. This creates the data/ folder and its parents folders.
-        if self.output_path is not None:
-            mkdir(os.path.dirname(self.output_path))
 
         self.speedometer = None
         if enable_speedometer:
