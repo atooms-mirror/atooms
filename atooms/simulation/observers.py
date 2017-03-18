@@ -105,8 +105,7 @@ def sec2time(time_interval):
     eta_h = (eta_d - int(eta_d)) * 24
     eta_m = (eta_h - int(eta_h)) * 60.0
     eta_s = (eta_m - int(eta_m)) * 60.0
-    retur
-    n '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
+    return '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
 
 
 class Speedometer(object):
