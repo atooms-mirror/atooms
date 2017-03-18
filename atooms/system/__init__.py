@@ -2,8 +2,7 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 """
-In atooms systems are composed by particles enclosed in a
-simulation cell.
+Systems are composed by particles enclosed in a simulation cell.
 """
 
 from .system import System
