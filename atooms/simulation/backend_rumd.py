@@ -14,7 +14,8 @@ from rumdSimulation import rumdSimulation
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 
-log = logging.getLogger(__name__)
+_log = logging.getLogger(__name__)
+
 
 class RumdBackend(object):
 
@@ -39,29 +40,30 @@ class RumdBackend(object):
         # self.rumd_simulation.sample.SetOutputDirectory(output_path)
         self.rumd_simulation.SetOutputScheduling("energies", "none")
         self.rumd_simulation.SetOutputScheduling("trajectory", "none")
-        # We parse the forcefield file. 
+        # We parse the forcefield file.
         # It should provide a list of potentials named forcefield
         if forcefield_file is not None:
             self._parse_forcefield(forcefield_file)
         # Wrap some rumd integrators.
         if integrator is not None:
             if integrator in ['nvt', 'NVT']:
-                itg = rumd.IntegratorNVT(targetTemperature=temperature, 
+                itg = rumd.IntegratorNVT(targetTemperature=temperature,
                                          timeStep=dt)
             elif integrator in ['nve', 'NVE']:
                 itg = rumd.IntegratorNVE(timeStep=dt)
             self.rumd_simulation.SetIntegrator(itg)
-        
+
         # Copy of initial state (it is not always enough to do it in run_pre())
         self._initial_sample = self.rumd_simulation.sample.Copy()
         # Handle output
         self._suppress_all_output = True
-        self._restart = False # internal restart toggle
+        # Internal restart toggle
+        self._restart = False
 
     def _parse_forcefield(self, forcefield_file):
         with open(forcefield_file) as fh:
             exec(fh.read())
-        if not 'potential' in locals():
+        if 'potential' not in locals():
             raise ValueError('forcefield file should contain a list of potentials named potential')
         for pot in potential:
             self.rumd_simulation.AddPotential(pot)
@@ -87,17 +89,17 @@ class RumdBackend(object):
         # TODO: not sure it is the backend responsibility
         if self.rumd_simulation.sample is self._initial_sample:
             raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
-        ndim = 3 # hard coded
+        ndim = 3  # hard coded
         N = self.rumd_simulation.sample.GetNumberOfParticles()
         L = [self.rumd_simulation.sample.GetSimulationBox().GetLength(i) for i in range(ndim)]
         # Unfold positions using periodic image information
         ref = self._initial_sample.GetPositions() + self._initial_sample.GetImages() * L
         unf = self.rumd_simulation.sample.GetPositions() + self.rumd_simulation.sample.GetImages() * L
-        return (sum(sum((unf-ref)**2)) / N)**0.5
+        return (sum(sum((unf - ref)**2)) / N)**0.5
 
     def write_checkpoint(self):
         if self.output_path is None:
-            log.warning('output_path is not set so we cannot write checkpoint  %d', self.steps)
+            _log.warning('output_path is not set so we cannot write checkpoint  %d', self.steps)
             return
         with Trajectory(self.output_path + '.chk', 'w') as t:
             t.write(self.system, None)
@@ -105,11 +107,11 @@ class RumdBackend(object):
             fh.write('%d' % self.steps)
 
     def read_checkpoint(self):
-        log.debug('reading own restart file %s', self.output_path + '.chk')
+        _log.debug('reading own restart file %s', self.output_path + '.chk')
         self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
         with open(self.output_path + '.chk.step') as fh:
             self.steps = int(fh.read())
-        log.info('restarting backend from step %d', self.steps)
+        _log.info('restarting backend from step %d', self.steps)
 
     def run_pre(self, restart):
         # Copy of initial state. This way even upon repeated calls to
@@ -129,9 +131,9 @@ class RumdBackend(object):
             # without initializing the writers.
             self.rumd_simulation.Run(0, suppressAllOutput=True, initializeOutput=True)
         else:
-            log.debug('restart attempt')
+            _log.debug('restart attempt')
             if self.output_path is None:
-                log.warn('it does not make sense to restart when writing is disabled')
+                _log.warn('it does not make sense to restart when writing is disabled')
                 return
 
             if os.path.exists(self.output_path + '.chk'):
@@ -144,7 +146,7 @@ class RumdBackend(object):
                 # when the simulation is over therefore the last block is always rerun
                 # RUMD restart file contains the block index (block_index)
                 # and the step within the block (nstep) of the most recent backup
-                log.debug('reading rumd restart %s', self.output_path + '/rumd/LastComplete_restart.txt')
+                _log.debug('reading rumd restart %s', self.output_path + '/rumd/LastComplete_restart.txt')
                 with open(self.output_path + '/rumd/LastComplete_restart.txt') as fh:
                     ibl, nstep = fh.readline().split()
                 self._rumd_block_index = int(ibl)
@@ -154,11 +156,10 @@ class RumdBackend(object):
                 restart_files = glob.glob(self.output_path + '/rumd/restart*')
                 restart_files.sort()
                 for f in restart_files[:-1]:
-                    log.debug('removing restart file %s', f)
+                    _log.debug('removing restart file %s', f)
                     os.remove(f)
             else:
-                log.warn('restart requested but no checkpoint is found')
-
+                _log.warn('restart requested but no checkpoint is found')
 
     def run_until(self, steps):
         # 1. suppress all RUMD output and use custom writers. PROS:
@@ -176,7 +177,7 @@ class RumdBackend(object):
         # If we use our own restart we must tell RUMD
         # to run only the difference n-self.steps. However, if we use
         # the native restart, we must keep n as is.
-        log.debug('RUMD running from %d to %d steps', self.steps, steps)
+        _log.debug('RUMD running from %d to %d steps', self.steps, steps)
         if self._rumd_block_index is not None:
             # Restart from RUMD checkpoint
             self.rumd_simulation.Run(steps, restartBlock=self._rumd_block_index)
@@ -185,7 +186,9 @@ class RumdBackend(object):
             if self._restart:
                 # We must toggle it here to prevent future calls to pre to restart. TODO: why??
                 self._restart = False
-            self.rumd_simulation.Run(steps-self.steps, suppressAllOutput=self._suppress_all_output, initializeOutput=False)
+            self.rumd_simulation.Run(steps - self.steps,
+                                     suppressAllOutput=self._suppress_all_output,
+                                     initializeOutput=False)
             self.steps = steps
 
 
@@ -286,9 +289,9 @@ class System(object):
                 # then get meta.GetMassOfType(i)
                 mi = self.sample.GetMass(i)
             except:
-                log.warning('cannot get mass from RUMD interface, setting to 1.0')
+                _log.warning('cannot get mass from RUMD interface, setting to 1.0')
                 mi = 1.0
-            mass[ii:ii+ni] = mi
+            mass[ii: ii + ni] = mi
             ii += ni
         return mass
 
@@ -296,14 +299,14 @@ class System(object):
         ndof = self.sample.GetNumberOfDOFs()
         vel = self.sample.GetVelocities()
         mass = self.__get_mass()
-        return 2 * numpy.sum(mass * numpy.sum(vel**2.0, 1))/ndof
+        return 2 * numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
 
     def mean_square_displacement(self, reference):
         """ Compute the mean square displacement between actual sample and the reference sample """
         if reference.sample is self.sample:
             raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
 
-        ndim = 3 # hard coded
+        ndim = 3  # hard coded
         N = self.sample.GetNumberOfParticles()
         L = [self.sample.GetSimulationBox().GetLength(i) for i in range(ndim)]
 
@@ -311,7 +314,7 @@ class System(object):
         ref = reference.sample.GetPositions() + reference.sample.GetImages() * L
         unf = self.sample.GetPositions() + self.sample.GetImages() * L
 
-        return sum(sum((unf-ref)**2)) / N
+        return sum(sum((unf - ref)**2)) / N
 
     @property
     def cell(self):
@@ -333,8 +336,8 @@ class System(object):
         ii = 0
         for i in range(nsp):
             ni = self.sample.GetNumberThisType(i)
-            spe[ii:ii+ni] = i+1
-            name[ii:ii+ni] = nmap[i]
+            spe[ii: ii + ni] = i + 1
+            name[ii: ii + ni] = nmap[i]
             ii += ni
         p = [Particle(s, n, m, p, v) for s, n, m, p, v in zip(spe, name, mass, pos, vel)]
         for pi, i in zip(p, ima):
@@ -366,7 +369,7 @@ class Trajectory(object):
             f = os.path.join(self.filename, fbase)
             if not os.path.exists(self.filename):
                 os.makedirs(self.filename)
-        log.debug('writing config via backend to %s at step %s, %s', f, step, self.mode)
+        _log.debug('writing config via backend to %s at step %s, %s', f, step, self.mode)
         system.sample.WriteConf(f, self.mode)
 
     def close(self):

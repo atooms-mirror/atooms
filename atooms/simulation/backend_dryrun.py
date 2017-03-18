@@ -74,5 +74,3 @@ class Trajectory(object):
 
     def close(self):
         pass
-
-

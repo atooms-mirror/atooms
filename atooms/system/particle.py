@@ -17,7 +17,7 @@ class Particle(object):
                  mass=1.0,
                  position=numpy.zeros(ndim),
                  velocity=numpy.zeros(ndim),
-                 radius=0.5, # sigma=1.0
+                 radius=0.5,
                  tag=None):
         self.id = id
         self.name = name
@@ -82,16 +82,16 @@ class Particle(object):
 # Utility functions
 
 def periodic_vector(vec, box):
-    #return numpy.where(abs(a) > box/2, a-numpy.copysign(box, a), a)
     for i in xrange(vec.shape[0]):
-        if vec[i] > box[i]/2:
+        if vec[i] > box[i] / 2:
             vec[i] += - box[i]
-        elif vec[i] < -box[i]/2:
+        elif vec[i] < -box[i] / 2:
             vec[i] += box[i]
+    # return numpy.where(abs(a) > box/2, a-numpy.copysign(box, a), a)
     return vec
 
 def periodic_vector_safe(vec, box):
-    return vec - numpy.rint(vec/box) * box
+    return vec - numpy.rint(vec / box) * box
 
 def periodic_vector_safe_opti(vec, box, invbox):
     return vec - numpy.rint(vec * invbox) * box
@@ -152,7 +152,7 @@ def composition(particles, nsp=None):
     else:
         x = nsp * [0]
     for p in particles:
-        x[p.id-1] += 1
+        x[p.id - 1] += 1
     return tuple(x)
 
 def rotated(particle, cell):
@@ -172,14 +172,14 @@ def rotated(particle, cell):
         """
         axis = numpy.asarray(axis)
         theta = numpy.asarray(theta)
-        axis = axis/math.sqrt(numpy.dot(axis, axis))
-        a = math.cos(theta/2.0)
-        b, c, d = -axis*math.sin(theta/2.0)
-        aa, bb, cc, dd = a*a, b*b, c*c, d*d
-        bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
-        return numpy.array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
-                         [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
-                         [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
+        axis = axis / math.sqrt(numpy.dot(axis, axis))
+        a = math.cos(theta / 2.0)
+        b, c, d = -axis * math.sin(theta / 2.0)
+        aa, bb, cc, dd = a * a, b * b, c * c, d * d
+        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+        return numpy.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                            [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                            [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
     p = copy.deepcopy(particle)
     dist = [sum(p[0].distance(pi, cell)**2) for pi in p]
@@ -198,9 +198,9 @@ def overlaps(particle, cell):
     x = []
     for i, pi in enumerate(particle):
         for j, pj in enumerate(particle):
-            if j <= i: continue
+            if j <= i:
+                continue
             d = sum(pi.distance(pj, cell)**2)**0.5
-            if d < (pi.radius+pj.radius):
+            if d < (pi.radius + pj.radius):
                 x.append((i, j))
     return len(x) > 0, x
-
