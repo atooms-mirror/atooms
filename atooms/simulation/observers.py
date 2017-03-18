@@ -50,7 +50,7 @@ def sec2time(time_interval):
     Convert a time interval in seconds to (day, hours, minutes,
     seconds) format.
     """
-    eta_d = time_interval / (24.0*3600)
+    eta_d = time_interval / (24.0 * 3600)
     eta_h = (eta_d - int(eta_d)) * 24
     eta_m = (eta_h - int(eta_h)) * 60.0
     eta_s = (eta_m - int(eta_m)) * 60.0
@@ -72,6 +72,9 @@ class SchedulerError(Exception):
 
 
 # Writers
+# TODO: we could have callbacks as pure function while retaining their role (writer, targeter) but adopting a strict naming convention
+# If the callback contains Writer (Target, Speedometer) in its __name__ then it is a writer (targeter, speedometer).
+# Its interface may accept an optional parameter cleanup=False for writers, to be used to clean up the files.
 
 class WriterConfig(object):
 
@@ -148,16 +151,16 @@ class Speedometer(object):
             # Report fraction of target achieved and ETA
             frac = float(x_now) / self.x_target
             try:
-                eta = (self.x_target-x_now) / speed
+                eta = (self.x_target - x_now) / speed
                 d_now = datetime.datetime.now()
                 d_delta = datetime.timedelta(seconds=eta)
                 d_eta = d_now + d_delta
-                _log.info('%s: %d%% %s/%s estimated end: %s rate: %.2e TSP: %.2e', 
-                         self.name_target, int(frac * 100), 
-                         getattr(sim, self.name_target), 
-                         self.x_target,
-                         d_eta.strftime('%Y-%m-%d %H:%M'),
-                         speed, sim.wall_time_per_step_particle())
+                _log.info('%s: %d%% %s/%s estimated end: %s rate: %.2e TSP: %.2e',
+                          self.name_target, int(frac * 100),
+                          getattr(sim, self.name_target),
+                          self.x_target,
+                          d_eta.strftime('%Y-%m-%d %H:%M'),
+                          speed, sim.wall_time_per_step_particle())
             except ZeroDivisionError:
                 print x_now, self.x_last
                 raise
@@ -295,7 +298,7 @@ class OnetimeScheduler(object):
 
     def next(self, this):
         _log.debug('one time initial steps %d this %d', self.sim.initial_steps, this)
-        if (this-self.sim.initial_steps) / self.interval == 0:
+        if (this - self.sim.initial_steps) / self.interval == 0:
             return self.interval
         else:
             return sys.maxint
