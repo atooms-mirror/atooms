@@ -22,7 +22,7 @@ from .rumd import TrajectoryRUMD, SuperTrajectoryRUMD
 from .lammps import TrajectoryLAMMPS
 try:
     from .hdf5 import TrajectoryHDF5
-except:
+except ImportError:
     pass
 from .ram import TrajectoryRam
 
