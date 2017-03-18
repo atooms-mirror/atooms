@@ -40,15 +40,32 @@ import logging
 # * writer : these callbacks dump useful stuff to file
 # and of course general purpose callback can be passed to do whatever
 
-log = logging.getLogger(__name__)
+_log = logging.getLogger(__name__)
+
+
+# Helper functions
+
+def sec2time(time_interval):
+    """
+    Convert a time interval in seconds to (day, hours, minutes,
+    seconds) format.
+    """
+    eta_d = time_interval / (24.0*3600)
+    eta_h = (eta_d - int(eta_d)) * 24
+    eta_m = (eta_h - int(eta_h)) * 60.0
+    eta_s = (eta_m - int(eta_m)) * 60.0
+    return '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
+
 
 # Default exceptions
 
 class SimulationEnd(Exception):
     pass
 
+
 class WallTimeLimit(Exception):
     pass
+
 
 class SchedulerError(Exception):
     pass
@@ -79,6 +96,7 @@ class WriterConfig(object):
         elif os.path.isfile(sim.output_path):
             os.remove(sim.output_path)
 
+
 class WriterThermo(object):
 
     """Callable class that writes thermodynamic data to disk."""
@@ -95,17 +113,6 @@ class WriterThermo(object):
         f = sim.base_path + '.thermo'
         if os.path.exists(f):
             os.remove(f)
-
-def sec2time(time_interval):
-    """
-    Convert a time interval in seconds to (day, hours, minutes,
-    seconds) format.
-    """
-    eta_d = time_interval / (24.0*3600)
-    eta_h = (eta_d - int(eta_d)) * 24
-    eta_m = (eta_h - int(eta_h)) * 60.0
-    eta_s = (eta_m - int(eta_m)) * 60.0
-    return '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
 
 
 class Speedometer(object):
@@ -145,7 +152,7 @@ class Speedometer(object):
                 d_now = datetime.datetime.now()
                 d_delta = datetime.timedelta(seconds=eta)
                 d_eta = d_now + d_delta
-                log.info('%s: %d%% %s/%s estimated end: %s rate: %.2e TSP: %.2e', 
+                _log.info('%s: %d%% %s/%s estimated end: %s rate: %.2e TSP: %.2e', 
                          self.name_target, int(frac * 100), 
                          getattr(sim, self.name_target), 
                          self.x_target,
@@ -171,7 +178,7 @@ class Target(object):
         x = float(getattr(sim, self.name))
         if self.target > 0:
             frac = float(x) / self.target
-            log.debug('targeting %s now at %g [%d]', self.name, x, int(frac * 100))
+            _log.debug('targeting %s now at %g [%d]', self.name, x, int(frac * 100))
         if x >= self.target:
             raise SimulationEnd('achieved target %s: %s', self.name, self.target)
 
@@ -181,6 +188,7 @@ class Target(object):
 
     def __str__(self):
         return self.name
+
 
 class TargetSteps(Target):
 
@@ -195,12 +203,14 @@ class TargetSteps(Target):
     def __init__(self, target):
         Target.__init__(self, 'steps', target)
 
+
 class TargetRMSD(Target):
 
     """Target a value of the total root mean squared displacement."""
 
     def __init__(self, target):
         Target.__init__(self, 'rmsd', target)
+
 
 class TargetWallTime(Target):
 
@@ -221,7 +231,8 @@ class TargetWallTime(Target):
         else:
             t = sim.elapsed_wall_time()
             dt = self.wtime_limit - t
-            log.debug('elapsed time %g, reamining time %g', t, dt)
+            _log.debug('elapsed time %g, reamining time %g', t, dt)
+
 
 class UserStop(object):
     """Allows a user to stop the simulation smoothly by touching a STOP
@@ -232,12 +243,13 @@ class UserStop(object):
         # To make it work in parallel we should broadcast and then rm
         # or subclass userstop in classes that use parallel execution
         if sim.output_path is not None and sim.storage == 'directory':
-            log.debug('User Stop %s/STOP', sim.output_path)
+            _log.debug('User Stop %s/STOP', sim.output_path)
             # TODO: support files as well
             if os.path.exists('%s/STOP' % sim.output_path):
                 raise SimulationEnd('user has stopped the simulation')
         else:
             raise RuntimeError('USerStop wont work atm with file storage')
+
 
 class Scheduler(object):
 
@@ -270,6 +282,7 @@ class Scheduler(object):
         else:
             return sys.maxint
 
+
 class OnetimeScheduler(object):
 
     """Scheduler to call observer during the simulation"""
@@ -281,7 +294,7 @@ class OnetimeScheduler(object):
         self.target = None
 
     def next(self, this):
-        log.debug('one time initial steps %d this %d', self.sim.initial_steps, this)
+        _log.debug('one time initial steps %d this %d', self.sim.initial_steps, this)
         if (this-self.sim.initial_steps) / self.interval == 0:
             return self.interval
         else:

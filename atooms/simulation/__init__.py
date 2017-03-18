@@ -14,3 +14,4 @@ from atooms.utils import NullHandler
 logging.getLogger(__name__).addHandler(NullHandler())
 
 from .base import *
+from .observers import *

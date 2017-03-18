@@ -5,7 +5,7 @@
 Base simulation class with callback logic.
 
 `atooms` provides a generic simulation interface that abstracts out
-most of the common parts of particle-based simulations. 
+most of the common parts of particle-based simulations.
 
 `Simulation` uses callbacks to analyze and process simulation data on
 the fly. The module `atooms.simulation.observers` provides basic
@@ -28,7 +28,8 @@ import logging
 from atooms.core import __version__, __commit__, __date__
 from atooms.utils import mkdir, barrier
 from .backends import DryRunBackend
-from .observers import *
+from .observers import TargetSteps, Target, Speedometer, Scheduler
+from .observers import SimulationEnd
 
 log = logging.getLogger(__name__)
 
@@ -83,7 +84,7 @@ class Simulation(object):
 
     def __str__(self):
         return 'atooms simulation via %s backend' % self.backend
-    
+
     @property
     def base_path(self):
         # TODO: this if is not needed. If output_path is None, writers should never be called and simply disabled.
@@ -274,11 +275,11 @@ class Simulation(object):
         finally:
             log.info('goodbye')
 
-    def report_header(self):        
+    def report_header(self):
         txt = '%s' % self
         log.info('')
         log.info(txt)
-        log.info('')      
+        log.info('')
         log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__.split()[0])
         try:
             log.info('backend version: %s', self.backend.version)
@@ -309,5 +310,3 @@ class Simulation(object):
         log.info('final rmsd: %.2f', self.rmsd)
         log.info('wall time [s]: %.1f', self.elapsed_wall_time())
         log.info('average TSP [s/step/particle]: %.2e', self.wall_time_per_step_particle())
-
-
