@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 """
-atooms - A framework for molecular simulations.
+atooms - A framework for particle-based simulations.
 """
 
 __author__ = "Daniele Coslovich <daniele.coslovich@umontpellier.fr>"

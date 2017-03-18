@@ -77,7 +77,7 @@ Actually, the `atooms_plugins` package can be put anywhere in your `PYTHONPATH`.
 Simulation backends
 -------------------
 
-Atooms has a generic simulation interface with callback logic that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation "backend" that exposes a minimal but unified interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://gitlab.info-ufr.univ-montp2.fr/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
+Atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation "backend" that exposes a minimal but unified interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://gitlab.info-ufr.univ-montp2.fr/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
 
 This is a quick example how to run 10000 molecular dynamics steps using the [RUMD](http://rumd.org) backend:
 

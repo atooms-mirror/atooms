@@ -1,7 +1,23 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Simulation base class with callback logic."""
+"""
+Simulation class with callback logic.
+
+`atooms` provides a generic simulation interface that abstracts out
+most of the common parts of particle-based simulations. It uses
+callbacks to analyze and process simulation data on the fly. The
+module `atooms.simulation.observers` provides basic callbacks to write
+data to disk, e.g. trajejectory files, and to stop the simulation when
+certain targets are reached, e.g. mean squared displacement larger
+than a threshold.
+
+The interval at which callbacks are executed is controlled by a
+`Scheduler` instance.
+
+The actual simulation code is wrapped by a simulation "backend" that
+exposes a minimal but coherent interface.
+"""
 
 import os
 import time
@@ -20,12 +36,12 @@ class Simulation(object):
 
     """Simulation base class."""
 
-    def __init__(self, backend=DryRunBackend(), output_path=None,
-                 steps=0, checkpoint_interval=0,
-                 enable_speedometer=False, restart=False):
+    def __init__(self, backend, output_path=None, steps=0,
+                 checkpoint_interval=0, enable_speedometer=False,
+                 restart=False):
         """
-        Perform a simulation using the specified *backend* and writing
-        output to *output_path*.
+        Perform a simulation using the specified `backend` and optionally
+        write output to `output_path`.
 
         Paths. To define output paths we rely on output_path, all
         other paths are defined based on it and on its
@@ -74,7 +90,10 @@ class Simulation(object):
             return os.path.splitext(self.output_path)[0]
 
     def add(self, callback, scheduler):
-        """Register an observer (callback) to be called along with a scheduler"""
+        """
+        Register an observer `callback` to be called along with a
+        `scheduler`.
+        """
         # If the callback is already there we replace it
         # This allows to update targets / schedules on the way
         if callback in self._callback:
@@ -89,7 +108,7 @@ class Simulation(object):
             self._callback.append(callback)
 
     def remove(self, callback):
-        """Remove an observer (callback)"""
+        """Remove the observer `callback`."""
         if callback in self._callback:
             self._callback.remove(callback)
         else:
@@ -132,15 +151,13 @@ class Simulation(object):
     def wall_time_per_step(self):
         """
         Wall time per step in seconds.
-        Can be conventiently subclassed by more complex simulation classes.
+
+        It can be subclassed by more complex simulation classes.
         """
         return self.elapsed_wall_time() / (self.steps-self.initial_steps)
 
     def wall_time_per_step_particle(self):
-        """
-        Wall time per step and particle in seconds.  Can be conventiently
-        subclassed by more complex simulation classes.
-        """
+        """Wall time per step and particle in seconds."""
         try:
             # Be tolerant if there is no reference to system
             return self.wall_time_per_step() / len(self.system.particle)
@@ -153,7 +170,10 @@ class Simulation(object):
     # TODO: when should checkpoint be read? The logic must be set here
     # Having a read_checkpoint() stub method would be OK here.
     def run_pre(self):
-        """Deal with restart conditions before run we call_until()"""
+        """
+        Preliminary step before run_until() to deal with restart
+        conditions.
+        """
         if self.output_path is not None:
             self.backend.output_path = self.output_path
             if not self.restart:
@@ -183,6 +203,7 @@ class Simulation(object):
         self.steps = steps
 
     def run(self, steps=None):
+        """Run the simulation."""
         # If we are restaring we do not allow changing target steps on the fly.
         # because it might have side effects like non constant writing interval.
         if not self.restart or self.steps == 0:
@@ -250,7 +271,7 @@ class Simulation(object):
         finally:
             log.info('goodbye')
 
-    def report_header(self):
+    def report_header(self):        
         txt = '%s' % self
         log.info('')
         log.info(txt)
