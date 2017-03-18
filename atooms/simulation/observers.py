@@ -1,7 +1,14 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Default observers and schedulers."""
+"""
+Default observers and schedulers for simulations.
+
+To add a callback `func` to a `Simulation` instance `sim` and have it called every 100 steps
+
+    #!python
+    sim.add(func, Scheduler(100))
+"""
 
 import sys
 import os
@@ -51,6 +58,13 @@ class SchedulerError(Exception):
 
 class WriterConfig(object):
 
+    """
+    Callable class that writes configurations to a trajectory file.
+
+    The trajectory format is taken from the passed Simulation instance
+    that calls the callbacks.
+    """
+
     def __str__(self):
         return 'config'
 
@@ -67,6 +81,8 @@ class WriterConfig(object):
 
 class WriterThermo(object):
 
+    """Callable class that writes thermodynamic data to disk."""
+
     def __str__(self):
         return 'thermo'
 
@@ -81,14 +97,21 @@ class WriterThermo(object):
             os.remove(f)
 
 def sec2time(time_interval):
+    """
+    Convert a time interval in seconds to (day, hours, minutes,
+    seconds) format.
+    """
     eta_d = time_interval / (24.0*3600)
     eta_h = (eta_d - int(eta_d)) * 24
     eta_m = (eta_h - int(eta_h)) * 60.0
     eta_s = (eta_m - int(eta_m)) * 60.0
-    return '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
+    retur
+    n '%dd:%02dh:%02dm:%02ds' % (eta_d, eta_h, eta_m, eta_s)
 
 
 class Speedometer(object):
+
+    """Display speed of simulation and remaining time to reach target."""
 
     def __init__(self):
         self._init = False
@@ -139,6 +162,8 @@ class Speedometer(object):
 
 class Target(object):
 
+    """Base targeter class."""
+
     def __init__(self, name, target):
         self.name = name
         self.target = target
@@ -160,18 +185,33 @@ class Target(object):
 
 class TargetSteps(Target):
 
-    # Note: this class is there just as an insane proof of principle
-    # Steps targeting can/should be implemented by checking a simple int variable
+    """
+    Targeter a fixed number of steps.
+
+    Note: this class is here as an insane proof of principle. Steps
+    targeting can (should?) be implemented in `Simulation` by checking
+    a simple integer variable.
+    """
 
     def __init__(self, target):
         Target.__init__(self, 'steps', target)
 
 class TargetRMSD(Target):
 
+    """Target a value of the total root mean squared displacement."""
+
     def __init__(self, target):
         Target.__init__(self, 'rmsd', target)
 
 class TargetWallTime(Target):
+
+    """
+    Target a value of the elapsed wall time from the beginning of the
+    simulation.
+
+    Useful to self restarting jobs in a queining system with time
+    limits.
+    """
 
     def __init__(self, wall_time):
         self.wtime_limit = wall_time
