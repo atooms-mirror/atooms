@@ -43,7 +43,7 @@ class Simulation(object):
                  restart=False):
         """
         Perform a simulation using the specified `backend` and optionally
-        write output to `output_path`.
+        write output to `output_path`. This can be a file or directory path.
 
         Paths. To define output paths we rely on output_path, all
         other paths are defined based on it and on its
@@ -53,7 +53,7 @@ class Simulation(object):
         """
         self.backend = backend
         self.restart = restart
-        self.output_path = output_path # can be None, file or directory
+        self.output_path = output_path
         self.max_steps = steps
         self.enable_speedometer = enable_speedometer
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
@@ -158,7 +158,7 @@ class Simulation(object):
 
         It can be subclassed by more complex simulation classes.
         """
-        return self.elapsed_wall_time() / (self.steps-self.initial_steps)
+        return self.elapsed_wall_time() / (self.steps - self.initial_steps)
 
     def wall_time_per_step_particle(self):
         """Wall time per step and particle in seconds."""
