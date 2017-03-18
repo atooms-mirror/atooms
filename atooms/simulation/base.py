@@ -2,18 +2,19 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 """
-Simulation class with callback logic.
+Base simulation class with callback logic.
 
 `atooms` provides a generic simulation interface that abstracts out
-most of the common parts of particle-based simulations. It uses
-callbacks to analyze and process simulation data on the fly. The
-module `atooms.simulation.observers` provides basic callbacks to write
-data to disk, e.g. trajejectory files, and to stop the simulation when
-certain targets are reached, e.g. mean squared displacement larger
-than a threshold.
+most of the common parts of particle-based simulations. 
 
-The interval at which callbacks are executed is controlled by a
-`Scheduler` instance.
+`Simulation` uses callbacks to analyze and process simulation data on
+the fly. The module `atooms.simulation.observers` provides basic
+callbacks to write data to disk, e.g. trajejectory files, and to stop
+the simulation when certain targets are reached, e.g. mean squared
+displacement larger than a threshold.
+
+The interval in steps at which callbacks are executed is controlled by
+a `Scheduler` instance.
 
 The actual simulation code is wrapped by a simulation "backend" that
 exposes a minimal but coherent interface.

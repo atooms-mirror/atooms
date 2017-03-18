@@ -1,6 +1,7 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+"""Linked cells to compute neighbors efficiently."""
 
 import numpy
 from collections import defaultdict

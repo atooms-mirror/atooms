@@ -1,32 +1,33 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Abstract factory class for trajectories.
+"""
+Abstract factory class for trajectories.
 
 Construct a callable that returns the appropriate trajectory class
 based on explicit or suffix-based rules. The list of trajectory
 classes can be updated at run time using update().
 
 Examples: 
+--------
 
 - Read an hdf5-format trajectory file
 
->>> Trajectory = TrajectoryFactory()
->>> t = Trajectory('input.h5')
+    >>> Trajectory = TrajectoryFactory()
+    >>> t = Trajectory('input.h5')
 
 This is equivalent to 
 
->>> t = TrajectoryHDF5('input.h5')
+    >>> t = TrajectoryHDF5('input.h5')
 
 Force reading an xyz trajectory file using rumd format
 
->>> Trajectory = TrajectoryFactory()
->>> t = Trajectory('input.xyz', fmt='rumd')
+    >>> Trajectory = TrajectoryFactory()
+    >>> t = Trajectory('input.xyz', fmt='rumd')
 
 This is equivalent to
 
->>> t = TrajectoryRUMD('input.xyz')
-
+    >>> t = TrajectoryRUMD('input.xyz')
 """
 
 import os

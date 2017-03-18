@@ -1,6 +1,8 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+"""Thermostat to control the temperature during a simulation."""
+
 class Thermostat(object):
 
     def __init__(self, name, temperature, mass=1.0, collision_period=-1):

@@ -17,7 +17,8 @@ log = logging.getLogger(__name__)
 
 class TrajectorySimpleXYZ(TrajectoryBase):
 
-    """Trajectory with simple xyz layout.
+    """
+    Trajectory with simple xyz layout.
 
     It uses a memory light-weight indexed access.
     """
@@ -213,7 +214,10 @@ def _optimize_fmt(fmt):
 
 class TrajectoryXYZ(TrajectoryBase):
 
-    """Trajectory with XYZ layout using memory leightweight indexed access."""
+    """
+    Trajectory with XYZ layout using memory leightweight indexed
+    access.
+    """
 
     suffix = 'xyz'
     callback_read = {'name': update_name,

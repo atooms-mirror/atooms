@@ -8,24 +8,34 @@ from .utils import get_period
 
 class TrajectoryBase(object):
 
-    """Trajectory base class.
+    """
+    Trajectory abstract base class.
 
-    __init__ is supposed to deal with file existence, creating
-    handles, setup steps list.
+    A trajectory are composed by one or several samples (or frames),
+    each frame being a snapshot of a `System` taken at a given `step`
+    during a simulation. `Trajectory` instances are iterable and can
+    be opened and closed using the `with` syntax..
+    
+        #!python
+        with Trajectory(inpfile) as th:
+            for system in th:
+                pass
 
-    Read and write implement the following template.
+    To be fully functional, concrete classes must implement
+    `read_sample()` and `write_sample()` methods. 
 
-    1. read_init() and write_init() are called only once to initialize
-    data structures (ex. counts samples and steps) or grab metadata
-    (stuff that doesn't change)
+    `read()` is a template composed of the two following steps:
 
-    2. read_sample() and write_sample() are used to actually
-    read/write a system
+    - `read_init()`: called only once, initialize samples and steps
+    counter, grab metadata, i.e. invariants. Need *not* be implemented
+    by subclasses.
 
-    Additionally, write_sample append the step to the step list
+    - `read_sample(n)`: actually return the system at sample n. It
+      must be implemented by subclasses.
 
-    In future implementation, we might pass a list of objects to be
-    written, to store for instance, integrator data and so on.
+    Similarly, `write()` is a template composed of `write_init()` and
+    `write_sample()`. Only the latter method must be implemented by
+    subclasses.
     """
 
     # TODO: there is a problem with putting metatdata reading in read_init. It means that steps and timestep are not known before calling read(). These should then be properties that get initialized by calling read_init, rather than their specific read_timestep, read_steps methods
@@ -46,7 +56,9 @@ class TrajectoryBase(object):
     suffix = None
 
     def __init__(self, filename, mode='r'):
-        """When mode is 'r', it must set the list of available steps."""
+        """
+        When mode is 'r', `__init__` must set the list of available steps.
+        """
         self.filename = filename
         self.mode = mode
         self.callbacks = []
@@ -66,6 +78,8 @@ class TrajectoryBase(object):
         # Sanity checks
         if self.mode == 'r' and not os.path.exists(self.filename):
             raise IOError('trajectory file %s does not exist' % self.filename)
+
+    # Trajectory is iterable and supports with syntax
 
     def __len__(self):
         return len(self.steps)
@@ -103,6 +117,7 @@ class TrajectoryBase(object):
         pass
 
     def read(self, index):
+        """Read and return system at sample `index`."""
         if not self._initialized_read:
             self.read_init()
             self._initialized_read = True
@@ -112,6 +127,7 @@ class TrajectoryBase(object):
         return s
 
     def write(self, system, step):
+        """Write `system` at given `step`."""
         if self.mode == 'r':
             raise IOError('trajectory file not open for writing')
         if not self._initialized_write:
@@ -122,7 +138,10 @@ class TrajectoryBase(object):
         self.steps.append(step)
 
     def read_init(self):
-        """It may setup data structures needed by the trajectory. Need not be implemented."""
+        """
+        Read metadata and/or set up data structures. Need not be
+        implemented.
+        """
         pass
 
     def write_init(self, system):
@@ -130,15 +149,17 @@ class TrajectoryBase(object):
         pass
 
     # These methods must be implemented by subclasses
+
     def read_sample(self, index):
-        """It must return the sample (system) with the given index"""
+        """Return the system at the given sample `index`."""
         raise NotImplementedError()
 
     def write_sample(self, system, step):
-        """It must write a sample (system) to disk. Noting to return."""
+        """Write a `system` to file. Noting to return."""
         raise NotImplementedError()
 
     # Callbacks will be applied to the output of read_sample()
+
     def register_callback(self, cbk, *args, **kwargs):
         if cbk not in self.callbacks:
             self.callbacks.append([cbk, args, kwargs])
@@ -149,6 +170,7 @@ class TrajectoryBase(object):
 
     # To read/write timestep and block period sublcasses may implement
     # these methods. The default is dt=1 and blockperiod determined dynamically.
+
     def read_timestep(self):
         return 1.0
 
@@ -191,6 +213,10 @@ class TrajectoryBase(object):
 
     @property
     def grandcanonical(self):
+        """
+        True if the trajectory is grandcanonical, i.e. the number of
+        particles changes.
+        """
         # In subclasses, cache it for efficiency, since we might have to discover it
         if self._grandcanonical is None:
             self._grandcanonical = False
@@ -205,11 +231,6 @@ class TrajectoryBase(object):
     def time_total(self):
         """Total simulation time."""
         return self.steps[-1] * self.timestep
-
-    def timeseries(self, callback, *args, **kwargs):
-        """Returns a timeseries of a callback results"""
-        for i, s in enumerate(self):
-            yield self.steps[i], callback(s, *args, **kwargs)
 
 
 class SuperTrajectory(TrajectoryBase):

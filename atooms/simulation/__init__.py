@@ -2,7 +2,11 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 """
-Simulation package.
+Simulation framework for particulate systems. 
+
+`atooms` provides a generic simulation interface that abstracts out
+most of the common parts of particle-based simulations. It uses
+callbacks to analyze and process simulation data on the fly.
 """
 
 import logging

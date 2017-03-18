@@ -1,7 +1,8 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Folder based trajectory.
+"""
+Folder based trajectory.
 
 This is a base class for trajectories that stores configurations as
 individual files in a directory. The `dirname` property stores the

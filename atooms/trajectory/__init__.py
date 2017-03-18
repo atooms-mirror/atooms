@@ -1,6 +1,8 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+"""Read and write trajectory files in various formats."""
+
 import os
 import sys
 import logging
