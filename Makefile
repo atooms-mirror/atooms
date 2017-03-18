@@ -12,8 +12,8 @@ pull:
 doc:
         # pdoc does play nice with namespace packages -> blank __init__.py
         # go into atooms to prevent pdoc from populating docs/ with modules from the namespace package
-	cd atooms; rm -f __init__.pyc; mv __init__.py __init__.py.bak; touch __init__.py
-	cd atooms; pdoc --overwrite --html-dir ../docs --html --template-dir ~/usr/pdoc_templates/pdoc_templates ../atooms 
+	cd atooms; mv __init__.py __init__.py.bak; touch __init__.py
+	cd atooms; pdoc --overwrite --html-dir ../docs --html --template-dir ~/usr/pdoc_tpl/pdoc_tpl ../atooms 
 	cd atooms; mv __init__.py.bak __init__.py
 
 dist:
