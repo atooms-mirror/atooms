@@ -15,6 +15,7 @@ doc:
 	cd atooms; mv __init__.py __init__.py.bak; echo \"\"\"atooms - A framework for particle-based simulations.\"\"\" > __init__.py
 	cd atooms; pdoc --overwrite --html-dir ../docs --html --template-dir ~/usr/pdoc_tpl/pdoc_tpl ../atooms 
 	cd atooms; mv __init__.py.bak __init__.py
+	rsync -uva docs zaphod:public_html
 
 dist:
 	python setup.py sdist
@@ -24,9 +25,6 @@ test:
 
 todo:
 	@todo.py -S|grep '^Open'
-
-todo_critical:
-	@todo.py -S|grep '!'
 
 dist_rumd:
 	python -m unittest discover -s tests -p '*adapter*'
