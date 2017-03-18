@@ -4,7 +4,7 @@
 
 import os
 from atooms.simulation import Simulation, Scheduler, WriterThermo, WriterConfig
-from atooms.backends.rumd_backend import RumdBackend
+from atooms.simulation.backends import RumdBackend
 from atooms.utils import setup_logging
 
 def main(params):

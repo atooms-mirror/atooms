@@ -1,7 +1,7 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Adapters for RUMD simulation package."""
+"""Backend and adapters for the RUMD simulation package."""
 
 import sys
 import os
