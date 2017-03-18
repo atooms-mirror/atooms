@@ -9,11 +9,13 @@ from atooms.simulation import Simulation, TargetRMSD, Scheduler
 try:
     import rumd
     from rumdSimulation import rumdSimulation
-    from atooms.backends.rumd_backend import System, Trajectory
-    from atooms.backends.rumd_backend import RumdBackend as Backend    
     SKIP = False
 except ImportError:
     SKIP = True
+
+if not SKIP:
+    from atooms.simulation.backend_rumd import System, Trajectory
+    from atooms.simulation.backends import RumdBackend as Backend
 
 xyz = """\
      3
