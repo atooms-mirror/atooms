@@ -1,6 +1,8 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+"""Point particles in a cartesian reference frame."""
+
 import numpy
 import random
 import copy
@@ -8,8 +10,6 @@ from atooms.core import ndim
 
 
 class Particle(object):
-
-    """Particle class."""
 
     def __init__(self,
                  id=1,
@@ -28,14 +28,17 @@ class Particle(object):
         self.tag = tag
 
     def nearest_image(self, particle, cell):
-        """Transform self into the nearest image of *particle* in the specified cell."""
+        """
+        Transform self into the nearest image of `particle` in the
+        specified cell.
+        """
         rij = self.position - particle.position
         periodic_vector(rij, cell.side)
         self.position = particle.position + rij
         return self
 
     def nearest_image_copy(self, particle, cell):
-        """Return the nearest image of *particle* in the specified cell."""
+        """Return the nearest image of `particle` in the specified `cell`."""
         from copy import deepcopy
         rij = self.position - particle.position
         periodic_vector(rij, cell.side)
@@ -45,8 +48,10 @@ class Particle(object):
 
     def distance(self, particle, cell=None):
         """
-        Return distance from *particle*.
-        If *cell* is provided, return distance from the nearest image of *particle*.
+        Return distance from `particle`.
+
+        If `cell` is provided, return distance from the nearest image
+        of `particle`.
         """
         r = self.position - particle.position
         if cell:
@@ -58,13 +63,15 @@ class Particle(object):
         self.position = periodic_vector_safe(self.position, cell.side)
         return self
 
+    @property
     def diameter(self):
+        """Particle diameter."""
         return self.radius * 2
 
     def maxwellian(self, T):
         """
-        Assign velocities to particle according to a Maxwell-Boltzmann
-        distribution at the given temperature *T*.
+        Assign the velocity to particle according to a Maxwell-Boltzmann
+        distribution at temperature `T`.
         """
         vx = random.gauss(0, numpy.sqrt(T / self.mass))
         vy = random.gauss(0, numpy.sqrt(T / self.mass))
@@ -89,12 +96,15 @@ def periodic_vector_safe(vec, box):
 def periodic_vector_safe_opti(vec, box, invbox):
     return vec - numpy.rint(vec * invbox) * box
 
-def fix_cm(particle):
-    """Subtract out the motion of the CM."""
-    vcm = velocity_cm(particle)
-    for p in particle:
+def fix_cm(particles):
+    """
+    Subtract out the center of mass velocity from a list of
+    `particles`.
+    """
+    vcm = velocity_cm(particles)
+    for p in particles:
         p.velocity -= vcm
-    return particle
+    return particles
 
 def velocity_cm(particle):
     """Velocity of the center of mass of a list of particles."""
@@ -114,37 +124,42 @@ def position_cm(particle):
         mtot += p.mass
     return rcm / mtot
 
-def total_kinetic_energy(particle):
+def total_kinetic_energy(particles):
+    """Total kinetic energy of a list of `particles`."""
     ekin = 0.0
-    for p in particle:
+    for p in particles:
         ekin += p.mass * numpy.dot(p.velocity, p.velocity)
     return 0.5 * ekin
 
-def temperature(particle, ndof=None):
+def temperature(particles, ndof=None):
+    """Kinetic temperature of a list of `particles`."""
     if ndof is None:
-        ndof = ndim * (len(particle) - 1)
-    return 2 * total_kinetic_energy(particle) / ndof
+        ndof = ndim * (len(particles) - 1)
+    return 2 * total_kinetic_energy(particles) / ndof
 
-def species(particle):
-    """Return list of distinct species (ids) of particles."""
-    return list(set([p.id for p in particle]))
+def species(particles):
+    """Return list of distinct species (`id`) of `particles`."""
+    return list(set([p.id for p in particles]))
 
-def composition(particle, nsp=None):
+def composition(particles, nsp=None):
     """
-    Return a tuple containing the number of particles
-    of each species appearing the input particle list.
+    Return a tuple containing the number of particles of each species
+    appearing the input `particles` list.
     """
     # TODO: check id normalization
     if nsp is None:
-        x = max([p.id for p in particle]) * [0]
+        x = max([p.id for p in particles]) * [0]
     else:
         x = nsp * [0]
-    for p in particle:
+    for p in particles:
         x[p.id-1] += 1
     return tuple(x)
 
 def rotated(particle, cell):
-    """Return a rotated list of particles around the main symmetry axis of the set."""
+    """
+    Return a list of particles rotated around the main symmetry axis
+    of the set.
+    """
     import math
 
     def norm2(vec):
