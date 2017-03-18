@@ -145,9 +145,9 @@ class Speedometer(object):
                 d_now = datetime.datetime.now()
                 d_delta = datetime.timedelta(seconds=eta)
                 d_eta = d_now + d_delta
-                log.info('%s: %d%% %s/%s estimated end: %s rate: %.2e TSP: %.2e', \
-                         self.name_target, int(frac * 100), \
-                         getattr(sim, self.name_target), \
+                log.info('%s: %d%% %s/%s estimated end: %s rate: %.2e TSP: %.2e', 
+                         self.name_target, int(frac * 100), 
+                         getattr(sim, self.name_target), 
                          self.x_target,
                          d_eta.strftime('%Y-%m-%d %H:%M'),
                          speed, sim.wall_time_per_step_particle())
@@ -241,8 +241,8 @@ class UserStop(object):
 
 class Scheduler(object):
 
-    #TODO: interval can be a function to allow non linear sampling
-    #TODO: base scheduler plus derived scheduler for fixed ncalls
+    # TODO: interval can be a function to allow non linear sampling
+    # TODO: base scheduler plus derived scheduler for fixed ncalls
 
     """Scheduler to call observer during the simulation"""
 
