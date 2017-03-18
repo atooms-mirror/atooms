@@ -31,6 +31,8 @@ with TrajectoryRUMD('trajectory.xyz.gz', 'w') as trajectory:
     trajectory.write(system, step=0)
 ```
 
+See the [API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/atooms/) for more info.
+
 Installation
 ------------
 From the python package index [coming up soon!]
