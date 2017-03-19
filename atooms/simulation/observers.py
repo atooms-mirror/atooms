@@ -60,14 +60,17 @@ def _sec2time(time_interval):
 # Default exceptions
 
 class SimulationEnd(Exception):
+    """Raised when an targeter reaches its target."""
     pass
 
 
 class WallTimeLimit(Exception):
+    """Raised when the wall time limit is reached."""
     pass
 
 
 class SchedulerError(Exception):
+    """Inncompatible options for a scheduler."""
     pass
 
 
