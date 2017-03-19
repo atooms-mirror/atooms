@@ -39,36 +39,54 @@ class System(object):
     def number_of_species(self):
         return len(set(p.id for p in self.particle))
 
-    def add_porous_matrix(self, matrix):
+    def add_matrix(self, matrix):
+        """Add a porous matrix to the system (quenched copy of a system)."""
         self.matrix = copy.deepcopy(matrix)
 
     @property
     def density(self):
+        """
+        Density of the system.
+
+        It will return a ValueException if `self.cell` is None.
+        """
+        if self.cell is None:
+            return ValueError('cannot compute density without a cell')
         return len(self.particle) / self.cell.volume
 
     @density.setter
     def density(self, rho):
-        # Note This will fail if cell is None
+        if self.cell is None:
+            return ValueError('cannot compute density without a cell')
+        # TODO: empirically determine the boundaries if cell is None
         factor = (self.density / rho)**(1./3)
         for particle in self.particle:
             particle.position *= factor
         self.cell.side *= factor
 
     def temperature(self, ndof=None):
-        # The n. of degrees of freedom can be passed to this method explicitly.
-        # This way we can correct for missing translational invariance.
-        # Ideally, one could determine this via some additional attribute.
+        """
+        Kinetic temperature.
+
+        If given, `ndof` specifies the number of degrees of freedom to
+        correct for missing translational invariance. Otherwise, 
+
+            ndof = (N-1)*dim
+        """
+        # TODO: determine translational invariance via some additional attribute.
         if ndof is None:
             ndof = (len(self.particle)-1) * self.number_of_dimensions
         return 2.0 / ndof * total_kinetic_energy(self.particle)
 
     def kinetic_energy(self):
+        """Total kinetic energy."""
         return total_kinetic_energy(self.particle)
 
     def kinetic_energy_per_particle(self):
         return total_kinetic_energy(self.particle) / len(self.particle)
 
     def potential_energy(self):
+        """Total potential energy."""
         return self._potential_energy
 
     def potential_energy_per_particle(self):
@@ -94,6 +112,7 @@ class System(object):
         return position_cm(self.particle)
 
     def fix_cm(self):
+        """Fix the center of mass motion."""
         fix_cm(self.particle)
 
     def maxwellian(self, temperature):
@@ -110,7 +129,8 @@ class System(object):
             p.velocity *= fac
 
     def dump(self, what, pslice=slice(None), order='C', dtype=None):
-        """Dump system properties into numpy arrays.
+        """
+        Dump system properties into numpy arrays.
 
         `what` can be either a string or a list. In the latter case a
         dict is returned. Each entry in what should be of the form
