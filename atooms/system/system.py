@@ -2,14 +2,14 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 """
-A god-like object to describe the physical system at hand.
+The physical system at hand.
 
-The systems of interest in classical atomistic simulations are
-composed of interacting point particles, usually enclosed in a
-simulation cell. The system may be in contact with a thermostat, a
-barostat or a particle reservoir.
+The systems of interest in classical atomistic simulations are made of
+interacting point particles, usually enclosed in a simulation
+cell. The system may be in contact with a thermostat, a barostat or a
+particle reservoir.
 """
-    
+
 
 import copy
 import numpy
@@ -19,7 +19,8 @@ class System(object):
 
     """System class."""
 
-    def __init__(self, particle=None, cell=None, interaction=None, thermostat=None):
+    def __init__(self, particle=None, cell=None, interaction=None,
+                 thermostat=None, barostat=None, reservoir=None):
         if particle is None:
             particle = []
         self.particle = particle
@@ -27,12 +28,18 @@ class System(object):
         self.interaction = interaction
         self.cell = cell
         self.thermostat = thermostat
-        
+        self.barostat = barostat
+        self.reservoir = reservoir
+
         self._potential_energy = 0.0
         self.matrix = None
 
     @property
     def number_of_dimensions(self):
+        """
+        Number of spatial dimensions, guessed from the length of
+        `particle[0].position`.
+        """
         return len(self.particle[0].position)
 
     @property
@@ -40,7 +47,9 @@ class System(object):
         return len(set(p.id for p in self.particle))
 
     def add_matrix(self, matrix):
-        """Add a porous matrix to the system (quenched copy of a system)."""
+        """
+        Add a matrix, i.e. a quenched copy of a system, to the system.
+        """
         self.matrix = copy.deepcopy(matrix)
 
     @property
@@ -48,7 +57,7 @@ class System(object):
         """
         Density of the system.
 
-        It will return a ValueException if `self.cell` is None.
+        It will return a ValueException if `cell` is None.
         """
         if self.cell is None:
             return ValueError('cannot compute density without a cell')
@@ -69,7 +78,7 @@ class System(object):
         Kinetic temperature.
 
         If given, `ndof` specifies the number of degrees of freedom to
-        correct for missing translational invariance. Otherwise, 
+        correct for missing translational invariance. Otherwise,
 
             ndof = (N-1)*dim
         """
@@ -105,10 +114,12 @@ class System(object):
 
     @property
     def velocity_cm(self):
+        """Velocity of the center of mass."""
         return velocity_cm(self.particle)
 
     @property
     def position_cm(self):
+        """Position of the center of mass."""
         return position_cm(self.particle)
 
     def fix_cm(self):
@@ -128,20 +139,33 @@ class System(object):
         for p in self.particle:
             p.velocity *= fac
 
-    def dump(self, what, pslice=slice(None), order='C', dtype=None):
+    def dump(self, what, order='C', dtype=None):
         """
-        Dump system properties into numpy arrays.
+        Dump the system properties specified by `what` to numpy arrays.
 
-        `what` can be either a string or a list. In the latter case a
-        dict is returned. Each entry in what should be of the form
-        particle.<attribute> or cell.<attribute>. The following
+        If `what` is a string, it should be of the form
+        `particle.<attribute>` or `cell.<attribute>`. The following
         aliases are allowed: pos, vel, ids, box.
-        
+
+        If `what` is a list of strings of the form above, a dict of
+        numpy arrays is returned with `what` as keys.
+
         Particles' coordinates are thrown into (N, ndim)
         arrays if `order` is C or (ndim, N) arrays if `order` is F.
 
-        It accepts particle slices `pslice` to filter out some
-        particles. This can be also handled via trajectory decorators.
+        Examples:
+        --------
+        These two numpy arrays are element-wise identical
+
+            #!python
+            pos = system.dump('particle.position')
+            pos = system.dump('pos')
+
+        Return a dict with both positions and velocities
+
+            #!python
+            dump = system.dump(['pos', 'vel'])
+
         """
         # Listify input variables
         if type(what) is str:
@@ -152,7 +176,7 @@ class System(object):
             if dtype is None:
                 dtype_list = [None] * len(what_list)
 
-        aliases = {'pos': 'particle.position', 
+        aliases = {'pos': 'particle.position',
                    'vel': 'particle.velocity',
                    'ids': 'particle.id'}
 
@@ -165,7 +189,7 @@ class System(object):
                 what_aliased = what
             # Extract the requested attribute
             attr = what_aliased.split('.')[-1]
-            # Make array of attributes    
+            # Make array of attributes
             if what_aliased.startswith('particle'):
                 data = numpy.array([p.__getattribute__(attr) for p in self.particle], dtype=dtype)
             else:
@@ -183,13 +207,14 @@ class System(object):
             return dump_db
 
     def scale(self, factor):
-        """Rescale cell and particles' coordinates by *factor*."""
+        """Rescale cell and particles' coordinates by `factor`."""
         for p in self.particle:
             p.position *= factor
         self.cell.side *= factor
 
     def report(self):
-        txt =  "number of particles: %d\n" % len(self.particle)
+        """Provide a text summary of the system's main attributes."""
+        txt = "number of particles: %d\n" % len(self.particle)
         if self.cell is not None:
             txt += "cell side: %s\n" % self.cell.side
         return txt
