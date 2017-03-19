@@ -293,6 +293,6 @@ class Scheduler(object):
         observer will be called.
         """
         if self.interval > 0:
-            return (this / self.interval + 1) * self.interval
+            return (step / self.interval + 1) * self.interval
         else:
             return sys.maxint
