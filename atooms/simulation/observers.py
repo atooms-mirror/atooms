@@ -69,11 +69,6 @@ class WallTimeLimit(Exception):
     pass
 
 
-class SchedulerError(Exception):
-    """Inncompatible options for a scheduler."""
-    pass
-
-
 # Writers
 # TODO: we could have callbacks as pure function while retaining their role (writer, targeter) but adopting a strict naming convention
 # If the callback contains Writer (Target, Speedometer) in its __name__ then it is a writer (targeter, speedometer).
@@ -174,11 +169,18 @@ class Speedometer(object):
 
 class Target(object):
 
-    """Base targeter class."""
+    """
+    Base targeter class.
+
+    An observer that raises a `SimulationEnd` exception when a given
+    target property is reached during a simulation. The property is
+    `target` and is, by default, an attribute of simulation.
+    """
 
     def __init__(self, name, target):
         self.name = name
         self.target = target
+        """Target value of property to be reached."""
 
     def __call__(self, sim):
         x = float(getattr(sim, self.name))
@@ -283,7 +285,7 @@ class Scheduler(object):
                     self.interval = max(1, self.target / self.calls)
                 else:
                     # Dynamic scheduling
-                    raise SchedulerError('dynamic scheduling not implemented')
+                    raise ValueError('dynamic scheduling not implemented')
 
     def next(self, step):
         """
