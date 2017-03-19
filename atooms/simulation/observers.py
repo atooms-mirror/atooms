@@ -45,7 +45,7 @@ _log = logging.getLogger(__name__)
 
 # Helper functions
 
-def sec2time(time_interval):
+def _sec2time(time_interval):
     """
     Convert a time interval in seconds to (day, hours, minutes,
     seconds) format.
@@ -259,7 +259,10 @@ class Scheduler(object):
     # TODO: interval can be a function to allow non linear sampling
     # TODO: base scheduler plus derived scheduler for fixed ncalls
 
-    """Scheduler to call observer during the simulation"""
+    """
+    Scheduler to determine when to call an observer during the
+    simulation.
+    """
 
     def __init__(self, interval, calls=None, target=None):
         self.interval = interval
@@ -279,7 +282,11 @@ class Scheduler(object):
                     # Dynamic scheduling
                     raise SchedulerError('dynamic scheduling not implemented')
 
-    def next(self, this):
+    def next(self, step):
+        """
+        Given the current `step`, return the next step at which the
+        observer will be called.
+        """
         if self.interval > 0:
             return (this / self.interval + 1) * self.interval
         else:
