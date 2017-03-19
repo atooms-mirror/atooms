@@ -284,21 +284,3 @@ class Scheduler(object):
             return (this / self.interval + 1) * self.interval
         else:
             return sys.maxint
-
-
-class OnetimeScheduler(object):
-
-    """Scheduler to call observer during the simulation"""
-
-    def __init__(self, interval, sim):
-        self.sim = sim
-        self.interval = interval
-        self.calls = None
-        self.target = None
-
-    def next(self, this):
-        _log.debug('one time initial steps %d this %d', self.sim.initial_steps, this)
-        if (this - self.sim.initial_steps) / self.interval == 0:
-            return self.interval
-        else:
-            return sys.maxint
