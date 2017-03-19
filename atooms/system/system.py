@@ -1,6 +1,16 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+"""
+A god-like object to describe the physical system at hand.
+
+The systems of interest in classical atomistic simulations are
+composed of interacting point particles, usually enclosed in a
+simulation cell. The system may be in contact with a thermostat, a
+barostat or a particle reservoir.
+"""
+    
+
 import copy
 import numpy
 from .particle import position_cm, velocity_cm, fix_cm, total_kinetic_energy
@@ -9,16 +19,17 @@ class System(object):
 
     """System class."""
 
-    def __init__(self, particle=None, cell=None, interaction=None, matrix=None, thermostat=None, dynamics=None):
+    def __init__(self, particle=None, cell=None, interaction=None, thermostat=None):
         if particle is None:
             particle = []
         self.particle = particle
+        """A list of `Particle` instances."""
         self.interaction = interaction
         self.cell = cell
-        self.matrix = matrix
         self.thermostat = thermostat
-        self.dynamics = dynamics
+        
         self._potential_energy = 0.0
+        self.matrix = None
 
     @property
     def number_of_dimensions(self):
@@ -84,12 +95,6 @@ class System(object):
 
     def fix_cm(self):
         fix_cm(self.particle)
-
-    def evolve(self):
-        # Time evolution is a behavior of a system.
-        # But to avoid passing the whole object, we must unpack it
-        if not self.dynamics is None:
-            self.dynamics.evolve(self.particle, self.cell, self.interaction, self.thermostat)
 
     def maxwellian(self, temperature):
         """Reset velocities to a Maxwellian distribution with fixed CM."""
