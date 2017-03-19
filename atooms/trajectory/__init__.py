@@ -35,6 +35,7 @@ from .ram import TrajectoryRam
 
 from .factory import TrajectoryFactory
 Trajectory = TrajectoryFactory()
+"""An instance of a Trajectory factory, see `TrajectoryFactory`."""
 Trajectory.update(__name__)
 
 # Update factory with plugins modules
