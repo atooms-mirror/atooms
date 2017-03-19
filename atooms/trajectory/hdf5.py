@@ -16,6 +16,8 @@ from atooms.interaction.potential import PairPotential
 from atooms.interaction.cutoff import CutOff
 
 
+#  Helper functions and classes
+
 class _SafeFile(h5py.File):
     # TODO: decorate hdf5 class so that error messages contain the path of the offending file
     def create_group_safe(self, group):
