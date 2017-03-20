@@ -1,7 +1,7 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Linked cells to compute neighbors efficiently."""
+"""Linked cells to compute neighbors efficiently [*beta*]."""
 
 import numpy
 from collections import defaultdict
@@ -20,7 +20,7 @@ def _pbc_all(l, N):
 
 # TODO: define iterator over cells
 
-class LinkedCell(object):
+class _LinkedCell(object):
 
     def __init__(self):
         self._particle_in_cell = None

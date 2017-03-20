@@ -11,16 +11,13 @@ from atooms.core import ndim
 
 class Particle(object):
 
-    def __init__(self,
-                 id=1,
-                 name='A',
-                 mass=1.0,
+    def __init__(self, id=1, name='A', mass=1.0,
                  position=numpy.zeros(ndim),
-                 velocity=numpy.zeros(ndim),
-                 radius=0.5,
-                 tag=None):
+                 velocity=numpy.zeros(ndim), radius=0.5, tag=None):
         self.id = id
+        """An integer chemical id of the particle."""
         self.name = name
+        """The name of the chemical species of the particle."""
         self.mass = mass
         self.radius = radius
         self.position = numpy.asarray(position)

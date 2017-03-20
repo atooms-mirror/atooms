@@ -2,7 +2,7 @@
 
 import unittest
 import numpy
-from atooms.system.linkedcell import LinkedCell
+from atooms.system.linkedcell import _LinkedCell as LinkedCell
 
 class TestLinkedCell(unittest.TestCase):
 

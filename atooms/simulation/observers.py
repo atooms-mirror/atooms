@@ -45,7 +45,7 @@ _log = logging.getLogger(__name__)
 
 # Helper functions
 
-def sec2time(time_interval):
+def _sec2time(time_interval):
     """
     Convert a time interval in seconds to (day, hours, minutes,
     seconds) format.
@@ -60,14 +60,12 @@ def sec2time(time_interval):
 # Default exceptions
 
 class SimulationEnd(Exception):
+    """Raised when an targeter reaches its target."""
     pass
 
 
 class WallTimeLimit(Exception):
-    pass
-
-
-class SchedulerError(Exception):
+    """Raised when the wall time limit is reached."""
     pass
 
 
@@ -171,11 +169,18 @@ class Speedometer(object):
 
 class Target(object):
 
-    """Base targeter class."""
+    """
+    Base targeter class.
+
+    An observer that raises a `SimulationEnd` exception when a given
+    target property is reached during a simulation. The property is
+    `target` and is, by default, an attribute of simulation.
+    """
 
     def __init__(self, name, target):
         self.name = name
         self.target = target
+        """Target value of property to be reached."""
 
     def __call__(self, sim):
         x = float(getattr(sim, self.name))
@@ -259,7 +264,10 @@ class Scheduler(object):
     # TODO: interval can be a function to allow non linear sampling
     # TODO: base scheduler plus derived scheduler for fixed ncalls
 
-    """Scheduler to call observer during the simulation"""
+    """
+    Scheduler to determine when to call an observer during the
+    simulation.
+    """
 
     def __init__(self, interval, calls=None, target=None):
         self.interval = interval
@@ -277,28 +285,14 @@ class Scheduler(object):
                     self.interval = max(1, self.target / self.calls)
                 else:
                     # Dynamic scheduling
-                    raise SchedulerError('dynamic scheduling not implemented')
+                    raise ValueError('dynamic scheduling not implemented')
 
-    def next(self, this):
+    def next(self, step):
+        """
+        Given the current `step`, return the next step at which the
+        observer will be called.
+        """
         if self.interval > 0:
-            return (this / self.interval + 1) * self.interval
-        else:
-            return sys.maxint
-
-
-class OnetimeScheduler(object):
-
-    """Scheduler to call observer during the simulation"""
-
-    def __init__(self, interval, sim):
-        self.sim = sim
-        self.interval = interval
-        self.calls = None
-        self.target = None
-
-    def next(self, this):
-        _log.debug('one time initial steps %d this %d', self.sim.initial_steps, this)
-        if (this - self.sim.initial_steps) / self.interval == 0:
-            return self.interval
+            return (step / self.interval + 1) * self.interval
         else:
             return sys.maxint

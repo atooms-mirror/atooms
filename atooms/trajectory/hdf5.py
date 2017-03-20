@@ -16,6 +16,8 @@ from atooms.interaction.potential import PairPotential
 from atooms.interaction.cutoff import CutOff
 
 
+#  Helper functions and classes
+
 class _SafeFile(h5py.File):
     # TODO: decorate hdf5 class so that error messages contain the path of the offending file
     def create_group_safe(self, group):
@@ -313,7 +315,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 if entry == 'mass'    : mas = group[entry][:]
                 if entry == 'position': pos = group[entry][:]
             matrix = [Particle(spe[i],ele[i],mas[i],pos[i,:]) for i in range(len(spe))]
-            self._system.add_porous_matrix(matrix)
+            self._system.add_matrix(matrix)
 
         return self._system
 
