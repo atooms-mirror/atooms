@@ -16,7 +16,7 @@ develop: version
 test:
 	python -m unittest discover -s tests
 
-doc:
+doc: clean
         # pdoc does play nice with namespace packages -> blank __init__.py
         # go into atooms to prevent pdoc from populating docs/ with modules from the namespace package
 	cd atooms; mv __init__.py __init__.py.bak; echo \"\"\"A framework for simulations of interacting particles.\"\"\" > __init__.py
