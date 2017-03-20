@@ -6,7 +6,7 @@ Atooms
 Quick start
 -----------
 
-The idea is to provide a coherent interface to the basic objects of molecular dynamics or Monte Carlo simulations.
+The goal of `atooms` is to provide a coherent interface to the basic objects of molecular dynamics or Monte Carlo simulations.
 In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format). Accessing the coordinates of the particles in a trajectory file goes like this:
 ```python
 from atooms.trajectory import Trajectory
@@ -17,11 +17,11 @@ with Trajectory('input.xyz') as trajectory:
 ```
 Note that trajectories support iteration and slicing, just like lists. 
 
-We can modify the density of the final configuration to unity and store this new configuration in a different trajectory format. Here we use a format suitable for the [RUMD](http://rumd.org) backend:
+We can change the density of the system and write this new configuration in a different trajectory format. Here we use a format suitable for the [RUMD](http://rumd.org) simulation package:
 ```python
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
-    factor = (system.density / rho)**(1./3)
+    factor = (system.density / new_density)**(1./3)
     for particle in system.particle:
         particle.position *= factor
     system.cell.side *= factor
@@ -30,7 +30,6 @@ from atooms.trajectory import TrajectoryRUMD
 with TrajectoryRUMD('trajectory.xyz.gz', 'w') as trajectory:
     trajectory.write(system, step=0)
 ```
-
 See the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/atooms/) for more info.
 
 Installation
