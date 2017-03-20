@@ -1,12 +1,12 @@
 Atooms
 ======
 
-Atooms is a python framework for particle-based simulations. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
+`atooms` is a python framework for simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
 
-The idea is to provide a convenient interface to the basic objects at the core of molecular dynamics or Monte Carlo simulations.
+The idea is to provide a coherent interface to the basic objects of molecular dynamics or Monte Carlo simulations.
 In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format). Accessing the coordinates of the particles in a trajectory file goes like this:
 ```python
 from atooms.trajectory import Trajectory
@@ -31,7 +31,7 @@ with TrajectoryRUMD('trajectory.xyz.gz', 'w') as trajectory:
     trajectory.write(system, step=0)
 ```
 
-See the [API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/atooms/) for more info.
+See the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/atooms/) for more info.
 
 Installation
 ------------
