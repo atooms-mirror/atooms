@@ -7,6 +7,8 @@ Quick start
 -----------
 
 The goal of `atooms` is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
+The simulation data are stored in trajectory files, whose format usually depends on the code that produced the simulation.
+
 In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format). Accessing the coordinates of the particles in a trajectory file goes like this:
 ```python
 from atooms.trajectory import Trajectory
@@ -15,9 +17,9 @@ with Trajectory('input.xyz') as trajectory:
     for system in trajectory:
         print 'The position of particle 0 is', system.particle[0].position
 ```
-Note that trajectories support iteration and slicing, just like lists. 
+Note that trajectories support iteration and slicing, just like lists.
 
-We pick the final configuration, change the density of the system and write this new configuration using a different trajectory format. Here we use a format suitable for the [RUMD](http://rumd.org) simulation package:
+Here we pick the final configuration, change the density of the system and write this new configuration using a different trajectory format. We use a format suitable for the [RUMD](http://rumd.org) simulation package:
 ```python
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
@@ -41,7 +43,7 @@ cd atooms
 make install
 ```
 
-From the python package index [*coming soon!*]
+From the python package index [*coming up soon!*]
 ```
 pip install atooms
 ```
