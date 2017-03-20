@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 
 """
-atooms - A framework for molecular simulations.
+A framework for simulations of interacting particles.
 
 Blank namespace package.
 """
