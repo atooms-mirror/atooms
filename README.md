@@ -1,7 +1,7 @@
 Atooms
 ======
 
-`atooms` is a python framework for simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
+`atooms` is a python framework for classical simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
@@ -19,11 +19,11 @@ with Trajectory('input.xyz') as trajectory:
 ```
 Note that trajectories support iteration and slicing, just like lists.
 
-Here we pick the final configuration, change the density of the system and write this new configuration using a different trajectory format. We use a format suitable for the [RUMD](http://rumd.org) simulation package:
+Here we pick the last frame of the trajectory, change the density of the system to `rho` and write this new configuration using a different trajectory format. We use a format suitable for the [RUMD](http://rumd.org) simulation package:
 ```python
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
-    factor = (system.density / new_density)**(1./3)
+    factor = (system.density / `rho`)**(1./3)
     for particle in system.particle:
         particle.position *= factor
     system.cell.side *= factor
@@ -32,7 +32,10 @@ from atooms.trajectory import TrajectoryRUMD
 with TrajectoryRUMD('trajectory.xyz.gz', 'w') as trajectory:
     trajectory.write(system, step=0)
 ```
-See the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/atooms/) for more info.
+
+Documentation
+-------------
+See the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/atooms/) for full details. 
 
 Installation
 ------------
