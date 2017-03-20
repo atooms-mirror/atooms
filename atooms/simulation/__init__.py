@@ -2,7 +2,7 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 """
-Simulation framework for particulate systems.
+Simulation framework for systems of interacting particles.
 
 `atooms` provides a generic simulation interface that abstracts out
 most of the common parts of particle-based simulations. It uses
