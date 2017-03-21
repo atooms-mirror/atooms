@@ -45,7 +45,7 @@ sw = square_well
 def harmonic_sphere(rsq, epsilon, sigma):
     """Harmonic sphere potential.
 
-    u(r) = 0.5 * epsilon * [1-(r/sigma)**2]
+    u(r) = 0.5 * epsilon * [1-(r/sigma)]**2
     """
     r = sqrt(rsq)
     return 0.5 * epsilon * (1.0 - r/sigma)**2, \
