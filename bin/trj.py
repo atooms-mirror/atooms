@@ -31,8 +31,10 @@ def info(trajectory):
     print 'number of frames     =', len(trajectory)
     print 'number of particles  =', len(trajectory[0].particle)
     print 'chemical species     =', len(species(trajectory[0].particle))
-    print 'composition          =', composition(trajectory[0].particle)
+    print 'composition          =', list(composition(trajectory[0].particle))
     print 'number density       =', trajectory[0].density
+    print 'cell side            =', trajectory[0].cell.side
+    print 'cell volume          =', trajectory[0].cell.volume
     if len(trajectory)>1:
         print 'steps between frames =', (trajectory.steps[1]-trajectory.steps[0])
         print 'time between frames  =', (trajectory.times[1]-trajectory.times[0])
