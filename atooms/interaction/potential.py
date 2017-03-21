@@ -83,7 +83,7 @@ class PairPotential(object):
     def _adjust(self):
         """Adjust the cutoff to the potential."""
         self._adjusted = True
-        if self.cutoff is not None:
+        if self.cutoff is not None and self.cutoff.radius > 0:
             u = self.func(self.cutoff.radius**2, **self.params)
             self.cutoff.tailor(self.cutoff.radius**2, u)
 
