@@ -13,7 +13,7 @@ particle reservoir.
 
 import copy
 import numpy
-from .particle import position_cm, velocity_cm, fix_cm, total_kinetic_energy
+from .particle import cm_position, cm_velocity, fix_total_momentum, total_kinetic_energy
 
 class System(object):
 
@@ -30,8 +30,6 @@ class System(object):
         self.thermostat = thermostat
         self.barostat = barostat
         self.reservoir = reservoir
-
-        self._potential_energy = 0.0
         self.matrix = None
 
     @property
@@ -44,12 +42,12 @@ class System(object):
 
     @property
     def number_of_species(self):
+        """Number of distinct chemical species in the system."""
         return len(set(p.id for p in self.particle))
 
-    def add_matrix(self, matrix):
-        """
-        Add a matrix, i.e. a quenched copy of a system, to the system.
-        """
+    def _add_matrix(self, matrix):
+        """Add a list of `Particle` instances as a rigid matrix."""
+        # Currently in beta, only used by hdf5 trakectories
         self.matrix = copy.deepcopy(matrix)
 
     @property
@@ -57,7 +55,7 @@ class System(object):
         """
         Density of the system.
 
-        It will return a ValueException if `cell` is None.
+        It will raise a ValueException if `cell` is None.
         """
         if self.cell is None:
             return ValueError('cannot compute density without a cell')
@@ -65,14 +63,18 @@ class System(object):
 
     @density.setter
     def density(self, rho):
+        self.set_density(rho)
+
+    def set_density(self, rho):
+        """Set the system density to `rho` by rescaling the coordinates."""
         if self.cell is None:
             return ValueError('cannot compute density without a cell')
-        # TODO: empirically determine the boundaries if cell is None
         factor = (self.density / rho)**(1./3)
         for particle in self.particle:
             particle.position *= factor
         self.cell.side *= factor
 
+    @property
     def temperature(self, ndof=None):
         """
         Kinetic temperature.
@@ -87,24 +89,55 @@ class System(object):
             ndof = (len(self.particle)-1) * self.number_of_dimensions
         return 2.0 / ndof * total_kinetic_energy(self.particle)
 
-    def kinetic_energy(self):
-        """Total kinetic energy."""
-        return total_kinetic_energy(self.particle)
+    @temperature.setter
+    def temperature(self, T):
+        self.set_temperature(T)
 
-    def kinetic_energy_per_particle(self):
-        return total_kinetic_energy(self.particle) / len(self.particle)
+    def set_temperature(self, temperature):
+        """Reset velocities to a Maxwellian distribution with fixed CM."""
+        T = temperature
+        for p in self.particle:
+            p.maxwellian(T)
+        fix_total_momentum(self.particle)
+        # After fixing the CM the temperature is not exactly the targeted one
+        # Therefore we scale the velocities so as to get to the right T
+        T_old = self.temperature()
+        fac = (T/T_old)**0.5
+        for p in self.particle:
+            p.velocity *= fac
 
-    def potential_energy(self):
-        """Total potential energy."""
-        return self._potential_energy
+    def kinetic_energy(self, normed=False):
+        """
+        Return the total kinetic energy of the system.
 
-    def potential_energy_per_particle(self):
-        return self._potential_energy / len(self.particle)
+        If `normed` is `True`, return the kinetic energy per
+        particle.
+        """
+        if not normed:
+            return total_kinetic_energy(self.particle)
+        else:
+            return total_kinetic_energy(self.particle) / len(self.particle)
+
+    def potential_energy(self, normed=False):
+        """
+        Return the total potential energy of the system.
+
+        If `normed` is `True`, return the potential energy per
+        particle.
+        """
+        if self.interaction is not None:
+            self.interaction.compute(self.particle, self.cell, self.interaction)
+            if not normed:
+                return self.interaction.energy
+            else:
+                return self.interaction.energy / len(self.particle)
+        else:
+            return 0.0
 
     def mean_square_displacement(self, reference):
         """
-        Compute the mean square displacement of the system's particles
-        with respect to those in the *reference* system.
+        Return the mean square displacement of the system's particles with
+        respect to those in the `reference` system.
         """
         displ = []
         for pi, pj in zip(self.particle, reference.particle):
@@ -113,35 +146,22 @@ class System(object):
         return sum(displ) / len(self.particle)
 
     @property
-    def velocity_cm(self):
-        """Velocity of the center of mass."""
-        return velocity_cm(self.particle)
+    def cm_velocity(self):
+        """Center-of-mass velocity."""
+        return cm_velocity(self.particle)
 
     @property
-    def position_cm(self):
-        """Position of the center of mass."""
-        return position_cm(self.particle)
+    def cm_position(self):
+        """Center-of-mass position."""
+        return cm_position(self.particle)
 
-    def fix_cm(self):
-        """Fix the center of mass motion."""
-        fix_cm(self.particle)
-
-    def maxwellian(self, temperature):
-        """Reset velocities to a Maxwellian distribution with fixed CM."""
-        T = temperature
-        for p in self.particle:
-            p.maxwellian(T)
-        fix_cm(self.particle)
-        # After fixing the CM the temperature is not exactly the targeted one
-        # Therefore we scale the velocities so as to get to the right T
-        T_old = self.temperature()
-        fac = (T/T_old)**0.5
-        for p in self.particle:
-            p.velocity *= fac
+    def fix_momentum(self):
+        """Subtract out the the center-of-mass motion."""
+        fix_total_momentum(self.particle)
 
     def dump(self, what, order='C', dtype=None):
         """
-        Dump the system properties specified by `what` to numpy arrays.
+        Return a numpy array with system properties specified by `what`.
 
         If `what` is a string, it should be of the form
         `particle.<attribute>` or `cell.<attribute>`. The following
@@ -150,8 +170,8 @@ class System(object):
         If `what` is a list of strings of the form above, a dict of
         numpy arrays is returned with `what` as keys.
 
-        Particles' coordinates are thrown into (N, ndim)
-        arrays if `order` is C or (ndim, N) arrays if `order` is F.
+        Particles' coordinates are retruned as (N, ndim) arrays if
+        `order` is `C` or (ndim, N) arrays if `order` is `F`.
 
         Examples:
         --------
@@ -165,7 +185,6 @@ class System(object):
 
             #!python
             dump = system.dump(['pos', 'vel'])
-
         """
         # Listify input variables
         if type(what) is str:
@@ -205,16 +224,3 @@ class System(object):
             return dump_db.values()[0]
         else:
             return dump_db
-
-    def scale(self, factor):
-        """Rescale cell and particles' coordinates by `factor`."""
-        for p in self.particle:
-            p.position *= factor
-        self.cell.side *= factor
-
-    def report(self):
-        """Provide a text summary of the system's main attributes."""
-        txt = "number of particles: %d\n" % len(self.particle)
-        if self.cell is not None:
-            txt += "cell side: %s\n" % self.cell.side
-        return txt

@@ -93,7 +93,7 @@ def periodic_vector_safe(vec, box):
 def periodic_vector_safe_opti(vec, box, invbox):
     return vec - numpy.rint(vec * invbox) * box
 
-def fix_cm(particles):
+def fix_total_momentum(particles):
     """
     Subtract out the center of mass velocity from a list of
     `particles`.
@@ -103,7 +103,7 @@ def fix_cm(particles):
         p.velocity -= vcm
     return particles
 
-def velocity_cm(particle):
+def cm_velocity(particle):
     """Velocity of the center of mass of a list of particles."""
     vcm = numpy.zeros_like(particle[0].velocity)
     mtot = 0.0
@@ -112,8 +112,8 @@ def velocity_cm(particle):
         mtot += p.mass
     return vcm / mtot
 
-def position_cm(particle):
-    """Position of the center of mass of a list of particles."""
+def cm_position(particle):
+    """Center-of-mass of a list of particles."""
     rcm = numpy.zeros_like(particle[0].position)
     mtot = 0.0
     for p in particle:
