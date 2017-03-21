@@ -52,9 +52,9 @@ def set_density(system, rho):
 
 def set_temperature(system, T):
     """Set system temperature by reassigning velocities."""
-    for p in system.particle:
-        p.maxwellian(self.T)
     from atooms.system.particle import velocity_cm
+    for p in system.particle:
+        p.maxwellian(T)
     v_cm = velocity_cm(system.particle)
     for p in system.particle:
         p.velocity -= v_cm
