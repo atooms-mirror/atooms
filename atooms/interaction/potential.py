@@ -63,8 +63,16 @@ class PairPotential(object):
         self.hard_core = hard_core
         self.npoints = npoints
         self._adjusted = False
-        if self.func in _factory:
-            self.func = _factory[func]
+
+        try:
+            # Check if func is callable
+            _ = self.func()
+        except TypeError:
+            # Look up the potential in the factory
+            if self.func in _factory:
+                self.func = _factory[func]
+            else:
+                raise ValueError('unknown potential %s' % self.func)
 
     def __str__(self):
         if type(self.func) is str:
