@@ -26,21 +26,21 @@ def available_formats():
 
 def info(trajectory):
     from atooms.system.particle import species, composition
-    print 'path                 :', trajectory.filename
-    print 'format               :', trajectory.__class__
-    print 'number of frames     :', len(trajectory)
-    print 'number of particles  :', len(trajectory[0].particle)
-    print 'chemical species     :', len(species(trajectory[0].particle))
-    print 'composition          :', composition(trajectory[0].particle)
-    print 'number density       :', trajectory[0].density
+    print 'path                 =', trajectory.filename
+    print 'format               =', trajectory.__class__
+    print 'number of frames     =', len(trajectory)
+    print 'number of particles  =', len(trajectory[0].particle)
+    print 'chemical species     =', len(species(trajectory[0].particle))
+    print 'composition          =', composition(trajectory[0].particle)
+    print 'number density       =', trajectory[0].density
     if len(trajectory)>1:
-        print 'steps between frames :', (trajectory.steps[1]-trajectory.steps[0])
-        print 'time between frames  :', (trajectory.times[1]-trajectory.times[0])
-        print 'final step           :', trajectory.steps[-1]
-        print 'final time           :', trajectory.times[-1]
-        print 'timestep             :', trajectory.timestep
-        print 'block period         :', trajectory.block_period
-        print 'grandcanonical       :', trajectory.grandcanonical
+        print 'steps between frames =', (trajectory.steps[1]-trajectory.steps[0])
+        print 'time between frames  =', (trajectory.times[1]-trajectory.times[0])
+        print 'final step           =', trajectory.steps[-1]
+        print 'final time           =', trajectory.times[-1]
+        print 'timestep             =', trajectory.timestep
+        print 'block period         =', trajectory.block_period
+        print 'grandcanonical       =', trajectory.grandcanonical
 
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
