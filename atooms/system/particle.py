@@ -162,7 +162,7 @@ def composition(particles, nsp=None):
         x[p.id - 1] += 1
     return tuple(x)
 
-def rotated(particle, cell):
+def rotate(particle, cell):
     """
     Return a list of particles rotated around the main symmetry axis
     of the set.
