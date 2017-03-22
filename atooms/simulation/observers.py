@@ -110,7 +110,7 @@ class WriterThermo(object):
         with open(f, 'a') as fh:
             fh.write('%d %g %g\n' % (sim.steps,
                                      sim.system.potential_energy(),
-                                     sim.rmsd()))
+                                     sim.rmsd))
 
     def clear(self, sim):
         f = sim.base_path + '.thermo'
