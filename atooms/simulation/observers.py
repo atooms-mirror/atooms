@@ -69,53 +69,124 @@ class WallTimeLimit(Exception):
     pass
 
 
-# Writers
-# TODO: we could have callbacks as pure function while retaining their role (writer, targeter) but adopting a strict naming convention
-# If the callback contains Writer (Target, Speedometer) in its __name__ then it is a writer (targeter, speedometer).
-# Its interface may accept an optional parameter cleanup=False for writers, to be used to clean up the files.
+# Writer callbacks
+# Callbacks as pure function to distinguish their role we adopt a naming convention:
+# if the callback contains write (target) in its __name__ then it is a writer (targeter).
 
-class WriterConfig(object):
-
+def write_config(sim):
     """
-    Callable class that writes configurations to a trajectory file.
+    Write configurations to a trajectory file.
 
-    The trajectory format is taken from the passed Simulation instance
-    that calls the callbacks.
+    The trajectory format is taken from the passed Simulation
+    instance.
     """
-
-    def __str__(self):
-        return 'config'
-
-    def __call__(self, sim):
-        with sim.trajectory(sim.output_path, 'a') as t:
-            t.write(sim.system, sim.steps)
-
-    def clear(self, sim):
+    if sim.steps == 0:
+        # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
         # TODO: refactor as rm()
         if os.path.isdir(sim.output_path):
             shutil.rmtree(sim.output_path)
         elif os.path.isfile(sim.output_path):
             os.remove(sim.output_path)
+    else:
+        with sim.trajectory(sim.output_path, 'a') as t:
+            t.write(sim.system, sim.steps)
 
-
-class WriterThermo(object):
-
-    """Callable class that writes thermodynamic data to disk."""
-
-    def __str__(self):
-        return 'thermo'
-
-    def __call__(self, sim):
-        f = sim.base_path + '.thermo'
+def write_thermo(sim):
+    """Write basic thermodynamic data."""
+    #f = sim.base_path + '.thermo'
+    f = sim.output_path + '.thermo'
+    if sim.steps == 0:
+        with open(f, 'w') as fh:
+            fh.write('# columns:' + ', '.join(['steps', 
+                                               'temperature', 
+                                               'potential energy', 
+                                               'kinetic energy', 
+                                               'total energy',
+                                               'rmsd'] + '\n')
+    else:
         with open(f, 'a') as fh:
-            fh.write('%d %g %g\n' % (sim.steps,
-                                     sim.system.potential_energy(),
-                                     sim.rmsd))
+            fh.write('%d %g %g %g %g %g\n' % (sim.steps,
+                                              sim.system.temperature,
+                                              sim.system.potential_energy(normed=True),
+                                              sim.system.kinetic_energy(normed=True),
+                                              sim.system.total_energy(normed=True),
+                                              sim.rmsd))
 
-    def clear(self, sim):
-        f = sim.base_path + '.thermo'
-        if os.path.exists(f):
-            os.remove(f)
+def write(sim, name, attributes):
+    """
+    Write generic attributes of simulation and system to a file.
+
+    `name` is a tag appended to `sim.base_path` to define the output
+    file path.
+
+    `attributes` must be a list of valid properties of the Simulation
+    instance `sim` or of its System instance `sim.system`.
+    """
+    f = sim.output_path + '.' + name
+    if sim.steps == 0:
+        with open(f, 'w') as fh:
+            fh.write('# columns: %s\n' % ', '.join(attributes))
+    else:
+        # Extract the requested attributes
+        values = []
+        for attr in attributes:
+            level = len(attr.split('.'))
+            if level == 1:
+                values.append(sim.__getattribute__(attr))
+            elif level == 2:
+                system_attr = attr.split('.')[-1]
+                if attr.startswith('system'):
+                    values.append(sim.system.__getattribute__(system_attr))
+            else:
+                raise ValueError('attribute is too deep')
+        # Format output string
+        fmt = ('%s ' * len(attributes)) + '\n'
+        with open(f, 'a') as fh:
+            fh.write(fmt % tuple(values))
+
+
+# class WriterConfig(object):
+
+#     """
+#     Callable class that writes configurations to a trajectory file.
+
+#     The trajectory format is taken from the passed Simulation instance
+#     that calls the callbacks.
+#     """
+
+#     def __str__(self):
+#         return 'config'
+
+#     def __call__(self, sim):
+#         with sim.trajectory(sim.output_path, 'a') as t:
+#             t.write(sim.system, sim.steps)
+
+#     def clear(self, sim):
+#         # TODO: refactor as rm()
+#         if os.path.isdir(sim.output_path):
+#             shutil.rmtree(sim.output_path)
+#         elif os.path.isfile(sim.output_path):
+#             os.remove(sim.output_path)
+
+
+# class WriterThermo(object):
+
+#     """Callable class that writes thermodynamic data to disk."""
+
+#     def __str__(self):
+#         return 'thermo'
+
+#     def __call__(self, sim):
+#         f = sim.base_path + '.thermo'
+#         with open(f, 'a') as fh:
+#             fh.write('%d %g %g\n' % (sim.steps,
+#                                      sim.system.potential_energy(),
+#                                      sim.rmsd))
+
+#     def clear(self, sim):
+#         f = sim.base_path + '.thermo'
+#         if os.path.exists(f):
+#             os.remove(f)
 
 
 class Speedometer(object):
