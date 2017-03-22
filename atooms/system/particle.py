@@ -38,7 +38,7 @@ class Particle(object):
         nearest image particle and leave the original particle as is.
         """
         rij = self.position - particle.position
-        periodic_vector(rij, cell.side)
+        _periodic_vector(rij, cell.side)
         if copy:
             from copy import deepcopy
             image = deepcopy(self)
@@ -65,9 +65,9 @@ class Particle(object):
         if cell is not None:
             # Apply periodic boundary conditions
             if folded:
-                r = periodic_vector(r, cell.side)
+                r = _periodic_vector(r, cell.side)
             else:
-                r = periodic_vector_safe(r, cell.sidebox)
+                r = _periodic_vector_safe(r, cell.sidebox)
         return r
 
     def fold(self, cell):
@@ -88,20 +88,20 @@ class Particle(object):
 
 # Utility functions
 
-def periodic_vector(vec, box):
+def _periodic_vector(vec, box):
     for i in xrange(vec.shape[0]):
         if vec[i] > box[i] / 2:
             vec[i] += - box[i]
         elif vec[i] < -box[i] / 2:
             vec[i] += box[i]
+    # Compact version
     # return numpy.where(abs(a) > box/2, a-numpy.copysign(box, a), a)
     return vec
 
-def periodic_vector_unfolded(vec, box):
+def _periodic_vector_unfolded(vec, box):
     return vec - numpy.rint(vec / box) * box
-
-def periodic_vector_unfolded_optimized(vec, box, invbox):
-    return vec - numpy.rint(vec * invbox) * box
+    # Optimized version
+    # return vec - numpy.rint(vec * invbox) * box
 
 def fix_total_momentum(particles):
     """
