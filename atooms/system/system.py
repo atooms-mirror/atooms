@@ -134,6 +134,14 @@ class System(object):
         else:
             return 0.0
 
+    def total_energy(self, normed=False):
+        """
+        Return the total energy of the system.
+
+        If `normed` is `True`, return the total energy per particle.
+        """
+        return self.potential_energy(normed) + self.kinetic_energy(normed)
+
     @property
     def cm_velocity(self):
         """Center-of-mass velocity."""
