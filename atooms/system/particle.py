@@ -84,6 +84,11 @@ class Particle(object):
         vz = random.gauss(0, numpy.sqrt(T / self.mass))
         self.velocity = numpy.array((vx, vy, vz))
 
+    @property
+    def kinetic_energy(self):
+        """Kinetic energy."""
+        return 0.5 * self.mass * numpy.dot(self.velocity, self.velocity)
+
 
 # Utility functions
 
@@ -129,13 +134,6 @@ def cm_position(particle):
         rcm += p.position * p.mass
         mtot += p.mass
     return rcm / mtot
-
-def total_kinetic_energy(particles):
-    """Total kinetic energy of a list of `particles`."""
-    ekin = 0.0
-    for p in particles:
-        ekin += p.mass * numpy.dot(p.velocity, p.velocity)
-    return 0.5 * ekin
 
 def species(particles):
     """Return list of distinct species (`id`) of `particles`."""
