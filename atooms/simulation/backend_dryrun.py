@@ -43,6 +43,11 @@ class System(object):
     def kinetic_energy(self):
         return 0.
 
+    @property
+    def density(self):
+        return 0.
+
+    @property
     def temperature(self):
         return 0.
 

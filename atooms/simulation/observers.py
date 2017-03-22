@@ -102,7 +102,7 @@ def write_thermo(sim):
                                                'potential energy', 
                                                'kinetic energy', 
                                                'total energy',
-                                               'rmsd'] + '\n')
+                                               'rmsd'] + '\n'))
     else:
         with open(f, 'a') as fh:
             fh.write('%d %g %g %g %g %g\n' % (sim.steps,
@@ -132,61 +132,62 @@ def write(sim, name, attributes):
         for attr in attributes:
             level = len(attr.split('.'))
             if level == 1:
-                values.append(sim.__getattribute__(attr))
+                values.append(getattr(sim, attr))
             elif level == 2:
                 system_attr = attr.split('.')[-1]
                 if attr.startswith('system'):
-                    values.append(sim.system.__getattribute__(system_attr))
+                    values.append(getattr(sim.system, system_attr))
             else:
                 raise ValueError('attribute is too deep')
         # Format output string
         fmt = ('%s ' * len(attributes)) + '\n'
         with open(f, 'a') as fh:
             fh.write(fmt % tuple(values))
+                     
 
 
-# class WriterConfig(object):
+class WriterConfig(object):
 
-#     """
-#     Callable class that writes configurations to a trajectory file.
+    """
+    Callable class that writes configurations to a trajectory file.
 
-#     The trajectory format is taken from the passed Simulation instance
-#     that calls the callbacks.
-#     """
+    The trajectory format is taken from the passed Simulation instance
+    that calls the callbacks.
+    """
 
-#     def __str__(self):
-#         return 'config'
+    def __str__(self):
+        return 'config'
 
-#     def __call__(self, sim):
-#         with sim.trajectory(sim.output_path, 'a') as t:
-#             t.write(sim.system, sim.steps)
+    def __call__(self, sim):
+        with sim.trajectory(sim.output_path, 'a') as t:
+            t.write(sim.system, sim.steps)
 
-#     def clear(self, sim):
-#         # TODO: refactor as rm()
-#         if os.path.isdir(sim.output_path):
-#             shutil.rmtree(sim.output_path)
-#         elif os.path.isfile(sim.output_path):
-#             os.remove(sim.output_path)
+    def clear(self, sim):
+        # TODO: refactor as rm()
+        if os.path.isdir(sim.output_path):
+            shutil.rmtree(sim.output_path)
+        elif os.path.isfile(sim.output_path):
+            os.remove(sim.output_path)
 
 
-# class WriterThermo(object):
+class WriterThermo(object):
 
-#     """Callable class that writes thermodynamic data to disk."""
+    """Callable class that writes thermodynamic data to disk."""
 
-#     def __str__(self):
-#         return 'thermo'
+    def __str__(self):
+        return 'thermo'
 
-#     def __call__(self, sim):
-#         f = sim.base_path + '.thermo'
-#         with open(f, 'a') as fh:
-#             fh.write('%d %g %g\n' % (sim.steps,
-#                                      sim.system.potential_energy(),
-#                                      sim.rmsd))
+    def __call__(self, sim):
+        f = sim.base_path + '.thermo'
+        with open(f, 'a') as fh:
+            fh.write('%d %g %g\n' % (sim.steps,
+                                     sim.system.potential_energy(),
+                                     sim.rmsd))
 
-#     def clear(self, sim):
-#         f = sim.base_path + '.thermo'
-#         if os.path.exists(f):
-#             os.remove(f)
+    def clear(self, sim):
+        f = sim.base_path + '.thermo'
+        if os.path.exists(f):
+            os.remove(f)
 
 
 class Speedometer(object):
@@ -238,6 +239,16 @@ class Speedometer(object):
 
         self.t_last = t_now
         self.x_last = x_now
+        
+def target(sim, attribute, value):
+
+    x = float(getattr(sim, attribute))
+    if value > 0:
+        frac = float(x) / value
+        _log.debug('target %s now at %g [%d]', attribute, x, int(frac * 100))
+    if x >= value:
+        raise SimulationEnd('reached target %s: %s', attribute, value)
+    return frac
 
 
 class Target(object):

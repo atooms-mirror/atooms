@@ -57,7 +57,7 @@ class Simulation(object):
         self.max_steps = steps
         self.enable_speedometer = enable_speedometer
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
-        self._targeter_steps = TargetSteps(self.max_steps)
+        self._targeter_steps = lambda sim : SimulationEnd('reached target steps %d' % sim.steps)
 
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
@@ -217,9 +217,7 @@ class Simulation(object):
             self.backend.steps = 0
 
         # Targeter for max steps. Note that this will the replace an existing one.
-        self._targeter_steps.target = self.max_steps
         self.add(self._targeter_steps, Scheduler(self.max_steps))
-
         self.report_header()
         self.run_pre()
         self.initial_steps = self.steps
