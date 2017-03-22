@@ -64,11 +64,9 @@ class PairPotential(object):
         self.npoints = npoints
         self._adjusted = False
 
-        try:
-            # Check if func is callable
-            _ = self.func()
-        except TypeError:
-            # Look up the potential in the factory
+        if not hasattr(self.func, '__call__'):
+            # If func is not callable, look up the potential in the
+            # factory
             if self.func in _factory:
                 self.func = _factory[func]
             else:
