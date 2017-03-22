@@ -13,7 +13,7 @@ class Particle(object):
 
     def __init__(self, id=1, name='A', mass=1.0,
                  position=numpy.zeros(ndim),
-                 velocity=numpy.zeros(ndim), radius=0.5, tag=None):
+                 velocity=numpy.zeros(ndim), radius=0.5):
         self.id = id
         """An integer chemical id of the particle."""
         self.name = name
@@ -22,7 +22,6 @@ class Particle(object):
         self.radius = radius
         self.position = numpy.asarray(position)
         self.velocity = numpy.asarray(velocity)
-        self.tag = tag
 
     @property
     def diameter(self):
