@@ -148,6 +148,17 @@ class System(object):
         """Subtract out the the center-of-mass motion."""
         fix_total_momentum(self.particle)
 
+    def mean_square_displacement(self, other):
+        """
+        Return the mean square displacement of the system's particles with
+        respect to those of an `other` System instance.
+        """
+        displ = []
+        for pi, pj in zip(self.particle, other.particle):
+            rij = pi.distance(pj, folded=False)
+            displ.append(numpy.dot(rij, rij))
+        return sum(displ) / len(self.particle)
+
     def dump(self, what, order='C', dtype=None):
         """
         Return a numpy array with system properties specified by `what`.
