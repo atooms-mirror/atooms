@@ -83,6 +83,7 @@ class RumdBackend(object):
     def __str__(self):
         return 'RUMD v%s' % rumd.GetVersion()
 
+    @property
     def rmsd(self):
         """ Compute the mean square displacement between actual sample and the reference sample """
         # TODO: not sure it is the backend responsibility
