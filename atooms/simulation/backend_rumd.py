@@ -266,14 +266,20 @@ class System(object):
         #     setattr(result, k, deepcopy(v, memo))
         return result
 
-    def potential_energy(self):
+    def potential_energy(self, normed=False):
         self.sample.CalcF()
-        return self.sample.GetPotentialEnergy()
+        if normed:
+            return self.sample.GetPotentialEnergy() / len(self.particle)
+        else:
+            return self.sample.GetPotentialEnergy()
 
-    def kinetic_energy(self):
+    def kinetic_energy(self, normed=False):
         # TODO: use double IntegratorNVT::GetKineticEnergy(bool copy) const{
         from atooms.system.particle import total_kinetic_energy
-        return total_kinetic_energy(self.particle)
+        if normed:
+            return total_kinetic_energy(self.particle) / len(self.particle)
+        else:
+            return total_kinetic_energy(self.particle)
 
     def __get_mass(self):
         # TODO: cache it (but what if masses change?)
@@ -295,6 +301,7 @@ class System(object):
             ii += ni
         return mass
 
+    @property
     def temperature(self):
         ndof = self.sample.GetNumberOfDOFs()
         vel = self.sample.GetVelocities()

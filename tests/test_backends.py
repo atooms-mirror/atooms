@@ -83,7 +83,7 @@ class TestBackendRUMD(unittest.TestCase):
     def test_system(self):
         system = System(self.sim.sample)
         U = system.potential_energy()
-        T = system.temperature()
+        T = system.temperature
         Uref = 36.9236726612
         Tref = 2*6.0/6
         # Note places is the number of decimal places, not significant digits, 4 is enough
@@ -92,7 +92,7 @@ class TestBackendRUMD(unittest.TestCase):
 
     def test_temperature_mass(self):
         system = System(self.sim2.sample)
-        T = system.temperature()
+        T = system.temperature
         Tref = 20.0/9 # if we don't have the right masses this will fail
         self.assertAlmostEqual(T, Tref)
 

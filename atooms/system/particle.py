@@ -24,46 +24,56 @@ class Particle(object):
         self.velocity = numpy.asarray(velocity)
         self.tag = tag
 
-    def nearest_image(self, particle, cell):
+    @property
+    def diameter(self):
+        """Particle diameter."""
+        return self.radius * 2
+
+    def nearest_image(self, particle, cell, copy=False):
         """
-        Transform self into the nearest image of `particle` in the
-        specified cell.
+        Return the nearest image of `particle` in the given `cell`.
+
+        If `copy` is `False`, the particle is transformed into to its
+        nearest image, otherwise the fucction returns a copy of the
+        nearest image particle and leave the original particle as is.
         """
         rij = self.position - particle.position
         periodic_vector(rij, cell.side)
-        self.position = particle.position + rij
-        return self
+        if copy:
+            from copy import deepcopy
+            image = deepcopy(self)
+            image.position = particle.position + rij
+            return image
+        else:
+            self.position = particle.position + rij
+            return self
 
-    def nearest_image_copy(self, particle, cell):
-        """Return the nearest image of `particle` in the specified `cell`."""
-        from copy import deepcopy
-        rij = self.position - particle.position
-        periodic_vector(rij, cell.side)
-        image = deepcopy(self)
-        image.position = particle.position + rij
-        return image
-
-    def distance(self, particle, cell=None):
+    def distance(self, particle, cell=None, folded=True):
         """
-        Return distance from `particle`.
+        Return the distance from another `particle`.
 
-        If `cell` is provided, return distance from the nearest image
-        of `particle`.
+        If `cell` is given, return the distance from the nearest image
+        of `particle`. In this case, if `folded` is True, the
+        coordinates are assumed to be folded into the central cell (or
+        in a cell just next to it), otherwise they will be assumed to
+        lie in an arbitrary periodic cell.
+
+        If `cell` is None, periodic boundary conditions are *not*
+        applied and folded is irrelevant.
         """
         r = self.position - particle.position
-        if cell:
-            periodic_vector(r, cell.side)
+        if cell is not None:
+            # Apply periodic boundary conditions
+            if folded:
+                r = periodic_vector(r, cell.side)
+            else:
+                r = periodic_vector_safe(r, cell.sidebox)
         return r
 
     def fold(self, cell):
         """Fold self into central cell."""
         self.position = periodic_vector_safe(self.position, cell.side)
         return self
-
-    @property
-    def diameter(self):
-        """Particle diameter."""
-        return self.radius * 2
 
     def maxwellian(self, T):
         """
@@ -87,10 +97,10 @@ def periodic_vector(vec, box):
     # return numpy.where(abs(a) > box/2, a-numpy.copysign(box, a), a)
     return vec
 
-def periodic_vector_safe(vec, box):
+def periodic_vector_unfolded(vec, box):
     return vec - numpy.rint(vec / box) * box
 
-def periodic_vector_safe_opti(vec, box, invbox):
+def periodic_vector_unfolded_optimized(vec, box, invbox):
     return vec - numpy.rint(vec * invbox) * box
 
 def fix_total_momentum(particles):
