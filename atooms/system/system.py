@@ -134,17 +134,6 @@ class System(object):
         else:
             return 0.0
 
-    def mean_square_displacement(self, reference):
-        """
-        Return the mean square displacement of the system's particles with
-        respect to those in the `reference` system.
-        """
-        displ = []
-        for pi, pj in zip(self.particle, reference.particle):
-            rij = numpy.array(pi.distance(pj, self.cell))
-            displ.append(numpy.dot(rij, rij))
-        return sum(displ) / len(self.particle)
-
     @property
     def cm_velocity(self):
         """Center-of-mass velocity."""
