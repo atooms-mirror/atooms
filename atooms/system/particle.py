@@ -137,12 +137,6 @@ def total_kinetic_energy(particles):
         ekin += p.mass * numpy.dot(p.velocity, p.velocity)
     return 0.5 * ekin
 
-def temperature(particles, ndof=None):
-    """Kinetic temperature of a list of `particles`."""
-    if ndof is None:
-        ndof = _ndim * (len(particles) - 1)
-    return 2 * total_kinetic_energy(particles) / ndof
-
 def species(particles):
     """Return list of distinct species (`id`) of `particles`."""
     return list(set([p.id for p in particles]))
