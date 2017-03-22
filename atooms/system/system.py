@@ -13,7 +13,7 @@ particle reservoir.
 
 import copy
 import numpy
-from .particle import cm_position, cm_velocity, fix_total_momentum, total_kinetic_energy
+from .particle import cm_position, cm_velocity, fix_total_momentum
 
 class System(object):
 
@@ -87,7 +87,7 @@ class System(object):
         # TODO: determine translational invariance via some additional attribute.
         if ndof is None:
             ndof = (len(self.particle)-1) * self.number_of_dimensions
-        return 2.0 / ndof * total_kinetic_energy(self.particle)
+        return 2.0 / ndof * self.kinetic_energy()
 
     @temperature.setter
     def temperature(self, T):
@@ -113,10 +113,11 @@ class System(object):
         If `normed` is `True`, return the kinetic energy per
         particle.
         """
+        ekin = sum([p.kinetic_energy for p in self.particle])
         if not normed:
-            return total_kinetic_energy(self.particle)
+            return ekin
         else:
-            return total_kinetic_energy(self.particle) / len(self.particle)
+            return ekin / len(self.particle)
 
     def potential_energy(self, normed=False):
         """
