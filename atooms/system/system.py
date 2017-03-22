@@ -75,7 +75,7 @@ class System(object):
         self.cell.side *= factor
 
     @property
-    def temperature(self, ndof=None):
+    def temperature(self):
         """
         Kinetic temperature.
 
@@ -85,8 +85,7 @@ class System(object):
             ndof = (N-1)*dim
         """
         # TODO: determine translational invariance via some additional attribute.
-        if ndof is None:
-            ndof = (len(self.particle)-1) * self.number_of_dimensions
+        ndof = (len(self.particle)-1) * self.number_of_dimensions
         return 2.0 / ndof * self.kinetic_energy()
 
     @temperature.setter
