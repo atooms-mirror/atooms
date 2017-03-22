@@ -6,14 +6,14 @@
 import numpy
 import random
 import copy
-from atooms.core import ndim
+from atooms.core import ndim as _ndim
 
 
 class Particle(object):
 
     def __init__(self, id=1, name='A', mass=1.0,
-                 position=numpy.zeros(ndim),
-                 velocity=numpy.zeros(ndim), radius=0.5):
+                 position=numpy.zeros(_ndim),
+                 velocity=numpy.zeros(_ndim), radius=0.5):
         self.id = id
         """An integer chemical id of the particle."""
         self.name = name
@@ -140,7 +140,7 @@ def total_kinetic_energy(particles):
 def temperature(particles, ndof=None):
     """Kinetic temperature of a list of `particles`."""
     if ndof is None:
-        ndof = ndim * (len(particles) - 1)
+        ndof = _ndim * (len(particles) - 1)
     return 2 * total_kinetic_energy(particles) / ndof
 
 def species(particles):
