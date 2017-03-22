@@ -6,14 +6,14 @@
 import numpy
 import random
 import copy
-from atooms.core import ndim
+from atooms.core import ndim as _ndim
 
 
 class Particle(object):
 
     def __init__(self, id=1, name='A', mass=1.0,
-                 position=numpy.zeros(ndim),
-                 velocity=numpy.zeros(ndim), radius=0.5, tag=None):
+                 position=numpy.zeros(_ndim),
+                 velocity=numpy.zeros(_ndim), radius=0.5):
         self.id = id
         """An integer chemical id of the particle."""
         self.name = name
@@ -22,48 +22,57 @@ class Particle(object):
         self.radius = radius
         self.position = numpy.asarray(position)
         self.velocity = numpy.asarray(velocity)
-        self.tag = tag
 
-    def nearest_image(self, particle, cell):
+    @property
+    def diameter(self):
+        """Particle diameter."""
+        return self.radius * 2
+
+    def nearest_image(self, particle, cell, copy=False):
         """
-        Transform self into the nearest image of `particle` in the
-        specified cell.
+        Return the nearest image of `particle` in the given `cell`.
+
+        If `copy` is `False`, the particle is transformed into to its
+        nearest image, otherwise the fucction returns a copy of the
+        nearest image particle and leave the original particle as is.
         """
         rij = self.position - particle.position
-        periodic_vector(rij, cell.side)
-        self.position = particle.position + rij
-        return self
+        _periodic_vector(rij, cell.side)
+        if copy:
+            from copy import deepcopy
+            image = deepcopy(self)
+            image.position = particle.position + rij
+            return image
+        else:
+            self.position = particle.position + rij
+            return self
 
-    def nearest_image_copy(self, particle, cell):
-        """Return the nearest image of `particle` in the specified `cell`."""
-        from copy import deepcopy
-        rij = self.position - particle.position
-        periodic_vector(rij, cell.side)
-        image = deepcopy(self)
-        image.position = particle.position + rij
-        return image
-
-    def distance(self, particle, cell=None):
+    def distance(self, particle, cell=None, folded=True):
         """
-        Return distance from `particle`.
+        Return the distance from another `particle`.
 
-        If `cell` is provided, return distance from the nearest image
-        of `particle`.
+        If `cell` is given, return the distance from the nearest image
+        of `particle`. In this case, if `folded` is True, the
+        coordinates are assumed to be folded into the central cell (or
+        in a cell just next to it), otherwise they will be assumed to
+        lie in an arbitrary periodic cell.
+
+        If `cell` is None, periodic boundary conditions are *not*
+        applied and folded is irrelevant.
         """
         r = self.position - particle.position
-        if cell:
-            periodic_vector(r, cell.side)
+        if cell is not None:
+            # Apply periodic boundary conditions
+            if folded:
+                r = _periodic_vector(r, cell.side)
+            else:
+                r = _periodic_vector_safe(r, cell.sidebox)
         return r
 
     def fold(self, cell):
         """Fold self into central cell."""
         self.position = periodic_vector_safe(self.position, cell.side)
         return self
-
-    @property
-    def diameter(self):
-        """Particle diameter."""
-        return self.radius * 2
 
     def maxwellian(self, T):
         """
@@ -75,25 +84,30 @@ class Particle(object):
         vz = random.gauss(0, numpy.sqrt(T / self.mass))
         self.velocity = numpy.array((vx, vy, vz))
 
+    @property
+    def kinetic_energy(self):
+        """Kinetic energy."""
+        return 0.5 * self.mass * numpy.dot(self.velocity, self.velocity)
+
 
 # Utility functions
 
-def periodic_vector(vec, box):
+def _periodic_vector(vec, box):
     for i in xrange(vec.shape[0]):
         if vec[i] > box[i] / 2:
             vec[i] += - box[i]
         elif vec[i] < -box[i] / 2:
             vec[i] += box[i]
+    # Compact version
     # return numpy.where(abs(a) > box/2, a-numpy.copysign(box, a), a)
     return vec
 
-def periodic_vector_safe(vec, box):
+def _periodic_vector_unfolded(vec, box):
     return vec - numpy.rint(vec / box) * box
+    # Optimized version
+    # return vec - numpy.rint(vec * invbox) * box
 
-def periodic_vector_safe_opti(vec, box, invbox):
-    return vec - numpy.rint(vec * invbox) * box
-
-def fix_cm(particles):
+def fix_total_momentum(particles):
     """
     Subtract out the center of mass velocity from a list of
     `particles`.
@@ -103,7 +117,7 @@ def fix_cm(particles):
         p.velocity -= vcm
     return particles
 
-def velocity_cm(particle):
+def cm_velocity(particle):
     """Velocity of the center of mass of a list of particles."""
     vcm = numpy.zeros_like(particle[0].velocity)
     mtot = 0.0
@@ -112,27 +126,14 @@ def velocity_cm(particle):
         mtot += p.mass
     return vcm / mtot
 
-def position_cm(particle):
-    """Position of the center of mass of a list of particles."""
+def cm_position(particle):
+    """Center-of-mass of a list of particles."""
     rcm = numpy.zeros_like(particle[0].position)
     mtot = 0.0
     for p in particle:
         rcm += p.position * p.mass
         mtot += p.mass
     return rcm / mtot
-
-def total_kinetic_energy(particles):
-    """Total kinetic energy of a list of `particles`."""
-    ekin = 0.0
-    for p in particles:
-        ekin += p.mass * numpy.dot(p.velocity, p.velocity)
-    return 0.5 * ekin
-
-def temperature(particles, ndof=None):
-    """Kinetic temperature of a list of `particles`."""
-    if ndof is None:
-        ndof = ndim * (len(particles) - 1)
-    return 2 * total_kinetic_energy(particles) / ndof
 
 def species(particles):
     """Return list of distinct species (`id`) of `particles`."""
@@ -152,7 +153,7 @@ def composition(particles, nsp=None):
         x[p.id - 1] += 1
     return tuple(x)
 
-def rotated(particle, cell):
+def rotate(particle, cell):
     """
     Return a list of particles rotated around the main symmetry axis
     of the set.

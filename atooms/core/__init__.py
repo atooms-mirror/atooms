@@ -25,5 +25,5 @@ except ImportError:
     __commit__ = ""
     __date__ = ""
 
-# Number of spatial dimensions
 ndim = 3
+"""Number of spatial dimensions."""

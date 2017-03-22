@@ -315,7 +315,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 if entry == 'mass'    : mas = group[entry][:]
                 if entry == 'position': pos = group[entry][:]
             matrix = [Particle(spe[i],ele[i],mas[i],pos[i,:]) for i in range(len(spe))]
-            self._system.add_matrix(matrix)
+            self._system._add_matrix(matrix)
 
         return self._system
 
