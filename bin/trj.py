@@ -28,6 +28,8 @@ def info(trajectory):
     from atooms.system.particle import species, composition
     print 'path                 =', trajectory.filename
     print 'format               =', trajectory.__class__
+    print 'size in Mb           =', os.path.getsize(trajectory.filename) / 1e6
+    print 'size per frame       =', os.path.getsize(trajectory.filename) / len(trajectory)
     print 'number of frames     =', len(trajectory)
     print 'number of particles  =', len(trajectory[0].particle)
     print 'chemical species     =', len(species(trajectory[0].particle))
