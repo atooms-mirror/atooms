@@ -102,7 +102,7 @@ def write_thermo(sim):
                                                'potential energy', 
                                                'kinetic energy', 
                                                'total energy',
-                                               'rmsd'] + '\n'))
+                                               'rmsd']) + '\n')
     else:
         with open(f, 'a') as fh:
             fh.write('%d %g %g %g %g %g\n' % (sim.steps,
@@ -241,8 +241,9 @@ class Speedometer(object):
         self.x_last = x_now
         
 def target(sim, attribute, value):
-
+    
     x = float(getattr(sim, attribute))
+    print attribute, x, value
     if value > 0:
         frac = float(x) / value
         _log.debug('target %s now at %g [%d]', attribute, x, int(frac * 100))
@@ -281,6 +282,9 @@ class Target(object):
     def __str__(self):
         return self.name
 
+def target_steps(sim, target):
+    if sim.steps >= target:
+        raise SimulationEnd('reached target steps %d' % target)
 
 class TargetSteps(Target):
 

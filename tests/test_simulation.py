@@ -3,7 +3,7 @@
 import unittest
 import logging
 import numpy
-from atooms.simulation import Simulation, WriterThermo, Scheduler
+from atooms.simulation import Simulation, WriterThermo, Scheduler, write_thermo
 from atooms.utils import setup_logging
 
 setup_logging(level=40)
@@ -27,13 +27,13 @@ class Test(unittest.TestCase):
     def test_target_restart(self):
         f='/tmp/test_simulation_restart/trajectory'
         s=Simulation(output_path=f)
-        s.add(WriterThermo(), Scheduler(20))
+        s.add(write_thermo, Scheduler(20))
         s.run(100)
         data = numpy.loadtxt(f + '.thermo', unpack=True)
         self.assertEqual(int(data[0][-1]), 100)
 
         s=Simulation(output_path=f, restart=True)
-        s.add(WriterThermo(), Scheduler(20))
+        s.add(write_thermo, Scheduler(20))
         s.run(200)
         data = numpy.loadtxt(f + '.thermo', unpack=True)
         self.assertEqual(int(data[0][-1]), 200)
@@ -41,7 +41,8 @@ class Test(unittest.TestCase):
     def test_target_restart_fake(self):
         f = '/tmp/test_simulation_restart/trajectory'
         s=Simulation(output_path=f)
-        s.add(WriterThermo(), Scheduler(20))
+        #s.add(WriterThermo(), Scheduler(20))
+        s.add(write_thermo, Scheduler(20))
         s.run(100)
         s.run(100)
         data = numpy.loadtxt(f + '.thermo', unpack=True)
