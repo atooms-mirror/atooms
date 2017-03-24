@@ -26,23 +26,25 @@ def available_formats():
 
 def info(trajectory):
     from atooms.system.particle import species, composition
-    print 'path                 =', trajectory.filename
-    print 'format               =', trajectory.__class__
-    print 'number of frames     =', len(trajectory)
-    print 'number of particles  =', len(trajectory[0].particle)
-    print 'chemical species     =', len(species(trajectory[0].particle))
-    print 'composition          =', list(composition(trajectory[0].particle))
-    print 'number density       =', trajectory[0].density
-    print 'cell side            =', trajectory[0].cell.side
-    print 'cell volume          =', trajectory[0].cell.volume
+    txt = ''
+    txt += 'path                 = %s\n' % trajectory.filename
+    txt += 'format               = %s\n' % trajectory.__class__
+    txt += 'frames               = %s\n' % len(trajectory)
+    txt += 'particles            = %s\n' % len(trajectory[0].particle)
+    txt += 'species              = %s\n' % len(species(trajectory[0].particle))
+    txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
+    txt += 'density              = %s\n' % trajectory[0].density
+    txt += 'cell side            = %s\n' % trajectory[0].cell.side
+    txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
     if len(trajectory)>1:
-        print 'steps between frames =', (trajectory.steps[1]-trajectory.steps[0])
-        print 'time between frames  =', (trajectory.times[1]-trajectory.times[0])
-        print 'final step           =', trajectory.steps[-1]
-        print 'final time           =', trajectory.times[-1]
-        print 'timestep             =', trajectory.timestep
-        print 'block period         =', trajectory.block_period
-        print 'grandcanonical       =', trajectory.grandcanonical
+        txt += 'steps between frames = %s\n' % (trajectory.steps[1]-trajectory.steps[0])
+        txt += 'time between frames  = %s\n' % (trajectory.times[1]-trajectory.times[0])
+        txt += 'final step           = %s\n' % trajectory.steps[-1]
+        txt += 'final time           = %s\n' % trajectory.times[-1]
+        txt += 'timestep             = %s\n' % trajectory.timestep
+        txt += 'block period         = %s\n' % trajectory.block_period
+        txt += 'grandcanonical       = %s' % trajectory.grandcanonical
+    print txt
 
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
