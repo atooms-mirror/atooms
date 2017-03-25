@@ -35,7 +35,7 @@ def info(trajectory):
     txt += 'particles            = %s\n' % len(trajectory[0].particle)
     txt += 'species              = %s\n' % len(species(trajectory[0].particle))
     txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
-    txt += 'density              = %s\n' % trajectory[0].density
+    txt += 'density              = %s\n' % round(trajectory[0].density, 10)
     txt += 'cell side            = %s\n' % trajectory[0].cell.side
     txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
     if len(trajectory)>1:
