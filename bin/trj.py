@@ -30,8 +30,8 @@ def info(trajectory):
     txt += 'path                 = %s\n' % trajectory.filename
     txt += 'format               = %s\n' % trajectory.__class__
     txt += 'frames               = %s\n' % len(trajectory)
-    txt += 'bytes per frame      = %s\n' % os.path.getsize(trajectory.filename) / len(trajectory)
-    txt += 'megabytes            = %s\n' % os.path.getsize(trajectory.filename) / 1e6
+    txt += 'bytes per frame      = %s\n' % int((float(os.path.getsize(trajectory.filename)) / len(trajectory)))
+    txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
     txt += 'particles            = %s\n' % len(trajectory[0].particle)
     txt += 'species              = %s\n' % len(species(trajectory[0].particle))
     txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
