@@ -6,6 +6,7 @@ import os
 import sys
 import logging
 import argparse
+import random
 from atooms import trajectory
 from atooms.utils import fractional_slice, add_first_last_skip
 
@@ -71,6 +72,10 @@ def main(args):
     if args.flatten_steps:
         t.steps = range(1,len(t)+1)
 
+    # Reset random number generator
+    if args.seed:
+        random.seed(args.seed)
+
     # Trick to allow some trajectory formats to set the box side.
     # This way the cell is defined as we read the sample (callbacks
     # will not do that).
@@ -130,6 +135,7 @@ if __name__ == '__main__':
     parser.add_argument(      '--precision', dest='precision', type=int, default=None, help='write precision')
     parser.add_argument(      '--alphabetic',dest='alphabetic_ids', action='store_true', help='reassign names alphabetically')
     parser.add_argument(      '--info', dest='info', action='store_true', help='print info')
+    parser.add_argument(      '--seed', dest='seed', type=int, help='set seed of random number generator')
     parser.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
     parser.add_argument(nargs='?', dest='file_out', default='-', help='output file')
     args = parser.parse_args()
