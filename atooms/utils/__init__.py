@@ -253,3 +253,36 @@ class TestCase(unittest.TestCase):
             unittest.TestCase.assertAlmostEqual(self, first, second, places, msg)
         else:
             return abs(first-second) <= delta
+
+# Report parameters and command line options
+
+def report_parameters(params, fileout, comment=''):
+    from backtab import __fullversion__
+    maxlen = max([len(key) for key in params])
+    fmt = comment + '%-' + str(maxlen) + 's = %s\n' 
+    txt = ""
+    txt += fmt % ('backtab_version', __fullversion__)
+    for key in sorted(params.keys()):
+        txt += fmt % (key, params[key])
+    if fileout is not None:
+        with open(fileout, 'w') as fh:
+            fh.write(txt)
+    return txt
+
+def report_command(cmd, params, main, fileout):
+    txt = cmd + ' \\\n'
+    for key in sorted(params.keys()):
+        if key in main:
+            continue
+        flag = key.replace('_', '-')
+        value = params[key]
+        if value is None or value is False:
+            continue
+        if value is True:
+            value = ''
+        txt += ' --%s %s \\\n' % (flag, value)
+    txt += ' '.join([params[key] for key in main])
+    if fileout is not None:
+        with open(fileout, 'w') as fh:
+            fh.write(txt)
+    return txt
