@@ -15,11 +15,16 @@ from atooms.interaction import Interaction, PairPotential, CutOff
 class PairPotentialTest(unittest.TestCase):
 
     def test_potential_cs(self):
+        def u0ref(rsq):
+            return 4*(1/rsq**6 - 1/rsq**3) - 4*(1/2.5**12 - 1/2.5**6)
+        def u1ref(rsq):
+            return 24*(2/rsq**6 - 1/rsq**3) / rsq
         p = PairPotential('LJ', {'epsilon':1.0, 'sigma':1.0}, [1,1], CutOff('CS', 2.5))
         p.npoints = 10
         rsq, u0, u1 = p.tabulate()
-        self.assertAlmostEqual(u0[2], -0.870024506431)
-        self.assertAlmostEqual(u1[2], -1.85584204277)
+        for r, x, y in zip(rsq[1:], u0[1:], u1[1:]):
+            self.assertAlmostEqual(x, u0ref(r))
+            self.assertAlmostEqual(y, u1ref(r))
 
     def test_interacting_system(self):
         p = PairPotential('LJ', {'epsilon':1.0, 'sigma':1.0}, [1,1], CutOff('CS', 2.5))
