@@ -27,6 +27,10 @@ def lennard_jones(rsq, epsilon, sigma):
     h = 0.0
     return u, w, h
 
+# Alias
+
+LJ = lennard_jones
+
 def constant(rsq, epsilon):
     """Constant potential."""
     return epsilon, 0.0, 0.0
