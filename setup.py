@@ -22,6 +22,7 @@ setup(name='atooms',
                 'atooms/simulation', 'atooms/system', 'atooms/trajectory', 
                 'atooms/utils'],
       scripts=['bin/trj.py'],
+      install_requires=['numpy'],
       license='GPLv3',
       classifiers=[
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
