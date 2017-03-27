@@ -8,6 +8,9 @@ DATE=$$(git show -s --format=%ci $(COMMIT) | cut -d ' ' -f 1)
 all: version
 
 install: version
+	python setup.py install
+
+user: version
 	python setup.py install --user
 
 develop: version
