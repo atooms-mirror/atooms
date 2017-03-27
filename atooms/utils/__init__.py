@@ -256,12 +256,11 @@ class TestCase(unittest.TestCase):
 
 # Report parameters and command line options
 
-def report_parameters(params, fileout, comment=''):
-    from backtab import __fullversion__
+def report_parameters(params, fileout, version, comment=''):
     maxlen = max([len(key) for key in params])
     fmt = comment + '%-' + str(maxlen) + 's = %s\n' 
     txt = ""
-    txt += fmt % ('backtab_version', __fullversion__)
+    txt += fmt % ('version', version)
     for key in sorted(params.keys()):
         txt += fmt % (key, params[key])
     if fileout is not None:

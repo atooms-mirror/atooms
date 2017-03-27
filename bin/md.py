@@ -4,6 +4,7 @@
 
 import sys
 import os
+from atooms.core import __version__, __commit__
 from atooms.simulation import Simulation, Scheduler, WriterThermo, WriterConfig
 from atooms.simulation.backends import RumdBackend
 from atooms.utils import setup_logging, report_parameters, report_command, mkdir
@@ -17,8 +18,10 @@ def main(params):
     if os.path.exists(params.input_file + '.ff'):
         params.forcefield = params.input_file + '.ff'
     mkdir(params.output_dir)
-    report_parameters(params.__dict__, params.output_dir + '/trajectory.params')
-    report_command(sys.argv[0], params.__dict__, ['output_dir'], params.output_dir + '/trajectory.cmd')
+    report_parameters(params.__dict__, params.output_dir + '/trajectory.params', 
+                      '%s+%s' % (__version__, __commit__))
+    report_command(sys.argv[0], params.__dict__, ['output_dir'], 
+                   params.output_dir + '/trajectory.cmd')
     s = RumdBackend(params.input_file, params.forcefield,
                     integrator=params.integrator,
                     temperature=params.T, dt=params.dt)
