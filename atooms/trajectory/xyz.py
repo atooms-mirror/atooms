@@ -15,6 +15,7 @@ from atooms.system import System
 
 log = logging.getLogger(__name__)
 
+
 class TrajectorySimpleXYZ(TrajectoryBase):
 
     """
@@ -28,8 +29,8 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def __init__(self, filename, mode='r'):
         TrajectoryBase.__init__(self, filename, mode)
         self._cell = None
-        self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
-        self._id_min = 1 # minimum integer for ids, can be modified by subclasses
+        self._id_map = []  # list to map numerical ids (indexes) to chemical species (entries)
+        self._id_min = 1  # minimum integer for ids, can be modified by subclasses
         self.trajectory = open(self.filename, self.mode)
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
@@ -115,7 +116,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         # TODO: use sets instead
         # We keep the id database sorted by name.
         for p in particle:
-            if not p.name in self._id_map:
+            if p.name not in self._id_map:
                 self._id_map.append(p.name)
                 self._id_map.sort()
 
@@ -221,13 +222,12 @@ class TrajectoryXYZ(TrajectoryBase):
 
     suffix = 'xyz'
     callback_read = {'name': update_name,
-                     'type': update_name, # alias
-                     'id': update_name, # alias
+                     'type': update_name,  # alias
+                     'id': update_name,  # alias
                      'tag': update_tag,
                      'radius': update_radius,
                      'pos': update_position,
-                     'vel': update_velocity,
-    }
+                     'vel': update_velocity}
 
     def __init__(self, filename, mode='r', alias=None, fmt=None):
         TrajectoryBase.__init__(self, filename, mode)
@@ -250,9 +250,9 @@ class TrajectoryXYZ(TrajectoryBase):
                           'vz': 'velocity[2]',
                           'id': 'name',
                           'type': 'name'}
-        self._id_min = 1 # minimum integer for ids, can be modified by subclasses
+        self._id_min = 1  # minimum integer for ids, can be modified by subclasses
         self._cell = None
-        self._id_map = [] # list to map numerical ids (indexes) to chemical species (entries)
+        self._id_map = []  # list to map numerical ids (indexes) to chemical species (entries)
         self.trajectory = gopen(self.filename, self.mode)
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
@@ -272,6 +272,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 _fmt = '%14.' + str(self.precision) + 'f'
             else:
                 _fmt = '%g'
+
             def array_fmt(arr):
                 """Remove commas and [] from numpy array repr."""
                 # Passing a scalar will trigger an error (gotcha: even
@@ -314,7 +315,7 @@ class TrajectoryXYZ(TrajectoryBase):
             self._index_sample.append(self.trajectory.tell())
             for i in range(npart):
                 _ = self.trajectory.readline()
-            
+
     def _setup_steps(self):
         """Find steps list."""
         self.steps = []
@@ -351,7 +352,7 @@ class TrajectoryXYZ(TrajectoryBase):
 
         # Remove spaces around : or =
         data = re.sub(r'\W*[=:]\W*', ':', data)
-        
+
         # Fill metadata dictionary
         meta = {}
         meta['npart'] = npart
@@ -378,10 +379,10 @@ class TrajectoryXYZ(TrajectoryBase):
         # Fix dimensions based on side of cell.
         # Fallback to ndim metadata or 3.
         try:
-            if not 'ndim' in meta:
+            if 'ndim' not in meta:
                 meta['ndim'] = len(meta['cell'])
         except KeyError:
-            meta['ndim'] = 3 # default
+            meta['ndim'] = 3  # default
 
         return meta
 
@@ -389,7 +390,7 @@ class TrajectoryXYZ(TrajectoryBase):
         """Update chemical ids of *particle* list and global database id_map."""
         # We keep the id database sorted by name.
         for p in particle:
-            if not p.name in self._id_map:
+            if p.name not in self._id_map:
                 self._id_map.append(p.name)
                 self._id_map.sort()
 
@@ -503,10 +504,10 @@ class TrajectoryNeighbors(TrajectoryXYZ):
     """Neighbors trajectory."""
 
     def __init__(self, filename, mode='r', offset=1):
-        super(TrajectoryNeighbors, self).__init__(filename, mode=mode, alias={'time':'step'})
+        super(TrajectoryNeighbors, self).__init__(filename, mode=mode, alias={'time': 'step'})
         # TODO: determine minimum value of index automatically
         # TODO: possible regression here if no 'time' tag is found
-        self._offset = offset # neighbors produced by voronoi are indexed from 1
+        self._offset = offset  # neighbors produced by voronoi are indexed from 1
         self._netwon3 = False
         self._netwon3_message = False
 
