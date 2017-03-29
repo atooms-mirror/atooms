@@ -6,6 +6,7 @@ import warnings
 
 from .utils import get_period
 
+
 class TrajectoryBase(object):
 
     """
@@ -15,14 +16,14 @@ class TrajectoryBase(object):
     each frame being a snapshot of a `System` taken at a given `step`
     during a simulation. `Trajectory` instances are iterable and can
     be opened and closed using the `with` syntax..
-    
+
         #!python
         with Trajectory(inpfile) as th:
             for system in th:
                 pass
 
     To be fully functional, concrete classes must implement
-    `read_sample()` and `write_sample()` methods. 
+    `read_sample()` and `write_sample()` methods.
 
     `read()` is a template composed of the two following steps:
 
@@ -263,4 +264,3 @@ class SuperTrajectory(TrajectoryBase):
         f = self.files[sample]
         with self.trajectoryclass(f) as t:
             return t[0]
-
