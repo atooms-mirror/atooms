@@ -52,6 +52,8 @@ class TrajectoryField(TrajectorySimpleXYZ):
         self.trajectory.write(self._comment_header(step, field) + '\n')
         try:
             ndim = len(field[0])
+            if type(field[0]) is str:
+                ndim = 1
         except TypeError:
             ndim = 1
 
