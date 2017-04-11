@@ -104,7 +104,9 @@ class Foldered(TrajectoryFolder):
     def read_sample(self, sample):
         from atooms.trajectory import Trajectory
         with Trajectory(self.files[sample], fmt=self._cls) as th:
-            return th.read_sample(0)
+            # We must use read(), instead of read_sample(), to
+            # initialize the trajectory properly
+            return th.read(0)
 
     def close(self):
         if self.archive:
