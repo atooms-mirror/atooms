@@ -54,7 +54,10 @@ def main(args):
     if args.file_out == '-':
         args.file_out = '/dev/stdout'
 
-    t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
+    if args.folder:
+        t = trajectory.folder.Foldered(args.file_inp, cls=args.inp)
+    else:
+        t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
 
     if args.info:
         info(t)
@@ -126,6 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('-E', '--fmt-exclude', dest='fmt_exclude', type=str, default='', help='exclude patterns from format')
     parser.add_argument('-i', '--fmt-inp', dest='inp', help='input format ')
     parser.add_argument('-o', '--fmt-out', dest='out', help='output format for conversion')
+    parser.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
     parser.add_argument('-t', '--tag', dest='tag', type=str, default='', help='tag to add before suffix')
     parser.add_argument('-F', '--ff', dest='ff', type=str, default='', help='force field file')
     parser.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
