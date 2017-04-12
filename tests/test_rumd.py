@@ -8,7 +8,7 @@ try:
     SKIP = False
 except ImportError:
     SKIP = True
-from atooms.simulation import Simulation, Scheduler, WriterThermo, WriterConfig, TargetRMSD
+from atooms.simulation import Simulation, write_thermo, write_config, target
 from atooms.utils import setup_logging
 
 setup_logging(level=40)
@@ -33,8 +33,8 @@ class Test(unittest.TestCase):
                         output_path='/tmp/test_rumd_single/trajectory',
                         steps=2000, checkpoint_interval=100,
                         restart=False)
-        si.add(WriterThermo(), Scheduler(100))
-        si.add(WriterConfig(), Scheduler(100))
+        si.add(write_thermo, 100)
+        si.add(write_config, 100)
         si.run()
         ls = glob.glob('/tmp/test_rumd_single/trajectory/*')
         self.assertEqual(len(ls), 21)
@@ -44,8 +44,8 @@ class Test(unittest.TestCase):
                         output_path='/tmp/test_rumd_multi/trajectory',
                         steps=2000, checkpoint_interval=100,
                         restart=False)
-        si.add(WriterThermo(), Scheduler(100))
-        si.add(WriterConfig(), Scheduler(100))
+        si.add(write_thermo, 100)
+        si.add(write_config, 100)
         si.run()
         si.run(1000)
 
@@ -53,7 +53,7 @@ class Test(unittest.TestCase):
         si = Simulation(self.backend,
                         output_path='/tmp/test_rumd_multi_writing/trajectory',
                         enable_speedometer=False)
-        si.add(WriterConfig(), Scheduler(500))
+        si.add(write_config, 500)
         si.run(50000)
         si.run(5000)
         ls = glob.glob('/tmp/test_rumd_multi_writing/trajectory/*')
@@ -64,15 +64,15 @@ class Test(unittest.TestCase):
                         output_path='/tmp/test_rumd_multi_2/trajectory',
                         steps=2000, checkpoint_interval=100,
                         restart=False)
-        si.add(WriterThermo(), Scheduler(100))
-        si.add(WriterConfig(), Scheduler(100))
+        si.add(write_thermo, 100)
+        si.add(write_config, 100)
         si.run()
         si = Simulation(self.backend_2,
                         output_path='/tmp/test_rumd_multi_2/trajectory',
                         steps=1000, checkpoint_interval=100,
                         restart=False)
-        si.add(WriterThermo(), Scheduler(100))
-        si.add(WriterConfig(), Scheduler(100))
+        si.add(write_thermo, 100)
+        si.add(write_config, 100)
         si.run()
 
     def test_multi_rmsd(self):
@@ -80,9 +80,9 @@ class Test(unittest.TestCase):
                         output_path='/tmp/test_rumd_multi_rmsd/trajectory',
                         checkpoint_interval=100, steps=1000000000,
                         restart=False)
-        si.add(WriterThermo(), Scheduler(100))
-        si.add(WriterConfig(), Scheduler(100))
-        si.add(TargetRMSD(1.0), Scheduler(1000))
+        si.add(write_thermo, 100)
+        si.add(write_config, 100)
+        si.add(target, 1000, 'rmsd', 1.0)
         si.run()
 
     def tearDown(self):
