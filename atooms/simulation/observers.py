@@ -96,19 +96,19 @@ def write_thermo(sim):
     f = sim.output_path + '.thermo'
     if sim.steps == 0:
         with open(f, 'w') as fh:
-            fh.write('# columns:' + ', '.join(['steps', 
-                                               'temperature', 
-                                               'potential energy', 
-                                               'kinetic energy', 
+            fh.write('# columns:' + ', '.join(['steps',
+                                               'temperature',
+                                               'potential energy',
+                                               'kinetic energy',
                                                'total energy',
                                                'rmsd']) + '\n')
     with open(f, 'a') as fh:
         fh.write('%d %g %g %g %g %g\n' % (sim.steps,
                                           sim.system.temperature,
-                                              sim.system.potential_energy(normed=True),
-                                              sim.system.kinetic_energy(normed=True),
-                                              sim.system.total_energy(normed=True),
-                                              sim.rmsd))
+                                          sim.system.potential_energy(normed=True),
+                                          sim.system.kinetic_energy(normed=True),
+                                          sim.system.total_energy(normed=True),
+                                          sim.rmsd))
 
 def write(sim, name, attributes):
     """
@@ -141,7 +141,7 @@ def write(sim, name, attributes):
         fmt = ('%s ' * len(attributes)) + '\n'
         with open(f, 'a') as fh:
             fh.write(fmt % tuple(values))
-                     
+
 
 
 class WriterConfig(object):
@@ -237,9 +237,9 @@ class Speedometer(object):
 
         self.t_last = t_now
         self.x_last = x_now
-        
+
 def target(sim, attribute, value):
-    
+
     x = float(getattr(sim, attribute))
     print attribute, x, value
     if value > 0:
@@ -381,9 +381,7 @@ class Scheduler(object):
         elif self.block is not None:
             # like steps but with % on sim.steps
             pass
-        elif self.seconds is not None:            
+        elif self.seconds is not None:
             pass
         else:
             return sys.maxint
-
-    
