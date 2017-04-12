@@ -5,11 +5,11 @@ Library of pair potentials.
 return the energy and its derivatives. In this module we collect some
 common pair potentials.
 
-Aliases are defined for convenience. These are all equivalent calls
+Example:
+-------
+The Lennard-Jones potential:
 
-    lennard_jones(1.0, epsilon=1.0, sigma=1.0)
-    lj(1.0, epsilon=1.0, sigma=1.0)
-    LJ(1.0, epsilon=1.0, sigma=1.0)
+    lj = lennard_jones(1.0, epsilon=1.0, sigma=1.0)
 
 """
 
@@ -27,20 +27,13 @@ def lennard_jones(rsq, epsilon, sigma):
     h = 0.0
     return u, w, h
 
-# Aliases
+# Alias
 
-lj = lennard_jones
 LJ = lennard_jones
 
-def square_well(rsq, epsilon, sigma):
-    """Square well potential."""
-    if rsq > sigma**2:
-        return 0.0, 0.0, 0.0
-    else:
-        return epsilon, 0.0, 0.0
-
-SW = square_well
-sw = square_well
+def constant(rsq, epsilon):
+    """Constant potential."""
+    return epsilon, 0.0, 0.0
 
 def harmonic_sphere(rsq, epsilon, sigma):
     """Harmonic sphere potential.
@@ -51,5 +44,3 @@ def harmonic_sphere(rsq, epsilon, sigma):
     return 0.5 * epsilon * (1.0 - r/sigma)**2, \
         epsilon * (1.0 - r/sigma) / (sigma*r), \
         0.0
-
-harm = harmonic_sphere

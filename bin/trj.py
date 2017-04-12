@@ -6,6 +6,7 @@ import os
 import sys
 import logging
 import argparse
+import random
 from atooms import trajectory
 from atooms.utils import fractional_slice, add_first_last_skip
 
@@ -29,12 +30,12 @@ def info(trajectory):
     txt = ''
     txt += 'path                 = %s\n' % trajectory.filename
     txt += 'format               = %s\n' % trajectory.__class__
-    txt += 'Mb                   = %s\n' % os.path.getsize(trajectory.filename) / 1e6
     txt += 'frames               = %s\n' % len(trajectory)
+    txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
     txt += 'particles            = %s\n' % len(trajectory[0].particle)
     txt += 'species              = %s\n' % len(species(trajectory[0].particle))
     txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
-    txt += 'density              = %s\n' % round(trajectory[0].density, 10) 
+    txt += 'density              = %s\n' % round(trajectory[0].density, 10)
     txt += 'cell side            = %s\n' % trajectory[0].cell.side
     txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
     if len(trajectory)>1:
@@ -69,6 +70,10 @@ def main(args):
 
     if args.flatten_steps:
         t.steps = range(1,len(t)+1)
+
+    # Reset random number generator
+    if args.seed:
+        random.seed(args.seed)
 
     # Trick to allow some trajectory formats to set the box side.
     # This way the cell is defined as we read the sample (callbacks
@@ -129,6 +134,7 @@ if __name__ == '__main__':
     parser.add_argument(      '--precision', dest='precision', type=int, default=None, help='write precision')
     parser.add_argument(      '--alphabetic',dest='alphabetic_ids', action='store_true', help='reassign names alphabetically')
     parser.add_argument(      '--info', dest='info', action='store_true', help='print info')
+    parser.add_argument(      '--seed', dest='seed', type=int, help='set seed of random number generator')
     parser.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
     parser.add_argument(nargs='?', dest='file_out', default='-', help='output file')
     args = parser.parse_args()

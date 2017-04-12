@@ -54,7 +54,7 @@ class PairPotential(object):
         --------
         The Lennard-Jones potential:
 
-        `PairPotential('lj', {'epsilon': 1.0, 'sigma': 1.0}, [1, 1])`
+        `PairPotential('lennard_jones', {'epsilon': 1.0, 'sigma': 1.0}, [1, 1])`
         """
         self.func = func
         self.params = params
@@ -86,31 +86,36 @@ class PairPotential(object):
             self.cutoff.tailor(self.cutoff.radius**2, u)
 
     def tabulate(self, npoints=None, rmin=0.01, rmax=None):
-        """Tabulate the potential from `rmin` to `rmax`."""
-        # We tabulate the potential one point beyond the cut off to
-        # avoid smoothing discontinuous potentials
+        """
+        Tabulate the potential from `rmin` to `rmax`.
+
+        The potential cutoff is only used to determine `rmax` if this
+        is not given. The full potential is tabulated, it is up to the
+        calling code to truncate it. We slightly overshoot the
+        tabulation, to avoid boundary effects at the cutoff or at
+        discontinuities.
+        """
         if npoints is None:
             npoints = self.npoints
-        if self.cutoff is not None:
-            rmax = self.cutoff.radius + 0.05
-        else:
+        if self.cutoff is None:
             if rmax is None:
                 raise ValueError('rmax is needed to tabulate a cutoff-less potential')
-            
+        else:
+            rmax = self.cutoff.radius 
+
         rsq = numpy.ndarray(npoints)
         u0 = numpy.ndarray(npoints)
         u1 = numpy.ndarray(npoints)
-        drsq = rmax**2 / (npoints-1)
+        # We overshoot 2 points beyond rmax (cutoff) to avoid
+        # smoothing discontinuous potentials
+        drsq = rmax**2 / (npoints - 3)
 
         rsq[0], rsq[1] = 0.0, drsq
         u0[0], u1[0], _ = self.compute(rsq[1])
         u0[1], u1[1], _ = self.compute(rsq[1])
         for i in range(2,npoints):
-            rsq[i] = i*drsq
-            if self.is_zero(rsq[i-2]):
-                u0[i], u1[i] = 0, 0
-            else:
-                u0[i], u1[i], _ = self.compute(rsq[i])
+            rsq[i] = i * drsq
+            u0[i], u1[i], _ = self.compute(rsq[i])
         return rsq, u0, u1
 
     def compute(self, rsquare):

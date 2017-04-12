@@ -280,7 +280,7 @@ class Simulation(object):
         log.info('')
         log.info(txt)
         log.info('')
-        log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__.split()[0])
+        log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__)
         try:
             log.info('backend version: %s', self.backend.version)
         except:
