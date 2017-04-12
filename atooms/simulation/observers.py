@@ -69,6 +69,60 @@ class WallTimeLimit(Exception):
     pass
 
 
+# Scheduler classes
+
+class Scheduler(object):
+
+    """
+    Schedule observer calls during the simulation.
+
+    This is nothing but a callable that takes a simulation instance
+    and returns the next step at which an observer has to to notified.
+    """
+
+    def __init__(self, interval=None, calls=None, steps=None,
+                 block=None, seconds=None):
+        """
+        Only one of the arguments can be different from None.
+
+        - `interval`: notify at a fixed steps interval
+        - `calls`: fixed number of notification
+        - `steps`: list of steps at which the observer will be notified
+        - `block`: as steps, but will be called periodically
+        - `seconds`: notify every `seconds`
+        """
+        self.interval = interval
+        self.calls = calls
+        self.steps = steps
+        self.block = block
+        self.seconds = seconds
+
+    def __call__(self, sim):
+        """
+        Given a simulation instance `sim`, return the next step at which
+        the observer will be called.
+        """
+        if self.interval is not None and self.interval > 0:
+            return (sim.steps / self.interval + 1) * self.interval
+        elif self.calls is not None  and self.interval > 0:
+            interval = int(sim.max_steps / self.calls)
+            return (sim.steps / interval + 1) * interval
+        elif self.steps is not None:
+            inext = self.steps[0]
+            for i, step in enumerate(self.steps[:-1]):
+                if sim.steps >= step:
+                    inext = self.steps[i+1]
+                    break
+            return inext
+        elif self.block is not None:
+            # like steps but with % on sim.steps
+            pass
+        elif self.seconds is not None:
+            pass
+        else:
+            return sys.maxint
+
+
 # Writer callbacks
 # Callbacks as pure function to distinguish their role we adopt a naming convention:
 # if the callback contains write (target) in its __name__ then it is a writer (targeter).
@@ -87,30 +141,28 @@ def write_config(sim):
             shutil.rmtree(sim.output_path)
         elif os.path.isfile(sim.output_path):
             os.remove(sim.output_path)
-    else:
-        with sim.trajectory(sim.output_path, 'a') as t:
-            t.write(sim.system, sim.steps)
+
+    with sim.trajectory(sim.output_path, 'a') as t:
+        t.write(sim.system, sim.steps)
 
 def write_thermo(sim):
     """Write basic thermodynamic data."""
-    #f = sim.base_path + '.thermo'
     f = sim.output_path + '.thermo'
     if sim.steps == 0:
         with open(f, 'w') as fh:
-            fh.write('# columns:' + ', '.join(['steps', 
-                                               'temperature', 
-                                               'potential energy', 
-                                               'kinetic energy', 
+            fh.write('# columns:' + ', '.join(['steps',
+                                               'temperature',
+                                               'potential energy',
+                                               'kinetic energy',
                                                'total energy',
                                                'rmsd']) + '\n')
-    else:
-        with open(f, 'a') as fh:
-            fh.write('%d %g %g %g %g %g\n' % (sim.steps,
-                                              sim.system.temperature,
-                                              sim.system.potential_energy(normed=True),
-                                              sim.system.kinetic_energy(normed=True),
-                                              sim.system.total_energy(normed=True),
-                                              sim.rmsd))
+    with open(f, 'a') as fh:
+        fh.write('%d %g %g %g %g %g\n' % (sim.steps,
+                                          sim.system.temperature,
+                                          sim.system.potential_energy(normed=True),
+                                          sim.system.kinetic_energy(normed=True),
+                                          sim.system.total_energy(normed=True),
+                                          sim.rmsd))
 
 def write(sim, name, attributes):
     """
@@ -143,51 +195,50 @@ def write(sim, name, attributes):
         fmt = ('%s ' * len(attributes)) + '\n'
         with open(f, 'a') as fh:
             fh.write(fmt % tuple(values))
-                     
 
 
-class WriterConfig(object):
+# class WriterConfig(object):
 
-    """
-    Callable class that writes configurations to a trajectory file.
+#     """
+#     Callable class that writes configurations to a trajectory file.
 
-    The trajectory format is taken from the passed Simulation instance
-    that calls the callbacks.
-    """
+#     The trajectory format is taken from the passed Simulation instance
+#     that calls the callbacks.
+#     """
 
-    def __str__(self):
-        return 'config'
+#     def __str__(self):
+#         return 'config'
 
-    def __call__(self, sim):
-        with sim.trajectory(sim.output_path, 'a') as t:
-            t.write(sim.system, sim.steps)
+#     def __call__(self, sim):
+#         with sim.trajectory(sim.output_path, 'a') as t:
+#             t.write(sim.system, sim.steps)
 
-    def clear(self, sim):
-        # TODO: refactor as rm()
-        if os.path.isdir(sim.output_path):
-            shutil.rmtree(sim.output_path)
-        elif os.path.isfile(sim.output_path):
-            os.remove(sim.output_path)
+#     def clear(self, sim):
+#         # TODO: refactor as rm()
+#         if os.path.isdir(sim.output_path):
+#             shutil.rmtree(sim.output_path)
+#         elif os.path.isfile(sim.output_path):
+#             os.remove(sim.output_path)
 
 
-class WriterThermo(object):
+# class WriterThermo(object):
 
-    """Callable class that writes thermodynamic data to disk."""
+#     """Callable class that writes thermodynamic data to disk."""
 
-    def __str__(self):
-        return 'thermo'
+#     def __str__(self):
+#         return 'thermo'
 
-    def __call__(self, sim):
-        f = sim.base_path + '.thermo'
-        with open(f, 'a') as fh:
-            fh.write('%d %g %g\n' % (sim.steps,
-                                     sim.system.potential_energy(),
-                                     sim.rmsd))
+#     def __call__(self, sim):
+#         f = sim.base_path + '.thermo'
+#         with open(f, 'a') as fh:
+#             fh.write('%d %g %g\n' % (sim.steps,
+#                                      sim.system.potential_energy(),
+#                                      sim.rmsd))
 
-    def clear(self, sim):
-        f = sim.base_path + '.thermo'
-        if os.path.exists(f):
-            os.remove(f)
+#     def clear(self, sim):
+#         f = sim.base_path + '.thermo'
+#         if os.path.exists(f):
+#             os.remove(f)
 
 
 class Speedometer(object):
@@ -239,11 +290,16 @@ class Speedometer(object):
 
         self.t_last = t_now
         self.x_last = x_now
-        
+
+
 def target(sim, attribute, value):
-    
+    """
+    An observer that raises a `SimulationEnd` exception when a given
+    target `value` of a property is reached during a simulation. The
+    property is `attribute` and is assumed to be an attribute of
+    simulation.
+    """
     x = float(getattr(sim, attribute))
-    print attribute, x, value
     if value > 0:
         frac = float(x) / value
         _log.debug('target %s now at %g [%d]', attribute, x, int(frac * 100))
@@ -252,135 +308,99 @@ def target(sim, attribute, value):
     return frac
 
 
-class Target(object):
-
-    """
-    Base targeter class.
-
-    An observer that raises a `SimulationEnd` exception when a given
-    target property is reached during a simulation. The property is
-    `target` and is, by default, an attribute of simulation.
-    """
-
-    def __init__(self, name, target):
-        self.name = name
-        self.target = target
-        """Target value of property to be reached."""
-
-    def __call__(self, sim):
-        x = float(getattr(sim, self.name))
-        if self.target > 0:
-            frac = float(x) / self.target
-            _log.debug('targeting %s now at %g [%d]', self.name, x, int(frac * 100))
-        if x >= self.target:
-            raise SimulationEnd('achieved target %s: %s', self.name, self.target)
-
-    def fraction(self, sim):
-        """Fraction of target value already achieved"""
-        return float(getattr(sim, self.name)) / self.target
-
-    def __str__(self):
-        return self.name
-
 def target_steps(sim, target):
+    """Target the number of steps."""
     if sim.steps >= target:
         raise SimulationEnd('reached target steps %d' % target)
 
-class TargetSteps(Target):
 
-    """
-    Targeter a fixed number of steps.
+# class Target(object):
 
-    Note: this class is here as an insane proof of principle. Steps
-    targeting can (should?) be implemented in `Simulation` by checking
-    a simple integer variable.
-    """
+#     """
+#     Base targeter class.
 
-    def __init__(self, target):
-        Target.__init__(self, 'steps', target)
+#     An observer that raises a `SimulationEnd` exception when a given
+#     target property is reached during a simulation. The property is
+#     `target` and is, by default, an attribute of simulation.
+#     """
 
+#     def __init__(self, name, target):
+#         self.name = name
+#         self.target = target
+#         """Target value of property to be reached."""
 
-class TargetRMSD(Target):
+#     def __call__(self, sim):
+#         x = float(getattr(sim, self.name))
+#         if self.target > 0:
+#             frac = float(x) / self.target
+#             _log.debug('targeting %s now at %g [%d]', self.name, x, int(frac * 100))
+#         if x >= self.target:
+#             raise SimulationEnd('achieved target %s: %s', self.name, self.target)
 
-    """Target a value of the total root mean squared displacement."""
+#     def fraction(self, sim):
+#         """Fraction of target value already achieved"""
+#         return float(getattr(sim, self.name)) / self.target
 
-    def __init__(self, target):
-        Target.__init__(self, 'rmsd', target)
-
-
-class TargetWallTime(Target):
-
-    """
-    Target a value of the elapsed wall time from the beginning of the
-    simulation.
-
-    Useful to self restarting jobs in a queining system with time
-    limits.
-    """
-
-    def __init__(self, wall_time):
-        self.wtime_limit = wall_time
-
-    def __call__(self, sim):
-        if sim.elapsed_wall_time() > self.wtime_limit:
-            raise WallTimeLimit('target wall time reached')
-        else:
-            t = sim.elapsed_wall_time()
-            dt = self.wtime_limit - t
-            _log.debug('elapsed time %g, reamining time %g', t, dt)
+#     def __str__(self):
+#         return self.name
 
 
-class UserStop(object):
-    """Allows a user to stop the simulation smoothly by touching a STOP
-    file in the output root directory.
-    Currently the file is not deleted to allow parallel jobs to all exit.
-    """
-    def __call__(self, sim):
-        # To make it work in parallel we should broadcast and then rm
-        # or subclass userstop in classes that use parallel execution
-        if sim.output_path is not None and sim.storage == 'directory':
-            _log.debug('User Stop %s/STOP', sim.output_path)
-            # TODO: support files as well
-            if os.path.exists('%s/STOP' % sim.output_path):
-                raise SimulationEnd('user has stopped the simulation')
-        else:
-            raise RuntimeError('USerStop wont work atm with file storage')
+# class TargetSteps(Target):
+
+#     """
+#     Targeter a fixed number of steps.
+
+#     Note: this class is here as an insane proof of principle. Steps
+#     targeting can (should?) be implemented in `Simulation` by checking
+#     a simple integer variable.
+#     """
+
+#     def __init__(self, target):
+#         Target.__init__(self, 'steps', target)
 
 
-class Scheduler(object):
+# class TargetRMSD(Target):
 
-    # TODO: interval can be a function to allow non linear sampling
-    # TODO: base scheduler plus derived scheduler for fixed ncalls
+#     """Target a value of the total root mean squared displacement."""
 
-    """
-    Scheduler to determine when to call an observer during the
-    simulation.
-    """
+#     def __init__(self, target):
+#         Target.__init__(self, 'rmsd', target)
 
-    def __init__(self, interval, calls=None, target=None):
-        self.interval = interval
-        self.calls = calls
-        self.target = target
 
-        if interval > 0:
-            # Fixed interval.
-            self.interval = interval
-        else:
-            if calls > 0:
-                # Fixed number of calls.
-                if self.target is not None:
-                    # If both calls and target are not None, we determine interval
-                    self.interval = max(1, self.target / self.calls)
-                else:
-                    # Dynamic scheduling
-                    raise ValueError('dynamic scheduling not implemented')
+# class TargetWallTime(Target):
 
-    def next(self, step):
-        """
-        Given the current `step`, return the next step at which the
-        observer will be called.
-        """
-        if self.interval > 0:
-            return (step / self.interval + 1) * self.interval
-        else:
-            return sys.maxint
+#     """
+#     Target a value of the elapsed wall time from the beginning of the
+#     simulation.
+
+#     Useful to self restarting jobs in a queining system with time
+#     limits.
+#     """
+
+#     def __init__(self, wall_time):
+#         self.wtime_limit = wall_time
+
+#     def __call__(self, sim):
+#         if sim.elapsed_wall_time() > self.wtime_limit:
+#             raise WallTimeLimit('target wall time reached')
+#         else:
+#             t = sim.elapsed_wall_time()
+#             dt = self.wtime_limit - t
+#             _log.debug('elapsed time %g, reamining time %g', t, dt)
+
+
+# class UserStop(object):
+#     """Allows a user to stop the simulation smoothly by touching a STOP
+#     file in the output root directory.
+#     Currently the file is not deleted to allow parallel jobs to all exit.
+#     """
+#     def __call__(self, sim):
+#         # To make it work in parallel we should broadcast and then rm
+#         # or subclass userstop in classes that use parallel execution
+#         if sim.output_path is not None and sim.storage == 'directory':
+#             _log.debug('User Stop %s/STOP', sim.output_path)
+#             # TODO: support files as well
+#             if os.path.exists('%s/STOP' % sim.output_path):
+#                 raise SimulationEnd('user has stopped the simulation')
+#         else:
+#             raise RuntimeError('USerStop wont work atm with file storage')

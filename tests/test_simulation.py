@@ -3,7 +3,7 @@
 import unittest
 import logging
 import numpy
-from atooms.simulation import Simulation, WriterThermo, Scheduler, write_thermo
+from atooms.simulation import Simulation, Scheduler, write_thermo
 from atooms.utils import setup_logging
 
 setup_logging(level=40)
@@ -47,6 +47,19 @@ class Test(unittest.TestCase):
         s.run(100)
         data = numpy.loadtxt(f + '.thermo', unpack=True)
         self.assertEqual(int(data[0][-1]), 100)
+
+    def test_scheduler(self):
+        class Simulation:
+            def __init__(self):
+                self.steps = 0
+        s = Scheduler(3)
+        sim = Simulation()
+        inext = []
+        for i in range(8):
+            sim.steps = i
+            inext.append(s(sim))
+
+        self.assertEqual(inext, [3, 3, 3, 6, 6, 6, 9, 9])
 
 if __name__ == '__main__':
     unittest.main()
