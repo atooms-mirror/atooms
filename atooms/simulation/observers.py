@@ -347,38 +347,43 @@ class UserStop(object):
 
 class Scheduler(object):
 
-    # TODO: interval can be a function to allow non linear sampling
-    # TODO: base scheduler plus derived scheduler for fixed ncalls
-
     """
-    Scheduler to determine when to call an observer during the
-    simulation.
+    Schedule observer calls during the simulation.
+
+    This is nothing but a callable that takes a simulation instance
+    and returns the next step at which an observer has to to notified.
     """
 
-    def __init__(self, interval, calls=None, target=None):
+    def __init__(self, interval=None, calls=None, steps=None, block=None, seconds=None):
         self.interval = interval
         self.calls = calls
-        self.target = target
+        self.steps = steps
+        self.block = block
+        self.seconds = seconds
 
-        if interval > 0:
-            # Fixed interval.
-            self.interval = interval
-        else:
-            if calls > 0:
-                # Fixed number of calls.
-                if self.target is not None:
-                    # If both calls and target are not None, we determine interval
-                    self.interval = max(1, self.target / self.calls)
-                else:
-                    # Dynamic scheduling
-                    raise ValueError('dynamic scheduling not implemented')
-
-    def next(self, step):
+    def __call__(self, sim):
         """
-        Given the current `step`, return the next step at which the
-        observer will be called.
+        Given a simulation instance `sim`, return the next step at which
+        the observer will be called.
         """
-        if self.interval > 0:
-            return (step / self.interval + 1) * self.interval
+        if self.interval is not None and self.interval > 0:
+            return (sim.steps / self.interval + 1) * self.interval
+        elif self.calls is not None  and self.interval > 0:
+            interval = int(sim.max_steps / self.calls)
+            return (sim.steps / interval + 1) * interval
+        elif self.steps is not None:
+            inext = self.steps[0]
+            for i, step in enumerate(self.steps[:-1]):
+                if sim.steps >= step:
+                    inext = self.steps[i+1]
+                    break
+            return inext
+        elif self.block is not None:
+            # like steps but with % on sim.steps
+            pass
+        elif self.seconds is not None:            
+            pass
         else:
             return sys.maxint
+
+    

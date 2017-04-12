@@ -97,17 +97,30 @@ class Simulation(object):
         """
         Register an observer `callback` to be called along with a
         `scheduler`.
+
+        `scheduler` and `callback` must be callables accepting a
+        Simulation instance as unique argument. `scheduler` must
+        return the next step at which the observer has to be notified.
+
+        An integer value is allowed for `scheduler`. In this case, a
+        scheduler with fixed interval is generated internally and the
+        observer is notified every `scheduler` steps.
         """
         # If the callback is already there we replace it
         # This allows to update targets / schedules on the way
         if callback in self._callback:
             self._callback.remove(callback)
 
-        # Keep targeters last
+        # Accept an integer interval
+        if scheduler is int:
+            scheduler = Scheduler(scheduler)
+
+        # Store scheduler, callback and its arguments
         callback.scheduler = scheduler
         callback.args = args
         callback.kwargs = kwargs
-        #if not isinstance(callback, Target):
+
+        # Keep targeters last
         if not 'target' in callback.__name__:
             self._callback.insert(0, callback)
         else:
@@ -242,8 +255,8 @@ class Simulation(object):
             log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
-                all_steps = [c.scheduler.next(self.steps) for c in self._callback]
-                next_checkpoint = self._checkpoint_scheduler.next(self.steps)
+                all_steps = [c.scheduler(self) for c in self._callback]
+                next_checkpoint = self._checkpoint_scheduler(self)
                 next_step = min(all_steps + [next_checkpoint])
                 self.run_until(next_step)
 

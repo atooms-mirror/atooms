@@ -48,6 +48,19 @@ class Test(unittest.TestCase):
         data = numpy.loadtxt(f + '.thermo', unpack=True)
         self.assertEqual(int(data[0][-1]), 100)
 
+    def test_scheduler(self):
+        class Simulation:
+            def __init__(self):
+                self.steps = 0
+        s = Scheduler(3)
+        sim = Simulation()
+        inext = []
+        for i in range(8):
+            sim.steps = i
+            inext.append(s(sim))
+
+        self.assertEqual(inext, [3, 3, 3, 6, 6, 6, 9, 9])
+
 if __name__ == '__main__':
     unittest.main()
 
