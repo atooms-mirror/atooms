@@ -143,7 +143,6 @@ def write(sim, name, attributes):
             fh.write(fmt % tuple(values))
 
 
-
 class WriterConfig(object):
 
     """
