@@ -112,7 +112,7 @@ class Simulation(object):
             self._callback.remove(callback)
 
         # Accept an integer interval
-        if scheduler is int:
+        if type(scheduler) is int:
             scheduler = Scheduler(scheduler)
 
         # Store scheduler, callback and its arguments
