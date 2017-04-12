@@ -87,13 +87,12 @@ def write_config(sim):
             shutil.rmtree(sim.output_path)
         elif os.path.isfile(sim.output_path):
             os.remove(sim.output_path)
-    else:
-        with sim.trajectory(sim.output_path, 'a') as t:
-            t.write(sim.system, sim.steps)
+
+    with sim.trajectory(sim.output_path, 'a') as t:
+        t.write(sim.system, sim.steps)
 
 def write_thermo(sim):
     """Write basic thermodynamic data."""
-    #f = sim.base_path + '.thermo'
     f = sim.output_path + '.thermo'
     if sim.steps == 0:
         with open(f, 'w') as fh:
@@ -103,10 +102,9 @@ def write_thermo(sim):
                                                'kinetic energy', 
                                                'total energy',
                                                'rmsd']) + '\n')
-    else:
-        with open(f, 'a') as fh:
-            fh.write('%d %g %g %g %g %g\n' % (sim.steps,
-                                              sim.system.temperature,
+    with open(f, 'a') as fh:
+        fh.write('%d %g %g %g %g %g\n' % (sim.steps,
+                                          sim.system.temperature,
                                               sim.system.potential_energy(normed=True),
                                               sim.system.kinetic_energy(normed=True),
                                               sim.system.total_energy(normed=True),
