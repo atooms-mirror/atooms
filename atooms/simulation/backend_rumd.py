@@ -281,6 +281,9 @@ class System(object):
         else:
             return ekin
 
+    def total_energy(self, normed=False):
+        return self.potential_energy(normed) + self.kinetic_energy(normed)
+
     def __get_mass(self):
         # TODO: cache it (but what if masses change?)
         npart = self.sample.GetNumberOfParticles()
