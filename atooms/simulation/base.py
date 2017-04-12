@@ -28,7 +28,7 @@ import logging
 from atooms.core import __version__, __commit__, __date__
 from atooms.utils import mkdir, barrier
 from .backend_dryrun import DryRunBackend
-from .observers import target_steps, Target, Speedometer, Scheduler
+from .observers import target_steps, Speedometer, Scheduler
 from .observers import SimulationEnd
 
 log = logging.getLogger(__name__)

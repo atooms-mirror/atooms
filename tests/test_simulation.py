@@ -3,7 +3,7 @@
 import unittest
 import logging
 import numpy
-from atooms.simulation import Simulation, WriterThermo, Scheduler, write_thermo
+from atooms.simulation import Simulation, Scheduler, write_thermo
 from atooms.utils import setup_logging
 
 setup_logging(level=40)
