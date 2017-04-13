@@ -129,32 +129,35 @@ def get_period(data):
     delta_old = 0
     delta_one = data[1] - data[0]
     iold = data[0]
-    period = 0
+    period = 1
     for ii in range(1, len(data)):
         i = data[ii]
         delta = i-iold
-        if delta < delta_old and delta == delta_one and abs(delta-delta_old)>2:
+        if delta < delta_old and delta == delta_one: # and abs(delta-delta_old)>2:
             return period
         else:
             period += 1
             iold = i
             delta_old = delta
-    return 1
+    if data[1]-data[0] == data[-1]-data[-2]:
+        return 1
+    else:
+        return period
 
-def check_block_period(trj):
+def check_block_period(steps, block_period):
     """Perform some consistency checks on periodicity of non linear sampling."""
-    if trj.block_period == 1:
+    if block_period == 1:
         return
-    block = trj.steps[0:trj.block_period]
 
+    block = steps[0:block_period]
     ibl = 0
     jbl = 0
     prune_me = []
-    for i in trj.steps:
-        j = ibl*trj.steps[trj.block_period] + block[jbl]
+    for i in steps:
+        j = ibl*steps[block_period-1] + block[jbl]
         if i == j:
             jbl += 1
-            if jbl == trj.block_period:
+            if jbl == block_period-1:
                 ibl += 1
                 jbl = 0
         else:
@@ -164,27 +167,28 @@ def check_block_period(trj):
         print '\n# ', len(prune_me), ' samples will be pruned'
 
     for p in prune_me:
-        pp = trj.steps.index(p)
+        pp = steps.index(p)
 
     # check if the number of steps is an integer multiple of
     # block period (we tolerate a rest of 1)
-    rest = len(trj.steps) % trj.block_period
+    rest = len(steps) % block_period
     if rest > 1:
-        trj.steps = trj.steps[:-rest]
+        steps = steps[:-rest]
         #raise ValueError('block was truncated')
 
     # final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
-    nbl = len(trj.steps) / trj.block_period
+    nbl = len(steps) / block_period
     for i in range(nbl):
-        i0 = trj.steps[i*trj.block_period]
-        current = trj.steps[i*trj.block_period:(i+1)*trj.block_period]
+        i0 = steps[i*block_period]
+        current = steps[i*block_period:(i+1)*block_period]
         current = [ii-i0 for ii in current]
         if not current == block:
             print 'periodicity issue at block %i out of %i' % (i, nbl)
             print 'current     :', current
             print 'finger print:', block
             raise ValueError('block does not match finger print')
+
 
 def dump(trajectory, what='pos'):
     """Dump coordinates as a list of (npart, ndim) numpy arrays if the
