@@ -25,21 +25,24 @@ def main(params):
     s = RumdBackend(params.input_file, params.forcefield,
                     integrator=params.integrator,
                     temperature=params.T, dt=params.dt)
-    if params.backend_output:
-        s._suppress_all_output = False
-        s._initialize_output = True
-        s.rumd_simulation.SetOutputScheduling("trajectory", "logarithmic")
-        s.rumd_simulation.SetBlockSize(params.config_interval)
-        s.rumd_simulation.sample.SetOutputDirectory(output_base)
-        params.thermo_interval = params.config_interval
-        # Trim target steps to be a multiple of config_interval
-        params.steps = params.steps / params.config_interval * params.config_interval
     sa = Simulation(s, output_path=output_base,
                      checkpoint_interval=params.config_interval,
                      steps=params.steps,
                      restart=params.restart)
-    sa.add(WriterThermo(), Scheduler(params.thermo_interval))
-    sa.add(WriterConfig(), Scheduler(params.config_interval))
+
+    if params.backend_output:
+        s._suppress_all_output = False
+        s._initialize_output = True
+        s.rumd_simulation.SetOutputScheduling("energies", "linear", interval=params.thermo_interval)
+        s.rumd_simulation.SetOutputScheduling("trajectory", "logarithmic")
+        #s.rumd_simulation.SetBlockSize(params.config_interval)
+        s.rumd_simulation.SetBlockSize(params.steps)
+        s.rumd_simulation.sample.SetOutputDirectory(output_base)
+        # Trim target steps to be a multiple of config_interval
+        # params.steps = params.steps / params.config_interval * params.config_interval
+    else:
+        sa.add(WriterThermo(), Scheduler(params.thermo_interval))
+        sa.add(WriterConfig(), Scheduler(params.config_interval))
     sa.run()
 
 if __name__ == '__main__':
