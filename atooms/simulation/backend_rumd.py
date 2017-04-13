@@ -33,7 +33,6 @@ class RumdBackend(object):
         self.rumd_simulation.SetVerbose(False)
         self.rumd_simulation.sample.SetVerbose(False)
         self.rumd_simulation.sample.EnableBackup(False)
-        self.rumd_simulation.SetVerbose(False)
         self.rumd_simulation.SetMomentumResetInterval(fixcm_interval)
         self.rumd_simulation.SetBlockSize(sys.maxint)
         # By default we mute RUMD output.
