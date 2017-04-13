@@ -42,7 +42,10 @@ class TrajectoryField(TrajectorySimpleXYZ):
             if len(data.split()) > 1:
                 data = data.split()
             field.append(data)
-        return numpy.array(field, dtype=float)
+        try:
+            return numpy.array(field, dtype=float)
+        except ValueError:
+            return numpy.array(field, dtype=str)
 
     def _comment_header(self, step, field):
         return "step:%d columns:%s" % (step, ','.join(self.fmt))
@@ -52,6 +55,8 @@ class TrajectoryField(TrajectorySimpleXYZ):
         self.trajectory.write(self._comment_header(step, field) + '\n')
         try:
             ndim = len(field[0])
+            if type(field[0]) is str:
+                ndim = 1
         except TypeError:
             ndim = 1
 

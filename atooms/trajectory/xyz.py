@@ -269,7 +269,7 @@ class TrajectoryXYZ(TrajectoryBase):
             # %g allows to format both float and int but it's 2x slower.
             # This switch is for performance
             if self._fmt_float:
-                _fmt = '%14.' + str(self.precision) + 'f'
+                _fmt = '%.' + str(self.precision) + 'f'
             else:
                 _fmt = '%g'
             def array_fmt(arr):
