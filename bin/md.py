@@ -10,7 +10,6 @@ from atooms.simulation.backends import RumdBackend
 from atooms.utils import setup_logging, report_parameters, report_command, mkdir
 
 def main(params):
-    # TODO: dump params to a file in output_dir
     if params.verbose:
         setup_logging(level=20)
     if params.T is not None:
