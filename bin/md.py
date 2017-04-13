@@ -19,7 +19,7 @@ def main(params):
     if os.path.exists(params.input_file + '.ff'):
         params.forcefield = params.input_file + '.ff'
     output_base = os.path.join(params.output_dir, 'trajectory')
-    mkdir(params.output_dir)
+    mkdir(output_base)
     report_parameters(params.__dict__, output_base + '.params', '%s+%s' % (__version__, __commit__))
     report_command(sys.argv[0], params.__dict__, ['output_dir'], output_base + '.cmd')
     s = RumdBackend(params.input_file, params.forcefield,
