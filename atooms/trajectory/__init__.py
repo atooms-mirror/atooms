@@ -25,6 +25,7 @@ try:
 except ImportError:
     pass
 from .ram import TrajectoryRam
+from .field import TrajectoryField
 
 # We build an instance of trajectory factory here and update the
 # trajectory classes. Client code can update the factory with new
