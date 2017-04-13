@@ -187,10 +187,9 @@ class RumdBackend(object):
             if self._restart:
                 # We must toggle it here to prevent future calls to pre to restart. TODO: why??
                 self._restart = False
-            self.rumd_simulation.Run(steps - self.steps+1,
+            self.rumd_simulation.Run(steps - self.steps,
                                      suppressAllOutput=self._suppress_all_output,
                                      initializeOutput=self._initialize_output)
-            print self.rumd_simulation.steps
             # If we are not supressing output and we are calling this
             # repeatedly we probably do not want rumd to clear up its
             # own files. Use case: keep rumd blocks for log time saving.
