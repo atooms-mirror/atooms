@@ -56,6 +56,7 @@ class RumdBackend(object):
         self._initial_sample = self.rumd_simulation.sample.Copy()
         # Handle output
         self._suppress_all_output = True
+        self._initialize_output = False
         # Internal restart toggle
         self._restart = False
 
@@ -187,7 +188,12 @@ class RumdBackend(object):
                 self._restart = False
             self.rumd_simulation.Run(steps - self.steps,
                                      suppressAllOutput=self._suppress_all_output,
-                                     initializeOutput=False)
+                                     initializeOutput=self._initialize_output)
+            # If we are not supressing output and we are calling this
+            # repeatedly we probably do not want rumd to clear up its
+            # own files. Use case: keep rumd blocks for log time saving.
+            if not self._suppress_all_output:
+                self._initialize_output = False
             self.steps = steps
 
 
