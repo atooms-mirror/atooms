@@ -10,22 +10,31 @@ from atooms.simulation.backends import RumdBackend
 from atooms.utils import setup_logging, report_parameters, report_command, mkdir
 
 def main(params):
-    # TODO: dump params to a file in output_dir
     if params.verbose:
         setup_logging(level=20)
+    if params.debug:
+        setup_logging(level=10)
     if params.T is not None:
         params.integrator = 'nvt'
     if os.path.exists(params.input_file + '.ff'):
         params.forcefield = params.input_file + '.ff'
+    output_base = os.path.join(params.output_dir, 'trajectory')
     mkdir(params.output_dir)
-    report_parameters(params.__dict__, params.output_dir + '/trajectory.params', 
-                      '%s+%s' % (__version__, __commit__))
-    report_command(sys.argv[0], params.__dict__, ['output_dir'], 
-                   params.output_dir + '/trajectory.cmd')
+    report_parameters(params.__dict__, output_base + '.params', '%s+%s' % (__version__, __commit__))
+    report_command(sys.argv[0], params.__dict__, ['output_dir'], output_base + '.cmd')
     s = RumdBackend(params.input_file, params.forcefield,
                     integrator=params.integrator,
                     temperature=params.T, dt=params.dt)
-    sa = Simulation(s, output_path=os.path.join(params.output_dir, 'trajectory'),
+    if params.backend_output:
+        s._suppress_all_output = False
+        s._initialize_output = True
+        s.rumd_simulation.SetOutputScheduling("trajectory", "logarithmic")
+        s.rumd_simulation.SetBlockSize(params.config_interval)
+        s.rumd_simulation.sample.SetOutputDirectory(output_base)
+        params.thermo_interval = params.config_interval
+        # Trim target steps to be a multiple of config_interval
+        params.steps = params.steps / params.config_interval * params.config_interval
+    sa = Simulation(s, output_path=output_base,
                      checkpoint_interval=params.config_interval,
                      steps=params.steps,
                      restart=params.restart)
@@ -46,6 +55,8 @@ if __name__ == '__main__':
     parser.add_argument('-c','--config-interval', dest='config_interval', type=int, default=0, help='config interval')
     parser.add_argument('-r',   dest='restart', action='store_true', help='restart')
     parser.add_argument('-v',   dest='verbose', action='store_true', help='verbose output')
+    parser.add_argument('-d',   dest='debug', action='store_true', help='debug output')
+    parser.add_argument('-b',   dest='backend_output', action='store_true', help='use backend output')
     parser.add_argument(dest='output_dir',type=str, help='output directory')
     params = parser.parse_args()
 
