@@ -33,6 +33,7 @@ This is equivalent to
 
 import os
 import sys
+import re
 import inspect
 from .xyz import TrajectoryXYZ
 try:
@@ -54,10 +55,16 @@ class TrajectoryFactory(object):
 
     def update(self, module):
         classes = inspect.getmembers(sys.modules[module], inspect.isclass)
-        trajectories = [c for c in classes if c[0].startswith('Trajectory')] 
+        trajectories = [c for c in classes if 'Trajectory' in c[0]] 
         for trj_name, trj_class in trajectories:
             # We extract the name of the trajectory and lowercase it
-            fmt = trj_name[len('Trajectory'):].lower()
+            # We expect names of the format [Tag1]Trajectory<Tag2>, where
+            # <Tag2> is obligatory and Tag1 is optional. The trajectory key
+            # is then Tag1+Tag2 lowercased.
+            s = re.search(r'([a-zA-Z0-9]*)Trajectory([a-zA-Z0-9]*)', trj_name)
+            if len(s.group(2)) == 0:
+                continue
+            fmt = (s.group(1) + s.group(2)).lower()
             try:
                 self.suffixes[trj_class.suffix] = trj_class
                 self.formats[fmt] = trj_class
