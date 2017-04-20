@@ -145,21 +145,37 @@ def get_period(data):
         return period
 
 def check_block_period(steps, block_period):
-    """Perform some consistency checks on periodicity of non linear sampling."""
+    """
+    Perform some consistency checks on periodicity of non linear sampling.
+    
+    `block_period` is the number of frames after which a new block begins.
+
+    Example:
+    -------
+    steps = [0, 1, 2, 4, 8, 9, 10, 12, 16]
+    block_period = 5
+    block_size = 4
+
+    Note that in this case, len(steps) % block_size == 1, which is tolerated.
+    """
     if block_period == 1:
         return
+    block_size = block_period-1
 
-    block = steps[0:block_period]
+    block = steps[0:block_size]
     ibl = 0
     jbl = 0
     prune_me = []
     for i in steps:
-        j = ibl*steps[block_period-1] + block[jbl]
+        j = ibl * steps[block_size] + block[jbl]
         if i == j:
-            jbl += 1
-            if jbl == block_period-1:
+            if jbl == block_size-1:
+                # We are done with this block, we start over
                 ibl += 1
                 jbl = 0
+            else:
+                # We increment the index within the block
+                jbl += 1
         else:
             prune_me.append(i)
 
@@ -171,17 +187,17 @@ def check_block_period(steps, block_period):
 
     # check if the number of steps is an integer multiple of
     # block period (we tolerate a rest of 1)
-    rest = len(steps) % block_period
+    rest = len(steps) % block_size
     if rest > 1:
         steps = steps[:-rest]
-        #raise ValueError('block was truncated')
+        print 'block was truncated'
 
     # final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
-    nbl = len(steps) / block_period
+    nbl = len(steps) / block_size
     for i in range(nbl):
-        i0 = steps[i*block_period]
-        current = steps[i*block_period:(i+1)*block_period]
+        i0 = steps[i*block_size]
+        current = steps[i*block_size:(i+1)*block_size]
         current = [ii-i0 for ii in current]
         if not current == block:
             print 'periodicity issue at block %i out of %i' % (i, nbl)
