@@ -248,7 +248,6 @@ class SuperTrajectory(TrajectoryBase):
         f = os.path.dirname(self.files[0])
         super(SuperTrajectory, self).__init__(f, mode)
         self.trajectoryclass = trajectoryclass
-        self._timestep = 1.0
 
         # Make sure subtrajectories are sorted by increasing step
         self.files.sort()
@@ -272,3 +271,7 @@ class SuperTrajectory(TrajectoryBase):
         j = self._steps_sample[sample]
         with self.trajectoryclass(f) as t:
             return t[j]
+
+    def read_timestep(self):
+        with self.trajectoryclass(self.files[0]) as t:
+            return t.timestep
