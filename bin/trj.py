@@ -39,12 +39,16 @@ def info(trajectory):
     txt += 'cell side            = %s\n' % trajectory[0].cell.side
     txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
     if len(trajectory)>1:
-        txt += 'steps between frames = %s\n' % (trajectory.steps[1]-trajectory.steps[0])
-        txt += 'time between frames  = %s\n' % (trajectory.times[1]-trajectory.times[0])
-        txt += 'final step           = %s\n' % trajectory.steps[-1]
-        txt += 'final time           = %s\n' % trajectory.times[-1]
+        txt += 'steps                = %s\n' % trajectory.steps[-1]
+        txt += 'duration             = %s\n' % trajectory.times[-1]
         txt += 'timestep             = %s\n' % trajectory.timestep
         txt += 'block period         = %s\n' % trajectory.block_period
+        if trajectory.block_period == 1:
+            txt += 'steps between frames = %s\n' % (trajectory.steps[1]-trajectory.steps[0])
+            txt += 'time between frames  = %s\n' % (trajectory.times[1]-trajectory.times[0])
+        else:
+            txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_period-1]
+            txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_period)])
         txt += 'grandcanonical       = %s' % trajectory.grandcanonical
     print txt
 
