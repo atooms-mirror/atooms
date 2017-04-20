@@ -236,12 +236,15 @@ class TrajectoryBase(object):
 
 class SuperTrajectory(TrajectoryBase):
 
-    """Collection of subtrajectories"""
+    """Collection of subtrajectories."""
 
     # Optimized version
 
     def __init__(self, files, trajectoryclass, mode='r'):
-        """Group list of files into a single trajectory"""
+        """
+        Group a list of `files` into a single trajectory of class
+        `trajectoryclass`.
+        """
         self.files = files
         if len(self.files) == 0:
             raise ValueError('no files found in %s' % self.files)
