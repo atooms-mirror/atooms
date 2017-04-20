@@ -24,7 +24,8 @@ def main(params):
     report_command(sys.argv[0], params.__dict__, ['output_dir'], output_base + '.cmd')
     s = RumdBackend(params.input_file, params.forcefield,
                     integrator=params.integrator,
-                    temperature=params.T, dt=params.dt)
+                    temperature=params.T, dt=params.dt,
+                    fixcm_interval=params.fixcm_interval)
     sa = Simulation(s, output_path=output_base,
                      checkpoint_interval=params.config_interval,
                      steps=params.steps,
@@ -55,6 +56,7 @@ if __name__ == '__main__':
     parser.add_argument('-n',   dest='steps', type=int, default=0, help='number of steps')
     parser.add_argument('-t','--thermo-interval', dest='thermo_interval', type=int, default=0, help='energy interval')
     parser.add_argument('-c','--config-interval', dest='config_interval', type=int, default=0, help='config interval')
+    parser.add_argument(     '--fixcm-interval', dest='fixcm_interval', type=int, default=1000, help='fix cm interval')
     parser.add_argument('-r',   dest='restart', action='store_true', help='restart')
     parser.add_argument('-v',   dest='verbose', action='store_true', help='verbose output')
     parser.add_argument('-d',   dest='debug', action='store_true', help='debug output')
