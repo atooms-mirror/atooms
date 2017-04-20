@@ -196,6 +196,10 @@ class TrajectoryBase(object):
         self._timestep = value
 
     @property
+    def block_size(self):
+        return self.block_period-1
+
+    @property
     def block_period(self):
         if self._block_period is None:
             self._block_period = self.read_blockperiod()
