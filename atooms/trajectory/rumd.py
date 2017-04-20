@@ -110,5 +110,6 @@ class SuperTrajectoryRUMD(SuperTrajectory):
         f_all = glob.glob(inp + '/%s*gz' % basename)
         f_all.sort()
         # Avoid last block because rumd does not write the last cfg!
-        f_all = f_all[:-1]
+        if len(f_all) > 1:
+            f_all = f_all[:-1]
         return SuperTrajectory(f_all, TrajectoryRUMD)
