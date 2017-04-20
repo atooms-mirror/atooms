@@ -262,7 +262,7 @@ class SuperTrajectory(TrajectoryBase):
             # we can optimize this by about 10% on xyz files (16.12.2016)
             with self.trajectoryclass(f) as t:
                 for j, step in enumerate(t.steps):
-                    if len(t.steps)>0 and step != t.steps[-1]:
+                    if len(self.steps)==0 or step != self.steps[-1]:
                         self.steps.append(step)
                         self._steps_file.append(f)
                         self._steps_sample.append(j)
