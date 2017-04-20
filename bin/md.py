@@ -35,8 +35,7 @@ def main(params):
         s._initialize_output = True
         s.rumd_simulation.SetOutputScheduling("energies", "linear", interval=params.thermo_interval)
         s.rumd_simulation.SetOutputScheduling("trajectory", "logarithmic")
-        #s.rumd_simulation.SetBlockSize(params.config_interval)
-        s.rumd_simulation.SetBlockSize(params.steps)
+        s.rumd_simulation.SetBlockSize(params.config_interval)
         s.rumd_simulation.sample.SetOutputDirectory(output_base)
         # Trim target steps to be a multiple of config_interval
         # params.steps = params.steps / params.config_interval * params.config_interval
