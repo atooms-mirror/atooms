@@ -246,7 +246,7 @@ class SuperTrajectory(TrajectoryBase):
         if len(self.files) == 0:
             raise ValueError('no files found in %s' % self.files)
         f = os.path.dirname(self.files[0])
-        super(SuperTrajectory2, self).__init__(f, mode)
+        super(SuperTrajectory, self).__init__(f, mode)
         self.trajectoryclass = trajectoryclass
         self._timestep = 1.0
 
