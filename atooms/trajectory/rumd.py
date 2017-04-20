@@ -28,11 +28,11 @@ class TrajectoryRUMD(TrajectoryXYZ):
         # RUMD specific stuff
         basename_ext = os.path.basename(self.filename)
         basename = basename_ext.split('.')[0]
-        s = re.search(r'([a-zA-Z0-9]+)_(\d+)', basename)
+        s = re.search(r'([a-zA-Z_]+)(\d+)', basename)
         if s:
             base, step = s.group(1), s.group(2)
             # For native rumd trajectories we add the block offset
-            if base == 'block':
+            if base == 'block' or base == 'trajectory':
                 # Redefine samples and steps to make sure these are the absolute steps and samples
                 # This is important when trajectories are written in blocks.
                 # To extract the block index we look at the filename indexing.
@@ -103,9 +103,12 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
 class SuperTrajectoryRUMD(SuperTrajectory):
 
-    def __new__(self, inp, variable=False, periodic=True, basename='block'):
+    def __new__(self, inp, mode='r', basename='trajectory'):
         """ Takes a directory as input and get all block*gz files in there """
         if not os.path.isdir(inp):
             raise IOError("We expected this to be a dir (%s)" % inp)
         f_all = glob.glob(inp + '/%s*gz' % basename)
-        return SuperTrajectory(f_all, TrajectoryRUMD, variable=variable, periodic=periodic)
+        f_all.sort()
+        # Avoid last block because rumd does not write the last cfg!
+        f_all = f_all[:-1]
+        return SuperTrajectory(f_all, TrajectoryRUMD)
