@@ -213,6 +213,10 @@ def target(sim, attribute, value):
         raise SimulationEnd('reached target %s: %s', attribute, value)
     return frac
 
+def target_rmsd(sim, target):
+    """Target the root mean squared displacement."""
+    return target(sim, 'rmsd', target)
+
 def target_steps(sim, target):
     """Target the number of steps."""
     if sim.steps >= target:
