@@ -61,12 +61,12 @@ class TrajectoryField(TrajectorySimpleXYZ):
             ndim = 1
 
         if ndim == 1:
-            for f in field:            
+            for f in field:
                 self.trajectory.write('%s\n' % f)
         else:
             fmt = ndim*" %g" + "\n"
-            for f in field:            
+            for f in field:
                 self.trajectory.write(fmt % tuple(f))
-            
+
     def close(self):
         self.trajectory.close()

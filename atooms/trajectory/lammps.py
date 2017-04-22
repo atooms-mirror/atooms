@@ -51,7 +51,7 @@ def _lammps_parse_system(finp):
         ix = data.index('x')-2
     except ValueError:
         ix = data.index('xu')-2
-    
+
     # Rather well optimized now. Ignore velocities, do not fold particles.
     from itertools import islice
     data = ''.join(list(islice(finp, npart)))
@@ -119,7 +119,7 @@ class TrajectoryLAMMPS(TrajectoryFolder):
         f.write(r)
         f.write(v)
         f.close()
-    
 
-# Note: to get the tabulated potential from a dump of potential.x do 
+
+# Note: to get the tabulated potential from a dump of potential.x do
 # > { echo -e "\nPOTENTIAL\nN 10000\n"; grep -v '#' /tmp/kalj.ff.potential.1-1 | awk '{printf "%i %g %12e %12e\n", NR, $1, $2, -$3}' ; }

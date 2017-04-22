@@ -9,7 +9,7 @@ class based on either explicit rules or suffix euristics. The list of
 available trajectory classes can be updated at run-time using the
 `update` method.
 
-Examples: 
+Examples:
 --------
 
 - Reading an hdf5-format trajectory via the factory
@@ -17,7 +17,7 @@ Examples:
     Trajectory = TrajectoryFactory()
     t = Trajectory('input.h5')
 
-is equivalent to 
+is equivalent to
 
     t = TrajectoryHDF5('input.h5')
 
@@ -48,14 +48,14 @@ except ImportError:
 # settings in update() are fine imo.
 
 class TrajectoryFactory(object):
-    
+
     def __init__(self):
         self.formats = {}
         self.suffixes = {}
 
     def update(self, module):
         classes = inspect.getmembers(sys.modules[module], inspect.isclass)
-        trajectories = [c for c in classes if 'Trajectory' in c[0]] 
+        trajectories = [c for c in classes if 'Trajectory' in c[0]]
         for trj_name, trj_class in trajectories:
             # We extract the name of the trajectory and lowercase it
             # We expect names of the format [Tag1]Trajectory<Tag2>, where
@@ -76,7 +76,7 @@ class TrajectoryFactory(object):
     def __call__(self, filename, mode='r', fmt=None):
         if fmt is not None:
             return self.formats[fmt](filename, mode)
-    
+
         suffix = os.path.splitext(filename)[-1].replace('.', '')
         if suffix in self.suffixes:
             return self.suffixes[suffix](filename, mode)

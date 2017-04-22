@@ -101,7 +101,7 @@ class PairPotential(object):
             if rmax is None:
                 raise ValueError('rmax is needed to tabulate a cutoff-less potential')
         else:
-            rmax = self.cutoff.radius 
+            rmax = self.cutoff.radius
 
         rsq = numpy.ndarray(npoints)
         u0 = numpy.ndarray(npoints)

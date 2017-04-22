@@ -247,7 +247,7 @@ class TestCase(unittest.TestCase):
     requiring unittest2, which backports new features introduced in 2.7,
     we provide our custom subclass of TestCase.
     """
-    
+
     def assertAlmostEqual(self, first, second, places=7, msg=None, delta=None):
         if delta is None:
             unittest.TestCase.assertAlmostEqual(self, first, second, places, msg)
@@ -258,7 +258,7 @@ class TestCase(unittest.TestCase):
 
 def report_parameters(params, fileout, version, comment=''):
     maxlen = max([len(key) for key in params])
-    fmt = comment + '%-' + str(maxlen) + 's = %s\n' 
+    fmt = comment + '%-' + str(maxlen) + 's = %s\n'
     txt = ""
     txt += fmt % ('version', version)
     for key in sorted(params.keys()):

@@ -7,7 +7,7 @@ import numpy
 from collections import defaultdict
 
 def _pbc(t, N):
-    # TODO: fix undefined NN 
+    # TODO: fix undefined NN
     for i in range(len(t)):
         if t[i] >= N[i]:
             t[i] -= NN
