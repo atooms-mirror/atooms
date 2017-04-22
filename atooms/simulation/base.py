@@ -313,8 +313,7 @@ class Simulation(object):
         for f in self._callback:
             s = f.scheduler
             if 'target' in f.__name__.lower():
-                # TODO: if targets are pure functions, we wont be able to log their target values... unless we use the args !
-                log.info('target %s: %s', f.__name__, f.args)
+                log.info('target %s: %s', f.__name__, f.args[0])
             else:
                 log.info('writer %s: interval=%s calls=%s', f.__name__, s.interval, s.calls)
 
