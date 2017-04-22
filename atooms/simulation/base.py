@@ -121,7 +121,7 @@ class Simulation(object):
         callback.kwargs = kwargs
 
         # Keep targeters last
-        if not 'target' in callback.__name__:
+        if not 'target' in callback.__name__.lower():
             self._callback.insert(0, callback)
         else:
             self._callback.append(callback)
@@ -140,12 +140,12 @@ class Simulation(object):
 
     @property
     def _targeters(self):
-        return [o for o in self._callback if 'target' in o.__name__]
+        return [o for o in self._callback if 'target' in o.__name__.lower()]
         #return [o for o in self._callback if isinstance(o, Target)]
 
     @property
     def _non_targeters(self):
-        return [o for o in self._callback if not 'target' in o.__name__]
+        return [o for o in self._callback if not 'target' in o.__name__.lower()]
         #return [o for o in self._callback if not isinstance(o, Target)]
 
     @property
@@ -315,7 +315,7 @@ class Simulation(object):
         for f in self._callback:
             s = f.scheduler
             #if isinstance(f, Target):
-            if 'target' in f.__name__:
+            if 'target' in f.__name__.lower():
                 # TODO: if targets are pure functions, we wont be able to log their target values... unless we use the args !
                 log.info('target %s: %s', f.__name__, '*******')
             else:
