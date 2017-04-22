@@ -141,12 +141,10 @@ class Simulation(object):
     @property
     def _targeters(self):
         return [o for o in self._callback if 'target' in o.__name__.lower()]
-        #return [o for o in self._callback if isinstance(o, Target)]
 
     @property
     def _non_targeters(self):
         return [o for o in self._callback if not 'target' in o.__name__.lower()]
-        #return [o for o in self._callback if not isinstance(o, Target)]
 
     @property
     def _speedometers(self):
@@ -314,7 +312,6 @@ class Simulation(object):
     def _report_observers(self):
         for f in self._callback:
             s = f.scheduler
-            #if isinstance(f, Target):
             if 'target' in f.__name__.lower():
                 # TODO: if targets are pure functions, we wont be able to log their target values... unless we use the args !
                 log.info('target %s: %s', f.__name__, '*******')
