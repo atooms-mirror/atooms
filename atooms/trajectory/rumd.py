@@ -15,7 +15,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
     # TODO: allow reading unfolded configuration by parsing the box image integers
 
     def __init__(self, filename, mode='r'):
-        super(TrajectoryRUMD, self).__init__(filename, mode, 
+        super(TrajectoryRUMD, self).__init__(filename, mode,
                                              alias={'timeStepIndex': 'step',
                                                     'boxLengths': 'cell',
                                                     'sim_box': 'cell'})

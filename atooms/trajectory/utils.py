@@ -118,7 +118,7 @@ def get_step_from_path(f):
 
 def sort_files_steps(files, steps):
     file_steps = zip(files, steps)
-    file_steps.sort(key = lambda a : a[1])
+    file_steps.sort(key=lambda a: a[1])
     new_files = [a[0] for a in file_steps]
     new_steps = [a[1] for a in file_steps]
     return new_files, new_steps
@@ -133,7 +133,7 @@ def get_period(data):
     for ii in range(1, len(data)):
         i = data[ii]
         delta = i-iold
-        if delta < delta_old and delta == delta_one: # and abs(delta-delta_old)>2:
+        if delta < delta_old and delta == delta_one:
             return period
         else:
             period += 1
@@ -147,7 +147,7 @@ def get_period(data):
 def check_block_period(steps, block_period):
     """
     Perform some consistency checks on periodicity of non linear sampling.
-    
+
     `block_period` is the number of frames after which a new block begins.
 
     Example:
@@ -216,8 +216,8 @@ def dump(trajectory, what='pos'):
         for i, s in enumerate(trajectory):
             data[i].append(s.dump(what))
     else:
-        data = numpy.zeros([len(trajectory.steps), \
-                            len(trajectory[0].particle), \
+        data = numpy.zeros([len(trajectory.steps),
+                            len(trajectory[0].particle),
                             len(trajectory[0].cell.side)])
         for i, s in enumerate(trajectory):
             data[i] = s.dump(what)
