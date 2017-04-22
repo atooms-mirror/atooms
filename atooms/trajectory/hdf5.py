@@ -60,7 +60,7 @@ def add_interaction_hdf5(finp, ff, tag=None):
         fout = d + '/' + os.path.basename(finp)
     else:
         fout = finp + '.bak'
-        
+
     # Add interaction
     os.system('/bin/cp %s %s' % (finp, fout))
     h5 = h5py.File(fout , 'r+')

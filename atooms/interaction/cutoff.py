@@ -9,19 +9,19 @@ distance `radius`.
 """
 
 class CutOff(object):
-    
+
     def __init__(self, name, radius):
         """
         Available schemes are
-        
-        - cut: `c` or `cut` 
+
+        - cut: `c` or `cut`
         - cut and shifted: `cs` or `CS`
         """
         # TODO: call it scheme again, not name
         self.name = name
         self.radius = radius
         self.rcutsq = radius**2
-    
+
     def __str__(self):
         return self.name
 
@@ -35,7 +35,7 @@ class CutOff(object):
 
     def tailor(self, rsquare, u):
         """
-        Adjust the cut off to a potential. 
+        Adjust the cut off to a potential.
 
         `u` is tuple with the potential value and its derivatives
         evaluated at the cut off distance.

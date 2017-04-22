@@ -84,7 +84,7 @@ class TrajectoryHOOMD(TrajectoryBase):
         pos_list = [map(float, r.split()) for r in pos.text.strip().split('\n')]
         box_list = [float(box.attrib[r]) for r in ['lx', 'ly', 'lz']]
         typ_list = typ.text.strip().split('\n')
-        if not vel is None:
+        if vel is not None:
             vel_list = [map(float, v.split()) for v in vel.text.strip().split('\n')]
         else:
             vel_list = None
@@ -122,12 +122,12 @@ class TrajectoryHOOMD(TrajectoryBase):
 
         fh.write("<position num=\"%d\">\n" % n)
         for p in system.particle:
-            fh.write((ndim*" %g" +"\n") % tuple(p.position))
+            fh.write((ndim*" %g" + "\n") % tuple(p.position))
         fh.write("</position>\n")
 
         fh.write("<velocity num=\"%d\">\n" % n)
         for p in system.particle:
-            fh.write((ndim*" %g" +"\n") % tuple(p.velocity))
+            fh.write((ndim*" %g" + "\n") % tuple(p.velocity))
         fh.write("</velocity>\n")
 
         fh.write("<type num=\"%d\">\n" % n)

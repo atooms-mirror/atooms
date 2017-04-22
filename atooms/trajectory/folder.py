@@ -54,7 +54,7 @@ def _get_step(fileinp, step_pattern):
         step = int(s.group(1))
         return step
     else:
-        raise ValueError('Could not find step')          
+        raise ValueError('Could not find step')
 
 def _get_file_steps(files, step_pattern):
     """Return a list of tuples (file, step). The step is extracted from
@@ -111,10 +111,3 @@ class Foldered(TrajectoryFolder):
     def close(self):
         if self.archive:
             rmd(self.dirname)
-
-        
-
-
-
-
-

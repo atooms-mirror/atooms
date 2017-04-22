@@ -310,12 +310,12 @@ class Speedometer(object):
 # Deprecated observers
 
 class WriterConfig(object):
-    
+
     def __call__(self):
         raise ImportError('WriterConfig is deprecated')
 
 class WriterThermo(object):
-    
+
     def __call__(self):
         raise ImportError('WriterThermo is deprecated')
 
