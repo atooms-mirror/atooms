@@ -76,7 +76,7 @@ class Centered(object):
         return object.__new__(cls)
 
     def __init__(self, component):
-        #`Internal list of samples that were already centered.
+        # Internal list of samples that were already centered.
         self.__done = []
 
     def read_sample(self, sample):
@@ -176,7 +176,7 @@ class MatrixFix(object):
 
     # Object initialization
     def __init__(self, component, matrix_species):
-        self._component = component # actually unnecessary
+        self._component = component  # actually unnecessary
         self.matrix_species = matrix_species
 
     # def _init_read(self):
@@ -195,7 +195,7 @@ class MatrixFix(object):
     def read_sample(self, *args, **kwargs):
         s = super(MatrixFix, self).read_sample(*args, **kwargs)
         # Get rid of matrix particles in trajectory
-        s.particle = [p for p in s.particle if not p.id in self.matrix_species]
+        s.particle = [p for p in s.particle if p.id not in self.matrix_species]
         return s
 
 
@@ -250,7 +250,7 @@ class MatrixFlat(object):
 
     # Object initialization
     def __init__(self, component):
-        self._component = component # actually unnecessary
+        self._component = component  # actually unnecessary
         self._matrix = None
 
     def __setup_matrix(self, s):

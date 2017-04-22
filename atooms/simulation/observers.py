@@ -103,7 +103,7 @@ class Scheduler(object):
         """
         if self.interval is not None and self.interval > 0:
             return (sim.steps / self.interval + 1) * self.interval
-        elif self.calls is not None  and self.interval > 0:
+        elif self.calls is not None and self.interval > 0:
             interval = int(sim.max_steps / self.calls)
             return (sim.steps / interval + 1) * interval
         elif self.steps is not None:

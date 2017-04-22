@@ -121,7 +121,7 @@ class Simulation(object):
         callback.kwargs = kwargs
 
         # Keep targeters last
-        if not 'target' in callback.__name__.lower():
+        if 'target' not in callback.__name__.lower():
             self._callback.insert(0, callback)
         else:
             self._callback.append(callback)
@@ -144,7 +144,7 @@ class Simulation(object):
 
     @property
     def _non_targeters(self):
-        return [o for o in self._callback if not 'target' in o.__name__.lower()]
+        return [o for o in self._callback if 'target' not in o.__name__.lower()]
 
     @property
     def _speedometers(self):

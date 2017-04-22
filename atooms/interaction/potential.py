@@ -113,7 +113,7 @@ class PairPotential(object):
         rsq[0], rsq[1] = 0.0, drsq
         u0[0], u1[0], _ = self.compute(rsq[1])
         u0[1], u1[1], _ = self.compute(rsq[1])
-        for i in range(2,npoints):
+        for i in range(2, npoints):
             rsq[i] = i * drsq
             u0[i], u1[i], _ = self.compute(rsq[i])
         return rsq, u0, u1

@@ -57,9 +57,10 @@ def _get_step(fileinp, step_pattern):
         raise ValueError('Could not find step')
 
 def _get_file_steps(files, step_pattern):
-    """Return a list of tuples (file, step). The step is extracted from
-    the file path using `regexp`, which must contain one group for
-    the step.
+    """
+    Return a list of tuples (file, step). The step is extracted from
+    the file path using `regexp`, which must contain one group for the
+    step.
     """
     file_steps = []
     for i, f in enumerate(files):
@@ -70,7 +71,7 @@ def _get_file_steps(files, step_pattern):
         except ValueError:
             step = i+1
         file_steps.append((f, step))
-    file_steps.sort(key = lambda a : a[1])
+    file_steps.sort(key=lambda a: a[1])
     return [a[0] for a in file_steps], [a[1] for a in file_steps]
 
 

@@ -45,9 +45,11 @@ try:
     rank = comm.Get_rank()
     size = comm.Get_size()
     sys_excepthook = sys.excepthook
+
     def mpi_excepthook(v, t, tb):
         sys_excepthook(v, t, tb)
         MPI.COMM_WORLD.Abort(1)
+
     sys.excepthook = mpi_excepthook
 except:
     comm = None
