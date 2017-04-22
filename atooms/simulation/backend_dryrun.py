@@ -37,13 +37,13 @@ class System(object):
     def __init__(self):
         self.thermostat = Thermostat()
 
-    def potential_energy(self, normed):
+    def potential_energy(self, normed=False):
         return 0.
 
-    def kinetic_energy(self, normed):
+    def kinetic_energy(self, normed=False):
         return 0.
 
-    def total_energy(self, normed):
+    def total_energy(self, normed=False):
         return 0.
 
     @property
