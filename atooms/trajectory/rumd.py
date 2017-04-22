@@ -28,30 +28,25 @@ class TrajectoryRUMD(TrajectoryXYZ):
         # RUMD specific stuff
         basename_ext = os.path.basename(self.filename)
         basename = basename_ext.split('.')[0]
-        s = re.search(r'([a-zA-Z_]+)(\d+)', basename)
-        if s:
-            base, step = s.group(1), s.group(2)
-            # For native rumd trajectories we add the block offset
-            if base == 'block' or base == 'trajectory':
-                # Redefine samples and steps to make sure these are the absolute steps and samples
-                # This is important when trajectories are written in blocks.
-                # To extract the block index we look at the filename indexing.
-                # If the name is different the block index is set to zero and steps have no offset
-                iblock = int(step)
-                dt = self.steps[-1]
-                self.steps = [i+dt*iblock for i in self.steps]
-            else:
-                # In case of non native RUMD filename, we assume the
-                # step is written after the basename. Also, we only
-                # overwrite it if the trajectory is one step only,
-                # i.e. we have a collection of files rather than a single file.
-                if len(self.steps) == 1:
-                    self.steps = [int(step)]
 
-        if s is None:
-            s = re.search(r'^(\d+)$', basename)
-            if s and len(self.steps) == 1:
-                self.steps = [int(basename)]
+        # For native rumd trajectories we add the block offset
+        s = re.search(r'(trajectory|block)(\d+)', basename)
+        if s:
+            # Redefine samples and steps to make sure these are the absolute step indexes
+            # This is important when trajectories are written in blocks.
+            base, block = s.group(1), s.group(2)
+            iblock = int(block)
+            dt = self.steps[-1]
+            self.steps = [i+dt*iblock for i in self.steps]
+
+        # If we follow a folder based logic, files are named according
+        # to the step and contain a single step like
+        #     folder/0000001.xyz.gz
+        # We grab the step from
+        # the file name.
+        s = re.search(r'^(\d+)$', basename)
+        if s and len(self.steps) == 1:
+            self.steps = [int(basename)]
 
     def _read_metadata(self, sample):
         meta = super(TrajectoryRUMD, self)._read_metadata(sample)

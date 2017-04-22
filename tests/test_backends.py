@@ -76,7 +76,7 @@ class TestBackendRUMD(unittest.TestCase):
         with open(self.finp_io2, 'w') as fh:
             fh.write(xyz_io2)
 
-        self.finp_io2_base = '/tmp/test_adapter_rumd_0000001.xyz'
+        self.finp_io2_base = '/tmp/0000001.xyz'
         with open(self.finp_io2_base, 'w') as fh:
             fh.write(xyz_io2)
 
