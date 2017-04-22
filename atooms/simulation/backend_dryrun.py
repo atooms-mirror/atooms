@@ -35,6 +35,7 @@ class DryRunBackend(object):
 class System(object):
 
     def __init__(self):
+        self.particle = []
         self.thermostat = Thermostat()
 
     def potential_energy(self, normed=False):
