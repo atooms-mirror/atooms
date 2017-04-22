@@ -5,7 +5,7 @@ import sys
 import os
 import numpy
 
-from atooms.simulation import Simulation, TargetRMSD, Scheduler
+from atooms.simulation import Simulation, target
 try:
     import rumd
     from rumdSimulation import rumdSimulation
@@ -125,25 +125,25 @@ class TestBackendRUMD(unittest.TestCase):
             self.assertEqual(t.steps, [1])
 
     def test_simulation(self):
-        s = Simulation(self.backend, self.dout, steps = 1)
+        s = Simulation(self.backend, self.dout, steps=1)
         system = System(self.sim.sample)
         s.system = system
         s.run()
 
     def test_rmsd(self):
-        s = Simulation(self.backend, self.dout, steps = 1)
+        s = Simulation(self.backend, self.dout, steps=1)
         s.run()
         self.assertGreater(s.rmsd, 0.0)
 
     def test_target_rmsd(self):
         s = Simulation(self.backend, self.dout, steps=sys.maxint)
-        s.add(TargetRMSD(0.3), Scheduler(10))
+        s.add(target, 10, 'rmsd', 0.3)
         s.run()
         self.assertGreater(s.steps, 1)
         self.assertGreater(s.rmsd, 0.3)
 
     def test_checkpoint(self):
-        s = Simulation(self.backend, self.dout, steps = 10, checkpoint_interval = 10)
+        s = Simulation(self.backend, self.dout, steps=10, checkpoint_interval=10)
         s.run()
         # TODO: this will fail, change test for existence of chk file
         # self.assertTrue(os.path.exists(s.trajectory.filename + '.chk'))

@@ -28,7 +28,7 @@ import logging
 from atooms.core import __version__, __commit__, __date__
 from atooms.utils import mkdir, barrier
 from .backend_dryrun import DryRunBackend
-from .observers import TargetSteps, Target, Speedometer, Scheduler
+from .observers import target_steps, Speedometer, Scheduler
 from .observers import SimulationEnd
 
 log = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class Simulation(object):
         self.max_steps = steps
         self.enable_speedometer = enable_speedometer
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
-        self._targeter_steps = TargetSteps(self.max_steps)
+        self._targeter_steps = target_steps
 
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
@@ -93,22 +93,37 @@ class Simulation(object):
         else:
             return os.path.splitext(self.output_path)[0]
 
-    def add(self, callback, scheduler):
+    def add(self, callback, scheduler, *args, **kwargs):
         """
         Register an observer `callback` to be called along with a
         `scheduler`.
+
+        `scheduler` and `callback` must be callables accepting a
+        Simulation instance as unique argument. `scheduler` must
+        return the next step at which the observer has to be notified.
+
+        An integer value is allowed for `scheduler`. In this case, a
+        scheduler with fixed interval is generated internally and the
+        observer is notified every `scheduler` steps.
         """
         # If the callback is already there we replace it
         # This allows to update targets / schedules on the way
         if callback in self._callback:
             self._callback.remove(callback)
 
+        # Accept an integer interval
+        if type(scheduler) is int:
+            scheduler = Scheduler(scheduler)
+
+        # Store scheduler, callback and its arguments
+        callback.scheduler = scheduler
+        callback.args = args
+        callback.kwargs = kwargs
+
         # Keep targeters last
-        if not isinstance(callback, Target):
-            callback.scheduler = scheduler
+        if not 'target' in callback.__name__.lower():
             self._callback.insert(0, callback)
         else:
-            callback.scheduler = scheduler
             self._callback.append(callback)
 
     def remove(self, callback):
@@ -121,15 +136,15 @@ class Simulation(object):
     def notify(self, observers):
         for o in observers:
             log.debug('notify %s at step %d', o, self.steps)
-            o(self)
+            o(self, *o.args, **o.kwargs)
 
     @property
     def _targeters(self):
-        return [o for o in self._callback if isinstance(o, Target)]
+        return [o for o in self._callback if 'target' in o.__name__.lower()]
 
     @property
     def _non_targeters(self):
-        return [o for o in self._callback if not isinstance(o, Target)]
+        return [o for o in self._callback if not 'target' in o.__name__.lower()]
 
     @property
     def _speedometers(self):
@@ -217,9 +232,7 @@ class Simulation(object):
             self.backend.steps = 0
 
         # Targeter for max steps. Note that this will the replace an existing one.
-        self._targeter_steps.target = self.max_steps
-        self.add(self._targeter_steps, Scheduler(self.max_steps))
-
+        self.add(self._targeter_steps, Scheduler(self.max_steps), self.max_steps)
         self.report_header()
         self.run_pre()
         self.initial_steps = self.steps
@@ -240,8 +253,8 @@ class Simulation(object):
             log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
-                all_steps = [c.scheduler.next(self.steps) for c in self._callback]
-                next_checkpoint = self._checkpoint_scheduler.next(self.steps)
+                all_steps = [c.scheduler(self) for c in self._callback]
+                next_checkpoint = self._checkpoint_scheduler(self)
                 next_step = min(all_steps + [next_checkpoint])
                 self.run_until(next_step)
 
@@ -299,10 +312,11 @@ class Simulation(object):
     def _report_observers(self):
         for f in self._callback:
             s = f.scheduler
-            if isinstance(f, Target):
-                log.info('target %s: %s', f, f.target)
+            if 'target' in f.__name__.lower():
+                # TODO: if targets are pure functions, we wont be able to log their target values... unless we use the args !
+                log.info('target %s: %s', f.__name__, '*******')
             else:
-                log.info('writer %s: interval=%s calls=%s', f, s.interval, s.calls)
+                log.info('writer %s: interval=%s calls=%s', f.__name__, '***','***')
 
     def _report_end(self):
         log.info('simulation ended on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
