@@ -11,7 +11,7 @@ from atooms import trajectory
 from atooms.utils import fractional_slice, add_first_last_skip
 
 
-def print_available_formats():
+def available_formats():
     txt = 'available trajectory formats:\n'
     fmts = trajectory.Trajectory.formats
     maxlen = max([len(name) for name in fmts])
@@ -151,7 +151,7 @@ if __name__ == '__main__':
         args.fmt = args.fmt.split(',')
 
     if args.out is not None and not args.out in trajectory.Trajectory.formats:
-        print_available_formats()   
+        available_formats()   
         raise ValueError('Unknown output format %s' % args.out)
 
     args.file_inp = args.file_inp[0]
