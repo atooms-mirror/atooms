@@ -11,7 +11,7 @@ from atooms import trajectory
 from atooms.utils import fractional_slice, add_first_last_skip
 
 
-def available_formats():
+def print_available_formats():
     txt = 'available trajectory formats:\n'
     fmts = trajectory.Trajectory.formats
     maxlen = max([len(name) for name in fmts])
