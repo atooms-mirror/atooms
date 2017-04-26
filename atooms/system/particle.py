@@ -66,12 +66,12 @@ class Particle(object):
             if folded:
                 r = _periodic_vector(r, cell.side)
             else:
-                r = _periodic_vector_safe(r, cell.sidebox)
+                r = _periodic_vector_unfolded(r, cell.sidebox)
         return r
 
     def fold(self, cell):
         """Fold self into central cell."""
-        self.position = periodic_vector_safe(self.position, cell.side)
+        self.position = periodic_vector_unfolded(self.position, cell.side)
         return self
 
     def maxwellian(self, T):
