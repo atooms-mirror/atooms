@@ -71,7 +71,7 @@ class Particle(object):
 
     def fold(self, cell):
         """Fold self into central cell."""
-        self.position = periodic_vector_unfolded(self.position, cell.side)
+        self.position = _periodic_vector_unfolded(self.position, cell.side)
         return self
 
     def maxwellian(self, T):
