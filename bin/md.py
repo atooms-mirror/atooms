@@ -5,7 +5,7 @@
 import sys
 import os
 from atooms.core import __version__, __commit__
-from atooms.simulation import Simulation, Scheduler, WriterThermo, WriterConfig
+from atooms.simulation import Simulation, Scheduler, write_thermo, write_config
 from atooms.simulation.backends import RumdBackend
 from atooms.utils import setup_logging, report_parameters, report_command, mkdir
 
@@ -44,8 +44,8 @@ def main(params):
         # Trim target steps to be a multiple of config_interval
         # params.steps = params.steps / params.config_interval * params.config_interval
     else:
-        sa.add(WriterThermo(), Scheduler(params.thermo_interval))
-        sa.add(WriterConfig(), Scheduler(params.config_interval))
+        sa.add(write_thermo, Scheduler(params.thermo_interval))
+        sa.add(write_config, Scheduler(params.config_interval))
     sa.run()
 
 if __name__ == '__main__':

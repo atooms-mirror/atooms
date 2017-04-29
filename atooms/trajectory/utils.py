@@ -72,7 +72,7 @@ def convert(inp, out, fout, tag='', prefix='', force=True, fmt=None, exclude=[],
             format_output(conv, fmt, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
-            conv.block_period = inp.block_period
+            conv.block_size = inp.block_size
             # TODO: Zipping t, t.steps is causing a massive mem leak!
             # In python <3 zip returns a list, not a generator! Therefore this
             # for system, step in zip(inp, inp.steps):
@@ -123,7 +123,12 @@ def sort_files_steps(files, steps):
     new_steps = [a[1] for a in file_steps]
     return new_files, new_steps
 
-def get_period(data):
+def get_block_size(data):
+    """
+    Return the size of the periodic block after which entries in
+    `data` repeat. It is used to determine the block size in
+    trajectories with logarithmic time spacing.
+    """
     if len(data) < 2:
         return 1
     delta_old = 0
@@ -133,34 +138,43 @@ def get_period(data):
     for ii in range(1, len(data)):
         i = data[ii]
         delta = i-iold
+        # If we find that we repeat the increment between entries is
+        # smaller than the previous iteration and it gets back to the
+        # initial one (delat_one) then we found a block. We must
+        # correct the +1 overshoot thus we subtract -1 to period
         if delta < delta_old and delta == delta_one:
-            return period
+            return period - 1
         else:
             period += 1
             iold = i
             delta_old = delta
+
+    # We got to the end of the trajectory
+    if len(data) != period:
+        raise ValueError('something went wrong in block analysis')
     if data[1]-data[0] == data[-1]-data[-2]:
+        # If the difference between steps is constant (euristically)
+        # the period is one
         return 1
     else:
+        # There is no periodicity, the block size is the whole trajectory
         return period
 
-def check_block_period(steps, block_period):
+def check_block_size(steps, block_size):
     """
     Perform some consistency checks on periodicity of non linear sampling.
 
-    `block_period` is the number of frames after which a new block begins.
+    `block_size` is the number of frames composing a periodic block.
 
     Example:
     -------
     steps = [0, 1, 2, 4, 8, 9, 10, 12, 16]
-    block_period = 5
     block_size = 4
 
     Note that in this case, len(steps) % block_size == 1, which is tolerated.
     """
-    if block_period == 1:
+    if block_size == 1:
         return
-    block_size = block_period-1
 
     block = steps[0:block_size]
     ibl = 0

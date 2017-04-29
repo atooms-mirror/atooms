@@ -113,9 +113,6 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.steps = []
                 self._samples = []
 
-            # Block period
-            self._block_period = self.read_blockperiod()
-
         elif self.mode == 'w' or self.mode == 'r+' or self.mode == "w-":
             self.trajectory = _SafeFile(self.filename, self.mode)
 
@@ -137,13 +134,13 @@ class TrajectoryHDF5(TrajectoryBase):
         self.trajectory.create_group_safe('/trajectory/realtime')
         self.trajectory['trajectory/realtime/timestep'] = [value]
 
-    def read_blockperiod(self):
+    def read_block_size(self):
         try:
             return self.trajectory['trajectory/realtime/block_period'][0]
         except:
             return None
 
-    def write_blockperiod(self, value):
+    def write_block_size(self, value):
         self.trajectory.create_group_safe('/trajectory')
         self.trajectory.create_group_safe('/trajectory/realtime')
         self.trajectory['trajectory/realtime/block_period'] = [value]

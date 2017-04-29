@@ -4,7 +4,7 @@
 import os
 import warnings
 
-from .utils import get_period
+from .utils import get_block_size
 
 
 class TrajectoryBase(object):
@@ -72,7 +72,7 @@ class TrajectoryBase(object):
         # These are cached properties
         self._grandcanonical = None
         self._timestep = None
-        self._block_period = None
+        self._block_size = None
         # Internal state
         self._initialized_write = False
         self._initialized_read = False
@@ -169,8 +169,8 @@ class TrajectoryBase(object):
         """Same as register_callback."""
         self.register_callback(cbk, *args, **kwargs)
 
-    # To read/write timestep and block period sublcasses may implement
-    # these methods. The default is dt=1 and blockperiod determined dynamically.
+    # To read/write timestep and block size sublcasses may implement
+    # these methods. The default is dt=1 and block determined dynamically.
 
     def read_timestep(self):
         return 1.0
@@ -178,10 +178,10 @@ class TrajectoryBase(object):
     def write_timestep(self, value):
         pass
 
-    def read_blockperiod(self):
+    def read_block_size(self):
         return None
 
-    def write_blockperiod(self, value):
+    def write_block_size(self, value):
         pass
 
     @property
@@ -197,22 +197,18 @@ class TrajectoryBase(object):
 
     @property
     def block_size(self):
-        return self.block_period-1
-
-    @property
-    def block_period(self):
-        if self._block_period is None:
-            self._block_period = self.read_blockperiod()
-        if self._block_period is None:
-            # If period is still None (read_blockperiod is not
+        if self._block_size is None:
+            self._block_size = self.read_block_size()
+        if self._block_size is None:
+            # If size is still None (read_block_size is not
             # implemented) we determine it dynamically
-            self._block_period = get_period(self.steps)
-        return self._block_period
+            self._block_size = get_size(self.steps)
+        return self._block_size
 
-    @block_period.setter
-    def block_period(self, value):
-        self._block_period = value
-        self.write_blockperiod(value)
+    @block_size.setter
+    def block_size(self, value):
+        self._block_size = value
+        self.write_block_size(value)
 
     # Some additional useful properties
 
