@@ -202,7 +202,7 @@ class TrajectoryBase(object):
         if self._block_size is None:
             # If size is still None (read_block_size is not
             # implemented) we determine it dynamically
-            self._block_size = get_size(self.steps)
+            self._block_size = get_block_size(self.steps)
         return self._block_size
 
     @block_size.setter
