@@ -26,6 +26,7 @@ def main(params):
                     integrator=params.integrator,
                     temperature=params.T, dt=params.dt,
                     fixcm_interval=params.fixcm_interval)
+
     sa = Simulation(s, output_path=output_base,
                      checkpoint_interval=params.config_interval,
                      steps=params.steps,
@@ -37,6 +38,7 @@ def main(params):
         s.rumd_simulation.sample.SetOutputDirectory(output_base)
         s.rumd_simulation.SetOutputScheduling("energies", "linear", interval=params.thermo_interval)
         s.rumd_simulation.SetOutputScheduling("trajectory", "logarithmic")
+        s.rumd_simulation.SetOutputMetaData("trajectory", precision=6, virials=False)
         if params.config_interval > 0:
             s.rumd_simulation.SetBlockSize(params.config_interval)
         else:
