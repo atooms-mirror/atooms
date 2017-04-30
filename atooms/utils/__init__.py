@@ -89,6 +89,13 @@ def rmf(files):
         except:
             pass
 
+def cp(finp, fout):
+    # Avoid erasing file
+    if finp == fout:
+        return
+    with open(finp) as fh:
+        with open(fout, 'w') as fh_out:
+            fh_out.write(fh.read())
 
 # Timer class, inspired by John Paulett's stopwatch
 
