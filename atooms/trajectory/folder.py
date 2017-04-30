@@ -85,6 +85,11 @@ class TrajectoryFolder(TrajectoryBase):
         TrajectoryBase.__init__(self, filename.rstrip('/'), mode)
         self.dirname, self.archive, self.files, self.steps = init_folder(filename, file_pattern, step_pattern)
 
+    def read_timestep(self):
+        from atooms.trajectory import Trajectory
+        with Trajectory(self.files[0], fmt=self._cls) as th:
+            return th.read_timestep()
+
     def close(self):
         if self.archive:
             rmd(self.dirname)
