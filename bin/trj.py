@@ -47,8 +47,8 @@ def info(trajectory):
             txt += 'steps between frames = %s\n' % (trajectory.steps[1]-trajectory.steps[0])
             txt += 'time between frames  = %s\n' % (trajectory.times[1]-trajectory.times[0])
         else:
-            txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_size]
-            txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size+1)])
+            txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_size-1]
+            txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size)])
         txt += 'grandcanonical       = %s' % trajectory.grandcanonical
     print txt
 
