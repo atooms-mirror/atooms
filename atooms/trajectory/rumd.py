@@ -78,7 +78,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
         nsp = set([p.id for p in system.particle])
         mass = [system.particle[first_of_species(system, i)].mass for i in nsp]
-        hdr = 'ioformat=1 dt=%g timeStepIndex=%d boxLengths=' + '%g,%g,%g' + ' numTypes=%d mass=' + '%g,'*(len(nsp)) + ' columns=type,x,y,z,vx,vy,vz\n'
+        hdr = 'ioformat=1 dt=%g timeStepIndex=%d boxLengths=' + '%.12f,%.12f,%.12f' + ' numTypes=%d mass=' + '%g,'*(len(nsp)) + ' columns=type,x,y,z,vx,vy,vz\n'
         return hdr % tuple([self.timestep, step] + list(system.cell.side) + [len(nsp)] + mass)
 
     def write_sample(self, system, step):
