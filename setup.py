@@ -21,7 +21,7 @@ setup(name='atooms',
       packages=['atooms', 'atooms/core', 'atooms/interaction', 'atooms/plugins', 
                 'atooms/simulation', 'atooms/system', 'atooms/trajectory', 
                 'atooms/utils'],
-      scripts=['bin/trj.py'],
+      scripts=['bin/trj.py', 'bin/md.py'],
       install_requires=['numpy'],
       license='GPLv3',
       classifiers=[
