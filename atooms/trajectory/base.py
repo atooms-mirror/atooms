@@ -272,6 +272,7 @@ class SuperTrajectory(TrajectoryBase):
     def read_sample(self, sample):
         f = self._steps_file[sample]
         j = self._steps_sample[sample]
+        # TODO: here we run setup_steps() multiple times if the file is always the same. Can this be cached?
         with self.trajectoryclass(f) as t:
             return t[j]
 
