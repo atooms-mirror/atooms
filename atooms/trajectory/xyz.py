@@ -183,6 +183,7 @@ def update_radius(particle, data, meta):
     return data[1:]
 
 def update_tag(particle, data, meta):
+    # TODO: what is this???
     particle.tag = data[0:]
     return data[1:]
 
@@ -438,6 +439,7 @@ class TrajectoryXYZ(TrajectoryBase):
         particle = []
         for i in range(meta['npart']):
             p = Particle()
+            # Note: we cannot optimize by shifting an index instead of cropping lists all the time
             data = self.trajectory.readline().split()
             for key in fmt:
                 # If the key is associated to a explicit callback, go for it.
