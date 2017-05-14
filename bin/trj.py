@@ -52,6 +52,15 @@ def info(trajectory):
         txt += 'grandcanonical       = %s' % trajectory.grandcanonical
     print txt
 
+def read(trajectory):
+    from atooms.utils import Timer
+    t = Timer()
+    t.start()
+    for s in trajectory:
+        pass
+    t.stop()
+    print t.wall_time, t.wall_time / 60.
+
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
     if args.file_out == '-':
@@ -61,6 +70,10 @@ def main(args):
         t = trajectory.folder.Foldered(args.file_inp, cls=args.inp)
     else:
         t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
+
+    if args.read:
+        read(t)
+        return
 
     if args.info:
         info(t)
@@ -143,6 +156,7 @@ if __name__ == '__main__':
     parser.add_argument(      '--alphabetic',dest='alphabetic_ids', action='store_true', help='reassign names alphabetically')
     parser.add_argument(      '--info', dest='info', action='store_true', help='print info')
     parser.add_argument(      '--seed', dest='seed', type=int, help='set seed of random number generator')
+    parser.add_argument(      '--read', dest='read', action='store_true', help='read performance')
     parser.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
     parser.add_argument(nargs='?', dest='file_out', default='-', help='output file')
     args = parser.parse_args()
