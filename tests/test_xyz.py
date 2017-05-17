@@ -239,9 +239,57 @@ ioformat=1 dt=0.005000000 boxLengths=6.000000000,6.000000000,6.000000000 numType
         with TrajectoryRUMD(self.input_file + 'out') as th:
             self.assertEqual(th.timestep, 0.005)
             self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
-            
 
-        
+
+class TestUtils(unittest.TestCase):
+
+    Trajectory = TrajectoryXYZ
+
+    def setUp(self):
+        with open('/tmp/test_1.xyz', 'w') as fh:
+            fh.write("""\
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0
+B 1.0 -1.0 0.0
+A 2.9 -2.9 0.0
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:2 cell:5.0,5.0,5.0 
+C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:4 cell:5.0,5.0,5.0 
+C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+""")
+        with open('/tmp/test_2.xyz', 'w') as fh:
+            fh.write("""\
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:2 cell:5.0,5.0,5.0
+B 1.0 -1.0 0.0
+A 2.9 -2.9 0.0
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:3 cell:5.0,5.0,5.0 
+C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:4 cell:5.0,5.0,5.0 
+C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+2
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:5 cell:5.0,5.0,5.0 
+C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+""")
+
+    def test_tzip(self):
+        import atooms.trajectory as trj
+        t1 = trj.TrajectoryXYZ('/tmp/test_1.xyz')
+        t2 = trj.TrajectoryXYZ('/tmp/test_2.xyz')
+        steps = []
+        for step, s1, s2 in trj.utils.tzip(t1, t2):
+            steps.append(step)
+        self.assertEqual(steps, [2, 4])
+
 if __name__ == '__main__':
     unittest.main()
 

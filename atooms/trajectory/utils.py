@@ -237,3 +237,36 @@ def dump(trajectory, what='pos'):
             data[i] = s.dump(what)
 
     return data
+
+def field(trajectory, trajectory_field, field, sample):
+    step = trajectory.steps[sample]
+    try:
+        index_field = trajectory_field.steps.index(step)
+    except:
+        return None
+    x = []
+    for pi in trajectory_field[index_field].particle:
+        fi = getattr(pi, field)
+        #fi = [float(x) for x in fi.split(',')]
+        x.append(fi)
+    return x
+
+def tzip(t1, t2):
+    """
+    Iterate simultaneously on two trajectories. Skip samples that
+    exist in one trajectory and not in the other.
+
+    Example:
+    -------
+    t1 = Trajectory(f1)
+    t2 = Trajectory(f2)
+    for s1, s2 in tzip(t1, t2):
+        pass
+    """
+    steps_1 = set(t1.steps)
+    steps_2 = set(t2.steps)
+    steps = steps_1 & steps_2
+    for step in steps:
+        s1 = t1[t1.steps.index(step)]
+        s2 = t2[t2.steps.index(step)]
+        yield step, s1, s2
