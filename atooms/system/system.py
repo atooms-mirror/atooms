@@ -75,6 +75,11 @@ class System(object):
         self.cell.side *= factor
 
     @property
+    def packing_fraction(self):
+        from math import pi
+        return pi / 6 * sum([(2 * p.radius)**3 for p in self.particle]) / self.cell.volume
+
+    @property
     def temperature(self):
         """
         Kinetic temperature.
