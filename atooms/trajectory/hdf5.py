@@ -378,7 +378,7 @@ class TrajectoryHDF5(TrajectoryBase):
         # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2
         for pi, r in zip(p, self._system.particle):
-            # TODO: if id changes dynamically (like in swap) we will miss it. We should update them after this loop
+            # TODO: if id changes dynamically (like in swap) we will miss it. We should update them after this loop!
             pi.id = r.id
             pi.mass = r.mass
             pi.name = r.name
