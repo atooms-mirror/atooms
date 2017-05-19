@@ -34,11 +34,11 @@ def format_output(trj, fmt=None, include=None, exclude=None):
             for pattern in exclude:
                 if pattern in trj.fmt:
                     trj.fmt.remove(pattern)
-        if include is not None:
+        if include is not None:            
             for pattern in include:
-                if pattern in trj.fmt:
+                print pattern, pattern in trj.fmt
+                if not pattern in trj.fmt:
                     trj.fmt.append(pattern)
-
     return trj
 
 def convert(inp, out, fout, tag='', prefix='', force=True, fmt=None, exclude=[], include=[], callback=None, args={}):
@@ -270,3 +270,34 @@ def tzip(t1, t2):
         s1 = t1[t1.steps.index(step)]
         s2 = t2[t2.steps.index(step)]
         yield step, s1, s2
+
+def dump(*fileinp):
+
+    import sys
+    from atooms import trajectory as trj                          
+
+    particle=False
+    t_list, attr_list = [], []
+    for f in fileinp:
+        f_i, attr_i = f.split(':')
+        if 'particle' in attr_i:
+            attri_i = attr_i.split('particle.')[1]
+            particle = True
+        t_list.append(Trajectory(f_i))
+        attr_list.append(attr_i)
+
+    steps = None
+    for t in t_list:
+        steps_i = set(t.steps)
+        if steps is None:
+            steps = steps_i
+        else:
+            steps = steps & steps_i
+    
+    for step in steps:
+        if not particle:
+            txt = ''
+            for t, attr in zip(t_list, attr_list):
+                s = t[t.steps.index(step)]
+                txt += str(getattr(s, attr))
+            print txt
