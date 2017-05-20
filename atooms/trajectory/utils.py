@@ -36,7 +36,6 @@ def format_output(trj, fmt=None, include=None, exclude=None):
                     trj.fmt.remove(pattern)
         if include is not None:            
             for pattern in include:
-                print pattern, pattern in trj.fmt
                 if not pattern in trj.fmt:
                     trj.fmt.append(pattern)
     return trj
