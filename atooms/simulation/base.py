@@ -223,6 +223,7 @@ class Simulation(object):
 
     def run(self, steps=None):
         """Run the simulation."""
+        # TODO: run() should return the system
         # If we are restaring we do not allow changing target steps on the fly.
         # because it might have side effects like non constant writing interval.
         if not self.restart or self.steps == 0:
