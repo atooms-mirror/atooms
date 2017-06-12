@@ -38,10 +38,11 @@ def format_output(trj, fmt=None, include=None, exclude=None):
             for pattern in include:
                 if not pattern in trj.fmt:
                     trj.fmt.append(pattern)
+                    
     return trj
 
-def convert(inp, out, fout, tag='', prefix='', force=True, fmt=None, exclude=[], include=[], callback=None, args={}):
-    # TODO: check these dangerous defaults
+def convert(inp, out, fout, tag='', prefix='', force=True, fmt=None,
+            exclude=None, include=None, callback=None, args=None):
     """Convert trajectory into a different format.
 
     inp: input trajectory object
@@ -68,6 +69,7 @@ def convert(inp, out, fout, tag='', prefix='', force=True, fmt=None, exclude=[],
         print 'File exists, conversion skipped'
     else:
         with out_class(fout, 'w') as conv:
+            print fmt, conv.fmt, conv._fmt, include, exclude
             format_output(conv, fmt, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
@@ -300,3 +302,130 @@ def dump(*fileinp):
                 s = t[t.steps.index(step)]
                 txt += str(getattr(s, attr))
             print txt
+
+def available_formats():
+    from atooms import trajectory
+    txt = 'available trajectory formats:\n'
+    fmts = trajectory.Trajectory.formats
+    maxlen = max([len(name) for name in fmts])
+    for name in sorted(fmts):
+        class_name = fmts[name]
+        if class_name.__doc__:
+            docline = class_name.__doc__.split('\n')[0].rstrip('.')
+        else:
+            docline = '...no description...'
+        fmt = '  %-' + str(maxlen) + 's : %s\n'
+        txt += fmt % (name, docline)
+    return txt
+
+def info(trajectory):
+    from atooms.system.particle import species, composition
+    txt = ''
+    txt += 'path                 = %s\n' % trajectory.filename
+    txt += 'format               = %s\n' % trajectory.__class__
+    txt += 'frames               = %s\n' % len(trajectory)
+    txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
+    txt += 'particles            = %s\n' % len(trajectory[0].particle)
+    txt += 'species              = %s\n' % len(species(trajectory[0].particle))
+    txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
+    txt += 'density              = %s\n' % round(trajectory[0].density, 10)
+    txt += 'cell side            = %s\n' % trajectory[0].cell.side
+    txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
+    if len(trajectory)>1:
+        txt += 'steps                = %s\n' % trajectory.steps[-1]
+        txt += 'duration             = %s\n' % trajectory.times[-1]
+        txt += 'timestep             = %s\n' % trajectory.timestep
+        txt += 'block size           = %s\n' % trajectory.block_size
+        if trajectory.block_size == 1:
+            txt += 'steps between frames = %s\n' % (trajectory.steps[1]-trajectory.steps[0])
+            txt += 'time between frames  = %s\n' % (trajectory.times[1]-trajectory.times[0])
+        else:
+            txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_size-1]
+            txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size)])
+        txt += 'grandcanonical       = %s' % trajectory.grandcanonical
+    print txt
+
+def read(file_inp, inp=None):
+    from atooms.utils import Timer
+
+    t = trajectory.Trajectory(file_inp, fmt=inp)
+    t = Timer()
+    t.start()
+    for s in trajectory:
+        pass
+    t.stop()
+    print t.wall_time, t.wall_time / 60.
+
+def main(file_inp, file_out, inp=None, out=None, folder=False,
+         precision=None, seed=None, side=None, rho=None,
+         temperature=None, alphabetic_ids=None, tag='', fmt=None,
+         fmt_include='', fmt_exclude='', ff=None, first=None,
+         last=None, skip=1):
+    """Convert trajectory `file_inp` to `file_out`."""
+    import random
+    from atooms import trajectory
+    from atooms.utils import fractional_slice, add_first_last_skip
+
+    if file_out == '-':
+        file_out = '/dev/stdout'
+
+    if folder:
+        t = trajectory.folder.Foldered(file_inp, cls=inp)
+    else:
+        t = trajectory.Trajectory(file_inp, fmt=inp)
+
+    # If no output format is provided we use the input one
+    if out is None:
+        out_class = t.__class__
+    else:
+        out_class = out
+
+    if precision is not None:
+        t.precision = precision
+
+    if flatten_steps:
+        t.steps = range(1,len(t)+1)
+
+    # Reset random number generator
+    if seed:
+        random.seed(seed)
+
+    # Trick to allow some trajectory formats to set the box side.
+    # This way the cell is defined as we read the sample (callbacks
+    # will not do that).
+    if side is not None:
+        t._side = side
+
+    # Define slice.
+    # We interpret --first N --last N as a request of step N
+    if last == first and last is not None:
+        last += 1
+    sl = fractional_slice(first, last, skip, len(t))
+    # Here we could you a trajectory slice t[sl] but this will load
+    # everything in ram (getitem doesnt provide a generator). This
+    # will be fixed with python 3.
+    ts = trajectory.Sliced(t, sl)
+
+    # Change density and temperature
+    if rho is not None:
+        ts.register_callback(trajectory.decorators.set_density, rho)
+    if temperature is not None:
+        ts.register_callback(trajectory.decorators.set_temperature, temperature)
+
+    # We always normalize species id's using fortran convention
+    ts.register_callback(trajectory.decorators.normalize_id, alphabetic_ids)
+
+    # Trajectory conversion
+    fout = trajectory.convert(ts, out_class, file_out,
+                              tag=tag, fmt=fmt,
+                              include=fmt_include.split(','),
+                              exclude=fmt_exclude.split(','))
+
+    if ff:
+        from atooms.trajectory.hdf5 import add_interaction_hdf5
+        add_interaction_hdf5(fout, ff)
+    
+    if file_out != '/dev/stdout':
+        print '%s' % fout
+
+    t.close()

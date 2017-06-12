@@ -121,10 +121,15 @@ def main(args):
     ts.register_callback(trajectory.decorators.normalize_id, args.alphabetic_ids)
 
     # Trajectory conversion
+    include_list, exclude_list = [], []
+    if len(args.fmt_include) > 0:
+        include_list = args.fmt_include.split(',')
+    if len(args.fmt_exclude) > 0:
+        exclude_list = args.fmt_exclude.split(',')
     fout = trajectory.convert(ts, out_class, args.file_out,
                               tag=args.tag, fmt=args.fmt,
-                              include=args.fmt_include.split(','),
-                              exclude=args.fmt_exclude.split(','))
+                              include=include_list,
+                              exclude=exclude_list)
 
     if args.ff:
         from atooms.trajectory.hdf5 import add_interaction_hdf5
