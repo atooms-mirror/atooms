@@ -34,10 +34,24 @@ class TrajectoryRam(TrajectoryBase):
         self.mode = mode
 
     def write_sample(self, system, step):
-        self._name.append([p.name for p in copy.copy(system.particle)])
-        self._ids.append([p.id for p in copy.copy(system.particle)])
-        self._pos.append([p.position for p in copy.copy(system.particle)])
-        self._cell.append(copy.copy(system.cell))
+        try:
+            # Ovewrite
+            ind = self.steps.index(step)
+        except:
+            ind = None
+
+        if ind is not None:
+            # Overwrite
+            self._name[ind] = [p.name for p in copy.copy(system.particle)]
+            self._ids[ind] = [p.id for p in copy.copy(system.particle)]
+            self._pos[ind] = [p.position for p in copy.copy(system.particle)]
+            self._cell[ind] = copy.copy(system.cell)
+        else:
+            # Append a new frame
+            self._name.append([p.name for p in copy.copy(system.particle)])
+            self._ids.append([p.id for p in copy.copy(system.particle)])
+            self._pos.append([p.position for p in copy.copy(system.particle)])
+            self._cell.append(copy.copy(system.cell))
 
     def read_sample(self, frame):
         particles = []
@@ -47,3 +61,13 @@ class TrajectoryRam(TrajectoryBase):
                                       name=self._name[frame][i]))
         cell = self._cell[frame]
         return System(particles, cell)
+
+    def __setitem__(self, i, y):
+        try:
+            step = self.steps[i]
+        except IndexError:
+            if len(self.steps) > 0:
+                step = self.steps[-1]+1
+            else:
+                step = 0
+        self.write(y, step)
