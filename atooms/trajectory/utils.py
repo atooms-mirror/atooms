@@ -69,7 +69,6 @@ def convert(inp, out, fout, tag='', prefix='', force=True, fmt=None,
         print 'File exists, conversion skipped'
     else:
         with out_class(fout, 'w') as conv:
-            print fmt, conv.fmt, conv._fmt, include, exclude
             format_output(conv, fmt, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
