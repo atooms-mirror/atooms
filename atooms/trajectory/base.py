@@ -136,7 +136,9 @@ class TrajectoryBase(object):
             self._initialized_write = True
         self.write_sample(system, step)
         # Step is added last, sample index starts from 0 by default
-        self.steps.append(step)
+        # If step is already there we overwrite (do not append)
+        if not step in self.steps:
+            self.steps.append(step)
 
     def read_init(self):
         """
