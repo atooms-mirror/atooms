@@ -476,6 +476,7 @@ class TrajectoryXYZ(TrajectoryBase):
         line += 'columns:' + ','.join(self.fmt)
         if system.cell is not None:
             line += " cell:" + ','.join(['%s' % x for x in system.cell.side])
+        line += " dt:%g" % self.timestep
         return line
 
     def write_sample(self, system, step):
