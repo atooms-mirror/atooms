@@ -41,7 +41,7 @@ def format_output(trj, fmt=None, include=None, exclude=None):
                     
     return trj
 
-def convert(inp, out, fout, tag='', prefix='', force=True, fmt=None,
+def convert(inp, out, fout, tag='', force=True, fmt=None,
             exclude=None, include=None, callback=None, args=None):
     """Convert trajectory into a different format.
 
