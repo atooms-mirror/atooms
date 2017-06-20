@@ -11,6 +11,8 @@ from atooms import trajectory
 from atooms.utils import fractional_slice, add_first_last_skip
 
 
+# TODO: move functions to api / helpers module and use argh
+
 def available_formats():
     txt = 'available trajectory formats:\n'
     fmts = trajectory.Trajectory.formats
@@ -106,6 +108,7 @@ def main(args):
     if args.last == args.first and args.last is not None:
         args.last += 1
     sl = fractional_slice(args.first, args.last, args.skip, len(t))
+
     # Here we could you a trajectory slice t[sl] but this will load
     # everything in ram (getitem doesnt provide a generator). This
     # will be fixed with python 3.
@@ -120,7 +123,11 @@ def main(args):
     # We always normalize species id's using fortran convention
     ts.register_callback(trajectory.decorators.normalize_id, args.alphabetic_ids)
 
+    #
+    # ---------------------
     # Trajectory conversion
+    # ---------------------
+    #
     include_list, exclude_list = [], []
     if len(args.fmt_include) > 0:
         include_list = args.fmt_include.split(',')
