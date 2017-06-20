@@ -8,7 +8,8 @@ import logging
 import argparse
 import random
 from atooms import trajectory
-from atooms.utils import fractional_slice, add_first_last_skip, check_block_size
+from atooms.utils import fractional_slice, add_first_last_skip
+from atooms.trajectory.utils import check_block_size
 
 
 # TODO: move functions to api / helpers module and use argh
