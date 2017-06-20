@@ -88,7 +88,7 @@ def convert(inp, out, fout, tag='', force=True, fmt=None,
                 # non-periodic trajectories)
                 for step in steps:
                     idx = inp.steps.index(step)
-                    conv.write(system = inp[idx], step)
+                    conv.write(inp[idx], step)
 
     return fout
 
