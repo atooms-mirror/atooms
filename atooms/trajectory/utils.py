@@ -42,7 +42,7 @@ def format_output(trj, fmt=None, include=None, exclude=None):
     return trj
 
 def convert(inp, out, fout, tag='', force=True, fmt=None,
-            exclude=None, include=None):
+            exclude=None, include=None, steps=None):
     """
     Convert trajectory into a different format.
 
@@ -80,8 +80,15 @@ def convert(inp, out, fout, tag='', force=True, fmt=None,
             # 1. zip is a generator in python 3
             # 2. use enumerate instead and grab the step from inp.steps[i]
             # 3. add an attribute system.step for convenience
-            for i, system in enumerate(inp):
-                conv.write(system, inp.steps[i])
+            if steps is None:
+                for i, system in enumerate(inp):
+                    conv.write(system, inp.steps[i])
+            else:
+                # Only include requested steps (useful to prune
+                # non-periodic trajectories)
+                for step in steps:
+                    idx = inp.steps.index(step)
+                    conv.write(system = inp[idx], step)
 
     return fout
 
@@ -177,7 +184,7 @@ def check_block_size(steps, block_size, prune=False):
     import copy
 
     if block_size == 1:
-        return
+        return None
         
     steps_local = copy.copy(steps)
 
