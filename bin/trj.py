@@ -124,7 +124,7 @@ def main(args):
     ts.register_callback(trajectory.decorators.normalize_id, args.alphabetic_ids)
 
     # We enforce regular periodicity; steps is None is trajectory is not periodic
-    steps = check_block_size(ts.steps, ts.block_size)
+    steps = check_block_size(ts.steps, ts.block_size, prune=True)
     
     #
     # ---------------------
