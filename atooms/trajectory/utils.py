@@ -42,23 +42,22 @@ def format_output(trj, fmt=None, include=None, exclude=None):
     return trj
 
 def convert(inp, out, fout, tag='', force=True, fmt=None,
-            exclude=None, include=None, callback=None, args=None):
-    """Convert trajectory into a different format.
+            exclude=None, include=None):
+    """
+    Convert trajectory into a different format.
 
-    inp: input trajectory object
-    out: output trajectory class
-    fout: output file
+    `inp`: input trajectory object
+    `out`: output trajectory class
+    `fout`: output file
+
+    If `out` is a string, we look for a matching trajectory format
+    else we assume out is a trajectory class.
+    If `out` is None, we rely on the factory guessing the format
+    from the filename suffix.
 
     Return: name of converted trajectory file
     """
     # TODO: convert metadata (interaction etc) !
-    # If the input trajectory lies in a directory, the new trajectory is located
-    # in a companion directory prefixed by tag. The basename is config
-
-    # If out is a string, we look for a matching trajectory format
-    # else we assume out is a trajectory class.
-    # If out is None, we rely on the factory guessing the format
-    # from the filename suffix.
     from atooms.trajectory import Trajectory
     if isinstance(out, basestring):
         out_class = Trajectory.formats[out]
@@ -82,8 +81,6 @@ def convert(inp, out, fout, tag='', force=True, fmt=None,
             # 2. use enumerate instead and grab the step from inp.steps[i]
             # 3. add an attribute system.step for convenience
             for i, system in enumerate(inp):
-                if callback is not None:
-                    system = callback(system, args)
                 conv.write(system, inp.steps[i])
 
     return fout
@@ -160,11 +157,15 @@ def get_block_size(data):
         # There is no periodicity, the block size is the whole trajectory
         return period
 
-def check_block_size(steps, block_size):
+def check_block_size(steps, block_size, prune=False):
     """
     Perform some consistency checks on periodicity of non linear sampling.
 
     `block_size` is the number of frames composing a periodic block.
+    If `prune` is True, the steps that do not match the first periodic
+    block will be removed.
+
+    Return a new list of steps that match the periodicity.
 
     Example:
     -------
@@ -173,16 +174,20 @@ def check_block_size(steps, block_size):
 
     Note that in this case, len(steps) % block_size == 1, which is tolerated.
     """
+    import copy
+
     if block_size == 1:
         return
+        
+    steps_local = copy.copy(steps)
 
-    block = steps[0:block_size]
-    ibl = 0
-    jbl = 0
+    # Identify steps that do not match the first periodic block
+    block = steps_local[0: block_size]
+    ibl, jbl = 0, 0
     prune_me = []
-    for i in steps:
-        j = ibl * steps[block_size] + block[jbl]
-        if i == j:
+    for i, step in enumerate(steps_local):
+        step_expected = ibl * steps_local[block_size] + block[jbl]
+        if step == step_expected:
             if jbl == block_size-1:
                 # We are done with this block, we start over
                 ibl += 1
@@ -191,34 +196,35 @@ def check_block_size(steps, block_size):
                 # We increment the index within the block
                 jbl += 1
         else:
-            prune_me.append(i)
+            prune_me.append(step)
 
-    if len(prune_me) > 0:
-        print '\n# ', len(prune_me), ' samples will be pruned'
+    # Remove samples that do not conform with first block
+    if prune and len(prune_me) > 0:
+        print '#', len(prune_me), 'samples should be pruned'
+        for step in prune_me:
+            pp = steps_local.pop(steps_local.index(step))
 
-    for p in prune_me:
-        pp = steps.index(p)
-
-    # check if the number of steps is an integer multiple of
+    # Check if the number of steps is an integer multiple of
     # block period (we tolerate a rest of 1)
-    rest = len(steps) % block_size
+    rest = len(steps_local) % block_size
     if rest > 1:
-        steps = steps[:-rest]
-        print 'block was truncated'
+        steps_local = steps_local[:-rest]
+        print '# block was truncated'
 
-    # final test, after pruning spurious samples we should have a period
+    # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
-    nbl = len(steps) / block_size
+    nbl = len(steps_local) / block_size
     for i in range(nbl):
-        i0 = steps[i*block_size]
-        current = steps[i*block_size:(i+1)*block_size]
+        i0 = steps_local[i*block_size]
+        current = steps_local[i*block_size: (i+1)*block_size]
         current = [ii-i0 for ii in current]
         if not current == block:
-            print 'periodicity issue at block %i out of %i' % (i, nbl)
-            print 'current     :', current
-            print 'finger print:', block
+            print '# periodicity issue at block %i out of %i' % (i, nbl)
+            print '# current     :', current
+            print '# finger print:', block
             raise ValueError('block does not match finger print')
 
+    return steps_local
 
 def dump(trajectory, what='pos'):
     """Dump coordinates as a list of (npart, ndim) numpy arrays if the
