@@ -8,7 +8,7 @@ import logging
 import argparse
 import random
 from atooms import trajectory
-from atooms.utils import fractional_slice, add_first_last_skip
+from atooms.utils import fractional_slice, add_first_last_skip, check_block_size
 
 
 # TODO: move functions to api / helpers module and use argh
@@ -123,6 +123,9 @@ def main(args):
     # We always normalize species id's using fortran convention
     ts.register_callback(trajectory.decorators.normalize_id, args.alphabetic_ids)
 
+    # We enforce regular periodicity; steps is None is trajectory is not periodic
+    steps = check_block_size(ts.steps, ts.block_size)
+    
     #
     # ---------------------
     # Trajectory conversion
@@ -136,7 +139,7 @@ def main(args):
     fout = trajectory.convert(ts, out_class, args.file_out,
                               tag=args.tag, fmt=args.fmt,
                               include=include_list,
-                              exclude=exclude_list)
+                              exclude=exclude_list, steps=steps)
 
     if args.ff:
         from atooms.trajectory.hdf5 import add_interaction_hdf5
