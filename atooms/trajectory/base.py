@@ -259,6 +259,8 @@ class SuperTrajectory(TrajectoryBase):
         # This list holds the file containing a given step
         self._steps_file = []
         self._steps_sample = []
+        # This caches the last trajectory used to minimize __init__() overhead
+        self._last_trajectory = None
         self.steps = []
         for i, f in enumerate(self.files):
             # This is slow, just to get the step index.
@@ -274,9 +276,15 @@ class SuperTrajectory(TrajectoryBase):
     def read_sample(self, sample):
         f = self._steps_file[sample]
         j = self._steps_sample[sample]
-        # TODO: here we run setup_steps() multiple times if the file is always the same. Can this be cached?
-        with self.trajectoryclass(f) as t:
-            return t[j]
+        # Optimization: use the last trajectory in cache (it works
+        # well if samples are read sequentially)
+        if self._last_trajectory is None:
+            self._last_trajectory = self.trajectoryclass(f)
+        elif self._last_trajectory.filename != f:            
+            self._last_trajectory.close()
+            self._last_trajectory = self.trajectoryclass(f)
+        t = self._last_trajectory
+        return t[j]
 
     def read_timestep(self):
         with self.trajectoryclass(self.files[0]) as t:
