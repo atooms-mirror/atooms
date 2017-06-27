@@ -231,7 +231,7 @@ class TrajectoryBase(object):
         return [s*self.timestep for s in self.steps]
 
     @property
-    def time_total(self):
+    def total_time(self):
         """Total simulation time."""
         return self.steps[-1] * self.timestep
 
