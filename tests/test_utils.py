@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
     def test_block_size_2(self):
         more = [0, 1, 10, 11, 20, 21]
         self.assertEqual(utils.get_block_size(more), 2)
-        self.assertEqual(utils.check_block_size(more, utils.get_block_size(more)), None)
+        self.assertEqual(utils.check_block_size(more, utils.get_block_size(more)), more)
 
     def test_block_size_3(self):
         more = [0, 1, 10, 12, 20, 30]
@@ -26,19 +26,19 @@ class Test(unittest.TestCase):
         more =  [0, 1, 2, 4, 8, 16]
         more += [32, 33, 34, 36, 40, 48]
         self.assertEqual(utils.get_block_size(more), 6)
-        self.assertEqual(utils.check_block_size(more, utils.get_block_size(more)), None)
+        self.assertEqual(utils.check_block_size(more, utils.get_block_size(more)), more)
 
     def test_block_size_4(self):
         more =  [0, 1, 2, 4, 8, 16]
         more += [32 + i for i in more]
         self.assertEqual(utils.get_block_size(more), 6)
-        self.assertEqual(utils.check_block_size(more, utils.get_block_size(more)), None)
+        self.assertEqual(utils.check_block_size(more, utils.get_block_size(more)), more)
 
     def test_block_size_5(self):
         more =  [0, 1, 2, 4, 8, 16, 24, 32]
         more += [40 + i for i in more]
         self.assertEqual(utils.get_block_size(more), 8)
-        self.assertEqual(utils.check_block_size(more, utils.get_block_size(more)), None)
+        self.assertEqual(utils.check_block_size(more, utils.get_block_size(more)), more)
 
 if __name__ == '__main__':
     unittest.main(verbosity=0)
