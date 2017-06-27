@@ -9,7 +9,7 @@ import argparse
 import random
 from atooms import trajectory
 from atooms.utils import fractional_slice, add_first_last_skip
-from atooms.trajectory.utils import check_block_size
+from atooms.trajectory.utils import check_block_size, benchmark_read
 
 
 # TODO: move functions to api / helpers module and use argh
@@ -55,15 +55,6 @@ def info(trajectory):
         txt += 'grandcanonical       = %s' % trajectory.grandcanonical
     print txt
 
-def read(trajectory):
-    from atooms.utils import Timer
-    t = Timer()
-    t.start()
-    for s in trajectory:
-        pass
-    t.stop()
-    print t.wall_time, t.wall_time / 60.
-
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
     if args.file_out == '-':
@@ -75,7 +66,7 @@ def main(args):
         t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
 
     if args.read:
-        read(t)
+        print benchmark_read(t)
         return
 
     if args.info:

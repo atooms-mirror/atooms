@@ -315,6 +315,17 @@ def dump(*fileinp):
                 txt += str(getattr(s, attr))
             print txt
 
+def time_when_msd_is(th, msd_target, sigma=1.0):
+    """
+    Estimate the time when the MSD reaches target_msd in units of
+    sigma^2. Bounded by the actual maximum time of trajectory tmax.
+    """
+    from .decorators import Unfolded
+    with Unfolded(th) as th_unf:
+        msd_total = th_unf[0].mean_square_displacement(th_unf[-1])
+    frac = msd_target * sigma**2 / msd_total
+    return min(1.0, frac) * th.total_time
+
 def available_formats():
     from atooms import trajectory
     txt = 'available trajectory formats:\n'
@@ -357,16 +368,15 @@ def info(trajectory):
         txt += 'grandcanonical       = %s' % trajectory.grandcanonical
     print txt
 
-def read(file_inp, inp=None):
+def benchmark_read(th, inp=None):
     from atooms.utils import Timer
-
-    t = trajectory.Trajectory(file_inp, fmt=inp)
+    from atooms.trajectory import Trajectory
     t = Timer()
     t.start()
-    for s in trajectory:
+    for s in th:
         pass
     t.stop()
-    print t.wall_time, t.wall_time / 60.
+    return t.wall_time, os.path.getsize(th.filename) / 1e6 / t.wall_time
 
 def main(file_inp, file_out, inp=None, out=None, folder=False,
          precision=None, seed=None, side=None, rho=None,
