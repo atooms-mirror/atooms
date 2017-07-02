@@ -280,12 +280,24 @@ class SuperTrajectory(TrajectoryBase):
         # well if samples are read sequentially)
         if self._last_trajectory is None:
             self._last_trajectory = self.trajectoryclass(f)
-        elif self._last_trajectory.filename != f:            
+        elif self._last_trajectory.filename != f or \
+             self._last_trajectory.trajectory.closed:
+            # Careful: we must check if the file object has not been closed in the meantime.
+            # This can happen with class decorators.
             self._last_trajectory.close()
             self._last_trajectory = self.trajectoryclass(f)
+        else:
+            # In cache
+            pass
         t = self._last_trajectory
         return t[j]
 
     def read_timestep(self):
         with self.trajectoryclass(self.files[0]) as t:
             return t.timestep
+
+    def close(self):
+        if self._last_trajectory is not None:
+            self._last_trajectory.close()
+            self._last_trajectory = None
+        super(SuperTrajectory, self).close()
