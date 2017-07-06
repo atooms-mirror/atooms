@@ -84,5 +84,7 @@ class TrajectoryFactory(object):
             # Fallback to hdf5
             try:
                 return TrajectoryHDF5(filename, mode)
+            except ImportError:
+                raise ValueError('hdf5 library not installed')
             except:
                 raise ValueError('unknown file format for %s' % filename)
