@@ -103,6 +103,9 @@ class SuperTrajectoryRUMD(SuperTrajectory):
         if not os.path.isdir(inp):
             raise IOError("We expected this to be a dir (%s)" % inp)
         f_all = glob.glob(inp + '/%s*gz' % basename)
+        if len(f_all) == 0:
+            # Let's try with 00000.xyz.gz lie files
+            f_all = glob.glob(inp + '/[0-9]*gz')
         f_all.sort()
         # Avoid last block because rumd does not write the last cfg!
         if len(f_all) > 1:
