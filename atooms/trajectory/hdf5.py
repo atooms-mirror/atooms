@@ -249,8 +249,12 @@ class TrajectoryHDF5(TrajectoryBase):
         sample = len(self.steps) + 1
         csample = '/sample_%7.7i' % sample
 
-        self.trajectory['/trajectory/realtime/stepindex' + csample] = [step]
-        self.trajectory['/trajectory/realtime/sampleindex' + csample] = [sample]
+        try:
+            self.trajectory['/trajectory/realtime/stepindex' + csample] = [step]
+            self.trajectory['/trajectory/realtime/sampleindex' + csample] = [sample]
+        except RuntimeError:
+            print 'error writing step %s sample %s file %s ' % (step, sample, self.filename)
+            raise
 
         if system.particle != None:
             self.trajectory.create_group_safe('/trajectory/particle')
