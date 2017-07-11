@@ -489,7 +489,8 @@ class TrajectoryXYZ(TrajectoryBase):
         self.trajectory.write('%d\n' % len(system.particle))
         self.trajectory.write(self._comment_header(step, system) + '\n')
         fmt = ' '.join(['{0.' + field + '}' for field in self._fmt]) + '\n'
-        for p in system.particle:
+        for i, p in enumerate(system.particle):
+            p._index = i
             self.trajectory.write(fmt.format(p))
 
     def _parse_cell(self):
