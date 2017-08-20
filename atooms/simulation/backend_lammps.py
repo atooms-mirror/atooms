@@ -14,6 +14,7 @@ from atooms.trajectory import TrajectoryLAMMPS
 
 try:
     out = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT)
+    _version = out.split('\n')[0]
 except subprocess.CalledProcessError:
     raise ImportError('lammps not installed')
 
@@ -52,6 +53,9 @@ class LammpsBackend(object):
         self.system = System(fileinp, self.commands)
         self.trajectory = TrajectoryLAMMPS
         self.steps = 0
+
+    def __str__(self):
+        return _version
 
     @property
     def rmsd(self):
