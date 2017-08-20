@@ -61,6 +61,13 @@ class Test(unittest.TestCase):
 
         self.assertEqual(inext, [3, 3, 3, 6, 6, 6, 9, 9])
 
+    def test_system(self):
+        s = Simulation(output_path=None, steps=10)
+        s.run()
+        s.backend.system = None
+        print s.system is s.backend.system
+
+
 if __name__ == '__main__':
     unittest.main()
 

@@ -72,15 +72,29 @@ class Simulation(object):
         self.steps = 0
         self.initial_steps = 0
         self.start_time = time.time()
-        # We expect subclasses to keep a ref to the trajectory object self.trajectory
-        # used to store configurations, although this is not used in base class
-        self.system = self.backend.system
         self.trajectory = self.backend.trajectory
 
         self.speedometer = None
         if enable_speedometer:
             self.speedometer = Speedometer()
             self.add(self.speedometer, Scheduler(None, calls=20, target=self.max_steps))
+
+    # We expect subclasses to keep a ref to the trajectory object self.trajectory
+    # used to store configurations, although this is not used in base class.
+    # Note that setting this as a reference in the instance, like
+    #   self.system = self.backend.system
+    # is unsafe because this won't follow the backend's system when the latter is 
+    # reassigned as in 
+    #   self.backend.system = None
+    # So we defined it as a property.
+
+    @property
+    def system(self):
+        return self.backend.system
+
+    @system.setter
+    def system(self, s):
+        self.backend.system = s
 
     def __str__(self):
         return 'atooms simulation via %s backend' % self.backend
