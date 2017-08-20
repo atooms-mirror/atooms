@@ -66,7 +66,11 @@ def _lammps_parse_system(finp):
 
 class TrajectoryLAMMPS(TrajectoryFolder):
 
-    """Trajectory layout for LAMMPS with additional .data file"""
+    """
+    Trajectory layout for LAMMPS.
+
+    In write mode, an additional .inp file is used as startup file.
+    """
 
     suffix = '.tgz'
 
@@ -83,8 +87,7 @@ class TrajectoryLAMMPS(TrajectoryFolder):
         return s
 
     def write_init(self, system):
-        # TODO: check this lammps write
-        f = open(self.filename + '.data', 'w')
+        f = open(self.filename + '.inp', 'w')
         np = len(system.particle)
         L = system.cell.side
         nsp = system.number_of_species
@@ -120,6 +123,9 @@ class TrajectoryLAMMPS(TrajectoryFolder):
         f.write(v)
         f.close()
 
+    def write_sample(self, system, step):
+        # We cannot write
+        return
 
 # Note: to get the tabulated potential from a dump of potential.x do
 # > { echo -e "\nPOTENTIAL\nN 10000\n"; grep -v '#' /tmp/kalj.ff.potential.1-1 | awk '{printf "%i %g %12e %12e\n", NR, $1, $2, -$3}' ; }
