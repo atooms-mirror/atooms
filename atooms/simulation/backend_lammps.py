@@ -1,15 +1,12 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Lammps simulation backend."""
+"""Simple lammps simulation backend."""
 
 import os
-import copy
 import subprocess
 from atooms import trajectory
-from atooms import simulation
 from atooms import system
-from atooms.system import thermostat
 from atooms.trajectory import TrajectoryLAMMPS
 
 try:
@@ -22,22 +19,29 @@ except subprocess.CalledProcessError:
 class System(system.System):
 
     def __init__(self, filename, commands):
-        """We accept xyz format on input."""
+        """
+        The input trajectory file `filename` can be any trajectory format
+        recognized by atooms. Lammps `commands` are passed as a string
+        and should not contain dump and run commands.
+        """
         self.filename = filename
         self.commands = commands
         if os.path.exists(filename):
+            # We accept any trajectory format, but if the format is
+            # not recognized we force lammps native (atom) format
             try:
-                with trajectory.TrajectoryXYZ(filename) as t:
+                with trajectory.Trajectory(filename) as t:
                     s = t[0]
             except:
                 with trajectory.TrajectoryLAMMPS(filename) as t:
                     s = t[0]
-    
-            super(System, self).__init__(s.particle, s.cell, s.interaction, thermostat=s.thermostat)
+
+            super(System, self).__init__(s.particle, s.cell,
+                                         s.interaction, thermostat=s.thermostat)
         else:
             super(System, self).__init__()
-               
-    def potential_energy(self):
+
+    def potential_energy(self, normed=False):
         """Full calculation of potential energy."""
         return 0.0
 
@@ -62,42 +66,41 @@ class LammpsBackend(object):
         return 0.0
 
     def write_checkpoint(self):
-        pass
+        return
 
     def run_pre(self, restart):
         return
 
     def run_until(self, steps):
-        n = steps - self.steps
         # TODO: remove hard coded paths
         file_tmp = '/tmp/out.atom'
-        # Update input file with current system
-        file_inp = file_tmp + '.inp'
+        # Update lammps startup file using self.system
         # This will write the .inp startup file
+        file_inp = file_tmp + '.inp'
         with TrajectoryLAMMPS(file_tmp, 'w') as th:
             th.write(self.system, 0)
 
-        # Do things in lammps order: units, read, commands, run
-        # A better approach would be to parse commands and place read_data after units
-        # then pack commands again. Even better using PyLammps...
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
         cmd = """\
 units		lj
 atom_style	atomic
 read_data %s
-# read_restart
-""" % file_inp
-        cmd += self.commands
-        cmd += """
+%s
 run %s
 write_dump all custom %s id type x y z vx vy vz modify sort id
-""" % (n, file_tmp)
+""" % (file_inp, self.commands, steps - self.steps, file_tmp)
 
         # see https://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
-        p = subprocess.Popen(['lammps'], shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        out = p.communicate(input=cmd)[0]
+        p = subprocess.Popen(['lammps'], shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE)
+        stdout = p.communicate(input=cmd)[0]
         if self.verbose:
-            print out.decode()
+            print stdout.decode()
 
-        # Update internal reference system
+        # Update internal reference to self.system
         self.system = System(file_tmp, self.commands)
         self.steps = steps
