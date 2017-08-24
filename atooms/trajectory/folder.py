@@ -23,25 +23,29 @@ import tempfile
 from atooms.utils import rmd
 from atooms.trajectory.base import TrajectoryBase
 
+
 # Helper functions
 
 def init_folder(filename, file_pattern='*', step_pattern='(\d*)'):
+    """
+    Initial setup in read mode. 
+
+    Filename can be a folder, a compressed tar file, a simple file.
+    """
     path = filename.rstrip('/')
-    # See if trajectory is packed as a compressed tar file.
-    # If so, configurations will be extracted inplace and deleted at the end.
-    try:
-        dirname = tempfile.mkdtemp()
-        with tarfile.open(filename) as th:
-            th.extractall(path=dirname)
-            files = [os.path.join(dirname, f.name) for f in th.getmembers()]
-        dirname = dirname
-        archive = True
-    except:
-        if not os.path.isdir(filename):
-            raise IOError("Directory expected (%s)" % filename)
+    if os.path.isdir(filename):
+        # Configurations are stored in a folder
         dirname = filename
         archive = False
         files = glob.glob(os.path.join(dirname, file_pattern))
+    else:            
+        # Trajectory is packed as a compressed tar file.
+        # If so, configurations will be extracted inplace and deleted at the end.
+        with tarfile.open(filename) as th:
+            dirname = tempfile.mkdtemp()
+            th.extractall(path=dirname)
+            files = [os.path.join(dirname, f.name) for f in th.getmembers()]
+        archive = True
 
     files, steps = _get_file_steps(files, step_pattern)
     return dirname, archive, files, steps
@@ -83,7 +87,13 @@ class TrajectoryFolder(TrajectoryBase):
 
     def __init__(self, filename, mode='r', file_pattern='*', step_pattern='(\d*)'):
         TrajectoryBase.__init__(self, filename.rstrip('/'), mode)
-        self.dirname, self.archive, self.files, self.steps = init_folder(filename, file_pattern, step_pattern)
+        if mode == 'r':
+            output = init_folder(filename, file_pattern, step_pattern)
+            self.dirname, self.archive, self.files, self.steps = output
+        else:
+            self.dirname = filename
+            self.archive = False
+            self.files, self.steps = [], []          
 
     def close(self):
         if self.archive:
