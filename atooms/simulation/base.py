@@ -207,6 +207,7 @@ class Simulation(object):
         Preliminary step before run_until() to deal with restart
         conditions.
         """
+        self.start_time = time.time()
         if self.output_path is not None:
             self.backend.output_path = self.output_path
             if not self.restart:
