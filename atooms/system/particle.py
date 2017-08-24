@@ -112,7 +112,7 @@ def fix_total_momentum(particles):
     Subtract out the center of mass velocity from a list of
     `particles`.
     """
-    vcm = velocity_cm(particles)
+    vcm = cm_velocity(particles)
     for p in particles:
         p.velocity -= vcm
     return particles
