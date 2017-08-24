@@ -105,7 +105,7 @@ class System(object):
         fix_total_momentum(self.particle)
         # After fixing the CM the temperature is not exactly the targeted one
         # Therefore we scale the velocities so as to get to the right T
-        T_old = self.temperature()
+        T_old = self.temperature
         fac = (T/T_old)**0.5
         for p in self.particle:
             p.velocity *= fac
