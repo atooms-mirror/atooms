@@ -133,6 +133,7 @@ class Simulation(object):
 
         # Store scheduler, callback and its arguments
         # in a separate dict (NOT in the function object itself!)
+        # TODO: it would be better to use a local Observer class to pack the scheduler along with the callback.
         self._cbk_params[callback] = {}
         self._cbk_params[callback]['scheduler'] = scheduler
         self._cbk_params[callback]['args'] = args
