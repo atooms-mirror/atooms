@@ -231,11 +231,11 @@ def target_walltime(sim, target):
     limits.
     """
     wtime_limit = target
-    if sim.elapsed_wall_time() > self.wtime_limit:
+    if sim.elapsed_wall_time() > wtime_limit:
         raise WallTimeLimit('target wall time reached')
     else:
         t = sim.elapsed_wall_time()
-        dt = self.wtime_limit - t
+        dt = wtime_limit - t
         _log.debug('elapsed time %g, reamining time %g', t, dt)
 
 def user_stop(sim):
