@@ -58,6 +58,7 @@ class Simulation(object):
         self.enable_speedometer = enable_speedometer
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
         self._targeter_steps = target_steps
+        self._cbk_params = {}  # hold scheduler and parameters of callbacks
 
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
@@ -122,6 +123,7 @@ class Simulation(object):
         """
         # If the callback is already there we replace it
         # This allows to update targets / schedules on the way
+        # TODO: this way we cannot the same observer with different schedules
         if callback in self._callback:
             self._callback.remove(callback)
 
@@ -130,9 +132,11 @@ class Simulation(object):
             scheduler = Scheduler(scheduler)
 
         # Store scheduler, callback and its arguments
-        callback.scheduler = scheduler
-        callback.args = args
-        callback.kwargs = kwargs
+        # in a separate dict (NOT in the function object itself!)
+        self._cbk_params[callback] = {}
+        self._cbk_params[callback]['scheduler'] = scheduler
+        self._cbk_params[callback]['args'] = args
+        self._cbk_params[callback]['kwargs'] = kwargs
 
         # Keep targeters last
         if 'target' not in callback.__name__.lower():
@@ -144,13 +148,17 @@ class Simulation(object):
         """Remove the observer `callback`."""
         if callback in self._callback:
             self._callback.remove(callback)
+            self._cbk_params.pop(callback)
         else:
             log.debug('attempt to remove inexistent callback %s (dont worry)', callback)
 
     def notify(self, observers):
         for o in observers:
             log.debug('notify %s at step %d', o, self.steps)
-            o(self, *o.args, **o.kwargs)
+            #o(self, *o.args, **o.kwargs)
+            args = self._cbk_params[o]['args']
+            kwargs = self._cbk_params[o]['kwargs']
+            o(self, *args, **kwargs)
 
     @property
     def _targeters(self):
@@ -269,7 +277,7 @@ class Simulation(object):
             log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
-                all_steps = [c.scheduler(self) for c in self._callback]
+                all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
                 next_checkpoint = self._checkpoint_scheduler(self)
                 next_step = min(all_steps + [next_checkpoint])
                 self.run_until(next_step)
@@ -327,9 +335,11 @@ class Simulation(object):
 
     def _report_observers(self):
         for f in self._callback:
-            s = f.scheduler
+            params = self._cbk_params[f]
+            s = params['scheduler']
             if 'target' in f.__name__.lower():
-                log.info('target %s: %s', f.__name__, f.args[0])
+                args = params['args']
+                log.info('target %s: %s', f.__name__, args[0])
             else:
                 log.info('writer %s: interval=%s calls=%s', f.__name__, s.interval, s.calls)
 
