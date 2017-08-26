@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
         system = copy.copy(self.ref)
         density_old = system.density
         system.density = density_old*1.1
-        self.assertAlmostEqual(system.density, density_old*1.1)
+        self.assertAlmostEqual(system.density, density_old*1.2)
 
     def test_dump(self):
         self.assertAlmostEqual(self.ref.dump('ids')[-1],
