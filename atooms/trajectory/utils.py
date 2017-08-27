@@ -264,7 +264,7 @@ def field(trajectory, trajectory_field, field, sample):
         x.append(fi)
     return x
 
-def tzip(t1, t2):
+def paste(t1, t2):
     """
     Iterate simultaneously on two trajectories. Skip samples that
     exist in one trajectory and not in the other.
@@ -273,7 +273,7 @@ def tzip(t1, t2):
     -------
     t1 = Trajectory(f1)
     t2 = Trajectory(f2)
-    for s1, s2 in tzip(t1, t2):
+    for s1, s2 in paste(t1, t2):
         pass
     """
     steps_1 = set(t1.steps)

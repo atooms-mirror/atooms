@@ -281,12 +281,12 @@ C 1.0 -1.0 0.0
 B 2.9 -2.9 0.0
 """)
 
-    def test_tzip(self):
+    def test_paste(self):
         import atooms.trajectory as trj
         t1 = trj.TrajectoryXYZ('/tmp/test_1.xyz')
         t2 = trj.TrajectoryXYZ('/tmp/test_2.xyz')
         steps = []
-        for step, s1, s2 in trj.utils.tzip(t1, t2):
+        for step, s1, s2 in trj.utils.paste(t1, t2):
             steps.append(step)
         self.assertEqual(steps, [2, 4])
 
