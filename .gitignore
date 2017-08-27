@@ -16,4 +16,4 @@ MANIFEST
 *.egg-info
 
 rumd_timing_info.dat
-
+log.lammps
