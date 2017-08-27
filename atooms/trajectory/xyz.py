@@ -356,8 +356,6 @@ class TrajectoryXYZ(TrajectoryBase):
             s = re.search(r'(\S+)\W*[=:]\W*(\S+)', e)
             if s is not None:
                 tag, data = s.group(1), s.group(2)
-                # We tolerate Capitalized / UPPER case keywords
-                tag = tag.lower()
                 # Remove dangling commas
                 data = data.strip(',')
                 # If there are commas, this is a list, else a scalar.
