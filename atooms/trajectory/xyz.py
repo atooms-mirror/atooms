@@ -361,6 +361,8 @@ class TrajectoryXYZ(TrajectoryBase):
             s = re.search(r'(\S+)\W*[=:]\W*(\S+)', e)
             if s is not None:
                 tag, data = s.group(1), s.group(2)
+                # We tolerate Capitalized / UPPER case keywords
+                tag = tag.lower()
                 # Remove dangling commas
                 data = data.strip(',')
                 # If there are commas, this is a list, else a scalar.
@@ -491,6 +493,7 @@ class TrajectoryXYZ(TrajectoryBase):
         fmt = ' '.join(['{0.' + field + '}' for field in self._fmt]) + '\n'
         for i, p in enumerate(system.particle):
             p._index = i
+            p._step = step
             self.trajectory.write(fmt.format(p))
 
     def _parse_cell(self):
