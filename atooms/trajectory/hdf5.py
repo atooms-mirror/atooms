@@ -5,6 +5,7 @@
 
 import numpy
 import h5py
+import logging
 
 from .base import TrajectoryBase
 from atooms.core import ndim
@@ -15,6 +16,7 @@ from atooms.interaction import Interaction
 from atooms.interaction.potential import PairPotential
 from atooms.interaction.cutoff import CutOff
 
+_log = logging.getLogger(__name__)
 
 #  Helper functions and classes
 
@@ -120,13 +122,17 @@ class TrajectoryHDF5(TrajectoryBase):
             raise ValueError('Specify mode (r/w) for file %s (invalid: %s)' % (self.filename, self.mode))
 
     def close(self):
-        self.trajectory.close()
+        try:
+            self.trajectory.close()
+        except ValueError:
+            _log.error('file %s already closed', self.filename)
+            raise
 
     def read_timestep(self):
         try:
             return self.trajectory['trajectory/realtime/timestep'][0]
         except:
-            print 'Warning: could not find dt in hdf5 file %s' % self.filename
+            _log.warning('no time step in file %s, set to 1', self.filename)
             return 1.0
 
     def write_timestep(self, value):
@@ -253,7 +259,7 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory['/trajectory/realtime/stepindex' + csample] = [step]
             self.trajectory['/trajectory/realtime/sampleindex' + csample] = [sample]
         except RuntimeError:
-            print 'error writing step %s sample %s file %s ' % (step, sample, self.filename)
+            _log.error('error when writing step %s sample %s to file %s', step, sample, self.filename)
             raise
 
         if system.particle != None:
