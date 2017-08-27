@@ -1,11 +1,11 @@
 """Simulation backends."""
 
-from .backend_dryrun import DryRunBackend
+from .dryrun import DryRunBackend
 try:
-    from .backend_rumd import RumdBackend
+    from .rumd import RumdBackend
 except:
     pass
 try:
-    from .backend_lammps import LammpsBackend
+    from .lammps import LammpsBackend
 except:
     pass

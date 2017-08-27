@@ -7,6 +7,9 @@ import sys
 import os
 import numpy
 import logging
+# This enables importing the top-level rumd package and still call
+# this file rumd.py
+from __future__ import absolute_import
 
 import rumd
 from rumdSimulation import rumdSimulation
