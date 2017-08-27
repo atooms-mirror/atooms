@@ -2,8 +2,6 @@
 
 import os
 import tarfile
-import gzip
-import re
 import numpy
 
 def gopen(filename, mode):
@@ -34,11 +32,11 @@ def format_output(trj, fmt=None, include=None, exclude=None):
             for pattern in exclude:
                 if pattern in trj.fmt:
                     trj.fmt.remove(pattern)
-        if include is not None:            
+        if include is not None:
             for pattern in include:
                 if not pattern in trj.fmt:
                     trj.fmt.append(pattern)
-                    
+
     return trj
 
 def convert(inp, out, fout, tag='', force=True, fmt=None,
@@ -115,11 +113,6 @@ def split(inp, selection=slice(None), index='step', archive=False):
     if archive:
         tar.close()
 
-def get_step_from_path(f):
-    s = re.search(r'%s-(\d*)' % basename, f)
-    if s:
-        return int(s.group(1))
-
 def sort_files_steps(files, steps):
     file_steps = zip(files, steps)
     file_steps.sort(key=lambda a: a[1])
@@ -185,7 +178,7 @@ def check_block_size(steps, block_size, prune=False):
 
     if block_size == 1:
         return None
-        
+
     steps_local = copy.copy(steps)
 
     # Identify steps that do not match the first periodic block
@@ -251,7 +244,7 @@ def dump(trajectory, what='pos'):
 
     return data
 
-def field(trajectory, trajectory_field, field, sample):
+def field(trajectory, trajectory_field, x_field, sample):
     step = trajectory.steps[sample]
     try:
         index_field = trajectory_field.steps.index(step)
@@ -259,7 +252,7 @@ def field(trajectory, trajectory_field, field, sample):
         return None
     x = []
     for pi in trajectory_field[index_field].particle:
-        fi = getattr(pi, field)
+        fi = getattr(pi, x_field)
         #fi = [float(x) for x in fi.split(',')]
         x.append(fi)
     return x
@@ -283,37 +276,6 @@ def paste(t1, t2):
         s1 = t1[t1.steps.index(step)]
         s2 = t2[t2.steps.index(step)]
         yield step, s1, s2
-
-def dump(*fileinp):
-
-    import sys
-    from atooms import trajectory as trj                          
-
-    particle=False
-    t_list, attr_list = [], []
-    for f in fileinp:
-        f_i, attr_i = f.split(':')
-        if 'particle' in attr_i:
-            attri_i = attr_i.split('particle.')[1]
-            particle = True
-        t_list.append(Trajectory(f_i))
-        attr_list.append(attr_i)
-
-    steps = None
-    for t in t_list:
-        steps_i = set(t.steps)
-        if steps is None:
-            steps = steps_i
-        else:
-            steps = steps & steps_i
-    
-    for step in steps:
-        if not particle:
-            txt = ''
-            for t, attr in zip(t_list, attr_list):
-                s = t[t.steps.index(step)]
-                txt += str(getattr(s, attr))
-            print txt
 
 def time_when_msd_is(th, msd_target, sigma=1.0):
     """
@@ -386,7 +348,7 @@ def main(file_inp, file_out, inp=None, out=None, folder=False,
     """Convert trajectory `file_inp` to `file_out`."""
     import random
     from atooms import trajectory
-    from atooms.utils import fractional_slice, add_first_last_skip
+    from atooms.utils import fractional_slice
 
     if file_out == '-':
         file_out = '/dev/stdout'
@@ -446,7 +408,7 @@ def main(file_inp, file_out, inp=None, out=None, folder=False,
     if ff:
         from atooms.trajectory.hdf5 import add_interaction_hdf5
         add_interaction_hdf5(fout, ff)
-    
+
     if file_out != '/dev/stdout':
         print '%s' % fout
 

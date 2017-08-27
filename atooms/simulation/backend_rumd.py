@@ -341,14 +341,14 @@ class System(object):
     @property
     def particle(self):
         nmap = ['A', 'B', 'C', 'D']
-        n = self.sample.GetNumberOfParticles()
+        npart = self.sample.GetNumberOfParticles()
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
         nsp = self.sample.GetNumberOfTypes()
         ima = self.sample.GetImages()
         mass = self.__get_mass()
-        spe = numpy.ndarray(n, dtype=int)
-        name = numpy.ndarray(n, dtype='|S1')
+        spe = numpy.ndarray(npart, dtype=int)
+        name = numpy.ndarray(npart, dtype='|S1')
         ii = 0
         for i in range(nsp):
             ni = self.sample.GetNumberThisType(i)

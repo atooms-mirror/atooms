@@ -3,7 +3,6 @@
 import os
 import sys
 import shutil
-import logging
 
 # Logging facilities
 
@@ -127,7 +126,6 @@ class Timer(object):
             return MPI.Wtime()
         except:
             return time.clock()
-            return 0.0
 
 
 def clockit(func):

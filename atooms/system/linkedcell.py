@@ -3,7 +3,6 @@
 
 """Linked cells to compute neighbors efficiently [*beta*]."""
 
-import numpy
 from collections import defaultdict
 
 def _pbc(t, N):
@@ -11,8 +10,8 @@ def _pbc(t, N):
     for i in range(len(t)):
         if t[i] >= N[i]:
             t[i] -= NN
-        elif tt < 0:
-            tt += NN
+        elif t[i] < 0:
+            t[i] += NN
     return t
 
 def _pbc_all(l, N):
@@ -70,6 +69,7 @@ class _LinkedCell(object):
                     self._neigh_cell[i][j] = _pbc(self._neigh_cell[i][j], self.n_cell)
 
     def adjust(self, npart, box, rcut):
+        self.box = box
         self.hbox = box / 2
         self.n_cell = (box / max(rcut)).astype(int)
         self._map_netwon()
@@ -95,14 +95,3 @@ class _LinkedCell(object):
         for j in self._neigh_cell[i]:
             neigh += self._particle_in_cell[j]
         return neigh
-
-if __name__ == '__main__':
-    n = 10
-    rc = numpy.array([2, 2, 2])
-    box = numpy.array([10, 10, 10])
-    pos = numpy.array([[1, 1, 1],
-                       [1, 1, 5]])
-
-    l = LinkedCell()
-    l.adjust(n, box, rc)
-    l.compute(pos, box)

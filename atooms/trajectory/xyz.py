@@ -3,7 +3,6 @@
 
 import numpy
 import re
-import copy
 import logging
 
 from .base import TrajectoryBase
@@ -173,10 +172,6 @@ class TrajectorySimpleXYZ(TrajectoryBase):
 
 
 # Format callbacks
-
-def update_name(particle, data, meta):
-    particle.name = data[0]
-    return data[1:]
 
 def update_radius(particle, data, meta):
     particle.radius = float(data[0])
