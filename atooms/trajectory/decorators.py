@@ -5,7 +5,7 @@
 
 import random
 import numpy
-
+import copy
 
 # Callbacks
 
@@ -59,6 +59,21 @@ def set_temperature(system, T):
     for p in system.particle:
         p.velocity -= v_cm
     return system
+
+def fix_cm(s):
+    # Get current position of CM from unfolded positions
+    cm = s.cm_position
+    for p in s.particle:
+        p.position -= cm
+    return s
+
+def fold(s):
+    # Center and fold positions into central cell        
+    for p in s.particle:
+        p.position -= s.cell.side / 2
+        p.fold(s.cell)
+    return s
+
 
 # Class decorators
 
@@ -115,18 +130,20 @@ class Unfolded(object):
 
     """Decorate Trajectory to unfold particles positions on the fly."""
 
-    def __new__(cls, component):
+    def __new__(cls, component, fix_cm=False):
         cls = type('Unfolded', (Unfolded, component.__class__), component.__dict__)
         return object.__new__(cls)
 
-    def __init__(self, component):
+    def __init__(self, component, fix_cm=False):
         self._initialized_read = False
+        self.fix_cm = fix_cm
 
     def read_init(self):
         s = super(Unfolded, self).read_init()
         # Cache the initial sample and cell
         s = super(Unfolded, self).read_sample(0)
         self._old = numpy.array([p.position for p in s.particle])
+        self._old_cm = s.cm_position
         self._last_read = 0
 
     def read_sample(self, sample):
@@ -161,6 +178,7 @@ class Unfolded(object):
         # Return unfolded system
         for i in xrange(len(pos)):
             s.particle[i].position = self._old[i][:]
+
         return s
 
 
