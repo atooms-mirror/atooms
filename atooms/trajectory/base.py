@@ -108,7 +108,7 @@ class TrajectoryBase(object):
             if key < 0:
                 key += len(self)
             if key >= len(self):
-                raise IndexError("Index (%d) is out of range." % key)
+                raise IndexError("Index (%d) is out of range (%d)." % (key, len(self)))
             return self.read(key)
 
         else:
