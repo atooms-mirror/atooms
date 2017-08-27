@@ -101,10 +101,21 @@ def main(args):
         args.last += 1
     sl = fractional_slice(args.first, args.last, args.skip, len(t))
 
+    # Unfold if requested
+    if args.unfold:
+        tu = trajectory.Unfolded(t) #, fix_cm=True)
+    else:
+        tu = t
+
+    # Fix CM and fold back
+    if args.fix_cm:
+        tu.add_callback(trajectory.fix_cm)
+        tu.add_callback(trajectory.fold)
+
     # Here we could you a trajectory slice t[sl] but this will load
     # everything in ram (getitem doesnt provide a generator). This
     # will be fixed with python 3.
-    ts = trajectory.Sliced(t, sl)
+    ts = trajectory.Sliced(tu, sl)
 
     # Change density and temperature
     if args.rho is not None:
@@ -156,6 +167,8 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--tag', dest='tag', type=str, default='', help='tag to add before suffix')
     parser.add_argument('-F', '--ff', dest='ff', type=str, default='', help='force field file')
     parser.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
+    parser.add_argument(      '--unfold',dest='unfold', action='store_true', help='unfold')
+    parser.add_argument(      '--fix-cm',dest='fix_cm', action='store_true', help='fix cm')
     parser.add_argument(      '--side', dest='side', type=float, default=None, help='set cell side')
     parser.add_argument(      '--density', dest='rho', type=float, default=None, help='new density')
     parser.add_argument('-T', '--temperature', dest='temperature', type=float, default=None, help='new temperature')
