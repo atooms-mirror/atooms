@@ -4,6 +4,7 @@ import unittest
 import logging
 import numpy
 from atooms.simulation import Simulation, Scheduler, write_thermo
+from atooms.simulation.dryrun import DryRunBackend
 from atooms.utils import setup_logging
 
 setup_logging(level=40)
@@ -71,8 +72,33 @@ class Test(unittest.TestCase):
         s.backend.system = None
         self.assertTrue(s.system is s.backend.system)
 
+    def test_composite(self):
+        """
+        Test that composite simulation instances (a simulation within a
+        simulation object) run independent of their parent instance.
+
+        This checks that there are no regression against the bug fixed
+        in 63a7e7863.
+        """
+        class NewSimulation(Simulation):
+
+            def __init__(self, sim, steps=0, output_path=None, restart=False):
+                Simulation.__init__(self, output_path=output_path,
+                                    steps=steps, restart=restart)
+                self.sim = sim
+
+            def __str__(self):
+                return 'NewSimulation'
+
+            def run_until(self, steps):
+                self.sim.run()
+                self.steps = steps
+
+        sim = Simulation(DryRunBackend(), steps=3)
+        new_sim = NewSimulation(sim, steps=1)
+        new_sim.run()
+        self.assertEqual(new_sim.steps, 1)
+        self.assertEqual(sim.steps, 3)
 
 if __name__ == '__main__':
     unittest.main()
-
-
