@@ -5,7 +5,7 @@
 
 class Thermostat(object):
 
-    def __init__(self, name, temperature, mass=1.0, collision_period=-1):
+    def __init__(self, temperature, name='', mass=1.0, collision_period=-1):
         self.name = name
         self.temperature = temperature
         self.mass = mass

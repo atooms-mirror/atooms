@@ -20,7 +20,7 @@ class Test(unittest.TestCase):
             self.skipTest('missing RUMD')
         self.input_file = os.path.join(os.path.dirname(__file__), '../data/KA_N256_rumd.xyz.gz')
         self.forcefield_file = os.path.join(os.path.dirname(__file__), '../data/ka_rumd.ff')            
-        from atooms.simulation.backends import RumdBackend
+        from atooms.simulation.rumd import RumdBackend
         self.backend = RumdBackend(self.input_file,
                                    self.forcefield_file, integrator='nvt',
                                    temperature=0.80, dt=0.002)

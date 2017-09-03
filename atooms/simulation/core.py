@@ -28,8 +28,9 @@ import logging
 from atooms.core import __version__, __commit__, __date__
 from atooms.utils import mkdir, barrier
 from .dryrun import DryRunBackend
-from .observers import target_steps, Speedometer, Scheduler
-from .observers import SimulationEnd
+from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
+
+__all__ = ['Simulation']
 
 log = logging.getLogger(__name__)
 
@@ -84,8 +85,8 @@ class Simulation(object):
     # used to store configurations, although this is not used in base class.
     # Note that setting this as a reference in the instance, like
     #   self.system = self.backend.system
-    # is unsafe because this won't follow the backend's system when the latter is 
-    # reassigned as in 
+    # is unsafe because this won't follow the backend's system when the latter is
+    # reassigned as in
     #   self.backend.system = None
     # So we defined it as a property.
 
@@ -94,8 +95,8 @@ class Simulation(object):
         return self.backend.system
 
     @system.setter
-    def system(self, s):
-        self.backend.system = s
+    def system(self, value):
+        self.backend.system = value
 
     def __str__(self):
         return 'atooms simulation via %s backend' % self.backend
@@ -156,7 +157,6 @@ class Simulation(object):
     def notify(self, observers):
         for o in observers:
             log.debug('notify %s at step %d', o, self.steps)
-            #o(self, *o.args, **o.kwargs)
             args = self._cbk_params[o]['args']
             kwargs = self._cbk_params[o]['kwargs']
             o(self, *args, **kwargs)

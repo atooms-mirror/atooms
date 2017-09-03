@@ -10,10 +10,10 @@ cell. The system may be in contact with a thermostat, a barostat or a
 particle reservoir.
 """
 
-
 import copy
 import numpy
 from .particle import cm_position, cm_velocity, fix_total_momentum
+
 
 class System(object):
 

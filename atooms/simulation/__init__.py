@@ -10,7 +10,7 @@ callbacks to analyze and process simulation data on the fly.
 """
 
 import logging
-from .base import *
+from .core import *
 from .observers import *
 from atooms.utils import NullHandler
 logging.getLogger(__name__).addHandler(NullHandler())
