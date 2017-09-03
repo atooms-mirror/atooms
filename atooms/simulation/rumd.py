@@ -3,17 +3,17 @@
 
 """Backend and adapters for the RUMD simulation package."""
 
-import sys
-import os
-import numpy
-import logging
 # This enables importing the top-level rumd package and still call
 # this file rumd.py
 from __future__ import absolute_import
 
+import sys
+import os
+import numpy
+import logging
+
 import rumd
 from rumdSimulation import rumdSimulation
-
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 
