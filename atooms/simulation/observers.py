@@ -1,17 +1,11 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-import sys
-import os
-import shutil
-import time
-import datetime
-import logging
-
 """
 Scheduler and callbacks (aka observers) to be called during a simulation.
 
-To add a callback `func` to a `Simulation` instance `sim` and have it called every 100 steps
+To add a callback `func` to a `Simulation` instance `sim` and have it
+called every 100 steps
 
     #!python
     sim.add(func, Scheduler(100))
@@ -38,6 +32,13 @@ convention (for classes and function). If they contain
 
 Of course, general purpose callback can be passed to do whatever.
 """
+
+import sys
+import os
+import shutil
+import time
+import datetime
+import logging
 
 _log = logging.getLogger(__name__)
 
@@ -213,16 +214,16 @@ def target(sim, attribute, value):
         raise SimulationEnd('reached target %s: %s', attribute, value)
     return frac
 
-def target_rmsd(sim, target):
+def target_rmsd(sim, value):
     """Target the root mean squared displacement."""
-    return target(sim, 'rmsd', target)
+    return target(sim, 'rmsd', value)
 
-def target_steps(sim, target):
+def target_steps(sim, value):
     """Target the number of steps."""
-    if sim.steps >= target:
-        raise SimulationEnd('reached target steps %d' % target)
+    if sim.steps >= value:
+        raise SimulationEnd('reached target steps %d' % value)
 
-def target_walltime(sim, target):
+def target_walltime(sim, value):
     """
     Target a value of the elapsed wall time from the beginning of the
     simulation.
@@ -230,7 +231,7 @@ def target_walltime(sim, target):
     Useful to self restarting jobs in a queining system with time
     limits.
     """
-    wtime_limit = target
+    wtime_limit = value
     if sim.elapsed_wall_time() > wtime_limit:
         raise WallTimeLimit('target wall time reached')
     else:
@@ -321,7 +322,7 @@ class WriterThermo(object):
 
 class Target(object):
 
-    def __init__(self, name, target):
+    def __init__(self, name, value):
         raise ImportError('Target class is deprecated')
 
 class TargetSteps(Target):
