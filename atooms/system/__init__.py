@@ -2,9 +2,11 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 """
-Systems are composed by particles enclosed in a simulation cell.
+Systems are composed by particles enclosed in a simulation cell,
+possibly in contact with a reservoir.
 """
 
 from .system import System
 from .particle import Particle
 from .cell import Cell
+from .reservoir import Thermostat, Barostat, Reservoir
