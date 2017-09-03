@@ -45,11 +45,6 @@ class System(object):
         """Number of distinct chemical species in the system."""
         return len(set(p.id for p in self.particle))
 
-    def _add_matrix(self, matrix):
-        """Add a list of `Particle` instances as a rigid matrix."""
-        # Currently in beta, only used by hdf5 trakectories
-        self.matrix = copy.deepcopy(matrix)
-
     @property
     def density(self):
         """
