@@ -2,7 +2,6 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 import os
-import warnings
 
 from .utils import get_block_size
 
@@ -262,7 +261,7 @@ class SuperTrajectory(TrajectoryBase):
         # This caches the last trajectory used to minimize __init__() overhead
         self._last_trajectory = None
         self.steps = []
-        for i, f in enumerate(self.files):
+        for f in self.files:
             # This is slow, just to get the step index.
             # If we accept not to have the steps list updated at this stage
             # we can optimize this by about 10% on xyz files (16.12.2016)
