@@ -7,19 +7,31 @@ import random
 import numpy
 import copy
 
+__all__ = ['center', 'normalize_id', 'sort', 'filter_id',
+           'set_density', 'set_temperature', 'fix_cm', 'fold',
+           'Centered', 'Sliced', 'Unfolded', 'MatrixFix',
+           'NormalizeId', 'Sorted', 'MatrixFlat', 'Filter',
+           'AffineDeformation']
+
 # Callbacks
 
 def center(system):
-    """Center particles in the simulation cell.
-    It wont check if that is done multiple times.
+    """
+    Center particles in the simulation cell. 
+
+    It won't check if that is done multiple times.
     """
     for p in system.particle:
         p.position -= system.cell.side / 2.0
     return system
 
 def normalize_id(system, alphabetic=False):
-    """Change species id's so as to start from 1 (fortran
-    convention). Species names can be reassigned alphabetically.
+    """
+    Change particle species id's to start from 1 (fortran style).
+
+    Species names, given by the variable `particle.name`, can be
+    reassigned alphabetically (ex. 'A', 'B' ...)  using the
+    `alphabetic` flag.
     """
     map_ids = {1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E'}
     pid = [p.id for p in system.particle]
@@ -37,12 +49,12 @@ def sort(system):
     return sorted(system.particle, key=lambda a: a.id)
 
 def filter_id(system, species):
-    """Only return particles with given species."""
+    """Return particles of a given `species` id."""
     system.particle = [p for p in system.particle if p.id == species]
     return system
 
 def set_density(system, rho):
-    """Set density of system to rho by rescaling the cell."""
+    """Set density of system to `rho` by rescaling the cell."""
     rho_old = system.density
     x = (rho_old / rho)**(1./3)
     system.cell.side *= x
@@ -51,7 +63,7 @@ def set_density(system, rho):
     return system
 
 def set_temperature(system, T):
-    """Set system temperature by reassigning velocities."""
+    """Set system temperature to `T` by reassigning velocities."""
     from atooms.system.particle import cm_velocity
     for p in system.particle:
         p.maxwellian(T)
@@ -68,7 +80,7 @@ def fix_cm(s):
     return s
 
 def fold(s):
-    # Center and fold positions into central cell        
+    """Center and fold positions into central cell."""
     for p in s.particle:
         p.position -= s.cell.side / 2
         p.fold(s.cell)
