@@ -229,6 +229,8 @@ class TrajectoryXYZ(TrajectoryBase):
         TrajectoryBase.__init__(self, filename, mode)
         if alias is None:
             alias = {}
+        # TODO: actualize fmt on reading if found and not given on input
+        # TODO: clarify fmt / _fmt handling
         if fmt is None:
             fmt = ['name', 'pos']
         self.fmt = fmt
