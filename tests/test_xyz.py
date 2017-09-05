@@ -195,6 +195,19 @@ B 2.9 -2.9 0.0
             self.assertEqual(th[1].particle[0].mass, 3.0)
             self.assertEqual(th[1].particle[1].mass, 2.0)
 
+    def test_xyz_columns(self):
+        finp = '/tmp/test_xyz_columns.xyz'
+        with open(finp, 'w') as fh:
+            fh.write("""\
+1
+columns:name,pos,vel step:1
+A 1.0 -1.0 0.0 1.0 2.0 3.0
+""")
+        with self.Trajectory(finp) as th:
+            self.assertEqual(th._read_metadata(0)['columns'], ['name', 'pos', 'vel'])
+            self.assertEqual(list(th[0].particle[0].velocity), [1.0, 2.0, 3.0])
+
+
 class TestSimpleXYZ(TestXYZ):
 
     # TODO: refactor generic tests for trajectories like this :-)
@@ -207,6 +220,9 @@ class TestSimpleXYZ(TestXYZ):
         pass
 
     def test_xyz_mass(self):
+        pass
+
+    def test_xyz_columns(self):
         pass
 
 
