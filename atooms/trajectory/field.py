@@ -1,6 +1,8 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
+# TODO: TrajectoryField can be dropped, use TrajectoryXYZ instead 07.09.2017
+
 import numpy
 import logging
 
