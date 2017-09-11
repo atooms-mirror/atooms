@@ -143,14 +143,23 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def read_sample(self, sample):
         meta = self._read_metadata(sample)
         self.trajectory.seek(self._index_sample[sample])
+
+        # Read particles
         particle = []
         for _ in range(meta['npart']):
             data = self.trajectory.readline().strip().split()
             name = data[0]
             r = numpy.array(data[1:4], dtype=float)
             particle.append(Particle(name=name, position=r))
-
         self.update_id(particle)
+
+        # Read cell
+        try:
+            side = meta['cell']
+            self._cell = Cell(side)
+        except KeyError:
+            pass
+
         return System(particle, self._cell)
 
     def _comment_header(self, step, system):
@@ -452,9 +461,9 @@ class TrajectoryXYZ(TrajectoryBase):
         self.update_mass(particle, meta)
 
         # Check if we also have a cell
-        if 'side' in meta:
-            cell = Cell(meta['side'])
-        else:
+        try:
+            cell = Cell(meta['cell'])
+        except KeyError:
             cell = self._cell
         return System(particle, cell)
 
