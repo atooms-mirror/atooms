@@ -2,6 +2,7 @@
 
 import unittest
 from atooms.trajectory import utils
+from atooms.trajectory import TrajectoryXYZ
 
 class Test(unittest.TestCase):
 
@@ -40,7 +41,46 @@ class Test(unittest.TestCase):
         self.assertEqual(utils.get_block_size(more), 8)
         self.assertEqual(utils.check_block_size(more, utils.get_block_size(more)), more)
 
+    def test_cell_variable(self):
+        finp = '/tmp/test_utils.xyz'
+#         with open(finp, 'w') as fh:
+#             fh.write("""\
+# 1
+# step:0 cell:1.0,1.0,1.0
+# A 1.0 -1.0 0.0
+# 1
+# step:1 cell:1.0,1.0,1.0
+# A 1.0 -1.0 0.0
+# 1
+# step:2 cell:1.0,1.0,1.0
+# A 1.0 -1.0 0.0
+# 1
+# step:3 cell:1.0,1.0,1.0
+# A 1.0 -1.0 0.0
+# """)
+#         t = Trajectory(finp)
+#         self.assertFalse(utils.is_cell_variable(t, tests=-1))
+
+        with open(finp, 'w') as fh:
+            fh.write("""\
+1
+step:0 cell:1.0,1.0,1.0
+A 1.0 -1.0 0.0
+1
+step:1 cell:2.0,1.0,1.0
+A 1.0 -1.0 0.0
+1
+step:2 cell:1.0,1.0,1.0
+A 1.0 -1.0 0.0
+1
+step:3 cell:1.0,1.0,1.0
+A 1.0 -1.0 0.0
+""")
+        t = TrajectoryXYZ(finp)
+        self.assertTrue(utils.is_cell_variable(t, tests=-1))
+        self.assertFalse(utils.is_cell_variable(t, tests=1))
+        self.assertTrue(utils.is_cell_variable(t, tests=2))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=0)
-
-

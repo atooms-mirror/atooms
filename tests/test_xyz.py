@@ -207,6 +207,27 @@ A 1.0 -1.0 0.0 1.0 2.0 3.0
             self.assertEqual(th._read_metadata(0)['columns'], ['name', 'pos', 'vel'])
             self.assertEqual(list(th[0].particle[0].velocity), [1.0, 2.0, 3.0])
 
+    def test_xyz_cell(self):
+        """Test that fluctuating cell side is read correctly."""
+        finp = '/tmp/test_xyz_cell.xyz' 
+        with open(finp, 'w') as fh:
+            fh.write("""\
+1
+step:0 cell:1.0,1.0,1.0
+A 1.0 -1.0 0.0
+1
+step:1 cell:2.0,1.0,1.0
+A 1.0 -1.0 0.0
+1
+step:2 cell:1.0,1.0,1.0
+A 1.0 -1.0 0.0
+1
+step:3 cell:3.0,1.0,1.0
+A 1.0 -1.0 0.0
+""")
+        with TrajectoryXYZ(finp) as th:
+            self.assertEqual([s.cell.side[0] for s in th], [1.0, 2.0, 1.0, 3.0])
+
 
 class TestSimpleXYZ(TestXYZ):
 
@@ -223,6 +244,9 @@ class TestSimpleXYZ(TestXYZ):
         pass
 
     def test_xyz_columns(self):
+        pass
+
+    def test_xyz_cell(self):
         pass
 
 

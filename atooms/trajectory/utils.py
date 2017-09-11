@@ -271,7 +271,7 @@ def paste(t1, t2):
     """
     steps_1 = set(t1.steps)
     steps_2 = set(t2.steps)
-    steps = steps_1 & steps_2
+    steps = sorted(steps_1 & steps_2)
     for step in steps:
         s1 = t1[t1.steps.index(step)]
         s2 = t2[t2.steps.index(step)]
@@ -287,6 +287,25 @@ def time_when_msd_is(th, msd_target, sigma=1.0):
         msd_total = th_unf[0].mean_square_displacement(th_unf[-1])
     frac = msd_target * sigma**2 / msd_total
     return min(1.0, frac) * th.total_time
+
+def is_cell_variable(trajectory, tests=1):
+    """
+    Simple test to check if cell changes. We compare the first frame
+    to `tests` other frames starting from the end of `trajectory`.
+    """
+    is_variable = False
+    frames = len(trajectory)
+    if tests > 0:
+        skip = max(1, int(frames / float(tests)))
+    else:
+        skip = 1
+    L0 = trajectory[0].cell.side
+    for sample in range(frames-1, 0, -skip):
+        L1 = trajectory[sample].cell.side
+        if L0[0] != L1[0] or L0[1] != L1[1] or L0[2] != L1[2]:
+            is_variable = True
+            break
+    return is_variable
 
 def available_formats():
     from atooms import trajectory
