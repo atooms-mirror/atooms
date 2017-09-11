@@ -122,6 +122,7 @@ class TrajectoryBase(object):
             self.read_init()
             self._initialized_read = True
         s = self.read_sample(index)
+        # TODO: add some means to access the current sample / step in a callback? 11.09.2017
         for cbk, args, kwargs in self.callbacks:
             s = cbk(s, *args, **kwargs)
         return s
