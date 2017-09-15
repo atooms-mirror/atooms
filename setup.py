@@ -5,8 +5,13 @@ try:
 except ImportError:
     from distutils.core import setup
 
-with open('README.md') as f:
-    readme = f.read()
+# Get the long description from README.md and try to convert it to
+# reST. Adapted from https://bons.ai/blog/markdown-for-pypi
+try:
+    from pypandoc import convert
+    readme = convert('README.md', 'rst')
+except ImportError:
+    readme = open('README.md', 'r').read()
 
 with open('atooms/core/_version.py') as f:
     exec(f.read())
@@ -26,8 +31,9 @@ setup(name='atooms',
       license='GPLv3',
       classifiers=[
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+          'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',
-          'Programming Language :: Python',
-          'Topic :: Scientific/Engineering',
+          'Programming Language :: Python :: 2',
+          'Topic :: Scientific/Engineering :: Physics',
       ]
 )
