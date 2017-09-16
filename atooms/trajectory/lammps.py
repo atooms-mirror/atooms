@@ -68,7 +68,7 @@ def _lammps_parse_system(finp):
                       position=d[i, ix:ix+3], velocity=d[i, ivx:ivx+3]) for i in xrange(npart)]
     else:
         p = [Particle(int(d[i, ind]), imap[int(d[i,ind])], mass=1.0, 
-                      position=d[i, ix:ix+3], velocity=d[i, ivx:ivx+3]) for i in xrange(npart)]
+                      position=d[i, ix:ix+3]) for i in xrange(npart)]
         
     for pi in p:
         pi.fold(c)
