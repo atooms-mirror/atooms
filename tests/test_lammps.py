@@ -17,7 +17,7 @@ class Test(unittest.TestCase):
     def setUp(self):
         if SKIP:
             self.skipTest('missing LAMMPS')
-        self.input_file = os.path.join(os.path.dirname(__file__), '../data/lj_rho1.0.xyz')
+        self.input_file = os.path.join(os.path.dirname(__file__), '../data/lj_N1000_rho1.0.xyz')
 
     def test_single(self):
         import sys

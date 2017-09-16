@@ -91,13 +91,13 @@ This is a quick example how to run 10000 molecular dynamics steps using the [RUM
 from atooms.simulation.rumd import RumdBackend
 from atooms.simulation import Simulation
 
-backend = RumdBackend('rescaled.xyz.gz', forcefield_file='lj_rumd.py', 
+backend = RumdBackend('rescaled.xyz.gz', forcefield_file='lj_rumd.ff', 
                       output_path='/tmp/outdir', integrator='nve')
 sim = Simulation(backend)
 sim.run(10000)
 print 'Final temperature and density', sim.system.temperature, sim.system.density
 ```
-The forcefield file `lj_rumd.py` (available in `data/`) defines the interaction potential.
+The forcefield file `lj_rumd.ff` (available in `data/`) defines the interaction potential.
 
 Additional packages 
 -------------------
