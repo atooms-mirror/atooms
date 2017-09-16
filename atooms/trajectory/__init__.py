@@ -17,7 +17,7 @@ from .xyz import TrajectorySimpleXYZ, TrajectoryXYZ, TrajectoryNeighbors
 from .pdb import TrajectoryPDB
 from .hoomd import TrajectoryHOOMD
 from .rumd import TrajectoryRUMD, SuperTrajectoryRUMD
-from .lammps import TrajectoryLAMMPS
+from .lammps import TrajectoryLAMMPS, TrajectoryFolderLAMMPS
 try:
     from .hdf5 import TrajectoryHDF5
 except ImportError:
