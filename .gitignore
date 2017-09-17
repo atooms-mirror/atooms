@@ -14,6 +14,8 @@ dist
 build
 MANIFEST
 *.egg-info
+.coverage
 
+# Simulations
 rumd_timing_info.dat
 log.lammps
