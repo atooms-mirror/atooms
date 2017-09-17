@@ -154,6 +154,18 @@ B 2.9 -2.9 0.0 2.0
                 s.particle
             t[-1]
 
+    def test_xyz_to_ram(self):
+        # TODO: move this test somewhere else
+        from atooms.trajectory import TrajectoryRam
+        with self.Trajectory(self.finp) as t:
+            with TrajectoryRam() as tram:
+                for i, system in enumerate(t):
+                    tram[i] = system
+                    # Write a second time, this will overwrite
+                    tram[i] = system
+                    self.assertEqual(tram[i].particle[0].position[0],
+                                     system.particle[0].position[0])
+
     def test_xyz_ids(self):
         # Test ids ordering
         finp = '/tmp/test_meta.xyz'
