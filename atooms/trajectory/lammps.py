@@ -14,7 +14,7 @@ from atooms.system import System
 def _read_item(t, item):
     """Parse generic `item`."""
     data = t.readline()
-    if not item in data:
+    if item not in data:
         raise ValueError('expecting "%s" got "%s" on %s' % (item, data, t.name))
     return data
 
@@ -33,7 +33,7 @@ def _lammps_parse_system(finp):
 
     # Read box
     data = _read_item(finp, "ITEM: BOX BOUNDS")
-    ndim = len(data.split()[3:]) # line is ITEM: BOX BONDS pp pp pp
+    ndim = len(data.split()[3:])  # line is ITEM: BOX BONDS pp pp pp
     if len(data.split()) == 3:
         ndim = 3
     L, offset = [], []
@@ -44,7 +44,7 @@ def _lammps_parse_system(finp):
     c = Cell(numpy.array(L))
 
     # Read positions and velocities
-    imap = {1:'A', 2:'B', 3:'C', 4:'D'}
+    imap = {1: 'A', 2: 'B', 3: 'C', 4: 'D'}
     data = _read_item(finp, "ITEM: ATOMS").split()[2:]
     # Determine how many variables are there
     n = len(data)
@@ -129,7 +129,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         v = "\nVelocities\n\n"
         for i, p in enumerate(system.particle):
             r += '%i %i %g %g %g\n' % tuple([i+1, p.id] + list(p.position))
-            v += '%i    %g %g %g\n' % tuple([i+1]       + list(p.velocity))
+            v += '%i    %g %g %g\n' % tuple([i+1] + list(p.velocity))
 
         f.write(m)
         f.write(r)
@@ -158,7 +158,6 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 
     def read_sample(self, sample):
         with open(self.files[sample], 'r') as fh:
-            #self._s = _lammps_parse_system_update(fh, self._s)
             _ = _lammps_parse_step(fh)
             s = _lammps_parse_system(fh)
         return s
@@ -193,7 +192,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
         v = "\nVelocities\n\n"
         for i, p in enumerate(system.particle):
             r += '%i %i %g %g %g\n' % tuple([i+1, p.id] + list(p.position))
-            v += '%i    %g %g %g\n' % tuple([i+1]       + list(p.velocity))
+            v += '%i    %g %g %g\n' % tuple([i+1] + list(p.velocity))
 
         f.write(m)
         f.write(r)

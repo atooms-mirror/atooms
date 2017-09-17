@@ -278,6 +278,7 @@ class TrajectoryHDF5(TrajectoryBase):
         n = self.trajectory['/initialstate/particle/number_of_particles'].value[0]
         rad = None
         for entry in group:
+            # TODO: refactor this
             if entry == 'identity': spe = group[entry][:]
             if entry == 'element': ele = group[entry][:]
             if entry == 'mass': mas = group[entry][:]

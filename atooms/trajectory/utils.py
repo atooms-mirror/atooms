@@ -34,7 +34,7 @@ def format_output(trj, fmt=None, include=None, exclude=None):
                     trj.fmt.remove(pattern)
         if include is not None:
             for pattern in include:
-                if not pattern in trj.fmt:
+                if pattern not in trj.fmt:
                     trj.fmt.append(pattern)
 
     return trj
@@ -253,7 +253,6 @@ def field(trajectory, trajectory_field, x_field, sample):
     x = []
     for pi in trajectory_field[index_field].particle:
         fi = getattr(pi, x_field)
-        #fi = [float(x) for x in fi.split(',')]
         x.append(fi)
     return x
 
