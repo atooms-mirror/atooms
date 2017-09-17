@@ -39,7 +39,7 @@ def format_output(trj, fmt=None, include=None, exclude=None):
 
     return trj
 
-def convert(inp, out, fout, tag='', force=True, fmt=None,
+def convert(inp, out, fout, force=True, fmt=None,
             exclude=None, include=None, steps=None):
     """
     Convert trajectory into a different format.
@@ -90,7 +90,7 @@ def convert(inp, out, fout, tag='', force=True, fmt=None,
 
     return fout
 
-def split(inp, selection=slice(None), index='step', archive=False):
+def split(inp, index='step', archive=False):
     """Split the trajectory into independent trajectory files, one per sample."""
     if archive:
         tar = tarfile.open(inp.filename + '.tar.gz', "w:gz")
@@ -335,7 +335,7 @@ def info(trajectory):
     txt += 'density              = %s\n' % round(trajectory[0].density, 10)
     txt += 'cell side            = %s\n' % trajectory[0].cell.side
     txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
-    if len(trajectory)>1:
+    if len(trajectory) > 1:
         txt += 'steps                = %s\n' % trajectory.steps[-1]
         txt += 'duration             = %s\n' % trajectory.times[-1]
         txt += 'timestep             = %s\n' % trajectory.timestep
@@ -349,86 +349,11 @@ def info(trajectory):
         txt += 'grandcanonical       = %s' % trajectory.grandcanonical
     print txt
 
-def benchmark_read(th, inp=None):
+def benchmark_read(th):
     from atooms.utils import Timer
-    from atooms.trajectory import Trajectory
     t = Timer()
     t.start()
-    for s in th:
+    for _ in th:
         pass
     t.stop()
     return t.wall_time, os.path.getsize(th.filename) / 1e6 / t.wall_time
-
-def main(file_inp, file_out, inp=None, out=None, folder=False,
-         precision=None, seed=None, side=None, rho=None,
-         temperature=None, alphabetic_ids=None, tag='', fmt=None,
-         fmt_include='', fmt_exclude='', ff=None, first=None,
-         last=None, skip=1):
-    """Convert trajectory `file_inp` to `file_out`."""
-    import random
-    from atooms import trajectory
-    from atooms.utils import fractional_slice
-
-    if file_out == '-':
-        file_out = '/dev/stdout'
-
-    if folder:
-        t = trajectory.folder.Foldered(file_inp, cls=inp)
-    else:
-        t = trajectory.Trajectory(file_inp, fmt=inp)
-
-    # If no output format is provided we use the input one
-    if out is None:
-        out_class = t.__class__
-    else:
-        out_class = out
-
-    if precision is not None:
-        t.precision = precision
-
-    if flatten_steps:
-        t.steps = range(1,len(t)+1)
-
-    # Reset random number generator
-    if seed:
-        random.seed(seed)
-
-    # Trick to allow some trajectory formats to set the box side.
-    # This way the cell is defined as we read the sample (callbacks
-    # will not do that).
-    if side is not None:
-        t._side = side
-
-    # Define slice.
-    # We interpret --first N --last N as a request of step N
-    if last == first and last is not None:
-        last += 1
-    sl = fractional_slice(first, last, skip, len(t))
-    # Here we could you a trajectory slice t[sl] but this will load
-    # everything in ram (getitem doesnt provide a generator). This
-    # will be fixed with python 3.
-    ts = trajectory.Sliced(t, sl)
-
-    # Change density and temperature
-    if rho is not None:
-        ts.register_callback(trajectory.decorators.set_density, rho)
-    if temperature is not None:
-        ts.register_callback(trajectory.decorators.set_temperature, temperature)
-
-    # We always normalize species id's using fortran convention
-    ts.register_callback(trajectory.decorators.normalize_id, alphabetic_ids)
-
-    # Trajectory conversion
-    fout = trajectory.convert(ts, out_class, file_out,
-                              tag=tag, fmt=fmt,
-                              include=fmt_include.split(','),
-                              exclude=fmt_exclude.split(','))
-
-    if ff:
-        from atooms.trajectory.hdf5 import add_interaction_hdf5
-        add_interaction_hdf5(fout, ff)
-
-    if file_out != '/dev/stdout':
-        print '%s' % fout
-
-    t.close()

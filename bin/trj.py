@@ -140,8 +140,7 @@ def main(args):
     if len(args.fmt_exclude) > 0:
         exclude_list = args.fmt_exclude.split(',')
     fout = trajectory.convert(ts, out_class, args.file_out,
-                              tag=args.tag, fmt=args.fmt,
-                              include=include_list,
+                              fmt=args.fmt, include=include_list,
                               exclude=exclude_list, steps=steps)
 
     if args.ff:
@@ -164,7 +163,6 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--fmt-inp', dest='inp', help='input format ')
     parser.add_argument('-o', '--fmt-out', dest='out', help='output format for conversion')
     parser.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
-    parser.add_argument('-t', '--tag', dest='tag', type=str, default='', help='tag to add before suffix')
     parser.add_argument('-F', '--ff', dest='ff', type=str, default='', help='force field file')
     parser.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
     parser.add_argument(      '--unfold',dest='unfold', action='store_true', help='unfold')

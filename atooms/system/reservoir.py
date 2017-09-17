@@ -44,4 +44,3 @@ class Reservoir(object):
         self.name = name
         self.chemical_potential = chemical_potential
         self.mass = mass
-

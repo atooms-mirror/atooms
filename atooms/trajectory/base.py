@@ -46,7 +46,8 @@ class TrajectoryBase(object):
     # write_init -> write_metadata
 
     # metadata is:
-    # read: dt, steps, cell (if invariant). Subclasses may have additional simulation info: integration algorithm etc
+    # read: dt, steps, cell (if invariant).
+    # Subclasses may have additional simulation info: integration algorithm etc
     # write, dt, cell (if invariant)
 
     # steps wants to become a property then.
@@ -137,7 +138,7 @@ class TrajectoryBase(object):
         self.write_sample(system, step)
         # Step is added last, sample index starts from 0 by default
         # If step is already there we overwrite (do not append)
-        if not step in self.steps:
+        if step not in self.steps:
             self.steps.append(step)
 
     def read_init(self):

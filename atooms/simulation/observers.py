@@ -277,7 +277,7 @@ class Speedometer(object):
             # We could store all this in __init__() but this
             # way we allow targeters added to simulation via add()
             for c in sim._callback:
-                if isinstance(c, Target):
+                if 'target' in c.__name__.lower():
                     self.name_target = c.name
                     self.x_target = c.target
                     self.t_last = time.time()

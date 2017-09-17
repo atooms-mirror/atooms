@@ -6,6 +6,7 @@
 import numpy
 import h5py
 import logging
+import copy
 
 from .base import TrajectoryBase
 from atooms.core import ndim
@@ -24,8 +25,8 @@ class _SafeFile(h5py.File):
     # TODO: decorate hdf5 class so that error messages contain the path of the offending file
     def create_group_safe(self, group):
         # TODO: recursively create all h5 groups that do not exist?
-        # TODO: actually redefine create_group unless this is a serious performace issue?
-        if not group in self:
+        # TODO: redefine create_group unless this is a serious performace issue?
+        if group not in self:
             self.create_group(group)
 
 def _get_cached_list_h5(fh, h5g, data):
@@ -42,43 +43,32 @@ def _write_datasets(fh, group, datasets):
     for name, dataset in datasets.items():
         fh[group + name] = dataset
 
-def add_interaction_hdf5(finp, ff, tag=None):
+def add_interaction_hdf5(finp, ff):
     """Add interaction to hdf5 file"""
     import os
     import glob
-    import h5py
 
     pid = os.getpid()
     f_ref = '/tmp/cnv_%s.h5' % pid
     # TODO: we can cache a ref file if ff is the same
     os.system('system.x -n 2 -f %s %s 1>/dev/null 2>/dev/null' % (ff, f_ref))
     ref = h5py.File(f_ref, 'r')
-
-    # TODO: can this tag de bropped?
-    if tag:
-        d = os.path.dirname(finp) + '_' + opts.tag
-        if not os.path.exists(d):
-            os.makedirs(d)
-        fout = d + '/' + os.path.basename(finp)
-    else:
-        fout = finp + '.bak'
+    fout = finp + '.bak'
 
     # Add interaction
     os.system('/bin/cp %s %s' % (finp, fout))
-    h5 = h5py.File(fout , 'r+')
+    h5 = h5py.File(fout, 'r+')
     # Make sure interaction does not exist
     try:
         del h5['initialstate/interaction']
     except:
         pass
     h5.copy(ref['initialstate/interaction'], 'initialstate/interaction')
-    h5.close()
-
-    if tag is None:
-        os.remove(finp)
-        os.rename(fout, finp)
 
     # Final cleanup
+    h5.close()
+    os.remove(finp)
+    os.rename(fout, finp)
     ref.close()
     for f in glob.glob(f_ref + '*'):
         os.remove(f)
@@ -152,9 +142,10 @@ class TrajectoryHDF5(TrajectoryBase):
         self.trajectory['trajectory/realtime/block_period'] = [value]
 
     def write_init(self, system):
+        from atooms.system.particle import species
         self.trajectory.create_group_safe('/initialstate')
         self.trajectory['DIMENSIONS'] = [3]
-        self.trajectory['NAME_SYS'] = ['Unknown'] #system.name
+        self.trajectory['NAME_SYS'] = ['Unknown']
         self.trajectory['VERSION_TRJ'] = ['1.2']
         self.trajectory['VERSION_MD'] = ['X.X.X']
 
@@ -164,11 +155,11 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory.create_group_safe(group)
             particle = system.particle
 
-            # Check that species id are ok (problems might arise when converting from RUMD
+            # Check that species id's start from one.
             if min([p.id for p in particle]) < 1:
-                raise ValueError('Particles ids are smaller than 1. Use NormalizeId decorator to fix this.')
+                raise ValueError('Particles ids < 1; use normalize_id')
 
-            particle_h5 = {'number_of_species': [len(list(set([p.id for p in particle])))], #particle.numberSpecies(),
+            particle_h5 = {'number_of_species': [len(species(particle))],
                            'number_of_particles': [len(particle)],
                            'identity': [p.id for p in particle],
                            'element': ['%3s' % p.name for p in particle],
@@ -184,8 +175,8 @@ class TrajectoryHDF5(TrajectoryBase):
         if system.matrix is not None:
             self.trajectory.create_group_safe(group)
             matrix = system.matrix
-            matrix_h5 = {'type' : [''],
-                         'id' : [0],
+            matrix_h5 = {'type': [''],
+                         'id': [0],
                          'number_of_species': [len(list(set([p.id for p in matrix])))],
                          'number_of_particles': [len(matrix)],
                          'identity': [p.id for p in matrix],
@@ -215,7 +206,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if type(system.interaction) is list:
                 raise TypeError('interaction must be list')
             self.trajectory.copy(system.interaction, '/initialstate/interaction/')
-            #self.write_interaction([system.interaction])
+            # self.write_interaction([system.interaction])
 
     def write_interaction(self, interaction):
         rgr = '/initialstate/interaction/'
@@ -230,7 +221,8 @@ class TrajectoryHDF5(TrajectoryBase):
         self.trajectory[rgr + 'number_of_interactions'] = [len(interaction)]
         for i, term in enumerate(interaction):
             igr = rgr + '/interaction_%d/' % (i+1)
-            self.trajectory.create_group_safe(igr) # numbering is from one to comply with atooms
+            # Numbering is fortran style for backward compatibility
+            self.trajectory.create_group_safe(igr)
             self.trajectory[igr + 'interaction_type'] = [term.name]
             self.trajectory[igr + 'number_of_potentials'] = [len(term.potential)]
             for j, phi in enumerate(term.potential):
@@ -262,7 +254,7 @@ class TrajectoryHDF5(TrajectoryBase):
             _log.error('error when writing step %s sample %s to file %s', step, sample, self.filename)
             raise
 
-        if system.particle != None:
+        if system.particle is not None:
             self.trajectory.create_group_safe('/trajectory/particle')
             if 'position' in self.fmt:
                 self.trajectory.create_group_safe('/trajectory/particle/position')
@@ -274,7 +266,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.trajectory.create_group_safe('/trajectory/particle/radius')
                 self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
 
-        if system.cell != None:
+        if system.cell is not None:
             self.trajectory.create_group_safe('/trajectory/cell')
             if 'cell' in self.fmt:
                 self.trajectory.create_group_safe('/trajectory/cell/sidebox')
@@ -287,15 +279,17 @@ class TrajectoryHDF5(TrajectoryBase):
         rad = None
         for entry in group:
             if entry == 'identity': spe = group[entry][:]
-            if entry == 'element' : ele = group[entry][:]
-            if entry == 'mass'    : mas = group[entry][:]
+            if entry == 'element': ele = group[entry][:]
+            if entry == 'mass': mas = group[entry][:]
             if entry == 'position': pos = group[entry][:]
             if entry == 'velocity': vel = group[entry][:]
-            if entry == 'radius'  : rad = group[entry][:]
+            if entry == 'radius': rad = group[entry][:]
         if rad is not None:
-            particle = [Particle(spe[i],ele[i],mas[i],pos[i,:],vel[i,:],rad[i]) for i in range(n)]
+            particle = [Particle(spe[i], ele[i], mas[i], pos[i, :],
+                                 vel[i, :], rad[i]) for i in range(n)]
         else:
-            particle = [Particle(spe[i],ele[i],mas[i],pos[i,:],vel[i,:]) for i in range(n)]
+            particle = [Particle(spe[i], ele[i], mas[i], pos[i, :],
+                                 vel[i, :]) for i in range(n)]
 
         # read cell
         group = self.trajectory['/initialstate/cell']
@@ -314,21 +308,22 @@ class TrajectoryHDF5(TrajectoryBase):
         self._system = System(particle, cell, interaction)
 
         # read matrix
-        if 'matrix' in  self.trajectory['/initialstate']:
+        if 'matrix' in self.trajectory['/initialstate']:
             group = self.trajectory['/initialstate/matrix']
             for entry in group:
                 if entry == 'identity': spe = group[entry][:]
-                if entry == 'element' : ele = group[entry][:]
-                if entry == 'mass'    : mas = group[entry][:]
+                if entry == 'element': ele = group[entry][:]
+                if entry == 'mass': mas = group[entry][:]
                 if entry == 'position': pos = group[entry][:]
-            matrix = [Particle(spe[i],ele[i],mas[i],pos[i,:]) for i in range(len(spe))]
+            matrix = [Particle(spe[i], ele[i], mas[i], pos[i, :])
+                      for i in range(len(spe))]
             self._system.matrix = copy.deepcopy(matrix)
 
         return self._system
 
     def read_interaction(self):
         # read interaction terms
-        if not 'interaction' in self.trajectory['/initialstate']:
+        if 'interaction' not in self.trajectory['/initialstate']:
             return None
 
         n = self.trajectory['/initialstate/interaction/number_of_interactions'][0]
@@ -340,7 +335,7 @@ class TrajectoryHDF5(TrajectoryBase):
             potentials = []
             for j in range(np):
                 sg = self.trajectory[g + 'potential_%d/' % (j+1)]
-                #params = {k:v for k, v in zip(sg['parameters_name'][:], sg['parameters'][:])}
+                # params = {k:v for k, v in zip(sg['parameters_name'][:], sg['parameters'][:])}
                 # make it compatible with 2.6
                 params = {}
                 for k, v in zip(sg['parameters_name'][:], sg['parameters'][:]):
@@ -363,7 +358,7 @@ class TrajectoryHDF5(TrajectoryBase):
         # read particles
         group = self.trajectory['/trajectory/particle']
         if unfolded:
-            if not 'position_unfolded' in group:
+            if 'position_unfolded' not in group:
                 raise NotImplementedError('cannot unfold like this, use decorator instead')
             else:
                 # fix for unfolded positions that were not written at the first step
@@ -378,7 +373,7 @@ class TrajectoryHDF5(TrajectoryBase):
         try:
             vel = group['velocity' + csample][:]
         except:
-            vel = numpy.zeros([len(pos),ndim])
+            vel = numpy.zeros([len(pos), ndim])
 
         # Dynamic properties
         p = []

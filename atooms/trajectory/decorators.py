@@ -6,14 +6,12 @@ Trajectory callbacks and class decorators.
 
 - "Callbacks" are simple functions that modify the `system` instance
   returned by `read_sample()`. They can be registered to `trajectory`
-  instance via `add_callback()`.  
+  instance via `add_callback()`.
 - "Class decorators" can be used for
   more complex modifications of trajectory behavior.
 """
 
-import random
 import numpy
-import copy
 
 __all__ = ['center', 'normalize_id', 'sort', 'filter_id',
            'set_density', 'set_temperature', 'fix_cm', 'fold',
@@ -23,7 +21,7 @@ __all__ = ['center', 'normalize_id', 'sort', 'filter_id',
 
 def center(system):
     """
-    Center particles in the simulation cell. 
+    Center particles in the simulation cell.
 
     It won't check if that is done multiple times.
     """
@@ -175,5 +173,3 @@ class Unfolded(object):
             s.particle[i].position = self._old[i][:]
 
         return s
-
-

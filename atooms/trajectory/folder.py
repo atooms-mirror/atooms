@@ -28,7 +28,7 @@ from atooms.trajectory.base import TrajectoryBase
 
 def init_folder(filename, file_pattern='*', step_pattern='(\d*)'):
     """
-    Initial setup in read mode. 
+    Initial setup in read mode.
 
     Filename can be a folder, a compressed tar file, a simple file.
     """
@@ -38,7 +38,7 @@ def init_folder(filename, file_pattern='*', step_pattern='(\d*)'):
         dirname = filename
         archive = False
         files = glob.glob(os.path.join(dirname, file_pattern))
-    else:            
+    else:
         # Trajectory is packed as a compressed tar file.
         # If so, configurations will be extracted inplace and deleted at the end.
         with tarfile.open(filename) as th:
@@ -93,7 +93,7 @@ class TrajectoryFolder(TrajectoryBase):
         else:
             self.dirname = filename
             self.archive = False
-            self.files, self.steps = [], []          
+            self.files, self.steps = [], []
 
     def close(self):
         if self.archive:

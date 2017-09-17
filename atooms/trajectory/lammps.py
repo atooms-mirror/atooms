@@ -3,7 +3,6 @@
 
 """LAMMPS trajectory format."""
 
-import os
 import numpy
 
 from .base import TrajectoryBase
@@ -13,19 +12,21 @@ from atooms.system.cell import Cell
 from atooms.system import System
 
 def _read_item(t, item):
+    """Parse generic `item`."""
     data = t.readline()
     if not item in data:
         raise ValueError('expecting "%s" got "%s" on %s' % (item, data, t.name))
     return data
 
 def _lammps_parse_step(finp):
-    # Read step
+    """Read step from `finp`."""
     data = _read_item(finp, 'ITEM: TIMESTEP')
     data = finp.readline()
     return int(float(data))
 
 def _lammps_parse_system(finp):
-    # Read Number of atoms
+    """Read system from `finp`."""
+    # Read number of particles
     data = _read_item(finp, 'ITEM: NUMBER OF ATOMS')
     data = finp.readline()
     npart = int(data)
@@ -33,11 +34,11 @@ def _lammps_parse_system(finp):
     # Read box
     data = _read_item(finp, "ITEM: BOX BOUNDS")
     ndim = len(data.split()[3:]) # line is ITEM: BOX BONDS pp pp pp
-    if len(data.split()) ==3 :
+    if len(data.split()) == 3:
         ndim = 3
-    L = []; offset = []
+    L, offset = [], []
     for i in range(ndim):
-        data = map(float, finp.readline().split())
+        data = [float(x) for x in finp.readline().split()]
         L.append(data[1] - data[0])
         offset.append(data[0])
     c = Cell(numpy.array(L))
@@ -48,7 +49,7 @@ def _lammps_parse_system(finp):
     # Determine how many variables are there
     n = len(data)
     ind = data.index('type')
-    # Index of x coordinate 
+    # Index of x coordinate
     try:
         ix = data.index('x')
     except ValueError:
@@ -64,16 +65,18 @@ def _lammps_parse_system(finp):
     data = ''.join(list(islice(finp, npart)))
     d = numpy.fromstring(data, sep=' ').reshape((npart, n))
     if ivx is not None:
-        p = [Particle(int(d[i, ind]), imap[int(d[i,ind])], mass=1.0, 
-                      position=d[i, ix:ix+3], velocity=d[i, ivx:ivx+3]) for i in xrange(npart)]
+        p = [Particle(int(d[i, ind]), imap[int(d[i, ind])], mass=1.0,
+                      position=d[i, ix: ix+3], velocity=d[i, ivx: ivx+3])
+             for i in xrange(npart)]
+
     else:
-        p = [Particle(int(d[i, ind]), imap[int(d[i,ind])], mass=1.0, 
-                      position=d[i, ix:ix+3]) for i in xrange(npart)]
-        
+        p = [Particle(int(d[i, ind]), imap[int(d[i, ind])], mass=1.0,
+                      position=d[i, ix: ix+3]) for i in xrange(npart)]
+
     for pi in p:
         pi.fold(c)
 
-    p.sort(key = lambda a : a.id)
+    p.sort(key=lambda a: a.id)
     return System(particle=p, cell=c)
 
 
@@ -89,7 +92,8 @@ class TrajectoryLAMMPS(TrajectoryBase):
         TrajectoryBase.__init__(self, filename, mode)
         self.steps = [0]
 
-    def read_sample(self, sample, unfolded=True):
+    def read_sample(self, sample):
+        # TODO: respect input sample
         with open(self.filename, 'r') as fh:
             _ = _lammps_parse_step(fh)
             s = _lammps_parse_system(fh)
@@ -152,7 +156,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
             step = _lammps_parse_step(fh)
         return step
 
-    def read_sample(self, sample, unfolded=True):
+    def read_sample(self, sample):
         with open(self.files[sample], 'r') as fh:
             #self._s = _lammps_parse_system_update(fh, self._s)
             _ = _lammps_parse_step(fh)
@@ -201,4 +205,5 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
         return
 
 # Note: to get the tabulated potential from a dump of potential.x do
-# > { echo -e "\nPOTENTIAL\nN 10000\n"; grep -v '#' /tmp/kalj.ff.potential.1-1 | awk '{printf "%i %g %12e %12e\n", NR, $1, $2, -$3}' ; }
+# > { echo -e "\nPOTENTIAL\nN 10000\n"; grep -v '#' /tmp/kalj.ff.potential.1-1 | \
+#    awk '{printf "%i %g %12e %12e\n", NR, $1, $2, -$3}' ; }
