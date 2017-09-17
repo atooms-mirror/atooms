@@ -33,7 +33,7 @@ class Barostat(object):
 
     def __init__(self, pressure, name='', mass=1.0):
         self.name = name
-        self.temperature = temperature
+        self.pressure = pressure
         self.mass = mass
 
 class Reservoir(object):
