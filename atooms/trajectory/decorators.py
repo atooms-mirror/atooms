@@ -1,7 +1,15 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Trajectory decorators."""
+"""
+Trajectory callbacks and class decorators.
+
+- "Callbacks" are simple functions that modify the `system` instance
+  returned by `read_sample()`. They can be registered to `trajectory`
+  instance via `add_callback()`.  
+- "Class decorators" can be used for
+  more complex modifications of trajectory behavior.
+"""
 
 import random
 import numpy
@@ -9,9 +17,7 @@ import copy
 
 __all__ = ['center', 'normalize_id', 'sort', 'filter_id',
            'set_density', 'set_temperature', 'fix_cm', 'fold',
-           'Centered', 'Sliced', 'Unfolded', 'MatrixFix',
-           'NormalizeId', 'Sorted', 'MatrixFlat', 'Filter',
-           'AffineDeformation']
+           'Sliced', 'Unfolded']
 
 # Callbacks
 
@@ -94,29 +100,6 @@ def fold(s):
 # asnwer by Alec Thomas. if we don't subclass at runtime we won't be able to use the decorated
 # mathod in other non-subclassed methods.
 
-class Centered(object):
-
-    """Center positions in the box on the fly."""
-
-    def __new__(cls, component):
-        cls = type('Centered', (Centered, component.__class__), component.__dict__)
-        return object.__new__(cls)
-
-    def __init__(self, component):
-        # Internal list of samples that were already centered.
-        self.__done = []
-
-    def read_sample(self, sample):
-        # If we have subtracted it yet, we return immediately
-        if sample in self.__done:
-            return
-        self.__done.append(sample)
-        s = super(Centered, self).read_sample(sample)
-        for p in s.particle:
-            p.position -= s.cell.side / 2.0
-        return s
-
-
 class Sliced(object):
 
     """Only return a slice of a trajectory."""
@@ -194,167 +177,3 @@ class Unfolded(object):
         return s
 
 
-# TODO: see if we can avoid reading anything on construction
-# TODO: how to better handle conversions between subclasses? We cannot use _convert() because we rely on close() method being called
-
-class MatrixFix(object):
-
-    # Subclass component at runtime
-    def __new__(cls, component, matrix_species):
-        cls = type('MatrixFix', (MatrixFix, component.__class__), component.__dict__)
-        return object.__new__(cls)
-
-    # Object initialization
-    def __init__(self, component, matrix_species):
-        self._component = component  # actually unnecessary
-        self.matrix_species = matrix_species
-
-    # def _init_read(self):
-    #     s = super(MatrixFix, self)._init_read()
-    #     matrix = []
-    #     fluid = []
-    #     for p in s.particle:
-    #         if p.id in self.matrix_species:
-    #             matrix.append(p)
-    #         else:
-    #             fluid.append(p)
-    #     s.particle = fluid
-    #     s.matrix = matrix
-    #     return s
-
-    def read_sample(self, *args, **kwargs):
-        s = super(MatrixFix, self).read_sample(*args, **kwargs)
-        # Get rid of matrix particles in trajectory
-        s.particle = [p for p in s.particle if p.id not in self.matrix_species]
-        return s
-
-
-class NormalizeId(object):
-
-    """Make sure all chemical ids start from 1"""
-
-    def __new__(cls, component):
-        cls = type('NormalizeId', (NormalizeId, component.__class__), component.__dict__)
-        return object.__new__(cls)
-
-    def __init__(self, component):
-        pass
-
-    def _normalize(self, pl):
-        pid = [p.id for p in pl]
-        id_min = numpy.min(pid)
-        if id_min == 0:
-            for p in pl:
-                p.id += 1
-        return pl
-
-    def read_sample(self, *args, **kwargs):
-        s = super(NormalizeId, self).read_sample(*args, **kwargs)
-        s.particle = self._normalize(s.particle)
-        return s
-
-
-class Sorted(object):
-
-    """Sort by species"""
-
-    def __new__(cls, component):
-        cls = type('Sorted', (Sorted, component.__class__), component.__dict__)
-        return object.__new__(cls)
-
-    def __init__(self, component):
-        pass
-
-    def read_sample(self, *args, **kwargs):
-        s = super(Sorted, self).read_sample(*args, **kwargs)
-        s.particle.sort(key=lambda a: a.id)
-        return s
-
-
-class MatrixFlat(object):
-
-    # Subclass component at runtime
-    def __new__(cls, component):
-        cls = type('MatrixFlat', (MatrixFlat, component.__class__), component.__dict__)
-        return object.__new__(cls)
-
-    # Object initialization
-    def __init__(self, component):
-        self._component = component  # actually unnecessary
-        self._matrix = None
-
-    def __setup_matrix(self, s):
-
-        if self._matrix is not None:
-            return
-
-        infinite_mass = 1e20
-        max_isp = max([p.id for p in s.particle])
-
-        self._matrix = []
-        for m in s.matrix:
-            self._matrix.append(m)
-            self._matrix[-1].mass = infinite_mass
-            self._matrix[-1].id += max_isp
-
-        # Sort matrix particles by index
-        self._matrix.sort(key=lambda a: a.id)
-
-    def read_sample(self, *args, **kwargs):
-        s = super(MatrixFlat, self).read_sample(*args, **kwargs)
-        self.__setup_matrix(s)
-        for m in self._matrix:
-            s.particle.append(m)
-        return s
-
-
-class Filter(object):
-
-    """Apply a filter that transforms each read sample in a trajectory"""
-
-    def __new__(cls, component, filt, *args, **kwargs):
-        cls = type('Filter', (Filter, component.__class__), component.__dict__)
-        return object.__new__(cls)
-
-    def __init__(self, component, filt, *args, **kwargs):
-        """filt is a function that receives a System and returns a modified version of it"""
-        import copy
-        self.filt = filt
-        self._args = args
-        self._kwargs = kwargs
-
-    def read_sample(self, sample):
-        sy = super(Filter, self).read_sample(sample)
-        # Apply filter to the system, that's all
-        # HACK!: when further decorating the class, the referenced
-        # function becomes a bound method of the decorated class and
-        # therefore passes the first argument (self). Workaround is
-        # to always expect a trajectory and forcibly add self if no
-        # further decorators are added.
-        # TODO: we should catch the right exception here, otherwise errors from the callbacks are caught here as well
-        try:
-            return self.filt(sy, *self._args, **self._kwargs)
-        except:
-            return self.filt(self, sy, *self._args, **self._kwargs)
-
-
-class AffineDeformation(object):
-
-    def __new__(cls, component, scale):
-        cls = type('AffineDeformation', (AffineDeformation, component.__class__),
-                   component.__dict__)
-        return object.__new__(cls)
-
-    def __init__(self, component, scale=0.01):
-        self.component = component
-        self.scale = scale
-
-    def read_sample(self, *args, **kwargs):
-        s = super(AffineDeformation, self).read_sample(*args, **kwargs)
-        # Note this random scaling changes every time read is called,
-        # even for the same sample
-        scale = 1 + (random.random()-0.5)*self.scale
-        s.cell.side *= scale
-        for p in s.particle:
-            p.position *= scale
-        return s
