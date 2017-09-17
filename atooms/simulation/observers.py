@@ -311,30 +311,3 @@ class Speedometer(object):
 
         self.t_last = t_now
         self.x_last = x_now
-
-
-# Deprecated observers
-
-class WriterConfig(object):
-
-    def __call__(self):
-        raise ImportError('WriterConfig is deprecated')
-
-class WriterThermo(object):
-
-    def __call__(self):
-        raise ImportError('WriterThermo is deprecated')
-
-class Target(object):
-
-    def __init__(self, name, value):
-        raise ImportError('Target class is deprecated')
-
-class TargetSteps(Target):
-    pass
-
-class TargetRMSD(Target):
-    pass
-
-class TargetWallTime(Target):
-    pass
