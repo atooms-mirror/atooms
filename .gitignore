@@ -15,6 +15,7 @@ build
 MANIFEST
 *.egg-info
 .coverage
+cover
 
 # Simulations
 rumd_timing_info.dat
