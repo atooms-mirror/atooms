@@ -7,6 +7,7 @@ import unittest
 from atooms.system import System
 from atooms.system.cell import Cell
 from atooms.system.particle import Particle
+from atooms.system.reservoir import Thermostat, Barostat, Reservoir
 
 class Test(unittest.TestCase):
 
@@ -16,6 +17,9 @@ class Test(unittest.TestCase):
         self.ref = System()
         self.ref.cell = Cell([L, L, L])
         self.ref.particle = []
+        self.ref.thermostat = Thermostat(1.0)
+        self.ref.barostat = Barostat(1.0)
+        self.ref.reservoir = Reservoir(1.0)
         while len(self.ref.particle) <= N:
             pos = [(random.random()-0.5) * L,
                    (random.random()-0.5) * L,
