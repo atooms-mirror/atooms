@@ -39,7 +39,7 @@ class Simulation(object):
 
     """Simulation base class."""
 
-    def __init__(self, backend=None, output_path=None, steps=0,
+    def __init__(self, backend, output_path=None, steps=0,
                  checkpoint_interval=0, enable_speedometer=False,
                  restart=False):
         """
@@ -66,8 +66,6 @@ class Simulation(object):
         # exist. This creates the data/ folder and its parents folders.
         if self.output_path is not None:
             mkdir(os.path.dirname(self.output_path))
-        if self.backend is None:
-            self.backend = DryRun()
 
         # Internal variables
         self._callback = []

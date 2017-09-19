@@ -17,23 +17,23 @@ class Test(unittest.TestCase):
 
     def test_no_output(self):
         # Disable writers completely
-        s = Simulation(output_path=None, steps=10, enable_speedometer=False)
+        s = Simulation(DryRun(), output_path=None, steps=10, enable_speedometer=False)
         s.run()
         self.assertEqual(len(s._non_targeters),0)
 
     def test_target(self):
-        s = Simulation(output_path='/tmp/test_simulation/trajectory', steps=100)
+        s = Simulation(DryRun(), output_path='/tmp/test_simulation/trajectory', steps=100)
         s.run()
 
     def test_target_restart(self):
         f='/tmp/test_simulation_restart/trajectory'
-        s=Simulation(output_path=f)
+        s=Simulation(DryRun(), output_path=f)
         s.add(write_thermo, Scheduler(20))
         s.run(100)
         data = numpy.loadtxt(f + '.thermo', unpack=True)
         self.assertEqual(int(data[0][-1]), 100)
 
-        s=Simulation(output_path=f, restart=True)
+        s=Simulation(DryRun(), output_path=f, restart=True)
         s.add(write_thermo, Scheduler(20))
         s.run(200)
         data = numpy.loadtxt(f + '.thermo', unpack=True)
@@ -41,7 +41,7 @@ class Test(unittest.TestCase):
 
     def test_target_restart_fake(self):
         f = '/tmp/test_simulation_restart/trajectory'
-        s=Simulation(output_path=f)
+        s=Simulation(DryRun(), output_path=f)
         #s.add(WriterThermo(), Scheduler(20))
         s.add(write_thermo, Scheduler(20))
         s.run(100)
@@ -67,7 +67,7 @@ class Test(unittest.TestCase):
         Test that system in Simulation tracks the one in the backend even
         when the latter is reassigned.
         """
-        s = Simulation(output_path=None, steps=10)
+        s = Simulation(DryRun(), output_path=None, steps=10)
         s.run()
         s.backend.system = None
         self.assertTrue(s.system is s.backend.system)
@@ -83,7 +83,7 @@ class Test(unittest.TestCase):
         class NewSimulation(Simulation):
 
             def __init__(self, sim, steps=0, output_path=None, restart=False):
-                Simulation.__init__(self, output_path=output_path,
+                Simulation.__init__(self, DryRun(), output_path=output_path,
                                     steps=steps, restart=restart)
                 self.sim = sim
 
