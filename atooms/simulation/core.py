@@ -52,6 +52,7 @@ class Simulation(object):
         glue is added in run_pre() to allow writers to cleanup their
         files.
         """
+        # TODO: can we tolerate a None backend?
         self.backend = backend
         self.restart = restart
         self.output_path = output_path
