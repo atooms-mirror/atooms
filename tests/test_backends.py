@@ -14,8 +14,8 @@ except ImportError:
     SKIP = True
 
 if not SKIP:
-    from atooms.simulation.rumd import System, Trajectory
-    from atooms.simulation.rumd import RumdBackend as Backend
+    from atooms.backends.rumd import System, Trajectory
+    from atooms.backends.rumd import Rumd as Backend
 
 xyz = """\
      3

@@ -4,7 +4,7 @@ import unittest
 import logging
 import numpy
 from atooms.simulation import Simulation, Scheduler, write_thermo
-from atooms.simulation.dryrun import DryRunBackend
+from atooms.backends.dryrun import DryRun
 from atooms.utils import setup_logging
 
 setup_logging(level=40)
@@ -94,7 +94,7 @@ class Test(unittest.TestCase):
                 self.sim.run()
                 self.steps = steps
 
-        sim = Simulation(DryRunBackend(), steps=3)
+        sim = Simulation(DryRun(), steps=3)
         new_sim = NewSimulation(sim, steps=1)
         new_sim.run()
         self.assertEqual(new_sim.steps, 1)

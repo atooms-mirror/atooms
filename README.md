@@ -88,11 +88,11 @@ Atooms has a generic simulation interface that abstracts out most of the common 
 This is a quick example how to run 10000 molecular dynamics steps using the [RUMD](http://rumd.org) backend:
 
 ```python
-from atooms.simulation.rumd import RumdBackend
+from atooms.backends.rumd import Rumd
 from atooms.simulation import Simulation
 
-backend = RumdBackend('rescaled.xyz.gz', forcefield_file='lj_rumd.ff', 
-                      output_path='/tmp/outdir', integrator='nve')
+backend = Rumd('rescaled.xyz.gz', forcefield_file='lj_rumd.ff', 
+               output_path='/tmp/outdir', integrator='nve')
 sim = Simulation(backend)
 sim.run(10000)
 print 'Final temperature and density', sim.system.temperature, sim.system.density

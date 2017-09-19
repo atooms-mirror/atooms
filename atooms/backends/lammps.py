@@ -45,7 +45,8 @@ class System(system.System):
         """Full calculation of potential energy."""
         return 0.0
 
-class LammpsBackend(object):
+
+class Lammps(object):
 
     def __init__(self, fileinp, commands):
         self.fileinp = fileinp

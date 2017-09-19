@@ -8,7 +8,7 @@ It just exposes a minimal backend interface.
 """
 
 
-class DryRunBackend(object):
+class DryRun(object):
 
     def __init__(self, system=None):
         self.system = system

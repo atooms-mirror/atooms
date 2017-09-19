@@ -27,7 +27,7 @@ import logging
 
 from atooms.core import __version__, __commit__, __date__
 from atooms.utils import mkdir, barrier
-from .dryrun import DryRunBackend
+from atooms.backends.dryrun import DryRun
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
 
 __all__ = ['Simulation']
@@ -67,7 +67,7 @@ class Simulation(object):
         if self.output_path is not None:
             mkdir(os.path.dirname(self.output_path))
         if self.backend is None:
-            self.backend = DryRunBackend()
+            self.backend = DryRun()
 
         # Internal variables
         self._callback = []

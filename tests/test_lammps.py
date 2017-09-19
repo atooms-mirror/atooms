@@ -5,7 +5,7 @@ import unittest
 from atooms.simulation import Simulation, write_thermo, write_config, target
 from atooms.utils import setup_logging
 try:
-    from atooms.simulation.backends import LammpsBackend
+    from atooms.backends.lammps import Lammps
     SKIP = False
 except ImportError:
     SKIP = True
@@ -28,7 +28,7 @@ class Test(unittest.TestCase):
         neigh_modify    every 20 delay 0 check no
         fix             1 all nve
         """
-        bck = LammpsBackend(self.input_file, cmd)
+        bck = Lammps(self.input_file, cmd)
         sim = Simulation(bck)
         sim.run(10)
         self.assertAlmostEqual(sim.system.particle[0].position[0], 3.64526, places=5)
