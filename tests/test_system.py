@@ -64,10 +64,8 @@ class Test(unittest.TestCase):
         from atooms.system.particle import overlaps
         system = copy.copy(self.ref)
         for p in system.particle:
-            p.radius = 0.1
+            p.radius = 1e-10
         pos = copy.copy(system.particle[1].position)
-        ov, ipart = overlaps(system.particle, system.cell)
-        self.assertFalse(ov)
         system.particle[0].position = pos
         ov, ipart = overlaps(system.particle, system.cell)
         self.assertTrue(ov)

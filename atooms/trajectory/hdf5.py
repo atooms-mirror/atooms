@@ -234,7 +234,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.trajectory[pgr + 'parameters_number'] = [len(phi.params)]
                 self.trajectory[pgr + 'parameters_name'] = sorted(phi.params.keys())
                 self.trajectory[pgr + 'parameters'] = [phi.params[k] for k in sorted(phi.params.keys())]
-                self.trajectory[pgr + 'cutoff_scheme'] = [phi.cutoff.name]
+                self.trajectory[pgr + 'cutoff_scheme'] = [phi.cutoff.scheme]
                 self.trajectory[pgr + 'cutoff_radius'] = [phi.cutoff.radius]
                 self.trajectory[pgr + 'lookup_points'] = [phi.npoints]
 
@@ -279,12 +279,18 @@ class TrajectoryHDF5(TrajectoryBase):
         rad = None
         for entry in group:
             # TODO: refactor this
-            if entry == 'identity': spe = group[entry][:]
-            if entry == 'element': ele = group[entry][:]
-            if entry == 'mass': mas = group[entry][:]
-            if entry == 'position': pos = group[entry][:]
-            if entry == 'velocity': vel = group[entry][:]
-            if entry == 'radius': rad = group[entry][:]
+            if entry == 'identity':
+                spe = group[entry][:]
+            if entry == 'element':
+                ele = group[entry][:]
+            if entry == 'mass':
+                mas = group[entry][:]
+            if entry == 'position':
+                pos = group[entry][:]
+            if entry == 'velocity':
+                vel = group[entry][:]
+            if entry == 'radius':
+                rad = group[entry][:]
         if rad is not None:
             particle = [Particle(spe[i], ele[i], mas[i], pos[i, :],
                                  vel[i, :], rad[i]) for i in range(n)]
@@ -312,10 +318,14 @@ class TrajectoryHDF5(TrajectoryBase):
         if 'matrix' in self.trajectory['/initialstate']:
             group = self.trajectory['/initialstate/matrix']
             for entry in group:
-                if entry == 'identity': spe = group[entry][:]
-                if entry == 'element': ele = group[entry][:]
-                if entry == 'mass': mas = group[entry][:]
-                if entry == 'position': pos = group[entry][:]
+                if entry == 'identity':
+                    spe = group[entry][:]
+                if entry == 'element':
+                    ele = group[entry][:]
+                if entry == 'mass':
+                    mas = group[entry][:]
+                if entry == 'position':
+                    pos = group[entry][:]
             matrix = [Particle(spe[i], ele[i], mas[i], pos[i, :])
                       for i in range(len(spe))]
             self._system.matrix = copy.deepcopy(matrix)
@@ -346,7 +356,7 @@ class TrajectoryHDF5(TrajectoryBase):
                                   sg['lookup_points'][0])
 
                 potentials.append(p)
-            interactions.append(Interaction(name, potentials))
+            interactions.append(Interaction(potentials, name))
         return interactions
 
     def read_sample(self, sample, unfolded=False):

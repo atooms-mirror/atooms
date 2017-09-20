@@ -15,6 +15,12 @@ The Lennard-Jones potential:
 
 from math import sqrt
 
+__all__ = ['constant', 'lennard_jones', 'harmonic_sphere']
+
+def constant(rsq, epsilon):
+    """Constant potential."""
+    return epsilon, 0.0, 0.0
+
 def lennard_jones(rsq, epsilon, sigma):
     """
     Lennard-Jones potential.
@@ -27,16 +33,9 @@ def lennard_jones(rsq, epsilon, sigma):
     h = 0.0
     return u, w, h
 
-# Alias
-
-LJ = lennard_jones
-
-def constant(rsq, epsilon):
-    """Constant potential."""
-    return epsilon, 0.0, 0.0
-
 def harmonic_sphere(rsq, epsilon, sigma):
-    """Harmonic sphere potential.
+    """
+    Harmonic sphere potential.
 
     u(r) = 0.5 * epsilon * [1-(r/sigma)]**2 if r<=sigma else 0
     """

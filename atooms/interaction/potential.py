@@ -5,8 +5,7 @@
 
 import numpy
 
-from cutoff import CutOff
-from pair_potentials import *
+from .library import *
 
 # Potentials factory
 
@@ -15,7 +14,8 @@ _factory = {}
 def update(module, factory):
     import sys
     import inspect
-    for name, func in inspect.getmembers(sys.modules[module], inspect.isfunction):
+    for name, func in inspect.getmembers(sys.modules[module],
+                                         inspect.isfunction):
         if name is not 'update':
             factory[name] = func
 
@@ -28,7 +28,8 @@ class PairPotential(object):
 
     interacting_bodies = 2
 
-    def __init__(self, func, params, species, cutoff=None, hard_core=0.0, npoints=20000):
+    def __init__(self, func, params, species, cutoff=None,
+                 hard_core=0.0, npoints=20000):
         """
         If `func` is a function, it will be used it to compute the
         potential u(r) and its derivatives. `func` takes the squared
@@ -85,9 +86,9 @@ class PairPotential(object):
             u = self.func(self.cutoff.radius**2, **self.params)
             self.cutoff.tailor(self.cutoff.radius**2, u)
 
-    def tabulate(self, npoints=None, rmin=0.01, rmax=None):
+    def tabulate(self, npoints=None, rmax=None):
         """
-        Tabulate the potential from `rmin` to `rmax`.
+        Tabulate the potential from 0 to `rmax`.
 
         The potential cutoff is only used to determine `rmax` if this
         is not given. The full potential is tabulated, it is up to the

@@ -2,35 +2,53 @@
 # Copyright 2010-2014, Daniele Coslovich
 
 """
-Individual particles interact via a `Potential`. A simple example is a
-two-body potential that depends only on the scalar distance between
-two particles. The potentials can be cut off and smoothed by a
-`CutOff`. `Interaction` accounts for the total interaction of all the
-particles in a system (order N^2 calculation).
+Base interaction class.
+
+Actual backends should implement this interface.
 """
 
-class InteractionBase(object):
+class Interaction(object):
 
-    def __init__(self, name, potential):
-        self.name = name
+    def __init__(self, potential, name=''):
+        """
+        The interaction is calculated given a set of potentials.
+
+        - `potential` is a list of `Potential` instances.
+        - `name` is a string tag that can be used to distinguish
+        different interaction instances.
+        """
         self.potential = potential
-        self.total_energy = 0.0
-        self.total_virial = 0.0
-        self.total_stress = None  # this will be ndim,ndim dimensional numpy array
+        self.name = name
+        self.forces = None
+        self.energy = 0.0
+        self.virial = 0.0
+        self.stress = None  # this will be (ndim,ndim) numpy array
+        self.hessian = None
 
-# InteractionTerm is just an interface and does not need any python implementation.
-# System will simply return a list : system.interaction_terms
+    def compute(self, observable, particle, cell):
+        """
+        Compute interaction between `particle` instances in a `cell`.
 
-# factory method
-
-__factory_map = {'base': InteractionBase}
-
-def Interaction(name, *args, **kwargs):
-
-    """ Factory class shortcut """
-
-    if name not in __factory_map:
-        return InteractionBase(name, *args, **kwargs)
-        # raise ValueError('unknown class %s', name)
-    else:
-        return __factory_map.get(name)(name, *args, **kwargs)
+        At a minimum, `observable` can take the following values:
+        `energy`, `forces`, `stress`. Note that each of these
+        observables imply the ones preceeding it, e.g. computing
+        forces implies energy calculation. The following observables
+        are set to `None`.
+        """
+        if what == 'energy':
+            self.energy = 0.0
+            self.virial = None
+            self.stress = None
+            self.forces = None
+        elif what == 'forces':
+            self.energy = 0.0
+            self.virial = 0.0
+            self.stress = None
+            self.forces = numpy.zeros((len(particle), len(cell.side)))
+        elif what == 'stress':
+            self.energy = 0.0
+            self.virial = 0.0
+            self.stress = numpy.zeros((len(cell.side), len(cell.side)))
+            self.forces = numpy.zeros((len(particle), len(cell.side)))
+        else:
+            raise ValueError('unsupported observable %s' % observable)
