@@ -125,7 +125,7 @@ class System(object):
         particle.
         """
         if self.interaction is not None:
-            self.interaction.compute(self.particle, self.cell, self.interaction)
+            self.interaction.compute(self.particle, self.cell)
             if not normed:
                 return self.interaction.energy
             else:
