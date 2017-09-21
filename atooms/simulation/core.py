@@ -49,12 +49,13 @@ class Simulation(object):
         glue is added in run_pre() to allow writers to cleanup their
         files.
         """
-        # TODO: can we tolerate a None backend?
         self.backend = backend
         self.restart = restart
         self.output_path = output_path
+        # TODO: use steps for the target steps, current_step instead of steps
         self.max_steps = steps
-        self.enable_speedometer = enable_speedometer
+        self.steps = 0
+        self.initial_step = 0
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
         self._targeter_steps = target_steps
         self._cbk_params = {}  # hold scheduler and parameters of callbacks
@@ -65,22 +66,19 @@ class Simulation(object):
         if self.output_path is not None:
             mkdir(os.path.dirname(self.output_path))
 
-        # Internal variables
-        self._callback = []
-        self.steps = 0
-        self.initial_steps = 0
-        self.start_time = time.time()
+        # We expect subclasses to keep a ref to the trajectory object
+        # self.trajectory used to store configurations
         self.trajectory = self.backend.trajectory
 
-        self.speedometer = None
+        # Internal variables
+        self._callback = []
+        self._start_time = time.time()
+        self._speedometer = None
         if enable_speedometer:
-            self.speedometer = Speedometer()
-            self.add(self.speedometer, Scheduler(None, calls=20,
-                                                 target=self.max_steps))
+            self._speedometer = Speedometer()
+            self.add(self._speedometer, Scheduler(None, calls=20,
+                                                  target=self.max_steps))
 
-    # We expect subclasses to keep a ref to the trajectory object
-    # self.trajectory used to store configurations, although this is
-    # not used in base class.
 
     # Note that setting this as a reference in the instance, like
     #   self.system = self.backend.system
@@ -102,11 +100,7 @@ class Simulation(object):
 
     @property
     def base_path(self):
-        # TODO: this if is not needed. If output_path is None, writers should never be called and simply disabled.
-        if self.output_path is None:
-            return None
-        else:
-            return os.path.splitext(self.output_path)[0]
+        return os.path.splitext(self.output_path)[0]
 
     def add(self, callback, scheduler, *args, **kwargs):
         """
@@ -133,11 +127,9 @@ class Simulation(object):
 
         # Store scheduler, callback and its arguments
         # in a separate dict (NOT in the function object itself!)
-        # TODO: it would be better to use a local Observer class to pack the scheduler along with the callback.
-        self._cbk_params[callback] = {}
-        self._cbk_params[callback]['scheduler'] = scheduler
-        self._cbk_params[callback]['args'] = args
-        self._cbk_params[callback]['kwargs'] = kwargs
+        self._cbk_params[callback] = {'scheduler': scheduler, 
+                                      'args': args, 
+                                      'kwargs': kwargs}
 
         # Keep targeters last
         if 'target' not in callback.__name__.lower():
@@ -153,7 +145,7 @@ class Simulation(object):
         else:
             log.debug('attempt to remove inexistent callback %s (dont worry)', callback)
 
-    def notify(self, observers):
+    def _notify(self, observers):
         for observer in observers:
             log.debug('notify %s at step %d', observer, self.steps)
             args = self._cbk_params[observer]['args']
@@ -187,7 +179,7 @@ class Simulation(object):
             return 0.0
 
     def elapsed_wall_time(self):
-        return time.time() - self.start_time
+        return time.time() - self._start_time
 
     def wall_time_per_step(self):
         """
@@ -195,7 +187,7 @@ class Simulation(object):
 
         It can be subclassed by more complex simulation classes.
         """
-        return self.elapsed_wall_time() / (self.steps - self.initial_steps)
+        return self.elapsed_wall_time() / (self.steps - self.initial_step)
 
     def wall_time_per_step_particle(self):
         """Wall time per step and particle in seconds."""
@@ -215,7 +207,7 @@ class Simulation(object):
         Preliminary step before run_until() to deal with restart
         conditions.
         """
-        self.start_time = time.time()
+        self._start_time = time.time()
         if self.output_path is not None:
             self.backend.output_path = self.output_path
             if not self.restart:
@@ -267,12 +259,12 @@ class Simulation(object):
 
         try:
             # Before entering the simulation, check if we can quit right away
-            self.notify(self._targeters)
+            self._notify(self._targeters)
             # Then notify non targeters unless we are restarting
             if self.steps == 0:
-                self.notify(self._non_targeters)
+                self._notify(self._non_targeters)
             else:
-                self.notify(self._speedometers)
+                self._notify(self._speedometers)
             log.info('starting at step: %d', self.steps)
             log.info('')
             while True:
@@ -289,7 +281,7 @@ class Simulation(object):
 
                 # Observers should be sorted such that targeters are
                 # last to avoid cropping output files
-                self.notify(next_observers)
+                self._notify(next_observers)
                 if self.steps == next_checkpoint:
                     self.write_checkpoint()
 
