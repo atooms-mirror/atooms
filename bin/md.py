@@ -6,7 +6,7 @@ import sys
 import os
 from atooms.core import __version__, __commit__
 from atooms.simulation import Simulation, Scheduler, write_thermo, write_config
-from atooms.simulation.backends import RumdBackend
+from atooms.backends import RUMD
 from atooms.utils import setup_logging, report_parameters, report_command, mkdir, cp
 
 def main(params):
@@ -22,13 +22,15 @@ def main(params):
     mkdir(output_base)
     cp(params.forcefield, output_base + '.ff')
     cp(params.forcefield, output_base + '.chk.ff')
-    report_parameters(params.__dict__, output_base + '.params', '%s+%s' % (__version__, __commit__))
-    report_command(sys.argv[0], params.__dict__, ['output_dir'], output_base + '.cmd')
+    report_parameters(params.__dict__, output_base + '.params',
+                      '%s+%s' % (__version__, __commit__))
+    report_command(sys.argv[0], params.__dict__, ['output_dir'],
+                   output_base + '.cmd')
 
-    s = RumdBackend(params.input_file, params.forcefield,
-                    integrator=params.integrator,
-                    temperature=params.T, dt=params.dt,
-                    fixcm_interval=params.fixcm_interval)
+    s = RUMD(params.input_file, params.forcefield,
+             integrator=params.integrator,
+             temperature=params.T, dt=params.dt,
+             fixcm_interval=params.fixcm_interval)
 
     sa = Simulation(s, output_path=output_base,
                      checkpoint_interval=params.checkpoint_interval,
@@ -39,9 +41,13 @@ def main(params):
         s._suppress_all_output = False
         s._initialize_output = True
         s.rumd_simulation.sample.SetOutputDirectory(output_base)
-        s.rumd_simulation.SetOutputScheduling("energies", "linear", interval=params.thermo_interval)
-        s.rumd_simulation.SetOutputScheduling("trajectory", params.config_sampling, interval=params.config_interval)
-        s.rumd_simulation.SetOutputMetaData("trajectory", precision=6, virials=False)
+        s.rumd_simulation.SetOutputScheduling("energies", "linear",
+                                              interval=params.thermo_interval)
+        s.rumd_simulation.SetOutputScheduling("trajectory",
+                                              params.config_sampling,
+                                              interval=params.config_interval)
+        s.rumd_simulation.SetOutputMetaData("trajectory", precision=6,
+                                            virials=False)
         if params.config_interval > 0 and params.config_sampling == "logarithmic":
             s.rumd_simulation.SetBlockSize(params.config_interval)
         else:

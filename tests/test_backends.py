@@ -15,7 +15,7 @@ except ImportError:
 
 if not SKIP:
     from atooms.backends.rumd import System, Trajectory
-    from atooms.backends.rumd import Rumd as Backend
+    from atooms.backends.rumd import RUMD as Backend
 
 xyz = """\
      3
