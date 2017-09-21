@@ -75,14 +75,17 @@ class Simulation(object):
         self.speedometer = None
         if enable_speedometer:
             self.speedometer = Speedometer()
-            self.add(self.speedometer, Scheduler(None, calls=20, target=self.max_steps))
+            self.add(self.speedometer, Scheduler(None, calls=20,
+                                                 target=self.max_steps))
 
-    # We expect subclasses to keep a ref to the trajectory object self.trajectory
-    # used to store configurations, although this is not used in base class.
+    # We expect subclasses to keep a ref to the trajectory object
+    # self.trajectory used to store configurations, although this is
+    # not used in base class.
+
     # Note that setting this as a reference in the instance, like
     #   self.system = self.backend.system
-    # is unsafe because this won't follow the backend's system when the latter is
-    # reassigned as in
+    # is unsafe because this won't follow the backend's system when the 
+    # latter is reassigned as in
     #   self.backend.system = None
     # So we defined it as a property.
 
