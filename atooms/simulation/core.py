@@ -56,9 +56,9 @@ class Simulation(object):
         self.max_steps = steps
         self.steps = 0
         self.initial_step = 0
-        self._checkpoint_scheduler = Scheduler(checkpoint_interval)
-        self._targeter_steps = target_steps
-        self._cbk_params = {}  # hold scheduler and parameters of callbacks
+        # We expect subclasses to keep a ref to the trajectory object
+        # self.trajectory used to store configurations
+        self.trajectory = self.backend.trajectory
 
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
@@ -66,29 +66,26 @@ class Simulation(object):
         if self.output_path is not None:
             mkdir(os.path.dirname(self.output_path))
 
-        # We expect subclasses to keep a ref to the trajectory object
-        # self.trajectory used to store configurations
-        self.trajectory = self.backend.trajectory
-
         # Internal variables
         self._callback = []
         self._start_time = time.time()
         self._speedometer = None
+        self._checkpoint_scheduler = Scheduler(checkpoint_interval)
+        self._targeter_steps = target_steps
+        self._cbk_params = {}  # hold scheduler and parameters of callbacks
         if enable_speedometer:
             self._speedometer = Speedometer()
             self.add(self._speedometer, Scheduler(None, calls=20,
                                                   target=self.max_steps))
 
-
-    # Note that setting this as a reference in the instance, like
-    #   self.system = self.backend.system
-    # is unsafe because this won't follow the backend's system when the 
-    # latter is reassigned as in
-    #   self.backend.system = None
-    # So we defined it as a property.
-
     @property
     def system(self):
+        # Note that setting system as a reference in the instance, like
+        #   self.system = self.backend.system
+        # is unsafe because this won't follow the backend's system when the 
+        # latter is reassigned as in
+        #   self.backend.system = None
+        # So we defined it as a property.
         return self.backend.system
 
     @system.setter
@@ -165,10 +162,10 @@ class Simulation(object):
         return [o for o in self._callback if isinstance(o, Speedometer)]
 
     def write_checkpoint(self):
-        # Tolerate missing implementation
         try:
             self.backend.write_checkpoint()
         except AttributeError:
+            # Tolerate missing checkpoint implementation
             pass
 
     @property
@@ -179,6 +176,7 @@ class Simulation(object):
             return 0.0
 
     def elapsed_wall_time(self):
+        """Elapsed wall time in seconds."""
         return time.time() - self._start_time
 
     def wall_time_per_step(self):
@@ -187,15 +185,18 @@ class Simulation(object):
 
         It can be subclassed by more complex simulation classes.
         """
-        return self.elapsed_wall_time() / (self.steps - self.initial_step)
+        if self.steps - self.initial_step > 0:
+            return self.elapsed_wall_time() / (self.steps - self.initial_step)
+        else:
+            return float('nan')
 
     def wall_time_per_step_particle(self):
         """Wall time per step and particle in seconds."""
-        try:
-            # Be tolerant if there is no reference to system
+        if len(self.system.particle) > 0:
             return self.wall_time_per_step() / len(self.system.particle)
-        except AttributeError:
-            return 0.0
+        else:
+            # There is no reference to system
+            return float('nan')
 
     # Our template consists of two steps: run_pre() and run_until()
     # Typically a backend will implement the until method.
@@ -228,7 +229,8 @@ class Simulation(object):
         barrier()
 
     def run_until(self, steps):
-        """Run the simulation up to `steps`.
+        """
+        Run the simulation up to `steps`.
 
         Subclasses must set steps.
         """
@@ -238,7 +240,6 @@ class Simulation(object):
 
     def run(self, steps=None):
         """Run the simulation."""
-        # TODO: run() should return the system
         # If we are restaring we do not allow changing target steps on the fly.
         # because it might have side effects like non constant writing interval.
         if not self.restart or self.steps == 0:
@@ -247,11 +248,11 @@ class Simulation(object):
             self.steps = 0
             self.backend.steps = 0
 
-        # Targeter for max steps. Note that this will the replace an existing one.
+        # Targeter for max steps. This will the replace an existing one.
         self.add(self._targeter_steps, Scheduler(self.max_steps), self.max_steps)
         self.report_header()
         self.run_pre()
-        self.initial_steps = self.steps
+        self.initial_step = self.steps
         self.report()
         # Reinitialize speedometers
         for s in self._speedometers:
@@ -284,23 +285,15 @@ class Simulation(object):
                 self._notify(next_observers)
                 if self.steps == next_checkpoint:
                     self.write_checkpoint()
-
         except SimulationEnd:
             # Checkpoint configuration at last step
             self.write_checkpoint()
-            # We ignore errors due to performed steps being zero
-            try:
-                self._report_end()
-            except:
-                pass
-
+            self._report_end()
         except KeyboardInterrupt:
             pass
-
         except:
             log.error('simulation failed')
             raise
-
         finally:
             log.info('goodbye')
 
