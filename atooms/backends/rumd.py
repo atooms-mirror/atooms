@@ -20,7 +20,7 @@ from atooms.system.cell import Cell
 _log = logging.getLogger(__name__)
 
 
-class Rumd(object):
+class RUMD(object):
 
     # TODO: add switch to use RUMD checkpoint
 

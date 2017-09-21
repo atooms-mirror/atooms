@@ -5,7 +5,7 @@ import unittest
 from atooms.simulation import Simulation, write_thermo, write_config, target
 from atooms.utils import setup_logging
 try:
-    from atooms.backends.lammps import Lammps
+    from atooms.backends.lammps import LAMMPS
     SKIP = False
 except ImportError:
     SKIP = True
@@ -17,7 +17,8 @@ class Test(unittest.TestCase):
     def setUp(self):
         if SKIP:
             self.skipTest('missing LAMMPS')
-        self.input_file = os.path.join(os.path.dirname(__file__), '../data/lj_N1000_rho1.0.xyz')
+        self.input_file = os.path.join(os.path.dirname(__file__),
+                                       '../data/lj_N1000_rho1.0.xyz')
 
     def test_single(self):
         import sys
@@ -28,12 +29,14 @@ class Test(unittest.TestCase):
         neigh_modify    every 20 delay 0 check no
         fix             1 all nve
         """
-        bck = Lammps(self.input_file, cmd)
+        bck = LAMMPS(self.input_file, cmd)
         sim = Simulation(bck)
         sim.run(10)
-        self.assertAlmostEqual(sim.system.particle[0].position[0], 3.64526, places=5)
+        x = sim.system.particle[0].position[0]
+        self.assertAlmostEqual(x, 3.64526, places=5)
         sim.run(10)
-        self.assertAlmostEqual(sim.system.particle[0].position[0], 3.67598, places=5)
+        x = sim.system.particle[0].position[0]
+        self.assertAlmostEqual(x, 3.67598, places=5)
 
     def tearDown(self):
         pass

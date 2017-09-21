@@ -46,7 +46,7 @@ class System(system.System):
         return 0.0
 
 
-class Lammps(object):
+class LAMMPS(object):
 
     def __init__(self, fileinp, commands):
         self.fileinp = fileinp
