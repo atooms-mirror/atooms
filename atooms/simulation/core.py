@@ -30,8 +30,6 @@ from atooms.utils import mkdir, barrier
 from atooms.backends.dryrun import DryRun
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
 
-__all__ = ['Simulation']
-
 log = logging.getLogger(__name__)
 
 
