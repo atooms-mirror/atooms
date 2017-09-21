@@ -27,7 +27,6 @@ import logging
 
 from atooms.core import __version__, __commit__, __date__
 from atooms.utils import mkdir, barrier
-from atooms.backends.dryrun import DryRun
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
 
 log = logging.getLogger(__name__)
@@ -152,11 +151,11 @@ class Simulation(object):
             log.debug('attempt to remove inexistent callback %s (dont worry)', callback)
 
     def notify(self, observers):
-        for o in observers:
-            log.debug('notify %s at step %d', o, self.steps)
-            args = self._cbk_params[o]['args']
-            kwargs = self._cbk_params[o]['kwargs']
-            o(self, *args, **kwargs)
+        for observer in observers:
+            log.debug('notify %s at step %d', observer, self.steps)
+            args = self._cbk_params[observer]['args']
+            kwargs = self._cbk_params[observer]['kwargs']
+            observer(self, *args, **kwargs)
 
     @property
     def _targeters(self):
@@ -318,7 +317,7 @@ class Simulation(object):
         log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__)
         try:
             log.info('backend version: %s', self.backend.version)
-        except:
+        except AttributeError:
             pass
         log.info('simulation starts on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
         log.info('output path: %s', self.output_path)
