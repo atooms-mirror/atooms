@@ -23,7 +23,6 @@ try:
 except ImportError:
     pass
 from .ram import TrajectoryRam
-from .field import TrajectoryField
 
 from atooms.utils import NullHandler
 logging.getLogger(__name__).addHandler(NullHandler())

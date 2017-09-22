@@ -137,8 +137,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         f.close()
 
     def write_sample(self, system, step):
-        # We cannot write
-        return
+        pass
 
 
 class TrajectoryFolderLAMMPS(TrajectoryFolder):
