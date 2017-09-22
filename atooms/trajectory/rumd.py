@@ -68,6 +68,9 @@ class TrajectoryRUMD(TrajectoryXYZ):
         else:
             return 1.0
 
+    def write_timestep(self, value):
+        self._timestep = value
+
     def _comment_header(self, step, system):
 
         def first_of_species(system, isp):
