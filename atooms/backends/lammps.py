@@ -57,7 +57,6 @@ class LAMMPS(object):
                 self.commands = fh.read()
         self.system = System(fileinp, self.commands)
         self.trajectory = TrajectoryLAMMPS
-        self.steps = 0
 
     def __str__(self):
         return _version
@@ -66,13 +65,13 @@ class LAMMPS(object):
     def rmsd(self):
         return 0.0
 
+    def read_checkpoint(self):
+        pass
+
     def write_checkpoint(self):
-        return
+        pass
 
-    def run_pre(self, restart):
-        return
-
-    def run_until(self, steps):
+    def run(self, steps):
         # TODO: remove hard coded paths
         file_tmp = '/tmp/out.atom'
         # Update lammps startup file using self.system
@@ -92,7 +91,7 @@ read_data %s
 %s
 run %s
 write_dump all custom %s id type x y z vx vy vz modify sort id
-""" % (file_inp, self.commands, steps - self.steps, file_tmp)
+""" % (file_inp, self.commands, steps, file_tmp)
 
         # see https://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
         p = subprocess.Popen(['lammps'], shell=True,
@@ -104,4 +103,3 @@ write_dump all custom %s id type x y z vx vy vz modify sort id
 
         # Update internal reference to self.system
         self.system = System(file_tmp, self.commands)
-        self.steps = steps

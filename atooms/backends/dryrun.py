@@ -31,6 +31,9 @@ class DryRun(object):
     def run_until(self, steps):
         self.steps = steps
 
+    def run(self, steps):
+        pass
+
 
 class System(object):
 
