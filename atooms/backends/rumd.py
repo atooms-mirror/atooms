@@ -343,7 +343,7 @@ class System(object):
 
     @property
     def particle(self):
-        nmap = ['A', 'B', 'C', 'D']
+        # nmap = ['A', 'B', 'C', 'D']
         npart = self.sample.GetNumberOfParticles()
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
@@ -355,10 +355,13 @@ class System(object):
         ii = 0
         for i in range(nsp):
             ni = self.sample.GetNumberThisType(i)
-            spe[ii: ii + ni] = i + 1
-            name[ii: ii + ni] = nmap[i]
+            spe[ii: ii + ni] = i #+ 1
+            # name[ii: ii + ni] = nmap[i]
             ii += ni
-        p = [Particle(s, n, m, p, v) for s, n, m, p, v in zip(spe, name, mass, pos, vel)]
+        #p = [Particle(s, n, m, p, v) for s, n, m, p, v in zip(spe, name, mass, pos, vel)]
+        p = [Particle(species=spe, mass=mass, position=pos,
+                      velocity=vel) for spe, mass, pos, vel in
+             zip(spe, mass, pos, vel)]
         for pi, i in zip(p, ima):
             pi.periodic_image = i
         return p
