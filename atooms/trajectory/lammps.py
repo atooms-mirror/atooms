@@ -65,12 +65,13 @@ def _lammps_parse_system(finp):
     data = ''.join(list(islice(finp, npart)))
     d = numpy.fromstring(data, sep=' ').reshape((npart, n))
     if ivx is not None:
-        p = [Particle(int(d[i, ind]), imap[int(d[i, ind])], mass=1.0,
+        #imap[int(d[i, ind])], 
+        p = [Particle(species=d[i, ind], mass=1.0,
                       position=d[i, ix: ix+3], velocity=d[i, ivx: ivx+3])
              for i in xrange(npart)]
 
     else:
-        p = [Particle(int(d[i, ind]), imap[int(d[i, ind])], mass=1.0,
+        p = [Particle(species=d[i, ind], mass=1.0,
                       position=d[i, ix: ix+3]) for i in xrange(npart)]
 
     for pi in p:
@@ -131,7 +132,6 @@ class TrajectoryLAMMPS(TrajectoryBase):
             r += '%s %s %g %g %g\n' % tuple([i+1, p.species] + list(p.position))
             v += '%s    %g %g %g\n' % tuple([i+1] + list(p.velocity))
 
-        print m
         f.write(m)
         f.write(r)
         f.write(v)

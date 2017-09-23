@@ -104,6 +104,5 @@ write_dump all custom %s id type x y z vx vy vz modify sort id
             print stdout.decode()
 
         # Update internal reference to self.system
-        print open(file_tmp).read()
         self.system = System(file_tmp, self.commands)
         self.steps = steps
