@@ -99,6 +99,9 @@ write_dump all custom %s id type x y z vx vy vz modify sort id
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE)
         stdout = p.communicate(input=cmd)[0]
+        code = p.returncode
+        if code != 0:
+            raise RuntimeError(stdout)
         if self.verbose:
             print stdout.decode()
 
