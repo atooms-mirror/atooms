@@ -31,6 +31,8 @@ class Test(unittest.TestCase):
         """
         bck = LAMMPS(self.input_file, cmd)
         sim = Simulation(bck)
+        x = sim.system.particle[0].position[0]
+        self.assertAlmostEqual(x, 3.62635, places=5)
         sim.run(10)
         x = sim.system.particle[0].position[0]
         self.assertAlmostEqual(x, 3.64526, places=5)
