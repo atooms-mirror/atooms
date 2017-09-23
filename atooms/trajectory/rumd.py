@@ -7,7 +7,7 @@ import os
 import re
 import glob
 
-from atooms.system.particle import species
+from atooms.system.particle import distinct_species
 from atooms.trajectory.xyz import TrajectoryXYZ
 from atooms.trajectory import SuperTrajectory
 
@@ -80,7 +80,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
                     return i
             raise ValueError('no species %d found in system' % isp)
 
-        sp = species(system.particle)
+        sp = distinct_species(system.particle)
         mass = [system.particle[first_of_species(system, isp)].mass for isp in sp]
         hdr = 'ioformat=1 dt=%g timeStepIndex=%d boxLengths=' + \
               '%.12f,%.12f,%.12f' + \
@@ -89,7 +89,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
         return hdr % tuple([self.timestep, step] + list(system.cell.side) + [len(sp)] + mass)
 
     def write_sample(self, system, step):
-        sp = species(system.particle)
+        sp = distinct_species(system.particle)
         self.trajectory.write("%d\n" % len(system.particle))
         self.trajectory.write(self._comment_header(step, system))
         ndim = len(system.particle[0].position)

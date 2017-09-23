@@ -135,7 +135,7 @@ def cm_position(particle):
         mtot += p.mass
     return rcm / mtot
 
-def species(particles):
+def distinct_species(particles):
     """Return list of distinct `species` of `particles`."""
     return list(sorted(set([p.species for p in particles])))
 

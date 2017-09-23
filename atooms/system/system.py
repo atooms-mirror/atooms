@@ -39,10 +39,9 @@ class System(object):
         """
         return len(self.particle[0].position)
 
-    @property
-    def number_of_species(self):
-        """Number of distinct chemical species in the system."""
-        return len(set(p.species for p in self.particle))
+    def distinct_species(self):
+        """Number of distinct chemical species in the system."""        
+        return sorted(set(p.species for p in self.particle))
 
     @property
     def density(self):

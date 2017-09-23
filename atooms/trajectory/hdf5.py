@@ -142,7 +142,7 @@ class TrajectoryHDF5(TrajectoryBase):
         self.trajectory['trajectory/realtime/block_period'] = [value]
 
     def write_init(self, system):
-        from atooms.system.particle import species
+        from atooms.system.particle import distinct_species
         self.trajectory.create_group_safe('/initialstate')
         self.trajectory['DIMENSIONS'] = [3]
         self.trajectory['NAME_SYS'] = ['Unknown']
@@ -160,7 +160,7 @@ class TrajectoryHDF5(TrajectoryBase):
             # if min([p.id for p in particle]) < 1:
             #     raise ValueError('Particles ids < 1; use normalize_id')
 
-            particle_h5 = {'number_of_species': [len(species(particle))],
+            particle_h5 = {'number_of_species': [len(distinct_species(particle))],
                            'number_of_particles': [len(particle)],
                            #'identity': [p.id for p in particle],
                            # TODO: fix this though some periodic table
@@ -180,7 +180,7 @@ class TrajectoryHDF5(TrajectoryBase):
             matrix = system.matrix
             matrix_h5 = {'type': [''],
                          'id': [0],
-                         'number_of_species': [len(species(matrix))],
+                         'number_of_species': [len(distinct_species(matrix))],
                          'number_of_particles': [len(matrix)],
                          # TODO: fix this thorugh periodic table
                          #'identity': [p.id for p in matrix],

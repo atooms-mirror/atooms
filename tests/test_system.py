@@ -86,8 +86,8 @@ class Test(unittest.TestCase):
             p.species = 'B'
         for p in system.particle[10: 30]:
             p.species = 'C'
-        from atooms.system.particle import composition, species
-        self.assertEqual(species(system.particle), ['A', 'B', 'C'])
+        from atooms.system.particle import composition, distinct_species
+        self.assertEqual(distinct_species(system.particle), ['A', 'B', 'C'])
         self.assertEqual(composition(system.particle)['A'], npart - 30)
         self.assertEqual(composition(system.particle)['B'], 10)
         self.assertEqual(composition(system.particle)['C'], 20)
