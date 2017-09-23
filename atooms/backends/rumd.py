@@ -321,7 +321,10 @@ class System(object):
         return 2 * numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
 
     def mean_square_displacement(self, reference):
-        """ Compute the mean square displacement between actual sample and the reference sample """
+        """
+        Compute the mean square displacement between actual sample and the
+        reference sample.
+        """
         if reference.sample is self.sample:
             raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
 
@@ -355,10 +358,8 @@ class System(object):
         ii = 0
         for i in range(nsp):
             ni = self.sample.GetNumberThisType(i)
-            spe[ii: ii + ni] = i #+ 1
-            # name[ii: ii + ni] = nmap[i]
+            spe[ii: ii + ni] = i
             ii += ni
-        #p = [Particle(s, n, m, p, v) for s, n, m, p, v in zip(spe, name, mass, pos, vel)]
         p = [Particle(species=spe, mass=mass, position=pos,
                       velocity=vel) for spe, mass, pos, vel in
              zip(spe, mass, pos, vel)]
@@ -382,7 +383,9 @@ class Trajectory(object):
         self.close()
 
     def write(self, system, step):
-        """If step is not None, output will follow a folder-based logic and filename will be considered as the root folder
+        """
+        If step is not None, output will follow a folder-based logic and
+        filename will be considered as the root folder
         """
         if step is None:
             f = self.filename
