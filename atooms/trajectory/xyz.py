@@ -228,6 +228,7 @@ class TrajectoryXYZ(TrajectoryBase):
     suffix = 'xyz'
     callback_read = {'species': update_species,
                      'type': update_species,  # alias
+                     'name': update_species,  # alias
                      'id': update_species,  # alias
                      'tag': update_tag,
                      'radius': update_radius,
