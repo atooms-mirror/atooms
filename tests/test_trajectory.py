@@ -59,6 +59,15 @@ class Test(unittest.TestCase):
                 # print system.particle[1].name, self.system[i].particle[1].name
                 self.assertTrue(_equal(self.system[i], system, ignore))
 
+    def _write(self, cls, path=None):
+        """Write only"""
+        if path is None:
+            path = self.inpfile
+        with cls(path, 'w') as th:
+            th.write_timestep(1.0)
+            for i, system in enumerate(self.system):
+                th.write(self.system[i], i)
+
     def test_xyz(self):
         # TODO: mass is not written by xyz
         self._read_write(trj.TrajectoryXYZ, ignore=['mass'])
@@ -72,6 +81,21 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectoryRUMD, ignore=['id', 'name'])
         # TODO: add write_sample() to supertrajectory 
         #self._read_write(trj.SuperTrajectoryRUMD, self.inpdir, ignore=['id', 'name'])
+
+    def test_pdb(self):
+        self._write(trj.TrajectoryPDB)
+        reference = """\
+MODEL        0
+CRYST1    2.000    2.000    2.000     90     90     90 P 1           1
+HETATM    0             A       0.000   0.000   0.000  1.00  1.00             A
+HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
+MODEL        1
+CRYST1    2.000    2.000    2.000     90     90     90 P 1           1
+HETATM    0             A       0.000   0.000   0.000  1.00  1.00             A
+HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
+"""
+        output = open(self.inpfile).read()
+        self.assertTrue(output == reference)
 
     def tearDown(self):
         os.system('rm -rf /tmp/testtrj')
