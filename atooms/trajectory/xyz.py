@@ -115,13 +115,13 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         # TODO: use sets instead
         # We keep the id database sorted by name.
         for p in particle:
-            if p.name not in self._id_map:
-                self._id_map.append(p.name)
+            if p.species not in self._id_map:
+                self._id_map.append(p.species)
                 self._id_map.sort()
 
-        # Assign ids to particles according to the updated database
-        for p in particle:
-            p.id = self._id_map.index(p.name) + self._id_min
+        # # Assign ids to particles according to the updated database
+        # for p in particle:
+        #     p.id = self._id_map.index(p.species) + self._id_min
 
     def read_init(self):
         # Grab cell from the end of file if it is there
@@ -148,9 +148,9 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         particle = []
         for _ in range(meta['npart']):
             data = self.trajectory.readline().strip().split()
-            name = data[0]
+            species = data[0]
             r = numpy.array(data[1:4], dtype=float)
-            particle.append(Particle(name=name, position=r))
+            particle.append(Particle(species=species, position=r))
         self.update_id(particle)
 
         # Read cell
@@ -174,7 +174,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         ndim = len(system.particle[0].position)
         fmt = "%s" + ndim*" %14.6f" + "\n"
         for p in system.particle:
-            self.trajectory.write(fmt % ((p.name,) + tuple(p.position)))
+            self.trajectory.write(fmt % ((p.species,) + tuple(p.position)))
 
     def close(self):
         self.trajectory.close()
@@ -191,8 +191,8 @@ def update_tag(particle, data, meta):
     particle.tag = data[0:]
     return data[1:]
 
-def update_name(particle, data, meta):
-    particle.name = data[0]
+def update_species(particle, data, meta):
+    particle.species = data[0]
     return data[1:]
 
 def update_position(particle, data, meta):
@@ -226,9 +226,9 @@ class TrajectoryXYZ(TrajectoryBase):
     """
 
     suffix = 'xyz'
-    callback_read = {'name': update_name,
-                     'type': update_name,  # alias
-                     'id': update_name,  # alias
+    callback_read = {'species': update_species,
+                     'type': update_species,  # alias
+                     'id': update_species,  # alias
                      'tag': update_tag,
                      'radius': update_radius,
                      'pos': update_position,
@@ -241,7 +241,7 @@ class TrajectoryXYZ(TrajectoryBase):
         # TODO: actualize fmt on reading if found and not given on input
         # TODO: clarify fmt / _fmt handling
         if fmt is None:
-            fmt = ['name', 'pos']
+            fmt = ['id', 'pos']
         self.fmt = fmt
         self._fmt = None
         self._fmt_float = True
@@ -255,8 +255,8 @@ class TrajectoryXYZ(TrajectoryBase):
                           'vx': 'velocity[0]',
                           'vy': 'velocity[1]',
                           'vz': 'velocity[2]',
-                          'id': 'name',
-                          'type': 'name'}
+                          'id': 'species',
+                          'type': 'species'}
         self._id_min = 1  # minimum integer for ids, can be modified by subclasses
         self._cell = None
         self._id_map = []  # list to map numerical ids (indexes) to chemical species (entries)
@@ -395,15 +395,16 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def update_id(self, particle):
         """Update chemical ids of *particle* list and global database id_map."""
+        # TODO: this can be dropped from here and moved up the chain
         # We keep the id database sorted by name.
         for p in particle:
-            if p.name not in self._id_map:
-                self._id_map.append(p.name)
+            if p.species not in self._id_map:
+                self._id_map.append(p.species)
                 self._id_map.sort()
 
-        # Assign ids to particles according to the updated database
-        for p in particle:
-            p.id = self._id_map.index(p.name) + self._id_min
+        # # Assign ids to particles according to the updated database
+        # for p in particle:
+        #     p.id = self._id_map.index(p.species) + self._id_min
 
     def update_mass(self, particle, metadata):
         """Fix the masses of *particle* list."""
@@ -413,7 +414,7 @@ class TrajectoryXYZ(TrajectoryBase):
             for key, value in zip(self._id_map, metadata['mass']):
                 mass_db[key] = value
             for p in particle:
-                p.mass = mass_db[p.name]
+                p.mass = mass_db[p.species]
         except KeyError:
             return
         except TypeError:

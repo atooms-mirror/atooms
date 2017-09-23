@@ -72,12 +72,25 @@ class Test(unittest.TestCase):
         self.assertEqual(ipart, [(0, 1)])
 
     def test_dump(self):
-        self.assertAlmostEqual(self.ref.dump('ids')[-1],
-                               self.ref.dump('particle.id')[-1])
+        self.assertAlmostEqual(self.ref.dump('spe')[-1],
+                               self.ref.dump('particle.species')[-1])
         self.assertAlmostEqual(self.ref.dump('pos')[-1][-1],
                                self.ref.dump('particle.position')[-1][-1])
         self.assertAlmostEqual(self.ref.dump('vel')[-1][-1],
                                self.ref.dump('particle.velocity')[-1][-1])
+
+    def test_species(self):
+        system = copy.copy(self.ref)
+        npart = len(system.particle)
+        for p in system.particle[0: 10]:
+            p.species = 'B'
+        for p in system.particle[10: 30]:
+            p.species = 'C'
+        from atooms.system.particle import composition, species
+        self.assertEqual(species(system.particle), ['A', 'B', 'C'])
+        self.assertEqual(composition(system.particle)['A'], npart - 30)
+        self.assertEqual(composition(system.particle)['B'], 10)
+        self.assertEqual(composition(system.particle)['C'], 20)
 
 if __name__ == '__main__':
     unittest.main()

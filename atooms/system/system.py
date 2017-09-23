@@ -42,7 +42,7 @@ class System(object):
     @property
     def number_of_species(self):
         """Number of distinct chemical species in the system."""
-        return len(set(p.id for p in self.particle))
+        return len(set(p.species for p in self.particle))
 
     @property
     def density(self):
@@ -204,7 +204,7 @@ class System(object):
 
         aliases = {'pos': 'particle.position',
                    'vel': 'particle.velocity',
-                   'ids': 'particle.id'}
+                   'spe': 'particle.species'}
 
         dump_db = {}
         for what, dtype in zip(what_list, dtype_list):

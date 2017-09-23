@@ -7,7 +7,7 @@ import numpy
 
 from .base import TrajectoryBase
 from .folder import TrajectoryFolder
-from atooms.system.particle import Particle
+from atooms.system.particle import Particle, species
 from atooms.system.cell import Cell
 from atooms.system import System
 
@@ -76,7 +76,7 @@ def _lammps_parse_system(finp):
     for pi in p:
         pi.fold(c)
 
-    p.sort(key=lambda a: a.id)
+    p.sort(key=lambda a: a.species)
     return System(particle=p, cell=c)
 
 
@@ -103,12 +103,12 @@ class TrajectoryLAMMPS(TrajectoryBase):
         f = open(self.filename + '.inp', 'w')
         np = len(system.particle)
         L = system.cell.side
-        nsp = system.number_of_species
+        sp = species(system.particle)
 
         # LAMMPS header
         h = '\n'
         h += "%i atoms\n" % np
-        h += "%i atom types\n" % nsp
+        h += "%i atom types\n" % len(sp)
         h += "%g %g  xlo xhi\n" % (-L[0]/2, L[0]/2)
         h += "%g %g  ylo yhi\n" % (-L[1]/2, L[1]/2)
         h += "%g %g  zlo zhi\n" % (-L[2]/2, L[2]/2)
@@ -117,20 +117,21 @@ class TrajectoryLAMMPS(TrajectoryBase):
         # LAMMPS body
         # Masses of species
         m = "\nMasses\n\n"
-        for isp in range(nsp):
+        for isp in sp:
             # Iterate over particles. Find instances of species and get masses
             for p in system.particle:
-                if p.id == isp+1:
-                    m += '%i %g\n' % (isp+1, p.mass)
+                if p.species == isp:
+                    m += '%s %g\n' % (isp, p.mass)
                     break
 
         # Atom coordinates
         r = "\nAtoms\n\n"
         v = "\nVelocities\n\n"
         for i, p in enumerate(system.particle):
-            r += '%i %i %g %g %g\n' % tuple([i+1, p.id] + list(p.position))
-            v += '%i    %g %g %g\n' % tuple([i+1] + list(p.velocity))
+            r += '%s %s %g %g %g\n' % tuple([i+1, p.species] + list(p.position))
+            v += '%s    %g %g %g\n' % tuple([i+1] + list(p.velocity))
 
+        print m
         f.write(m)
         f.write(r)
         f.write(v)
@@ -165,12 +166,12 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
         f = open(self.filename + '.inp', 'w')
         np = len(system.particle)
         L = system.cell.side
-        nsp = system.number_of_species
+        sp = species(system.particle)
 
         # LAMMPS header
         h = '\n'
         h += "%i atoms\n" % np
-        h += "%i atom types\n" % nsp
+        h += "%i atom types\n" % len(sp)
         h += "%g %g  xlo xhi\n" % (-L[0]/2, L[0]/2)
         h += "%g %g  ylo yhi\n" % (-L[1]/2, L[1]/2)
         h += "%g %g  zlo zhi\n" % (-L[2]/2, L[2]/2)
@@ -179,19 +180,19 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
         # LAMMPS body
         # Masses of species
         m = "\nMasses\n\n"
-        for isp in range(nsp):
+        for isp in sp:
             # Iterate over particles. Find instances of species and get masses
             for p in system.particle:
-                if p.id == isp+1:
-                    m += '%i %g\n' % (isp+1, p.mass)
+                if p.species == isp:
+                    m += '%s %g\n' % (isp, p.mass)
                     break
 
         # Atom coordinates
         r = "\nAtoms\n\n"
         v = "\nVelocities\n\n"
         for i, p in enumerate(system.particle):
-            r += '%i %i %g %g %g\n' % tuple([i+1, p.id] + list(p.position))
-            v += '%i    %g %g %g\n' % tuple([i+1] + list(p.velocity))
+            r += '%s %s %g %g %g\n' % tuple([i+1, p.species] + list(p.position))
+            v += '%s    %g %g %g\n' % tuple([i+1] + list(p.velocity))
 
         f.write(m)
         f.write(r)

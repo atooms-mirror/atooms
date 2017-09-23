@@ -98,10 +98,12 @@ write_dump all custom %s id type x y z vx vy vz modify sort id
         p = subprocess.Popen(['lammps'], shell=True,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE)
-        stdout = p.communicate(input=cmd)[0]
+        stdout = p.communicate(input=cmd)[0]        
+        # TODO: catch lammps errors
         if self.verbose:
             print stdout.decode()
 
         # Update internal reference to self.system
+        print open(file_tmp).read()
         self.system = System(file_tmp, self.commands)
         self.steps = steps
