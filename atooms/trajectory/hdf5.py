@@ -292,10 +292,10 @@ class TrajectoryHDF5(TrajectoryBase):
             if entry == 'radius':
                 rad = group[entry][:]
         if rad is not None:
-            particle = [Particle(spe[i], ele[i], mas[i], pos[i, :],
+            particle = [Particle(spe[i], ele[i].strip(), mas[i], pos[i, :],
                                  vel[i, :], rad[i]) for i in range(n)]
         else:
-            particle = [Particle(spe[i], ele[i], mas[i], pos[i, :],
+            particle = [Particle(spe[i], ele[i].strip(), mas[i], pos[i, :],
                                  vel[i, :]) for i in range(n)]
 
         # read cell

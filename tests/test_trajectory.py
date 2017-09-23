@@ -16,7 +16,7 @@ def _equal(system1, system2, ignore=None):
         check['position'] = all(p1.position == p2.position)
         check['mass'] = p1.mass == p2.mass
         check['id'] = p1.id == p2.id
-        check['name'] = p1.name.strip() == p2.name.strip()
+        check['name'] = p1.name == p2.name        
     check['side'] = all(system1.cell.side == system1.cell.side)
     for key in check:
         if ignore is not None and key in ignore:
@@ -31,10 +31,7 @@ class Test(unittest.TestCase):
     
     def setUp(self):
         import copy
-        # TODO: use species instead of separate id and name?
-        # TODO: mass is not written by 
-        # TODO: rumd changes indexing
-        # TODO: hdf5 should strip names
+        # TODO: use species instead of separate id and name
         particle = [Particle(position=[0.0, 0.0, 0.0], id=1, name='A', mass=1.0),
                     Particle(position=[1.0, 1.0, 1.0], id=2, name='B', mass=2.0),
                 ]
@@ -58,10 +55,12 @@ class Test(unittest.TestCase):
         with cls(path) as th:
             self.assertEqual(th.timestep, 1.0)
             for i, system in enumerate(th):
-                #print system.particle[0].id, system.particle[1].id
+                # print system.particle[0].name, self.system[i].particle[0].name
+                # print system.particle[1].name, self.system[i].particle[1].name
                 self.assertTrue(_equal(self.system[i], system, ignore))
 
     def test_xyz(self):
+        # TODO: mass is not written by xyz
         self._read_write(trj.TrajectoryXYZ, ignore=['mass'])
         self._read_write(trj.TrajectorySimpleXYZ, ignore=['mass'])
 
@@ -69,7 +68,9 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectoryHDF5)
 
     def test_rumd(self):
+        # RUMD uses integer ids only (no strings)
         self._read_write(trj.TrajectoryRUMD, ignore=['id', 'name'])
+        # TODO: add write_sample() to supertrajectory 
         #self._read_write(trj.SuperTrajectoryRUMD, self.inpdir, ignore=['id', 'name'])
 
     def tearDown(self):
