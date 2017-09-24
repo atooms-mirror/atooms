@@ -46,7 +46,12 @@ class RUMD(object):
         # We parse the forcefield file.
         # It should provide a list of potentials named forcefield
         if forcefield_file is not None:
-            self._parse_forcefield(forcefield_file)
+            with open(forcefield_file) as fh:
+                exec(fh.read())
+            if 'potential' not in locals():
+                raise ValueError('forcefield file should contain a list of potentials named potential')
+            for pot in potential:
+                self.rumd_simulation.AddPotential(pot)
         # Wrap some rumd integrators.
         if integrator is not None:
             if integrator in ['nvt', 'NVT']:
@@ -64,13 +69,10 @@ class RUMD(object):
         # Internal restart toggle
         self._restart = False
 
-    def _parse_forcefield(self, forcefield_file):
-        with open(forcefield_file) as fh:
-            exec(fh.read())
-        if 'potential' not in locals():
-            raise ValueError('forcefield file should contain a list of potentials named potential')
-        for pot in potential:
-            self.rumd_simulation.AddPotential(pot)
+        # This was in run_pre()
+        # TODO: we should make sure it works fine
+        if self.output_path is not None:
+            self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
 
     def _get_system(self):
         return System(self.rumd_simulation.sample)
@@ -104,102 +106,19 @@ class RUMD(object):
     def write_checkpoint(self):
         if self.output_path is None:
             _log.warning('output_path is not set so we cannot write checkpoint  %d', self.steps)
-            return
-        with Trajectory(self.output_path + '.chk', 'w') as t:
-            t.write(self.system, None)
-        with open(self.output_path + '.chk.step', 'w') as fh:
-            fh.write('%d' % self.steps)
+        else:
+            with Trajectory(self.output_path + '.chk', 'w') as t:
+                t.write(self.system, None)
 
     def read_checkpoint(self):
-        _log.debug('reading own restart file %s', self.output_path + '.chk')
         self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
-        with open(self.output_path + '.chk.step') as fh:
-            self.steps = int(fh.read())
         _log.info('restarting backend from step %d', self.steps)
 
-    def run_pre(self, restart):
-        # Copy of initial state. This way even upon repeated calls to
-        # run() we still get the right rmsd Note restart is handled
-        # after this, so sample here is really the initial one.
-        self._initial_sample = self.rumd_simulation.sample.Copy()
-        self._restart = restart
-        self._rumd_block_index = None
-
-        if self.output_path is not None:
-            self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
-
-        if not self._restart:
-            # We initialize RUMD writers state. Since we make 0 steps,
-            # this won't create the output dir Note: RUMD complains if
-            # we attempt to run some steps and we dont suppress output
-            # without initializing the writers.
-            self.rumd_simulation.Run(0, suppressAllOutput=True, initializeOutput=True)
-        else:
-            _log.debug('restart attempt')
-            if self.output_path is None:
-                _log.warn('it does not make sense to restart when writing is disabled')
-                return
-
-            if os.path.exists(self.output_path + '.chk'):
-                # Use our own checkpoint file. We ignore RUMD checkpoint
-                self.read_checkpoint()
-
-            elif os.path.exists(self.output_path + '/rumd/LastComplete_restart.txt'):
-                # Use RUMD checkpoint
-                # @thomas unfortunately RUMD does not seem to write the last restart
-                # when the simulation is over therefore the last block is always rerun
-                # RUMD restart file contains the block index (block_index)
-                # and the step within the block (nstep) of the most recent backup
-                _log.debug('reading rumd restart %s', self.output_path + '/rumd/LastComplete_restart.txt')
-                with open(self.output_path + '/rumd/LastComplete_restart.txt') as fh:
-                    ibl, nstep = fh.readline().split()
-                self._rumd_block_index = int(ibl)
-                self.steps = int(nstep) * int(ibl)
-                # Cleanup: delete old RUMD restart files
-                import glob
-                restart_files = glob.glob(self.output_path + '/rumd/restart*')
-                restart_files.sort()
-                for f in restart_files[:-1]:
-                    _log.debug('removing restart file %s', f)
-                    os.remove(f)
-            else:
-                _log.warn('restart requested but no checkpoint is found')
-
-    def run_until(self, steps):
-        # 1. suppress all RUMD output and use custom writers. PROS:
-        #    this way running batches of simulations will work without
-        #    rereading the restart file (everything stays in memory)
-        #    CONS: we loose native RUMD output, log-lin and we have to
-        #    pass through atooms trajectory (=> implement system interface)
-        #    or thorugh RUMD WriteSample with names after time steps
-        #    because WriteSample does not store step information!
-        # 2. keep RUMD output. PROS: no need to recalculate things
-        #    during the simulation, it should be more efficient from
-        #    this point of view. CONS: we must read restart files at
-        #    every batch. RUMD has a complicated output logic (blocks)
-
-        # If we use our own restart we must tell RUMD
-        # to run only the difference n-self.steps. However, if we use
-        # the native restart, we must keep n as is.
-        _log.debug('RUMD running from %d to %d steps', self.steps, steps)
-        if self._rumd_block_index is not None:
-            # Restart from RUMD checkpoint
-            self.rumd_simulation.Run(steps, restartBlock=self._rumd_block_index)
-        else:
-            # Not restarting or restart from our checkpoint.
-            if self._restart:
-                # We must toggle it here to prevent future calls to pre to restart. TODO: why??
-                self._restart = False
-            self.rumd_simulation.Run(steps - self.steps,
-                                     suppressAllOutput=self._suppress_all_output,
-                                     initializeOutput=self._initialize_output)
-            # If we are not supressing output and we are calling this
-            # repeatedly we probably do not want rumd to clear up its
-            # own files. Use case: keep rumd blocks for log time saving.
-            if not self._suppress_all_output:
-                self._initialize_output = False
-            self.steps = steps
-
+    def run(self, steps):
+        self.rumd_simulation.Run(steps,
+                                 suppressAllOutput=self._suppress_all_output,
+                                 initializeOutput=self._initialize_output)
+        self._initialize_output = False
 
 class Thermostat(object):
 
@@ -230,28 +149,11 @@ class Thermostat(object):
     temperature = property(_get_temperature, _set_temperature, 'Temperature')
 
 
-class MolecularDynamics(object):
-
-    """Wrap an integrator as MolecularDynamics."""
-
-    def __init__(self, integrator):
-        self._integrator = integrator
-
-    def _get_timestep(self):
-        return self._integrator.GetTimeStep()
-
-    def _set_timestep(self, value):
-        self._integrator.SetTimeStep(value)
-
-    timestep = property(_get_timestep, _set_timestep, 'Timestep')
-
-
 class System(object):
 
     def __init__(self, sample):
         self.sample = sample
         self.thermostat = Thermostat(self.sample.GetIntegrator())
-        self.dynamics = MolecularDynamics(self.sample.GetIntegrator())
 
     def __copy__(self):
         # This is not really needed, it's just there for reference

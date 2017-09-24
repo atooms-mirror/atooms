@@ -162,8 +162,21 @@ class Simulation(object):
         return [o for o in self._callback if isinstance(o, Speedometer)]
 
     def write_checkpoint(self):
+        if self.output_path is not None:
+            with open(self.output_path + '.chk.step', 'w') as fh:
+                fh.write('%d' % self.steps)
         try:
             self.backend.write_checkpoint()
+        except AttributeError:
+            # Tolerate missing checkpoint implementation
+            pass
+
+    def read_checkpoint(self):
+        if self.output_path is not None:
+            with open(self.output_path + '.chk.step') as fh:
+                self.steps = int(fh.read())
+        try:
+            self.backend.read_checkpoint()
         except AttributeError:
             # Tolerate missing checkpoint implementation
             pass
@@ -209,6 +222,7 @@ class Simulation(object):
         conditions.
         """
         self._start_time = time.time()
+        # TODO: This way the backend inherits the output path and no need to set it there. We could do it the other way round?
         if self.output_path is not None:
             self.backend.output_path = self.output_path
             if not self.restart:
@@ -220,12 +234,9 @@ class Simulation(object):
                     except AttributeError:
                         pass
 
-        self.backend.run_pre(self.restart)
-        # If backend has reset the step because of restart, we update
-        # it. Note that subclasses may overwrite this, because of
-        # their own restart handling.
-        if self.restart:
-            self.steps = self.backend.steps
+            if self.restart:
+                self.read_checkpoint()
+
         barrier()
 
     def run_until(self, steps):
@@ -234,8 +245,8 @@ class Simulation(object):
 
         Subclasses must set steps.
         """
-        self.backend.run_until(steps)
-        self.backend.steps = steps
+        self.backend.run(steps - self.steps)
+        #self.backend.steps = steps
         self.steps = steps
 
     def run(self, steps=None):
