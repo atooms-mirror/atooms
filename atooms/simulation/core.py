@@ -101,8 +101,7 @@ class Simulation(object):
 
     def add(self, callback, scheduler, *args, **kwargs):
         """
-        Register an observer `callback` to be called along with a
-        `scheduler`.
+        ASS an observer `callback` to be called along with a `scheduler`.
 
         `scheduler` and `callback` must be callables accepting a
         Simulation instance as unique argument. `scheduler` must
@@ -188,35 +187,34 @@ class Simulation(object):
         except AttributeError:
             return 0.0
 
-    def elapsed_wall_time(self):
+    def _elapsed_wall_time(self):
         """Elapsed wall time in seconds."""
         return time.time() - self._start_time
 
-    def wall_time_per_step(self):
+    def wall_time(self, per_step=False, per_particle=False):
         """
-        Wall time per step in seconds.
+        Elapsed wall time in seconds.
 
-        It can be subclassed by more complex simulation classes.
+        Optionally normalized per step and or per particle. It can be
+        subclassed by more complex simulation classes.
         """
-        if self.steps - self.initial_step > 0:
-            return self.elapsed_wall_time() / (self.steps - self.initial_step)
-        else:
-            return float('nan')
-
-    def wall_time_per_step_particle(self):
-        """Wall time per step and particle in seconds."""
+        norm = 1.0
         if len(self.system.particle) > 0:
-            return self.wall_time_per_step() / len(self.system.particle)
+            norm *= len(self.system.particle)
         else:
-            # There is no reference to system
             return float('nan')
+        if self.steps - self.initial_step > 0:
+            norm *= (self.steps - self.initial_step)
+        else:
+            return float('nan')
+        return self._elapsed_wall_time() / norm
 
     # Our template consists of two steps: run_pre() and run_until()
     # Typically a backend will implement the until method.
     # It is recommended to *extend* (not override) the base run_pre() in subclasses
     # TODO: when should checkpoint be read? The logic must be set here
     # Having a read_checkpoint() stub method would be OK here.
-    def run_pre(self):
+    def initialize(self):
         """
         Preliminary step before run_until() to deal with restart
         conditions.
@@ -261,10 +259,11 @@ class Simulation(object):
 
         # Targeter for max steps. This will the replace an existing one.
         self.add(self._targeter_steps, Scheduler(self.max_steps), self.max_steps)
-        self.report_header()
-        self.run_pre()
+        self._report_header()
+        self.initialize()
         self.initial_step = self.steps
-        self.report()
+        self._report()
+        self._report_observers()
         # Reinitialize speedometers
         for s in self._speedometers:
             s._init = False
@@ -308,7 +307,7 @@ class Simulation(object):
         finally:
             log.info('goodbye')
 
-    def report_header(self):
+    def _report_header(self):
         txt = '%s' % self
         log.info('')
         log.info(txt)
@@ -320,10 +319,6 @@ class Simulation(object):
             pass
         log.info('simulation starts on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
         log.info('output path: %s', self.output_path)
-
-    def report(self):
-        self._report()
-        self._report_observers()
 
     def _report(self):
         """Implemented by subclasses"""
@@ -340,8 +335,10 @@ class Simulation(object):
                 log.info('writer %s: interval=%s calls=%s', f.__name__, s.interval, s.calls)
 
     def _report_end(self):
-        log.info('simulation ended on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
+        now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
+        log.info('simulation ended on: %s', now)
         log.info('final steps: %d', self.steps)
         log.info('final rmsd: %.2f', self.rmsd)
-        log.info('wall time [s]: %.1f', self.elapsed_wall_time())
-        log.info('average TSP [s/step/particle]: %.2e', self.wall_time_per_step_particle())
+        log.info('wall time [s]: %.1f', self.wall_time())
+        log.info('average TSP [s/step/particle]: %.2e', 
+                 self.wall_time(per_step=True, per_particle=True))
