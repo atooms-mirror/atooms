@@ -7,6 +7,7 @@ import os
 import re
 import glob
 
+from atooms.system.particle import distinct_species
 from atooms.trajectory.xyz import TrajectoryXYZ
 from atooms.trajectory import SuperTrajectory
 
@@ -73,26 +74,33 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
     def _comment_header(self, step, system):
 
-        def first_of_species(system, isp):
+        def first_of_species(system, species):
             for i, p in enumerate(system.particle):
-                if p.id == isp:
+                if p.species == species:
                     return i
             raise ValueError('no species %d found in system' % isp)
 
-        nsp = set([p.id for p in system.particle])
-        mass = [system.particle[first_of_species(system, i)].mass for i in nsp]
-        hdr = 'ioformat=1 dt=%g timeStepIndex=%d boxLengths=' + '%.12f,%.12f,%.12f' + ' numTypes=%d mass=' + '%g,'*(len(nsp)) + ' columns=type,x,y,z,vx,vy,vz\n'
-        return hdr % tuple([self.timestep, step] + list(system.cell.side) + [len(nsp)] + mass)
+        sp = distinct_species(system.particle)
+        mass = [system.particle[first_of_species(system, isp)].mass for isp in sp]
+        hdr = 'ioformat=1 dt=%g timeStepIndex=%d boxLengths=' + \
+              '%.12f,%.12f,%.12f' + \
+              ' numTypes=%d mass=' + '%g,'*(len(sp)) + \
+              ' columns=type,x,y,z,vx,vy,vz\n'
+        return hdr % tuple([self.timestep, step] + list(system.cell.side) + [len(sp)] + mass)
 
     def write_sample(self, system, step):
-        # We need to redfine the id, because it expects numerical ids from 0 to nsp-1
-        # We get the smallest species id, which we will then subtract.
-        id_min = min([p.id for p in system.particle])
+        sp = distinct_species(system.particle)
         self.trajectory.write("%d\n" % len(system.particle))
         self.trajectory.write(self._comment_header(step, system))
         ndim = len(system.particle[0].position)
         for p in system.particle:
-            self.trajectory.write(("%s"+ndim*" %14.6f" + ndim*" %g " + "\n") % ((p.id-id_min,) + tuple(p.position) + tuple(p.velocity)))
+            # We get the integer index corresponding to species Ex.:
+            # if species are 'A', 'B' we get 0 and 1. Note that in
+            # general getting the sample back via read_sample() will
+            # not preserve the species.
+            isp = sp.index(p.species)
+            self.trajectory.write(("%s"+ndim*" %14.6f" + ndim*" %g " + "\n") % \
+                                  ((isp,) + tuple(p.position) + tuple(p.velocity)))
 
     def close(self):
         # We do not write the cell here in this format

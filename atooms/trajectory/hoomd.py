@@ -95,9 +95,9 @@ class TrajectoryHOOMD(TrajectoryBase):
         lab = map_label_id(typ)
 
         if vel is None:
-            particle = [Particle(name=t, id=lab[t], position=numpy.array(p)) for p, t in zip(pos, typ)]
+            particle = [Particle(species=t, position=numpy.array(p)) for p, t in zip(pos, typ)]
         else:
-            particle = [Particle(name=t, id=lab[t], position=numpy.array(p), velocity=numpy.array(v))
+            particle = [Particle(species=t, position=numpy.array(p), velocity=numpy.array(v))
                         for p, t, v in zip(pos, typ, vel)]
         cell = Cell(numpy.array(box))
         return System(particle, cell)
@@ -132,7 +132,7 @@ class TrajectoryHOOMD(TrajectoryBase):
 
         fh.write("<type num=\"%d\">\n" % n)
         for p in system.particle:
-            fh.write(("%s\n") % p.name)
+            fh.write(("%s\n") % p.species)
         fh.write("</type>\n")
 
         fh.write("""\

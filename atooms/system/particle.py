@@ -11,13 +11,13 @@ from atooms.core import ndim as _ndim
 
 class Particle(object):
 
-    def __init__(self, id=1, name='A', mass=1.0,
+    def __init__(self, species='A', mass=1.0,
                  position=numpy.zeros(_ndim),
                  velocity=numpy.zeros(_ndim), radius=0.5):
-        self.id = id
-        """An integer chemical id of the particle."""
-        self.name = name
-        """The name of the chemical species of the particle."""
+        #self.id = id
+        #self.name = name
+        """The chemical species of the particle."""
+        self.species = species
         self.mass = mass
         self.radius = radius
         self.position = numpy.asarray(position)
@@ -135,23 +135,20 @@ def cm_position(particle):
         mtot += p.mass
     return rcm / mtot
 
-def species(particles):
-    """Return list of distinct species (`id`) of `particles`."""
-    return list(set([p.id for p in particles]))
+def distinct_species(particles):
+    """Return list of distinct `species` of `particles`."""
+    return list(sorted(set([p.species for p in particles])))
 
 def composition(particles, nsp=None):
     """
-    Return a tuple containing the number of particles of each species
-    appearing the input `particles` list.
+    Return a dictionary containing the number of particles of each
+    species appearing the input `particles` list.
     """
-    # TODO: check id normalization
-    if nsp is None:
-        x = max([p.id for p in particles]) * [0]
-    else:
-        x = nsp * [0]
+    from collections import defaultdict
+    comp = defaultdict(int)
     for p in particles:
-        x[p.id - 1] += 1
-    return tuple(x)
+        comp[p.species] += 1
+    return comp
 
 def rotate(particle, cell):
     """

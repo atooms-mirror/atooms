@@ -142,7 +142,7 @@ class TrajectoryHDF5(TrajectoryBase):
         self.trajectory['trajectory/realtime/block_period'] = [value]
 
     def write_init(self, system):
-        from atooms.system.particle import species
+        from atooms.system.particle import distinct_species
         self.trajectory.create_group_safe('/initialstate')
         self.trajectory['DIMENSIONS'] = [3]
         self.trajectory['NAME_SYS'] = ['Unknown']
@@ -155,14 +155,17 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory.create_group_safe(group)
             particle = system.particle
 
-            # Check that species id's start from one.
-            if min([p.id for p in particle]) < 1:
-                raise ValueError('Particles ids < 1; use normalize_id')
+            # TODO: restore this check at some point
+            # # Check that species id's start from one.
+            # if min([p.id for p in particle]) < 1:
+            #     raise ValueError('Particles ids < 1; use normalize_id')
 
-            particle_h5 = {'number_of_species': [len(species(particle))],
+            particle_h5 = {'number_of_species': [len(distinct_species(particle))],
                            'number_of_particles': [len(particle)],
-                           'identity': [p.id for p in particle],
-                           'element': ['%3s' % p.name for p in particle],
+                           #'identity': [p.id for p in particle],
+                           # TODO: fix this though some periodic table
+                           'identity': [1 for p in particle],
+                           'element': ['%3s' % p.species for p in particle],
                            'mass': [p.mass for p in particle],
                            'radius': [p.radius for p in particle],
                            'position': [p.position for p in particle],
@@ -177,10 +180,12 @@ class TrajectoryHDF5(TrajectoryBase):
             matrix = system.matrix
             matrix_h5 = {'type': [''],
                          'id': [0],
-                         'number_of_species': [len(list(set([p.id for p in matrix])))],
+                         'number_of_species': [len(distinct_species(matrix))],
                          'number_of_particles': [len(matrix)],
-                         'identity': [p.id for p in matrix],
-                         'element': ['%3s' % p.name for p in matrix],
+                         # TODO: fix this thorugh periodic table
+                         #'identity': [p.id for p in matrix],
+                         'identity': [1 for p in matrix],
+                         'element': ['%3s' % p.species for p in matrix],
                          'mass': [p.mass for p in matrix],
                          'position': [p.position for p in matrix],
                          }
@@ -279,10 +284,11 @@ class TrajectoryHDF5(TrajectoryBase):
         rad = None
         for entry in group:
             # TODO: refactor this
-            if entry == 'identity':
-                spe = group[entry][:]
+            # TODO: identity is not used anymore
+            # if entry == 'identity':
+            #     spe = group[entry][:]
             if entry == 'element':
-                ele = group[entry][:]
+                spe = group[entry][:]
             if entry == 'mass':
                 mas = group[entry][:]
             if entry == 'position':
@@ -292,11 +298,13 @@ class TrajectoryHDF5(TrajectoryBase):
             if entry == 'radius':
                 rad = group[entry][:]
         if rad is not None:
-            particle = [Particle(spe[i], ele[i].strip(), mas[i], pos[i, :],
-                                 vel[i, :], rad[i]) for i in range(n)]
+            particle = [Particle(species=spe[i].strip(), mass=mas[i],
+                                 position=pos[i, :], velocity=vel[i, :],
+                                 radius=rad[i]) for i in range(n)]
         else:
-            particle = [Particle(spe[i], ele[i].strip(), mas[i], pos[i, :],
-                                 vel[i, :]) for i in range(n)]
+            particle = [Particle(species=spe[i].strip(), mass=mas[i],
+                                 position=pos[i, :], velocity=vel[i, :]) 
+                        for i in range(n)]
 
         # read cell
         group = self.trajectory['/initialstate/cell']
@@ -318,15 +326,17 @@ class TrajectoryHDF5(TrajectoryBase):
         if 'matrix' in self.trajectory['/initialstate']:
             group = self.trajectory['/initialstate/matrix']
             for entry in group:
-                if entry == 'identity':
-                    spe = group[entry][:]
+                # TODO: not used anymore
+                # if entry == 'identity':
+                #     spe = group[entry][:]
                 if entry == 'element':
-                    ele = group[entry][:]
+                    spe = group[entry][:]
                 if entry == 'mass':
                     mas = group[entry][:]
                 if entry == 'position':
                     pos = group[entry][:]
-            matrix = [Particle(spe[i], ele[i], mas[i], pos[i, :])
+            matrix = [Particle(species=spe[i].strip(), mass=mas[i], 
+                               position=pos[i, :])
                       for i in range(len(spe))]
             self._system.matrix = copy.deepcopy(matrix)
 
@@ -395,9 +405,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # TODO: optimize, this takes quite some additional time, almost x2
         for pi, r in zip(p, self._system.particle):
             # TODO: if id changes dynamically (like in swap) we will miss it. We should update them after this loop!
-            pi.id = r.id
             pi.mass = r.mass
-            pi.name = r.name
+            pi.species = r.species
             pi.radius = r.radius
 
         # Try update radii. This must be done after setting defaults.

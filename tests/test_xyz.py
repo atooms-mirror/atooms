@@ -182,10 +182,10 @@ B 2.9 -2.9 0.0
 """)
         with self.Trajectory(finp) as th:
             th._id_min = 1
-            self.assertEqual(th[0].particle[0].id, 2)
-            self.assertEqual(th[0].particle[1].id, 1)
-            self.assertEqual(th[1].particle[0].id, 3)
-            self.assertEqual(th[1].particle[1].id, 2)
+            self.assertEqual(th[0].particle[0].species, 'B')
+            self.assertEqual(th[0].particle[1].species, 'A')
+            self.assertEqual(th[1].particle[0].species, 'C')
+            self.assertEqual(th[1].particle[1].species, 'B')
 
     def test_xyz_mass(self):
         finp = '/tmp/test_meta.xyz'

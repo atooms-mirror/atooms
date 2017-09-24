@@ -27,7 +27,7 @@ class TrajectoryPDB(TrajectoryBase):
             else:
                 x = 1.0
             fmt = 'HETATM%5d          %4s    ' + 3*'%8.3f' + 2*'%6.2f' + '          %4s\n'
-            cfg += fmt % ((i, p.name) + tuple(p.position) + (1.0, x, p.name))
+            cfg += fmt % ((i, p.species) + tuple(p.position) + (1.0, x, p.species))
         self.trajectory.write(cfg)
 
     def close(self):
