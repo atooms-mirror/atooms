@@ -32,8 +32,25 @@ from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
 log = logging.getLogger(__name__)
 
 
-class Simulation(object):
+def _report(info, file_handle=None, log_echo=True):
+    """
+    Log `info` string to default logger at level info.
 
+    Optionally write `info` to `file_handle` if the latter is
+    given. Logging is disabled via `log_echo` is False.
+    """
+    if info is None:
+        return
+
+    if log_echo:
+        for line in info.split('\n'):
+            log.info(line.strip())
+
+    if file_handle is not None:
+        file_handle.write(info)
+            
+
+class Simulation(object):
     """Simulation base class."""
 
     def __init__(self, backend, output_path=None, steps=0,
@@ -101,8 +118,7 @@ class Simulation(object):
 
     def add(self, callback, scheduler, *args, **kwargs):
         """
-        Register an observer `callback` to be called along with a
-        `scheduler`.
+        Add an observer `callback` to be called along with a `scheduler`.
 
         `scheduler` and `callback` must be callables accepting a
         Simulation instance as unique argument. `scheduler` must
@@ -188,38 +204,40 @@ class Simulation(object):
         except AttributeError:
             return 0.0
 
-    def elapsed_wall_time(self):
+    def _elapsed_wall_time(self):
         """Elapsed wall time in seconds."""
         return time.time() - self._start_time
 
-    def wall_time_per_step(self):
+    def wall_time(self, per_step=False, per_particle=False):
         """
-        Wall time per step in seconds.
+        Elapsed wall time in seconds.
 
-        It can be subclassed by more complex simulation classes.
+        Optionally normalized per step and or per particle. It can be
+        subclassed by more complex simulation classes.
         """
-        if self.steps - self.initial_step > 0:
-            return self.elapsed_wall_time() / (self.steps - self.initial_step)
-        else:
-            return float('nan')
-
-    def wall_time_per_step_particle(self):
-        """Wall time per step and particle in seconds."""
+        norm = 1.0
         if len(self.system.particle) > 0:
-            return self.wall_time_per_step() / len(self.system.particle)
+            norm *= len(self.system.particle)
         else:
-            # There is no reference to system
             return float('nan')
+        if self.steps - self.initial_step > 0:
+            norm *= (self.steps - self.initial_step)
+        else:
+            return float('nan')
+        return self._elapsed_wall_time() / norm
 
     # Our template consists of two steps: run_pre() and run_until()
     # Typically a backend will implement the until method.
     # It is recommended to *extend* (not override) the base run_pre() in subclasses
     # TODO: when should checkpoint be read? The logic must be set here
     # Having a read_checkpoint() stub method would be OK here.
-    def run_pre(self):
+    def run_prepare(self):
         """
-        Preliminary step before run_until() to deal with restart
-        conditions.
+        Preliminary step before run_until().
+
+        Deal with 
+        - restart conditions
+        - setup of output path
         """
         self._start_time = time.time()
         # TODO: This way the backend inherits the output path and no need to set it there. We could do it the other way round?
@@ -261,10 +279,11 @@ class Simulation(object):
 
         # Targeter for max steps. This will the replace an existing one.
         self.add(self._targeter_steps, Scheduler(self.max_steps), self.max_steps)
-        self.report_header()
-        self.run_pre()
+        _report(self._info_start())
+        self.run_prepare()
         self.initial_step = self.steps
-        self.report()
+        _report(self._info_backend())
+        _report(self._info_observers())
         # Reinitialize speedometers
         for s in self._speedometers:
             s._init = False
@@ -296,52 +315,67 @@ class Simulation(object):
                 self._notify(next_observers)
                 if self.steps == next_checkpoint:
                     self.write_checkpoint()
+
         except SimulationEnd:
             # Checkpoint configuration at last step
             self.write_checkpoint()
-            self._report_end()
+            _report(self._info_end())
+            _report(self._info_timings())
+
         except KeyboardInterrupt:
             pass
+
         except:
             log.error('simulation failed')
             raise
+
         finally:
-            log.info('goodbye')
+            log.info('goodbye')        
 
-    def report_header(self):
-        txt = '%s' % self
-        log.info('')
-        log.info(txt)
-        log.info('')
-        log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__)
-        try:
-            log.info('backend version: %s', self.backend.version)
-        except AttributeError:
-            pass
-        log.info('simulation starts on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
-        log.info('output path: %s', self.output_path)
+    def _info_start(self):
+        now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
+        txt = """\
+        
+        {}
 
-    def report(self):
-        self._report()
-        self._report_observers()
+        atooms version: {}+{} ({})
+        simulation starts on: {}
+        output path: {}\
+        """.format(self,  __version__, __commit__, __date__, now, self.output_path)
+        return txt
 
-    def _report(self):
-        """Implemented by subclasses"""
-        pass
+    def _info_backend(self):
+        """Subclasses may want to override this method."""
+        if hasattr(self.backend, 'version'):
+            return 'backend version: %s\n' % self.backend.version
 
-    def _report_observers(self):
+    def _info_observers(self):
+        txt = ''
         for f in self._callback:
             params = self._cbk_params[f]
             s = params['scheduler']
             if 'target' in f.__name__.lower():
                 args = params['args']
-                log.info('target %s: %s', f.__name__, args[0])
+                txt += 'target %s: %s\n' % (f.__name__, args[0])
             else:
-                log.info('writer %s: interval=%s calls=%s', f.__name__, s.interval, s.calls)
+                txt += 'writer %s: interval=%s calls=%s\n' % \
+                       (f.__name__, s.interval, s.calls)
+        return txt
 
-    def _report_end(self):
-        log.info('simulation ended on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
-        log.info('final steps: %d', self.steps)
-        log.info('final rmsd: %.2f', self.rmsd)
-        log.info('wall time [s]: %.1f', self.elapsed_wall_time())
-        log.info('average TSP [s/step/particle]: %.2e', self.wall_time_per_step_particle())
+    def _info_end(self):
+        now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
+        txt = """\
+        simulation ended on: {}
+        final steps: {} 
+        final rmsd: {:.2f}\
+        """.format(now, self.steps, self.rmsd)
+        return txt
+
+    def _info_timings(self):
+        """Subclasses may want to override this method."""
+        txt = """\
+        wall time [s]: {:.1f}
+        average TSP [s/step/particle]: {:.2e}\
+        """.format(self.wall_time(), self.wall_time(per_step=True,
+                                                    per_particle=True))
+        return txt
