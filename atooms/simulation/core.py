@@ -48,7 +48,7 @@ def _report(info, file_handle=None, log_echo=True):
 
     if file_handle is not None:
         file_handle.write(info)
-            
+
 
 class Simulation(object):
     """Simulation base class."""
@@ -69,9 +69,8 @@ class Simulation(object):
         self.backend = backend
         self.restart = restart
         self.output_path = output_path
-        # TODO: use steps for the target steps, current_step instead of steps
-        self.max_steps = steps
-        self.steps = 0
+        self.steps = steps
+        self.current_step = 0
         self.initial_step = 0
         # We expect subclasses to keep a ref to the trajectory object
         # self.trajectory used to store configurations
@@ -93,13 +92,13 @@ class Simulation(object):
         if enable_speedometer:
             self._speedometer = Speedometer()
             self.add(self._speedometer, Scheduler(None, calls=20,
-                                                  target=self.max_steps))
+                                                  target=self.steps))
 
     @property
     def system(self):
         # Note that setting system as a reference in the instance, like
         #   self.system = self.backend.system
-        # is unsafe because this won't follow the backend's system when the 
+        # is unsafe because this won't follow the backend's system when the
         # latter is reassigned as in
         #   self.backend.system = None
         # So we defined it as a property.
@@ -140,8 +139,8 @@ class Simulation(object):
 
         # Store scheduler, callback and its arguments
         # in a separate dict (NOT in the function object itself!)
-        self._cbk_params[callback] = {'scheduler': scheduler, 
-                                      'args': args, 
+        self._cbk_params[callback] = {'scheduler': scheduler,
+                                      'args': args,
                                       'kwargs': kwargs}
 
         # Keep targeters last
@@ -160,7 +159,7 @@ class Simulation(object):
 
     def _notify(self, observers):
         for observer in observers:
-            log.debug('notify %s at step %d', observer, self.steps)
+            log.debug('notify %s at step %d', observer, self.current_step)
             args = self._cbk_params[observer]['args']
             kwargs = self._cbk_params[observer]['kwargs']
             observer(self, *args, **kwargs)
@@ -180,7 +179,7 @@ class Simulation(object):
     def write_checkpoint(self):
         if self.output_path is not None:
             with open(self.output_path + '.chk.step', 'w') as fh:
-                fh.write('%d' % self.steps)
+                fh.write('%d' % self.current_step)
         try:
             self.backend.write_checkpoint()
         except AttributeError:
@@ -190,7 +189,7 @@ class Simulation(object):
     def read_checkpoint(self):
         if self.output_path is not None:
             with open(self.output_path + '.chk.step') as fh:
-                self.steps = int(fh.read())
+                self.current_step = int(fh.read())
         try:
             self.backend.read_checkpoint()
         except AttributeError:
@@ -216,14 +215,18 @@ class Simulation(object):
         subclassed by more complex simulation classes.
         """
         norm = 1.0
-        if len(self.system.particle) > 0:
-            norm *= len(self.system.particle)
-        else:
-            return float('nan')
-        if self.steps - self.initial_step > 0:
-            norm *= (self.steps - self.initial_step)
-        else:
-            return float('nan')
+        # Normalize per particle
+        if per_particle:
+            if len(self.system.particle) > 0:
+                norm *= len(self.system.particle)
+            else:
+                return float('nan')
+        # Normalize per step
+        if per_step:
+            if self.current_step - self.initial_step > 0:
+                norm *= (self.current_step - self.initial_step)
+            else:
+                return float('nan')
         return self._elapsed_wall_time() / norm
 
     # Our template consists of two steps: run_pre() and run_until()
@@ -235,11 +238,10 @@ class Simulation(object):
         """
         Preliminary step before run_until().
 
-        Deal with 
+        Deal with
         - restart conditions
         - setup of output path
         """
-        self._start_time = time.time()
         # TODO: This way the backend inherits the output path and no need to set it there. We could do it the other way round?
         if self.output_path is not None:
             self.backend.output_path = self.output_path
@@ -263,27 +265,29 @@ class Simulation(object):
 
         Subclasses must set steps.
         """
-        self.backend.run(steps - self.steps)
-        #self.backend.steps = steps
-        self.steps = steps
+        self.backend.run(steps - self.current_step)
+        self.current_step = steps
 
     def run(self, steps=None):
         """Run the simulation."""
         # If we are restaring we do not allow changing target steps on the fly.
         # because it might have side effects like non constant writing interval.
-        if not self.restart or self.steps == 0:
-            if steps is not None:
-                self.max_steps = steps
-            self.steps = 0
-            self.backend.steps = 0
+        if steps is not None:
+            if not self.restart or self.current_step == 0:
+                self.steps = steps
 
-        # Targeter for max steps. This will the replace an existing one.
-        self.add(self._targeter_steps, Scheduler(self.max_steps), self.max_steps)
-        _report(self._info_start())
+        # Targeter for steps. This will the replace an existing one.
+        self.add(self._targeter_steps, Scheduler(self.steps),
+                 self.current_step + self.steps)
         self.run_prepare()
-        self.initial_step = self.steps
+        self.initial_step = self.current_step
+        self._start_time = time.time()
+
+        # Report
+        _report(self._info_start())
         _report(self._info_backend())
         _report(self._info_observers())
+
         # Reinitialize speedometers
         for s in self._speedometers:
             s._init = False
@@ -292,11 +296,11 @@ class Simulation(object):
             # Before entering the simulation, check if we can quit right away
             self._notify(self._targeters)
             # Then notify non targeters unless we are restarting
-            if self.steps == 0:
+            if self.current_step == 0:
                 self._notify(self._non_targeters)
             else:
                 self._notify(self._speedometers)
-            log.info('starting at step: %d', self.steps)
+            log.info('starting at step: %d', self.current_step)
             log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
@@ -313,7 +317,7 @@ class Simulation(object):
                 # Observers should be sorted such that targeters are
                 # last to avoid cropping output files
                 self._notify(next_observers)
-                if self.steps == next_checkpoint:
+                if self.current_step == next_checkpoint:
                     self.write_checkpoint()
 
         except SimulationEnd:
@@ -330,18 +334,18 @@ class Simulation(object):
             raise
 
         finally:
-            log.info('goodbye')        
+            log.info('goodbye')
 
     def _info_start(self):
         now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
         txt = """\
-        
+
         {}
 
         atooms version: {}+{} ({})
         simulation starts on: {}
         output path: {}\
-        """.format(self,  __version__, __commit__, __date__, now, self.output_path)
+        """.format(self, __version__, __commit__, __date__, now, self.output_path)
         return txt
 
     def _info_backend(self):
@@ -366,9 +370,9 @@ class Simulation(object):
         now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
         txt = """\
         simulation ended on: {}
-        final steps: {} 
+        final steps: {}
         final rmsd: {:.2f}\
-        """.format(now, self.steps, self.rmsd)
+        """.format(now, self.current_step, self.rmsd)
         return txt
 
     def _info_timings(self):

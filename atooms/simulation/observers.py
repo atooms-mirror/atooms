@@ -108,11 +108,14 @@ class Scheduler(object):
         the observer will be called.
         """
         if self.interval is not None and self.interval > 0:
-            return (sim.steps / self.interval + 1) * self.interval
+            # Regular interval
+            return (sim.current_step / self.interval + 1) * self.interval
         elif self.calls is not None and self.interval > 0:
-            interval = int(sim.max_steps / self.calls)
-            return (sim.steps / interval + 1) * interval
+            # Fixed number of calls
+            interval = int(sim.steps / self.calls)
+            return (sim.current_step / interval + 1) * interval
         elif self.steps is not None:
+            # List of selected steps
             inext = self.steps[0]
             for i, step in enumerate(self.steps[:-1]):
                 if sim.steps >= step:
@@ -139,7 +142,7 @@ def write_config(sim):
     The trajectory format is taken from the passed Simulation
     instance.
     """
-    if sim.steps == 0:
+    if sim.current_step == 0:
         # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
         # TODO: refactor as rm()
         if os.path.isdir(sim.output_path):
@@ -148,12 +151,12 @@ def write_config(sim):
             os.remove(sim.output_path)
 
     with sim.trajectory(sim.output_path, 'a') as t:
-        t.write(sim.system, sim.steps)
+        t.write(sim.system, sim.current_step)
 
 def write_thermo(sim):
     """Write basic thermodynamic data."""
     f = sim.output_path + '.thermo'
-    if sim.steps == 0:
+    if sim.current_step == 0:
         with open(f, 'w') as fh:
             fh.write('# columns:' + ', '.join(['steps',
                                                'temperature',
@@ -162,7 +165,7 @@ def write_thermo(sim):
                                                'total energy',
                                                'rmsd']) + '\n')
     with open(f, 'a') as fh:
-        fh.write('%d %g %g %g %g %g\n' % (sim.steps,
+        fh.write('%d %g %g %g %g %g\n' % (sim.current_step,
                                           sim.system.temperature,
                                           sim.system.potential_energy(normed=True),
                                           sim.system.kinetic_energy(normed=True),
@@ -180,7 +183,7 @@ def write(sim, name, attributes):
     instance `sim` or of its System instance `sim.system`.
     """
     f = sim.output_path + '.' + name
-    if sim.steps == 0:
+    if sim.current_step == 0:
         with open(f, 'w') as fh:
             fh.write('# columns: %s\n' % ', '.join(attributes))
     else:
@@ -225,7 +228,7 @@ def target_rmsd(sim, value):
 
 def target_steps(sim, value):
     """Target the number of steps."""
-    if sim.steps >= value:
+    if sim.current_step >= value:
         raise SimulationEnd('reached target steps %d' % value)
 
 def target_walltime(sim, value):

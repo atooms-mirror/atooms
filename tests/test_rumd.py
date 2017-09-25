@@ -46,20 +46,40 @@ class Test(unittest.TestCase):
                         output_path='/tmp/test_rumd_multi/trajectory',
                         steps=2000, checkpoint_interval=100,
                         restart=False)
-        si.add(write_thermo, 100)
+        si.add(write_thermo, 50)
         si.add(write_config, 100)
         si.run()
         si.run(1000)
+        ls = glob.glob('/tmp/test_rumd_multi/trajectory/*')
+        self.assertEqual(len(ls), 31)
+        self.assertEqual(si.current_step, 3000)
+        tmp = open('/tmp/test_rumd_multi/trajectory.thermo', 'r').readlines()
+        steps = int(tmp[-1].split()[0])
+        self.assertEqual(steps, 3000)
+        self.assertEqual(len(tmp), 61+1)  # one is for comment line
 
     def test_multi_writing(self):
+        # Test that we cumulate current_step and configurations
         si = Simulation(self.backend,
                         output_path='/tmp/test_rumd_multi_writing/trajectory',
                         enable_speedometer=False)
         si.add(write_config, 500)
-        si.run(50000)
+        si.run(10000)
         si.run(5000)
         ls = glob.glob('/tmp/test_rumd_multi_writing/trajectory/*')
-        self.assertEqual(len(ls), 11)
+        self.assertEqual(len(ls), 31)
+        self.assertEqual(si.current_step, 15000)
+
+        # This second simulation tests that the folder gets cleared up
+        si = Simulation(self.backend, steps=5000,
+                        output_path='/tmp/test_rumd_multi_writing/trajectory',
+                        enable_speedometer=False)
+        si.add(write_config, 500)
+        si.run()
+        si.run()
+        ls = glob.glob('/tmp/test_rumd_multi_writing/trajectory/*')
+        self.assertEqual(len(ls), 21)
+        self.assertEqual(si.current_step, 10000)
 
     def test_multi_2(self):
         si = Simulation(self.backend,
