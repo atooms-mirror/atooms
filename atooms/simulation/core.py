@@ -245,15 +245,6 @@ class Simulation(object):
         # TODO: This way the backend inherits the output path and no need to set it there. We could do it the other way round?
         if self.output_path is not None:
             self.backend.output_path = self.output_path
-            if not self.restart:
-                # Clean up the trajectory folder and files.
-                # Callbacks may implement their clean() methods
-                for cbk in self._callback:
-                    try:
-                        cbk.clear(self)
-                    except AttributeError:
-                        pass
-
             if self.restart:
                 self.read_checkpoint()
 
