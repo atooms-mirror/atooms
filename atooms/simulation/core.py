@@ -67,9 +67,9 @@ class Simulation(object):
         files.
         """
         self.backend = backend
-        self.restart = restart
         self.output_path = output_path
         self.steps = steps
+        self._restart = restart
         self.current_step = 0
         self.initial_step = 0
         # We expect subclasses to keep a ref to the trajectory object
@@ -94,6 +94,13 @@ class Simulation(object):
             self.add(self._speedometer, Scheduler(None, calls=20,
                                                   target=self.steps))
 
+        # If the backend has not set the output path, it inherits the
+        # one of the host simulation. This way we do not have to
+        # specify this twice. This is for convenience but
+        # unfortunately *implicit*.
+        if self.output_path is not None and backend.output_path is None:
+            backend.output_path = self.output_path
+
     @property
     def system(self):
         # Note that setting system as a reference in the instance, like
@@ -110,6 +117,11 @@ class Simulation(object):
 
     def __str__(self):
         return 'atooms simulation via %s backend' % self.backend
+
+    @property
+    def restart(self):
+        """True is the simulation should be restarted. Read-only property."""
+        return self._restart
 
     @property
     def base_path(self):
@@ -180,21 +192,17 @@ class Simulation(object):
         if self.output_path is not None:
             with open(self.output_path + '.chk.step', 'w') as fh:
                 fh.write('%d' % self.current_step)
-        try:
+        # Do not use try/except to avoid catching wrong exceptions
+        if hasattr(self.backend, 'write_checkpoint'):
             self.backend.write_checkpoint()
-        except AttributeError:
-            # Tolerate missing checkpoint implementation
-            pass
 
     def read_checkpoint(self):
         if self.output_path is not None:
             with open(self.output_path + '.chk.step') as fh:
                 self.current_step = int(fh.read())
-        try:
+        # Do not use try/except to avoid catching wrong exceptions
+        if hasattr(self.backend, 'read_checkpoint'):
             self.backend.read_checkpoint()
-        except AttributeError:
-            # Tolerate missing checkpoint implementation
-            pass
 
     @property
     def rmsd(self):
@@ -229,27 +237,6 @@ class Simulation(object):
                 return float('nan')
         return self._elapsed_wall_time() / norm
 
-    # Our template consists of two steps: run_pre() and run_until()
-    # Typically a backend will implement the until method.
-    # It is recommended to *extend* (not override) the base run_pre() in subclasses
-    # TODO: when should checkpoint be read? The logic must be set here
-    # Having a read_checkpoint() stub method would be OK here.
-    def run_prepare(self):
-        """
-        Preliminary step before run_until().
-
-        Deal with
-        - restart conditions
-        - setup of output path
-        """
-        # TODO: This way the backend inherits the output path and no need to set it there. We could do it the other way round?
-        if self.output_path is not None:
-            self.backend.output_path = self.output_path
-            if self.restart:
-                self.read_checkpoint()
-
-        barrier()
-
     def run_until(self, steps):
         """
         Run the simulation up to `steps`.
@@ -270,7 +257,11 @@ class Simulation(object):
         # Targeter for steps. This will the replace an existing one.
         self.add(self._targeter_steps, Scheduler(self.steps),
                  self.current_step + self.steps)
-        self.run_prepare()
+
+        # Read checkpoint if we restart
+        if self.restart:
+            self.read_checkpoint()
+        barrier()
         self.initial_step = self.current_step
         self._start_time = time.time()
 
@@ -315,7 +306,6 @@ class Simulation(object):
             # Checkpoint configuration at last step
             self.write_checkpoint()
             _report(self._info_end())
-            _report(self._info_timings())
 
         except KeyboardInterrupt:
             pass
@@ -363,14 +353,9 @@ class Simulation(object):
         simulation ended on: {}
         final steps: {}
         final rmsd: {:.2f}\
-        """.format(now, self.current_step, self.rmsd)
-        return txt
-
-    def _info_timings(self):
-        """Subclasses may want to override this method."""
-        txt = """\
         wall time [s]: {:.1f}
         average TSP [s/step/particle]: {:.2e}\
-        """.format(self.wall_time(), self.wall_time(per_step=True,
+        """.format(now, self.current_step, self.rmsd,
+                   self.wall_time(), self.wall_time(per_step=True,
                                                     per_particle=True))
         return txt
