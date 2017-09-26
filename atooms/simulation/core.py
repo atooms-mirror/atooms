@@ -53,6 +53,8 @@ def _report(info, file_handle=None, log_echo=True):
 class Simulation(object):
     """Simulation base class."""
 
+    version = '%s+%s (%s)' % (__version__, __commit__, __date__)
+
     def __init__(self, backend, output_path=None, steps=0,
                  checkpoint_interval=0, enable_speedometer=False,
                  restart=False):
@@ -323,10 +325,12 @@ class Simulation(object):
 
         {}
 
+        version: {}
         atooms version: {}+{} ({})
         simulation starts on: {}
         output path: {}\
-        """.format(self, __version__, __commit__, __date__, now, self.output_path)
+        """.format(self, self.version, __version__, __commit__,
+                   __date__, now, self.output_path)
         return txt
 
     def _info_backend(self):
