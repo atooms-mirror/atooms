@@ -105,14 +105,14 @@ class RUMD(object):
 
     def write_checkpoint(self):
         if self.output_path is None:
-            _log.warning('output_path is not set so we cannot write checkpoint  %d', self.steps)
+            _log.warn('output_path is not set so we cannot write checkpoint')
         else:
             with Trajectory(self.output_path + '.chk', 'w') as t:
                 t.write(self.system, None)
 
     def read_checkpoint(self):
         self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
-        _log.info('restarting backend from step %d', self.steps)
+        _log.info('restarting backend')
 
     def run(self, steps):
         self.rumd_simulation.Run(steps,
@@ -209,7 +209,7 @@ class System(object):
                 # then get meta.GetMassOfType(i)
                 mi = self.sample.GetMass(i)
             except:
-                _log.warning('cannot get mass from RUMD interface, setting to 1.0')
+                _log.warn('cannot get mass from RUMD interface, setting to 1.0')
                 mi = 1.0
             mass[ii: ii + ni] = mi
             ii += ni
