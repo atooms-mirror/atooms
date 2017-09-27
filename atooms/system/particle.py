@@ -14,10 +14,8 @@ class Particle(object):
     def __init__(self, species='A', mass=1.0,
                  position=numpy.zeros(_ndim),
                  velocity=numpy.zeros(_ndim), radius=0.5):
-        #self.id = id
-        #self.name = name
-        """The chemical species of the particle."""
         self.species = species
+        """The chemical species of the particle."""
         self.mass = mass
         self.radius = radius
         self.position = numpy.asarray(position)

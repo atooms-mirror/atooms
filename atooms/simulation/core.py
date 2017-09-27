@@ -51,6 +51,7 @@ def _report(info, file_handle=None, log_echo=True):
 
 
 class Simulation(object):
+
     """Simulation base class."""
 
     version = '%s+%s (%s)' % (__version__, __commit__, __date__)
@@ -62,11 +63,8 @@ class Simulation(object):
         Perform a simulation using the specified `backend` and optionally
         write output to `output_path`. This can be a file or directory path.
 
-        Paths. To define output paths we rely on output_path, all
-        other paths are defined based on it and on its
-        base_path. Paths can then be defined locally by writers. Some
-        glue is added in run_pre() to allow writers to cleanup their
-        files.
+        Paths: to define output paths we rely on `output_path`, all
+        other paths are defined based on it and on its base_path.
         """
         self.backend = backend
         self.output_path = output_path
@@ -95,13 +93,6 @@ class Simulation(object):
             self._speedometer = Speedometer()
             self.add(self._speedometer, Scheduler(None, calls=20,
                                                   target=self.steps))
-
-        # If the backend has not set the output path, it inherits the
-        # one of the host simulation. This way we do not have to
-        # specify this twice. This is for convenience but
-        # unfortunately *implicit*.
-        if self.output_path is not None and backend.output_path is None:
-            backend.output_path = self.output_path
 
     @property
     def system(self):
