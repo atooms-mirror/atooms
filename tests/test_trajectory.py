@@ -25,19 +25,22 @@ def _equal(system1, system2, ignore=None):
             return False
     return True
 
+def _rename_species(particle, db):
+    for p in particle:
+        p.species = db[p.species]
+    return particle
 
 class Test(unittest.TestCase):
     
     def setUp(self):
         import copy
-        # TODO: use species instead of separate id and name
         particle = [Particle(position=[0.0, 0.0, 0.0], species='A', mass=1.0),
                     Particle(position=[1.0, 1.0, 1.0], species='B', mass=2.0),
                 ]
         cell = Cell([2.0, 2.0, 2.0])
         self.system = []
-        self.system.append(System(particle, cell))
-        self.system.append(System(particle, cell))
+        self.system.append(System(copy.deepcopy(particle), cell))
+        self.system.append(System(copy.deepcopy(particle), cell))
         self.inpfile = '/tmp/testtrj'
         self.inpdir = '/tmp/testtrj.d'
         from atooms.utils import mkdir
@@ -54,8 +57,6 @@ class Test(unittest.TestCase):
         with cls(path) as th:
             self.assertEqual(th.timestep, 1.0)
             for i, system in enumerate(th):
-                # print system.particle[0].name, self.system[i].particle[0].name
-                # print system.particle[1].name, self.system[i].particle[1].name
                 self.assertTrue(_equal(self.system[i], system, ignore))
 
     def _write(self, cls, path=None):
@@ -76,9 +77,10 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectoryHDF5)
 
     def test_rumd(self):
-        pass
-        # RUMD uses integer ids only (no strings)
-        #self._read_write(trj.TrajectoryRUMD, ignore=['id', 'name'])
+        # RUMD uses integer ids for checmical species. They should be integers.
+        for s in self.system:
+            s.particle = _rename_species(s.particle, {'A': '0', 'B': '1'})
+        self._read_write(trj.TrajectoryRUMD)
         # TODO: add write_sample() to supertrajectory 
         #self._read_write(trj.SuperTrajectoryRUMD, self.inpdir, ignore=['id', 'name'])
 

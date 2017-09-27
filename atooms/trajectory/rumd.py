@@ -99,7 +99,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
             # general getting the sample back via read_sample() will
             # not preserve the species.
             isp = sp.index(p.species)
-            self.trajectory.write(("%s"+ndim*" %14.6f" + ndim*" %g " + "\n") % \
+            self.trajectory.write(("%s"+ndim*" %14.6f" + ndim*" %g " + "\n") %
                                   ((isp,) + tuple(p.position) + tuple(p.velocity)))
 
     def close(self):

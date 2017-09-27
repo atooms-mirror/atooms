@@ -65,7 +65,6 @@ def _lammps_parse_system(finp):
     data = ''.join(list(islice(finp, npart)))
     d = numpy.fromstring(data, sep=' ').reshape((npart, n))
     if ivx is not None:
-        #imap[int(d[i, ind])], 
         p = [Particle(species=d[i, ind], mass=1.0,
                       position=d[i, ix: ix+3], velocity=d[i, ivx: ivx+3])
              for i in xrange(npart)]

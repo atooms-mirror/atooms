@@ -162,7 +162,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
             particle_h5 = {'number_of_species': [len(distinct_species(particle))],
                            'number_of_particles': [len(particle)],
-                           #'identity': [p.id for p in particle],
+                           # 'identity': [p.id for p in particle],
                            # TODO: fix this though some periodic table
                            'identity': [1 for p in particle],
                            'element': ['%3s' % p.species for p in particle],
@@ -183,7 +183,7 @@ class TrajectoryHDF5(TrajectoryBase):
                          'number_of_species': [len(distinct_species(matrix))],
                          'number_of_particles': [len(matrix)],
                          # TODO: fix this thorugh periodic table
-                         #'identity': [p.id for p in matrix],
+                         # 'identity': [p.id for p in matrix],
                          'identity': [1 for p in matrix],
                          'element': ['%3s' % p.species for p in matrix],
                          'mass': [p.mass for p in matrix],
@@ -303,7 +303,7 @@ class TrajectoryHDF5(TrajectoryBase):
                                  radius=rad[i]) for i in range(n)]
         else:
             particle = [Particle(species=spe[i].strip(), mass=mas[i],
-                                 position=pos[i, :], velocity=vel[i, :]) 
+                                 position=pos[i, :], velocity=vel[i, :])
                         for i in range(n)]
 
         # read cell
@@ -335,7 +335,7 @@ class TrajectoryHDF5(TrajectoryBase):
                     mas = group[entry][:]
                 if entry == 'position':
                     pos = group[entry][:]
-            matrix = [Particle(species=spe[i].strip(), mass=mas[i], 
+            matrix = [Particle(species=spe[i].strip(), mass=mas[i],
                                position=pos[i, :])
                       for i in range(len(spe))]
             self._system.matrix = copy.deepcopy(matrix)
