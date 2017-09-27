@@ -22,8 +22,6 @@ _log = logging.getLogger(__name__)
 
 class RUMD(object):
 
-    # TODO: add switch to use RUMD checkpoint
-
     def __init__(self, input_file, forcefield_file=None,
                  integrator=None, temperature=None, dt=0.001,
                  output_path=None, fixcm_interval=0):
@@ -31,7 +29,9 @@ class RUMD(object):
         self.output_path = output_path
         # Keep a reference of the Trajectory backend class
         self.trajectory = Trajectory
-        # Setup internal rumd simulation instance. It is exposed as rumd_simulation.
+
+        # Setup internal rumd simulation instance.
+        # It is exposed as RUMD.rumd_simulation.
         self.rumd_simulation = rumdSimulation(input_file, verbose=False)
         self.rumd_simulation.SetVerbose(False)
         self.rumd_simulation.sample.SetVerbose(False)
@@ -39,10 +39,15 @@ class RUMD(object):
         self.rumd_simulation.SetMomentumResetInterval(fixcm_interval)
         self.rumd_simulation.SetBlockSize(sys.maxint)
         self.rumd_simulation.write_timing_info = False
+
         # By default we mute RUMD output.
-        # self.rumd_simulation.sample.SetOutputDirectory(output_path)
+        if self.output_path is not None:
+            self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
         self.rumd_simulation.SetOutputScheduling("energies", "none")
         self.rumd_simulation.SetOutputScheduling("trajectory", "none")
+        self._suppress_all_output = True
+        self._initialize_output = False
+
         # We parse the forcefield file.
         # It should provide a list of potentials named forcefield
         if forcefield_file is not None:
@@ -52,6 +57,7 @@ class RUMD(object):
                 raise ValueError('forcefield file should contain a list of potentials named potential')
             for pot in potential:
                 self.rumd_simulation.AddPotential(pot)
+
         # Wrap some rumd integrators.
         if integrator is not None:
             if integrator in ['nvt', 'NVT']:
@@ -61,18 +67,8 @@ class RUMD(object):
                 itg = rumd.IntegratorNVE(timeStep=dt)
             self.rumd_simulation.SetIntegrator(itg)
 
-        # Copy of initial state (it is not always enough to do it in run_pre())
+        # Copy of initial state
         self._initial_sample = self.rumd_simulation.sample.Copy()
-        # Handle output
-        self._suppress_all_output = True
-        self._initialize_output = False
-        # Internal restart toggle
-        self._restart = False
-
-        # This was in run_pre()
-        # TODO: we should make sure it works fine
-        if self.output_path is not None:
-            self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
 
     def _get_system(self):
         return System(self.rumd_simulation.sample)
@@ -91,8 +87,10 @@ class RUMD(object):
 
     @property
     def rmsd(self):
-        """ Compute the mean square displacement between actual sample and the reference sample """
-        # TODO: not sure it is the backend responsibility
+        """
+        Compute the mean square displacement between actual sample and the
+        reference sample.
+        """
         if self.rumd_simulation.sample is self._initial_sample:
             raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
         ndim = 3  # hard coded
@@ -124,7 +122,8 @@ class Thermostat(object):
 
     """Wrap a RUMD integrator as a thermostat."""
 
-    # TODO: problem with this approach is that we rely on RUMD keeping the same order in future versions. We should unit test it.
+    # TODO: problem, RUMD must keep the same order in future versions
+    # We should unit test this
     # Info string looks like IntegratorNVT,0.004,0.3602,0.2,-0.7223
 
     def __init__(self, integrator):
@@ -248,7 +247,6 @@ class System(object):
 
     @property
     def particle(self):
-        # nmap = ['A', 'B', 'C', 'D']
         npart = self.sample.GetNumberOfParticles()
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
