@@ -154,17 +154,10 @@ class TrajectoryHDF5(TrajectoryBase):
         if system.particle is not None:
             self.trajectory.create_group_safe(group)
             particle = system.particle
-
-            # TODO: restore this check at some point
-            # # Check that species id's start from one.
-            # if min([p.id for p in particle]) < 1:
-            #     raise ValueError('Particles ids < 1; use normalize_id')
-
-            particle_h5 = {'number_of_species': [len(distinct_species(particle))],
+            species = distinct_species(particle)
+            particle_h5 = {'number_of_species': [len(species)],
                            'number_of_particles': [len(particle)],
-                           # 'identity': [p.id for p in particle],
-                           # TODO: fix this though some periodic table
-                           'identity': [1 for p in particle],
+                           'identity': [species.index(p.species)+1 for p in particle],
                            'element': ['%3s' % p.species for p in particle],
                            'mass': [p.mass for p in particle],
                            'radius': [p.radius for p in particle],
@@ -178,13 +171,12 @@ class TrajectoryHDF5(TrajectoryBase):
         if system.matrix is not None:
             self.trajectory.create_group_safe(group)
             matrix = system.matrix
+            species = distinct_species(matrix)
             matrix_h5 = {'type': [''],
                          'id': [0],
-                         'number_of_species': [len(distinct_species(matrix))],
+                         'number_of_species': [len(species)],
                          'number_of_particles': [len(matrix)],
-                         # TODO: fix this thorugh periodic table
-                         # 'identity': [p.id for p in matrix],
-                         'identity': [1 for p in matrix],
+                         'identity': [species.index(p.species)+1 for p in matrix],
                          'element': ['%3s' % p.species for p in matrix],
                          'mass': [p.mass for p in matrix],
                          'position': [p.position for p in matrix],
@@ -284,9 +276,6 @@ class TrajectoryHDF5(TrajectoryBase):
         rad = None
         for entry in group:
             # TODO: refactor this
-            # TODO: identity is not used anymore
-            # if entry == 'identity':
-            #     spe = group[entry][:]
             if entry == 'element':
                 spe = group[entry][:]
             if entry == 'mass':
@@ -326,9 +315,6 @@ class TrajectoryHDF5(TrajectoryBase):
         if 'matrix' in self.trajectory['/initialstate']:
             group = self.trajectory['/initialstate/matrix']
             for entry in group:
-                # TODO: not used anymore
-                # if entry == 'identity':
-                #     spe = group[entry][:]
                 if entry == 'element':
                     spe = group[entry][:]
                 if entry == 'mass':
@@ -410,14 +396,13 @@ class TrajectoryHDF5(TrajectoryBase):
             pi.radius = r.radius
 
         # Try update radii. This must be done after setting defaults.
-        # TODO: not sure output formatting should be set when reading samples.
         try:
             r = group['radius' + csample][:]
             for i, pi in enumerate(p):
                 pi.radius = r[i]
             if 'radius' not in self.fmt:
                 self.fmt.append('radius')
-        except:
+        except KeyError:
             if 'radius' in self.fmt:
                 self.fmt.remove('radius')
 
