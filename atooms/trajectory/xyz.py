@@ -8,7 +8,7 @@ import logging
 from .base import TrajectoryBase
 from .utils import gopen
 from atooms.utils import tipify
-from atooms.system.particle import Particle
+from atooms.system.particle import Particle, distinct_species
 from atooms.system.cell import Cell
 from atooms.system import System
 
@@ -28,8 +28,6 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def __init__(self, filename, mode='r'):
         TrajectoryBase.__init__(self, filename, mode)
         self._cell = None
-        self._id_map = []  # list to map numerical ids (indexes) to chemical species (entries)
-        self._id_min = 1  # minimum integer for ids, can be modified by subclasses
         self.trajectory = open(self.filename, self.mode)
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
@@ -110,19 +108,6 @@ class TrajectorySimpleXYZ(TrajectoryBase):
                 # If no step info is found, we add steps sequentially
                 self.steps.append(sample+1)
 
-    def update_id(self, particle):
-        """Update chemical ids of *particle* list and global database id_map."""
-        # TODO: use sets instead
-        # We keep the id database sorted by name.
-        for p in particle:
-            if p.species not in self._id_map:
-                self._id_map.append(p.species)
-                self._id_map.sort()
-
-        # # Assign ids to particles according to the updated database
-        # for p in particle:
-        #     p.id = self._id_map.index(p.species) + self._id_min
-
     def read_init(self):
         # Grab cell from the end of file if it is there
         try:
@@ -151,7 +136,6 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             species = data[0]
             r = numpy.array(data[1:4], dtype=float)
             particle.append(Particle(species=species, position=r))
-        self.update_id(particle)
 
         # Read cell
         try:
@@ -258,9 +242,7 @@ class TrajectoryXYZ(TrajectoryBase):
                           'vz': 'velocity[2]',
                           'id': 'species',
                           'type': 'species'}
-        self._id_min = 1  # minimum integer for ids, can be modified by subclasses
         self._cell = None
-        self._id_map = []  # list to map numerical ids (indexes) to chemical species (entries)
         self.trajectory = gopen(self.filename, self.mode)
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
@@ -394,33 +376,6 @@ class TrajectoryXYZ(TrajectoryBase):
 
         return meta
 
-    def update_id(self, particle):
-        """Update chemical ids of *particle* list and global database id_map."""
-        # TODO: this can be dropped from here and moved up the chain
-        # We keep the id database sorted by name.
-        for p in particle:
-            if p.species not in self._id_map:
-                self._id_map.append(p.species)
-                self._id_map.sort()
-
-        # # Assign ids to particles according to the updated database
-        # for p in particle:
-        #     p.id = self._id_map.index(p.species) + self._id_min
-
-    def update_mass(self, particle, metadata):
-        """Fix the masses of *particle* list."""
-        # We assume masses read from the header metadata are sorted by name
-        try:
-            mass_db = {}
-            for key, value in zip(self._id_map, metadata['mass']):
-                mass_db[key] = value
-            for p in particle:
-                p.mass = mass_db[p.species]
-        except KeyError:
-            return
-        except TypeError:
-            return
-
     def read_init(self):
         # Grab cell from the end of file if it is there
         try:
@@ -430,15 +385,15 @@ class TrajectoryXYZ(TrajectoryBase):
             self._cell = self._parse_cell()
 
     def read_sample(self, sample):
-        # Use columns if they are found in the header, or stick to the
-        # default format.
         meta = self._read_metadata(sample)
         if 'columns' in meta:
+            # Use columns if they are found in the header
             fmt = meta['columns']
             # Fix single column
-            if type(fmt) != list:
+            if not isinstance(fmt, list):
                 fmt = [fmt]
         else:
+            # Stick to the default
             fmt = self.fmt
         fmt = _optimize_fmt(fmt)
 
@@ -447,26 +402,45 @@ class TrajectoryXYZ(TrajectoryBase):
         particle = []
         for i in range(meta['npart']):
             p = Particle()
-            # Note: we cannot optimize by shifting an index instead of cropping lists all the time
+            # Note: we cannot optimize by shifting an index instead of
+            # cropping lists all the time
             data = self.trajectory.readline().split()
             for key in fmt:
-                # If the key is associated to a explicit callback, go for it.
-                # Otherwise we throw the field in an particle attribute named key.
+                # If the key is associated to a explicit callback, go
+                # for it. Otherwise we throw the field in an particle
+                # attribute named key.
                 if key in self.callback_read:
                     data = self.callback_read[key](p, data, meta)
                 else:
                     p.__dict__[key] = tipify(data[0])
                     data = data[1:]
             particle.append(p)
-        # Now we fix ids and other metadata
-        self.update_id(particle)
-        self.update_mass(particle, meta)
 
-        # Check if we also have a cell
+        # Fix the masses.
+        # We assume masses read from the header are sorted by species name.
+        # The mass metadata must be adjusted to the given sample.
+        if 'mass' in meta:
+            species = distinct_species(particle)
+            if len(species) == 1:
+                for p in particle:
+                    p.mass = float(meta['mass'])
+            else:
+                # We must have as many mass entries as species
+                if len(species) != len(meta['mass']):
+                    raise ValueError('mass metadata issue %s, %s' %
+                                     (species, meta['mass']))
+                db = {}
+                for key, value in zip(species, meta['mass']):
+                    db[key] = value
+                for p in particle:
+                    p.mass = float(db[p.species])
+
+        # Check if we have a cell
         try:
             cell = Cell(meta['cell'])
         except KeyError:
             cell = self._cell
+
         return System(particle, cell)
 
     def read_timestep(self):

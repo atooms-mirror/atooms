@@ -292,3 +292,62 @@ def report_command(cmd, params, main, fileout):
         with open(fileout, 'w') as fh:
             fh.write(txt)
     return txt
+
+
+# Miscellaneous
+
+class OrderedSet(object):
+
+    """
+    Simple class to store an ordered set of items.
+
+    It does not try to reproduce either set or list interface. It just
+    provides a simple interface to deal with the set of distinct
+    chemical species in a system as it gets populated e.g. when
+    reading a trajectory. This covers the use case of grand-canonical
+    simulations.
+
+    Example:
+    -------
+
+    particle = [Particle(species='A'), Particle(species='C')]
+    periodic_table = OrderedSet()
+    periodic_table.update([p.species for p in particle])
+    particle = [Particle(species='A'), Particle(species='D')]
+    periodic_table.update([p.species for p in particle])
+    print periodic_table.index('C')
+    print periodic_table[0]
+    print periodic_table
+    """
+
+    def __init__(self):
+        self.items = []
+
+    def __repr__(self):
+        return repr(self.items)
+
+    def __iter__(self):
+        self.items.__iter__()
+
+    def __getitem__(self, key):
+        return self.items[key]
+
+    def __setitem__(self, key, item):
+        self.items.__setitem__
+        return self.items[key]
+
+    def update(self, items):
+        sort_needed = False
+        for item in items:
+            if not item in self.items:
+                self.items.append(item)
+                sort_needed = True
+        if sort_needed:
+            self.items.sort()
+
+    def index(self, item):
+        try:
+            return self.items.index(item)
+        except ValueError:
+            raise ValueError('item %s not in %s' % (item, self))
+
