@@ -21,15 +21,12 @@ class DryRun(object):
     def write_checkpoint(self):
         pass
 
+    def read_checkpoint(self):
+        pass
+
     @property
     def rmsd(self):
         return 0.0
-
-    def run_pre(self, restart):
-        pass
-
-    def run_until(self, steps):
-        self.steps = steps
 
     def run(self, steps):
         pass
