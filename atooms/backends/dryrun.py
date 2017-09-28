@@ -10,6 +10,8 @@ It just exposes a minimal backend interface.
 
 class DryRun(object):
 
+    "A simulation backend that performs no simulation at all."
+    
     def __init__(self, system=None):
         self.system = system
         if self.system is None:
@@ -33,6 +35,11 @@ class DryRun(object):
 
 
 class System(object):
+
+    """
+    The `System` class monkey patches the relevant methods of
+    `atooms.system.System` required for a valid simulation backend.
+    """
 
     def __init__(self):
         self.particle = []
@@ -61,11 +68,15 @@ class System(object):
 
 class Thermostat(object):
 
+    """A place-holder for the system thermostat and its temperature."""
+
     def __init__(self):
         self.temperature = 1.0
 
 
 class Trajectory(object):
+
+    """A minimal trajectory class interface."""
 
     suffix = 'dry'
 

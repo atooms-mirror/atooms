@@ -1,7 +1,7 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Backend and adapters for the RUMD simulation package."""
+"""Simulation backend for RUMD (http://rumd.org/)."""
 
 # This enables importing the top-level rumd package and still call
 # this file rumd.py
@@ -21,6 +21,8 @@ _log = logging.getLogger(__name__)
 
 
 class RUMD(object):
+
+    """RUMD simulation backend."""
 
     def __init__(self, input_file, forcefield_file=None,
                  integrator=None, temperature=None, dt=0.001,

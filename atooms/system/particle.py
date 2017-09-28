@@ -134,7 +134,7 @@ def cm_position(particle):
     return rcm / mtot
 
 def distinct_species(particles):
-    """Return list of distinct `species` of `particles`."""
+    """Return sorted list of distinct `species` of `particles`."""
     return list(sorted(set([p.species for p in particles])))
 
 def composition(particles, nsp=None):

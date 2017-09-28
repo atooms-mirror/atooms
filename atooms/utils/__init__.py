@@ -217,16 +217,24 @@ def setup_logging(name=None, level=40):
     return log
 
 def tipify(s):
-    """Convert a string into the best matching type.
-    Example: 2 -> int; 2.32 -> float; text -> str
+    """
+    Convert a string into the best matching type.
+
+    Example: 
+    -------
+        2 -> int
+        2.32 -> float
+        text -> str
+
     The only risk is if a variable is required to be float,
     but is passed without dot.
 
     Tests:
-    print type(tipify('2.0')) is float
-    print type(tipify('2')) is int
-    print type(tipify('t2')) is str
-    print map(tipify, ['2.0', '2'])
+    -----
+        print type(tipify("2.0")) is float
+        print type(tipify("2")) is int
+        print type(tipify("t2")) is str
+        print map(tipify, ["2.0", "2"])
     """
     try:
         return int(s)

@@ -40,7 +40,7 @@ class System(object):
         return len(self.particle[0].position)
 
     def distinct_species(self):
-        """Number of distinct chemical species in the system."""
+        """Sorted list of distinct chemical species in the system."""
         return sorted(set(p.species for p in self.particle))
 
     @property

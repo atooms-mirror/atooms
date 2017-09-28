@@ -1,7 +1,9 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Simple lammps simulation backend."""
+"""
+Minimal simulation backend for LAMMPS (http://lammps.sandia.gov).
+"""
 
 import os
 import subprocess
@@ -48,7 +50,14 @@ class System(system.System):
 
 class LAMMPS(object):
 
+    """LAMMPS simulation backend."""
+
     def __init__(self, fileinp, commands):
+        """
+        The input trajectory file `fileinp` can be any trajectory format
+        recognized by atooms. Lammps `commands` are passed as a string
+        and should not contain dump and run commands.
+        """
         self.fileinp = fileinp
         self.commands = commands
         self.verbose = False
