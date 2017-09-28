@@ -123,13 +123,13 @@ class Unfolded(object):
 
     """Decorate Trajectory to unfold particles positions on the fly."""
 
-    def __new__(cls, component, fix_cm=False):
+    def __new__(cls, component, fixed_cm=False):
         cls = type('Unfolded', (Unfolded, component.__class__), component.__dict__)
         return object.__new__(cls)
 
-    def __init__(self, component, fix_cm=False):
+    def __init__(self, component, fixed_cm=False):
         self._initialized_read = False
-        self.fix_cm = fix_cm
+        self.fixed_cm = fixed_cm
 
     def read_init(self):
         s = super(Unfolded, self).read_init()

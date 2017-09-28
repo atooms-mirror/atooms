@@ -137,7 +137,7 @@ def distinct_species(particles):
     """Return sorted list of distinct `species` of `particles`."""
     return list(sorted(set([p.species for p in particles])))
 
-def composition(particles, nsp=None):
+def composition(particles):
     """
     Return a dictionary containing the number of particles of each
     species appearing the input `particles` list.
