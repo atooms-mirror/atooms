@@ -109,7 +109,7 @@ class Simulation(object):
         self.backend.system = value
 
     def __str__(self):
-        return 'atooms simulation via %s backend' % self.backend
+        return 'atooms simulation via %s' % self.backend
 
     @property
     def restart(self):
@@ -262,17 +262,17 @@ class Simulation(object):
         self.add(self._targeter_steps, Scheduler(self.steps),
                  self.current_step + self.steps)
 
+        # Report
+        _report(self._info_start())
+        _report(self._info_backend())
+        _report(self._info_observers())
+
         # Read checkpoint if we restart
         if self.restart:
             self.read_checkpoint()
         barrier()
         self.initial_step = self.current_step
         self._start_time = time.time()
-
-        # Report
-        _report(self._info_start())
-        _report(self._info_backend())
-        _report(self._info_observers())
 
         # Reinitialize speedometers
         for s in self._speedometers:
@@ -287,7 +287,6 @@ class Simulation(object):
             else:
                 self._notify(self._speedometers)
             log.info('starting at step: %d', self.current_step)
-            log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
@@ -318,9 +317,6 @@ class Simulation(object):
             log.error('simulation failed')
             raise
 
-        finally:
-            log.info('goodbye')
-
     def _info_start(self):
         now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
         txt = """\
@@ -329,7 +325,7 @@ class Simulation(object):
 
         version: {}
         atooms version: {}+{} ({})
-        simulation starts on: {}
+        simulation started on: {}
         output path: {}\
         """.format(self, self.version, __version__, __commit__,
                    __date__, now, self.output_path)
@@ -341,21 +337,21 @@ class Simulation(object):
             return 'backend version: %s\n' % self.backend.version
 
     def _info_observers(self):
-        txt = ''
+        txt = []
         for f in self._callback:
             params = self._cbk_params[f]
             s = params['scheduler']
             if 'target' in f.__name__.lower():
                 args = params['args']
-                txt += 'target %s: %s\n' % (f.__name__, args[0])
+                txt.append('target %s: %s' % (f.__name__, args[0]))
             else:
-                txt += 'writer %s: interval=%s calls=%s\n' % \
-                       (f.__name__, s.interval, s.calls)
-        return txt
+                txt.append('writer %s: interval=%s calls=%s' % \
+                       (f.__name__, s.interval, s.calls))
+        return '\n'.join(txt)
 
     def _info_end(self):
         now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
-        txt = """\
+        txt = """
         simulation ended on: {}
         final steps: {}
         final rmsd: {:.2f}\
