@@ -16,6 +16,7 @@ import rumd
 from rumdSimulation import rumdSimulation
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
+from atooms.utils import mkdir
 
 _log = logging.getLogger(__name__)
 
@@ -27,7 +28,6 @@ class RUMD(object):
     def __init__(self, input_file, forcefield_file=None,
                  integrator=None, temperature=None, dt=0.001,
                  output_path=None, fixcm_interval=0):
-        self.steps = 0
         self.output_path = output_path
         # Keep a reference of the Trajectory backend class
         self.trajectory = Trajectory
@@ -44,6 +44,7 @@ class RUMD(object):
 
         # By default we mute RUMD output.
         if self.output_path is not None:
+            mkdir(self.output_path)
             self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
         self.rumd_simulation.SetOutputScheduling("energies", "none")
         self.rumd_simulation.SetOutputScheduling("trajectory", "none")
@@ -111,8 +112,10 @@ class RUMD(object):
                 t.write(self.system, None)
 
     def read_checkpoint(self):
-        self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
-        _log.info('restarting backend')
+        if os.path.exists(self.output_path + '.chk'):
+            self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
+        else:
+            _log.debug('could not find checkpoint')
 
     def run(self, steps):
         self.rumd_simulation.Run(steps,

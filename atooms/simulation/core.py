@@ -182,6 +182,7 @@ class Simulation(object):
         return [o for o in self._callback if isinstance(o, Speedometer)]
 
     def write_checkpoint(self):
+        """Write checkpoint to allow restarting a simulation."""
         if self.output_path is not None:
             with open(self.output_path + '.chk.step', 'w') as fh:
                 fh.write('%d' % self.current_step)
@@ -190,9 +191,19 @@ class Simulation(object):
             self.backend.write_checkpoint()
 
     def read_checkpoint(self):
+        """
+        Read the checkpoint to restart a simulation.
+
+        If the checkpoint file is not found, this method fails
+        gracefully.
+        """
         if self.output_path is not None:
-            with open(self.output_path + '.chk.step') as fh:
-                self.current_step = int(fh.read())
+            if os.path.exists(self.output_path + '.chk.step'):
+                with open(self.output_path + '.chk.step') as fh:
+                    self.current_step = int(fh.read())
+            else:
+                log.debug('could not find checkpoint')
+
         # Do not use try/except to avoid catching wrong exceptions
         if hasattr(self.backend, 'read_checkpoint'):
             self.backend.read_checkpoint()
