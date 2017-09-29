@@ -163,10 +163,15 @@ def fractional_slice(first, last, skip, n):
 
     return slice(first, last, skip)
 
-def add_first_last_skip(parser, what=['first', 'last', 'skip']):
-    """Add first, last, skip arguments to ArgumentParser object.
-    Compatible with fractional_slice().
-    Convenience function for analysis scripts."""
+def add_first_last_skip(parser, what=None):
+    """
+    Add first, last, skip arguments to ArgumentParser object.
+
+    Compatible with fractional_slice(). Convenience function for
+    analysis scripts.
+    """
+    if what is None:
+        what = ['first', 'last', 'skip']
     if 'first' in what:
         parser.add_argument('-f', '--first', dest='first', type=float, default=None, help='first cfg (accepts fractions)')
     if 'last' in what:
@@ -318,14 +323,14 @@ class OrderedSet(object):
     Example:
     -------
 
-    particle = [Particle(species='A'), Particle(species='C')]
-    periodic_table = OrderedSet()
-    periodic_table.update([p.species for p in particle])
-    particle = [Particle(species='A'), Particle(species='D')]
-    periodic_table.update([p.species for p in particle])
-    print periodic_table.index('C')
-    print periodic_table[0]
-    print periodic_table
+        particle = [Particle(species='A'), Particle(species='C')]
+        periodic_table = OrderedSet()
+        periodic_table.update([p.species for p in particle])
+        particle = [Particle(species='A'), Particle(species='D')]
+        periodic_table.update([p.species for p in particle])
+        print periodic_table.index('C')
+        print periodic_table[0]
+        print periodic_table
     """
 
     def __init__(self):
@@ -335,7 +340,7 @@ class OrderedSet(object):
         return repr(self.items)
 
     def __iter__(self):
-        self.items.__iter__()
+        return self.items.__iter__()
 
     def __getitem__(self, key):
         return self.items[key]

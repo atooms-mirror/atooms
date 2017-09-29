@@ -7,6 +7,8 @@ Base interaction class.
 Actual backends should implement this interface.
 """
 
+import numpy
+
 class Interaction(object):
 
     def __init__(self, potential, name=''):
@@ -35,17 +37,17 @@ class Interaction(object):
         forces implies energy calculation. The following observables
         are set to `None`.
         """
-        if what == 'energy':
+        if observable == 'energy':
             self.energy = 0.0
             self.virial = None
             self.stress = None
             self.forces = None
-        elif what == 'forces':
+        elif observable == 'forces':
             self.energy = 0.0
             self.virial = 0.0
             self.stress = None
             self.forces = numpy.zeros((len(particle), len(cell.side)))
-        elif what == 'stress':
+        elif observable == 'stress':
             self.energy = 0.0
             self.virial = 0.0
             self.stress = numpy.zeros((len(cell.side), len(cell.side)))

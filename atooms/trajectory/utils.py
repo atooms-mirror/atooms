@@ -322,7 +322,7 @@ def available_formats():
     return txt
 
 def info(trajectory):
-    from atooms.system.particle import species, composition
+    from atooms.system.particle import distinct_species, composition
     txt = ''
     txt += 'path                 = %s\n' % trajectory.filename
     txt += 'format               = %s\n' % trajectory.__class__
