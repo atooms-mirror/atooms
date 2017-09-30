@@ -62,9 +62,6 @@ class System(object):
     def temperature(self):
         return 0.
 
-    def mean_square_displacement(self, reference):
-        return 0.
-
 
 class Thermostat(object):
 

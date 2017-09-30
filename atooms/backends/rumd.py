@@ -226,24 +226,6 @@ class System(object):
         mass = self.__get_mass()
         return 2 * numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
 
-    def mean_square_displacement(self, reference):
-        """
-        Compute the mean square displacement between actual sample and the
-        reference sample.
-        """
-        if reference.sample is self.sample:
-            raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
-
-        ndim = 3  # hard coded
-        N = self.sample.GetNumberOfParticles()
-        L = [self.sample.GetSimulationBox().GetLength(i) for i in range(ndim)]
-
-        # Unfold positions using periodic image information
-        ref = reference.sample.GetPositions() + reference.sample.GetImages() * L
-        unf = self.sample.GetPositions() + self.sample.GetImages() * L
-
-        return sum(sum((unf - ref)**2)) / N
-
     @property
     def cell(self):
         box = self.sample.GetSimulationBox()
