@@ -25,7 +25,7 @@ import time
 import datetime
 import logging
 
-from atooms.core import __version__, __commit__, __date__
+from atooms.core import __version__
 from atooms.utils import mkdir, barrier
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
 
@@ -54,7 +54,7 @@ class Simulation(object):
 
     """Simulation base class."""
 
-    version = '%s+%s (%s)' % (__version__, __commit__, __date__)
+    version = __version__
 
     def __init__(self, backend, output_path=None, steps=0,
                  checkpoint_interval=0, enable_speedometer=False,
@@ -324,11 +324,10 @@ class Simulation(object):
         {}
 
         version: {}
-        atooms version: {}+{} ({})
+        atooms version: {}
         simulation started on: {}
         output path: {}\
-        """.format(self, self.version, __version__, __commit__,
-                   __date__, now, self.output_path)
+        """.format(self, self.version, __version__, now, self.output_path)
         return txt
 
     def _info_backend(self):
