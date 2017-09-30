@@ -44,7 +44,7 @@ def _report(info, file_handle=None, log_echo=True):
 
     if log_echo:
         for line in info.split('\n'):
-            log.info(line.strip())
+            _log.info(line.strip())
 
     if file_handle is not None:
         file_handle.write(info)
