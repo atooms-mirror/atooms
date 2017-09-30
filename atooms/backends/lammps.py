@@ -12,8 +12,8 @@ from atooms import system
 from atooms.trajectory import TrajectoryLAMMPS
 
 try:
-    out = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT)
-    _version = out.split('\n')[0]
+    _ = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT)
+    _version = _.split('\n')[0]
 except subprocess.CalledProcessError:
     raise ImportError('lammps not installed')
 
@@ -26,8 +26,8 @@ class System(system.System):
         recognized by atooms. Lammps `commands` are passed as a string
         and should not contain dump and run commands.
         """
-        self.filename = filename
-        self.commands = commands
+        self._filename = filename
+        self._commands = commands
         if os.path.exists(filename):
             # We accept any trajectory format, but if the format is
             # not recognized we force lammps native (atom) format

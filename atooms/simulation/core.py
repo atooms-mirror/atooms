@@ -29,7 +29,7 @@ from atooms.core import __version__
 from atooms.utils import mkdir, barrier
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
 
-log = logging.getLogger(__name__)
+_log = logging.getLogger(__name__)
 
 
 def _report(info, file_handle=None, log_echo=True):
@@ -160,11 +160,11 @@ class Simulation(object):
             self._callback.remove(callback)
             self._cbk_params.pop(callback)
         else:
-            log.debug('attempt to remove inexistent callback %s (dont worry)', callback)
+            _log.debug('attempt to remove inexistent callback %s (dont worry)', callback)
 
     def _notify(self, observers):
         for observer in observers:
-            log.debug('notify %s at step %d', observer, self.current_step)
+            _log.debug('notify %s at step %d', observer, self.current_step)
             args = self._cbk_params[observer]['args']
             kwargs = self._cbk_params[observer]['kwargs']
             observer(self, *args, **kwargs)
@@ -202,7 +202,7 @@ class Simulation(object):
                 with open(self.output_path + '.chk.step') as fh:
                     self.current_step = int(fh.read())
             else:
-                log.debug('could not find checkpoint')
+                _log.debug('could not find checkpoint')
 
         # Do not use try/except to avoid catching wrong exceptions
         if hasattr(self.backend, 'read_checkpoint'):
@@ -286,7 +286,7 @@ class Simulation(object):
                 self._notify(self._non_targeters)
             else:
                 self._notify(self._speedometers)
-            log.info('starting at step: %d', self.current_step)
+            _log.info('starting at step: %d', self.current_step)
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
@@ -314,7 +314,7 @@ class Simulation(object):
             pass
 
         except:
-            log.error('simulation failed')
+            _log.error('simulation failed')
             raise
 
     def _info_start(self):
