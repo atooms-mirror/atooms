@@ -202,7 +202,7 @@ def check_block_size(steps, block_size, prune=False):
     if prune and len(prune_me) > 0:
         print '#', len(prune_me), 'samples should be pruned'
         for step in prune_me:
-            pp = steps_local.pop(steps_local.index(step))
+            _ = steps_local.pop(steps_local.index(step))
 
     # Check if the number of steps is an integer multiple of
     # block period (we tolerate a rest of 1)
@@ -245,10 +245,14 @@ def dump(trajectory, what='pos'):
     return data
 
 def field(trajectory, trajectory_field, x_field, sample):
+    """
+    Return the field specified by particle attribute `x_field` at a
+    given `frame`.
+    """
     step = trajectory.steps[sample]
     try:
         index_field = trajectory_field.steps.index(step)
-    except:
+    except ValueError:
         return None
     x = []
     for pi in trajectory_field[index_field].particle:
@@ -329,7 +333,7 @@ def info(trajectory):
     txt += 'frames               = %s\n' % len(trajectory)
     txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
     txt += 'particles            = %s\n' % len(trajectory[0].particle)
-    txt += 'species              = %s\n' % len(species(trajectory[0].particle))
+    txt += 'species              = %s\n' % len(distinct_species(trajectory[0].particle))
     txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
     txt += 'density              = %s\n' % round(trajectory[0].density, 10)
     txt += 'cell side            = %s\n' % trajectory[0].cell.side
