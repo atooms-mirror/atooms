@@ -116,13 +116,6 @@ def split(inp, index='step', archive=False):
     if archive:
         tar.close()
 
-def sort_files_steps(files, steps):
-    file_steps = zip(files, steps)
-    file_steps.sort(key=lambda a: a[1])
-    new_files = [a[0] for a in file_steps]
-    new_steps = [a[1] for a in file_steps]
-    return new_files, new_steps
-
 def get_block_size(data):
     """
     Return the size of the periodic block after which entries in
@@ -230,7 +223,8 @@ def check_block_size(steps, block_size, prune=False):
     return steps_local
 
 def dump(trajectory, what='pos'):
-    """Dump coordinates as a list of (npart, ndim) numpy arrays if the
+    """
+    Dump coordinates as a list of (npart, ndim) numpy arrays if the
     trajectory is grandcanonical or as (nsteps, npart, ndim) numpy
     array if it is not grandcanonical.
     """
@@ -247,12 +241,12 @@ def dump(trajectory, what='pos'):
 
     return data
 
-def field(trajectory, trajectory_field, x_field, sample):
+def field(trajectory, trajectory_field, x_field, frame):
     """
     Return the field specified by particle attribute `x_field` at a
     given `frame`.
     """
-    step = trajectory.steps[sample]
+    step = trajectory.steps[frame]
     try:
         index_field = trajectory_field.steps.index(step)
     except ValueError:
@@ -296,8 +290,10 @@ def time_when_msd_is(th, msd_target, sigma=1.0):
 
 def is_cell_variable(trajectory, tests=1):
     """
-    Simple test to check if cell changes. We compare the first frame
-    to `tests` other frames starting from the end of `trajectory`.
+    Simple test to check if cell changes.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
     """
     is_variable = False
     frames = len(trajectory)
@@ -313,7 +309,8 @@ def is_cell_variable(trajectory, tests=1):
             break
     return is_variable
 
-def available_formats():
+def formats():
+    """Return a string with the available trajectory formats."""
     from atooms import trajectory
     txt = 'available trajectory formats:\n'
     fmts = trajectory.Trajectory.formats
@@ -329,6 +326,7 @@ def available_formats():
     return txt
 
 def info(trajectory):
+    """Return a string with information about a `trajectory` instance."""
     from atooms.system.particle import distinct_species, composition
     txt = ''
     txt += 'path                 = %s\n' % trajectory.filename
@@ -353,13 +351,5 @@ def info(trajectory):
             txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_size-1]
             txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size)])
         txt += 'grandcanonical       = %s' % trajectory.grandcanonical
-    print txt
+    return txt
 
-def benchmark_read(th):
-    from atooms.core.utils import Timer
-    t = Timer()
-    t.start()
-    for _ in th:
-        pass
-    t.stop()
-    return t.wall_time, os.path.getsize(th.filename) / 1e6 / t.wall_time
