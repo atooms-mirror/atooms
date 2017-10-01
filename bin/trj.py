@@ -9,51 +9,8 @@ import argparse
 import random
 from atooms import trajectory
 from atooms.core.utils import fractional_slice, add_first_last_skip
-from atooms.trajectory.utils import check_block_size, benchmark_read
+from atooms.trajectory.utils import check_block_size, info, formats
 
-
-# TODO: move functions to api / helpers module and use argh
-
-def available_formats():
-    txt = 'available trajectory formats:\n'
-    fmts = trajectory.Trajectory.formats
-    maxlen = max([len(name) for name in fmts])
-    for name in sorted(fmts):
-        class_name = fmts[name]
-        if class_name.__doc__:
-            docline = class_name.__doc__.split('\n')[0].rstrip('.')
-        else:
-            docline = '...no description...'
-        fmt = '  %-' + str(maxlen) + 's : %s\n'
-        txt += fmt % (name, docline)
-    return txt
-
-def info(trajectory):
-    from atooms.system.particle import species, composition
-    txt = ''
-    txt += 'path                 = %s\n' % trajectory.filename
-    txt += 'format               = %s\n' % trajectory.__class__
-    txt += 'frames               = %s\n' % len(trajectory)
-    txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
-    txt += 'particles            = %s\n' % len(trajectory[0].particle)
-    txt += 'species              = %s\n' % len(species(trajectory[0].particle))
-    txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
-    txt += 'density              = %s\n' % round(trajectory[0].density, 10)
-    txt += 'cell side            = %s\n' % trajectory[0].cell.side
-    txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
-    if len(trajectory)>1:
-        txt += 'steps                = %s\n' % trajectory.steps[-1]
-        txt += 'duration             = %s\n' % trajectory.times[-1]
-        txt += 'timestep             = %s\n' % trajectory.timestep
-        txt += 'block size           = %s\n' % trajectory.block_size
-        if trajectory.block_size == 1:
-            txt += 'steps between frames = %s\n' % (trajectory.steps[1]-trajectory.steps[0])
-            txt += 'time between frames  = %s\n' % (trajectory.times[1]-trajectory.times[0])
-        else:
-            txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_size-1]
-            txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size)])
-        txt += 'grandcanonical       = %s' % trajectory.grandcanonical
-    print txt
 
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
@@ -65,12 +22,8 @@ def main(args):
     else:
         t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
 
-    if args.read:
-        print benchmark_read(t)
-        return
-
     if args.info:
-        info(t)
+        print info(t)
         return
 
     # If no output format is provided we use the input one
@@ -174,7 +127,6 @@ if __name__ == '__main__':
     parser.add_argument(      '--alphabetic',dest='alphabetic_ids', action='store_true', help='reassign names alphabetically')
     parser.add_argument(      '--info', dest='info', action='store_true', help='print info')
     parser.add_argument(      '--seed', dest='seed', type=int, help='set seed of random number generator')
-    parser.add_argument(      '--read', dest='read', action='store_true', help='read performance')
     parser.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
     parser.add_argument(nargs='?', dest='file_out', default='-', help='output file')
     args = parser.parse_args()
