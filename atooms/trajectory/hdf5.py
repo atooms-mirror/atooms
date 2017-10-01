@@ -97,13 +97,13 @@ class TrajectoryHDF5(TrajectoryBase):
             try:
                 # get steps list (could be cached and put in init_read())
                 self.steps = [d[0] for d in self.trajectory['trajectory/realtime/stepindex'].values()]
-                # private list of samples. This solves the problem that samples may start from 0
+                # private list of frames. This solves the problem that frames may start from 0
                 # or 1 depending on the code that initially produced the data
                 # TODO: can we drop this for performance?
-                self._samples = [d[0] for d in self.trajectory['trajectory/realtime/sampleindex'].values()]
+                self._frames = [d[0] for d in self.trajectory['trajectory/realtime/sampleindex'].values()]
             except KeyError:
                 self.steps = []
-                self._samples = []
+                self._frames = []
 
         elif self.mode == 'w' or self.mode == 'r+' or self.mode == "w-":
             self.trajectory = _SafeFile(self.filename, self.mode)
@@ -241,14 +241,14 @@ class TrajectoryHDF5(TrajectoryBase):
         self.trajectory.create_group_safe('/trajectory/realtime/stepindex')
         self.trajectory.create_group_safe('/trajectory/realtime/sampleindex')
 
-        sample = len(self.steps) + 1
-        csample = '/sample_%7.7i' % sample
+        frame = len(self.steps) + 1
+        csample = '/sample_%7.7i' % frame
 
         try:
             self.trajectory['/trajectory/realtime/stepindex' + csample] = [step]
-            self.trajectory['/trajectory/realtime/sampleindex' + csample] = [sample]
+            self.trajectory['/trajectory/realtime/sampleindex' + csample] = [frame]
         except RuntimeError:
-            _log.error('error when writing step %s sample %s to file %s', step, sample, self.filename)
+            _log.error('error when writing step %s sample %s to file %s', step, frame, self.filename)
             raise
 
         if system.particle is not None:
@@ -355,13 +355,13 @@ class TrajectoryHDF5(TrajectoryBase):
             interactions.append(Interaction(potentials, name))
         return interactions
 
-    def read_sample(self, sample, unfolded=False):
+    def read_sample(self, frame, unfolded=False):
         # TODO: due to unfolded argument this differs from the base class method Can we drop this?
-        # We must increase sample by 1 if we iterate over samples with len().
+        # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
-        isample = self._samples[sample]
-        csample = '/sample_%7.7i' % isample
+        iframe = self._frames[frame]
+        csample = '/sample_%7.7i' % iframe
         # read particles
         group = self.trajectory['/trajectory/particle']
         if unfolded:
@@ -370,7 +370,7 @@ class TrajectoryHDF5(TrajectoryBase):
             else:
                 # fix for unfolded positions that were not written at the first step
                 # should be fixed once and for all in md.x
-                if sample == 0:
+                if frame == 0:
                     pos = self.trajectory['/initialstate/particle/position'][:]
                 else:
                     pos = group['position_unfolded' + csample][:]

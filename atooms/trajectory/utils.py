@@ -91,17 +91,20 @@ def convert(inp, out, fout, force=True, fmt=None,
     return fout
 
 def split(inp, index='step', archive=False):
-    """Split the trajectory into independent trajectory files, one per sample."""
+    """
+    Split the trajectory into independent trajectory files, one per
+    sample.
+    """
     if archive:
         tar = tarfile.open(inp.filename + '.tar.gz', "w:gz")
     base, ext = os.path.splitext(inp.filename)
 
-    # TODO: fix zipping of steps
-    for system, step, sample in zip(inp, inp.steps, inp.samples):
+    for frame, step in enumerate(inp.steps):
+        system = inp[frame]
         if index == 'step':
             filename = '%s-%09i%s' % (base, step, ext)
-        elif index == 'sample':
-            filename = '%s-%09i%s' % (base, sample, ext)
+        elif index == 'frame' or index == 'sample':
+            filename = '%s-%09i%s' % (base, frame, ext)
         else:
             raise ValueError('unknown option %s' % index)
         with inp.__class__(filename, 'w') as t:

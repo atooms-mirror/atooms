@@ -38,7 +38,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
-        self._index_sample = []
+        self._index_frame = []
         self._index_header = []
         self._index_cell = None
         self.trajectory.seek(0)
@@ -62,12 +62,12 @@ class TrajectorySimpleXYZ(TrajectoryBase):
 
             # Skip npart+1 lines
             _ = self.trajectory.readline()
-            self._index_sample.append(self.trajectory.tell())
+            self._index_frame.append(self.trajectory.tell())
             for i in range(npart):
                 _ = self.trajectory.readline()
 
-    def _read_metadata(self, sample):
-        """Internal xyz method to get header metadata from comment line of given *sample*.
+    def _read_metadata(self, frame):
+        """Internal xyz method to get header metadata from comment line of given `frame`.
 
         We assume metadata format is a space-separated sequence of
         comma separated entries such as:
@@ -76,7 +76,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         columns=id,x,y,z step=10
         """
         # Go to line and skip Npart info
-        self.trajectory.seek(self._index_header[sample])
+        self.trajectory.seek(self._index_header[frame])
         npart = int(self.trajectory.readline())
         data = self.trajectory.readline()
 
@@ -100,13 +100,13 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def _setup_steps(self):
         """Find steps list."""
         self.steps = []
-        for sample in range(len(self._index_sample)):
-            meta = self._read_metadata(sample)
+        for frame in range(len(self._index_frame)):
+            meta = self._read_metadata(frame)
             try:
                 self.steps.append(meta['step'])
             except KeyError:
                 # If no step info is found, we add steps sequentially
-                self.steps.append(sample+1)
+                self.steps.append(frame+1)
 
     def read_init(self):
         # Grab cell from the end of file if it is there
@@ -125,9 +125,9 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             cell = Cell(side)
         return cell
 
-    def read_sample(self, sample):
-        meta = self._read_metadata(sample)
-        self.trajectory.seek(self._index_sample[sample])
+    def read_sample(self, frame):
+        meta = self._read_metadata(frame)
+        self.trajectory.seek(self._index_frame[frame])
 
         # Read particles
         particle = []
@@ -278,7 +278,7 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
-        self._index_sample = []
+        self._index_frame = []
         self._index_header = []
         self._index_cell = None
         self.trajectory.seek(0)
@@ -302,20 +302,20 @@ class TrajectoryXYZ(TrajectoryBase):
 
             # Skip npart+1 lines
             _ = self.trajectory.readline()
-            self._index_sample.append(self.trajectory.tell())
+            self._index_frame.append(self.trajectory.tell())
             for i in range(npart):
                 _ = self.trajectory.readline()
 
     def _setup_steps(self):
         """Find steps list."""
         self.steps = []
-        for sample in range(len(self._index_sample)):
-            meta = self._read_metadata(sample)
+        for frame in range(len(self._index_frame)):
+            meta = self._read_metadata(frame)
             try:
                 self.steps.append(meta['step'])
             except KeyError:
                 # If no step info is found, we add steps sequentially
-                self.steps.append(sample+1)
+                self.steps.append(frame+1)
 
     def _expand_shortcuts(self):
         _fmt = []
@@ -326,8 +326,10 @@ class TrajectoryXYZ(TrajectoryBase):
                 _fmt.append(field)
         return _fmt
 
-    def _read_metadata(self, sample):
-        """Internal xyz method to get header metadata from comment line of given *sample*.
+    def _read_metadata(self, frame):
+        """
+        Internal xyz method to get header metadata from comment line of
+        given `frame`.
 
         We assume metadata fmt is a space-separated sequence of comma
         separated entries such as:
@@ -336,7 +338,7 @@ class TrajectoryXYZ(TrajectoryBase):
         columns=id,x,y,z step=10
         """
         # Go to line and skip Npart info
-        self.trajectory.seek(self._index_header[sample])
+        self.trajectory.seek(self._index_header[frame])
         npart = int(self.trajectory.readline())
         data = self.trajectory.readline()
 
@@ -384,8 +386,8 @@ class TrajectoryXYZ(TrajectoryBase):
         except KeyError:
             self._cell = self._parse_cell()
 
-    def read_sample(self, sample):
-        meta = self._read_metadata(sample)
+    def read_sample(self, frame):
+        meta = self._read_metadata(frame)
         if 'columns' in meta:
             # Use columns if they are found in the header
             fmt = meta['columns']
@@ -397,8 +399,8 @@ class TrajectoryXYZ(TrajectoryBase):
             fmt = self.fmt
         fmt = _optimize_fmt(fmt)
 
-        # Read sample now
-        self.trajectory.seek(self._index_sample[sample])
+        # Read frame now
+        self.trajectory.seek(self._index_frame[frame])
         particle = []
         for i in range(meta['npart']):
             p = Particle()
@@ -418,7 +420,7 @@ class TrajectoryXYZ(TrajectoryBase):
 
         # Fix the masses.
         # We assume masses read from the header are sorted by species name.
-        # The mass metadata must be adjusted to the given sample.
+        # The mass metadata must be adjusted to the given frame.
         if 'mass' in meta:
             species = distinct_species(particle)
             if len(species) == 1:
@@ -501,9 +503,9 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         self._netwon3 = False
         self._netwon3_message = False
 
-    def read_sample(self, sample):
-        meta = self._read_metadata(sample)
-        self.trajectory.seek(self._index_sample[sample])
+    def read_sample(self, frame):
+        meta = self._read_metadata(frame)
+        self.trajectory.seek(self._index_frame[frame])
         s = System()
         s.neighbors = []
         for _ in range(meta['npart']):
@@ -512,7 +514,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
             s.neighbors.append(neigh-self._offset)
 
         # Ensure III law Newton.
-        # If this is ok on first sample we skip it for the next ones
+        # If this is ok on first frame we skip it for the next ones
         # if not self._netwon3:
         #     self._netwon3 = True
         #     for i, ilist in enumerate(p):

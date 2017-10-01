@@ -49,8 +49,8 @@ class TrajectoryRUMD(TrajectoryXYZ):
         if s and len(self.steps) == 1:
             self.steps = [int(basename)]
 
-    def _read_metadata(self, sample):
-        meta = super(TrajectoryRUMD, self)._read_metadata(sample)
+    def _read_metadata(self, frame):
+        meta = super(TrajectoryRUMD, self)._read_metadata(frame)
         # RUMD specific stuff that can't be handled as aliases.
         if 'integrator' in meta:
             meta['dt'] = meta['integrator'][1]

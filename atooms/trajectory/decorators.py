@@ -111,11 +111,11 @@ class Sliced(object):
         return object.__new__(cls)
 
     def __init__(self, component, uslice):
-        self._sliced_samples = range(len(self.steps))[uslice]
+        self._sliced_frames = range(len(self.steps))[uslice]
         self.steps = self.steps[uslice]
 
-    def read_sample(self, sample):
-        i = self._sliced_samples[sample]
+    def read_sample(self, frame):
+        i = self._sliced_frames[frame]
         return super(Sliced, self).read_sample(i)
 
 
@@ -139,23 +139,23 @@ class Unfolded(object):
         self._old_cm = s.cm_position
         self._last_read = 0
 
-    def read_sample(self, sample):
-        # Return here if first sample
-        if sample == 0:
-            return super(Unfolded, self).read_sample(sample)
+    def read_sample(self, frame):
+        # Return here if first frame
+        if frame == 0:
+            return super(Unfolded, self).read_sample(frame)
 
-        # Compare requested sample with last read
-        delta = sample - self._last_read
+        # Compare requested frame with last read
+        delta = frame - self._last_read
         if delta < 0:
             raise ValueError('cannot unfold jumping backwards (delta=%d)' % delta)
         if delta > 1:
-            # Allow to skip some samples by reading them internally
-            # We read delta-1 samples, then delta is 1
+            # Allow to skip some frames by reading them internally
+            # We read delta-1 frames, then delta is 1
             for i in range(delta-1):
                 self.read_sample(self._last_read+1)
 
-        s = super(Unfolded, self).read_sample(sample)
-        self._last_read = sample
+        s = super(Unfolded, self).read_sample(frame)
+        self._last_read = frame
 
         # Unfold positions
         # Note that since L can be variable we get it at each step

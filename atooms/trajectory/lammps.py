@@ -92,8 +92,8 @@ class TrajectoryLAMMPS(TrajectoryBase):
         TrajectoryBase.__init__(self, filename, mode)
         self.steps = [0]
 
-    def read_sample(self, sample):
-        # TODO: respect input sample
+    def read_sample(self, frame):
+        # TODO: respect input frame
         with open(self.filename, 'r') as fh:
             _ = _lammps_parse_step(fh)
             s = _lammps_parse_system(fh)
@@ -155,8 +155,8 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
             step = _lammps_parse_step(fh)
         return step
 
-    def read_sample(self, sample):
-        with open(self.files[sample], 'r') as fh:
+    def read_sample(self, frame):
+        with open(self.files[frame], 'r') as fh:
             _ = _lammps_parse_step(fh)
             s = _lammps_parse_system(fh)
         return s

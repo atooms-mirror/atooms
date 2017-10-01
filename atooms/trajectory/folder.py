@@ -112,9 +112,9 @@ class Foldered(TrajectoryFolder):
         if self.mode == 'r':
             self.dirname, self.archive, self.files, self.steps = init_folder(self.filename)
 
-    def read_sample(self, sample):
+    def read_sample(self, frame):
         from atooms.trajectory import Trajectory
-        with Trajectory(self.files[sample], fmt=self._cls) as th:
+        with Trajectory(self.files[frame], fmt=self._cls) as th:
             # We must use read(), instead of read_sample(), to
             # initialize the trajectory properly
             return th.read(0)
