@@ -75,9 +75,9 @@ def main(args):
         ts.register_callback(trajectory.decorators.set_density, args.rho)
     if args.temperature is not None:
         ts.register_callback(trajectory.decorators.set_temperature, args.temperature)
-
-    # We always normalize species id's using fortran convention
-    ts.register_callback(trajectory.decorators.normalize_id, args.alphabetic_ids)
+    # Change species layout if requested
+    if args.species_layout is not None:
+        ts.register_callback(trajectory.decorators.change_species, args.species_layout)
 
     # We enforce regular periodicity; steps is None is trajectory is not periodic
     steps = check_block_size(ts.steps, ts.block_size, prune=True)
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     parser.add_argument(      '--density', dest='rho', type=float, default=None, help='new density')
     parser.add_argument('-T', '--temperature', dest='temperature', type=float, default=None, help='new temperature')
     parser.add_argument(      '--precision', dest='precision', type=int, default=None, help='write precision')
-    parser.add_argument(      '--alphabetic',dest='alphabetic_ids', action='store_true', help='reassign names alphabetically')
+    parser.add_argument(      '--species-layout',dest='species_layout', default=None, help='modify species layout (A, C, F)')
     parser.add_argument(      '--info', dest='info', action='store_true', help='print info')
     parser.add_argument(      '--seed', dest='seed', type=int, help='set seed of random number generator')
     parser.add_argument(nargs=1, dest='file_inp', default='-', help='input file')

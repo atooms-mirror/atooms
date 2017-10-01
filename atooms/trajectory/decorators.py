@@ -13,7 +13,7 @@ Trajectory callbacks and class decorators.
 
 import numpy
 
-__all__ = ['center', 'normalize_id', 'sort', 'filter_id',
+__all__ = ['center', 'change_species', 'sort', 'filter_species',
            'set_density', 'set_temperature', 'fix_cm', 'fold',
            'Sliced', 'Unfolded']
 
@@ -29,30 +29,73 @@ def center(system):
         p.position -= system.cell.side / 2.0
     return system
 
-def normalize_id(system, alphabetic=False):
+def change_species(system, layout):
     """
-    Change particle species id's to start from 1 (fortran style).
+    Return a modified `system` with particle species changed according
+    to `layout`.
 
-    Species names, given by the variable `particle.name`, can be
-    reassigned alphabetically (ex. 'A', 'B' ...)  using the
-    `alphabetic` flag.
+    The possible values of `layout` are:
+
+    - 'A': alphabetic, i.e. species are strings like 'A', 'B', ...
+    - 'C': C-like, i.e. species are integers starting from 0
+    - 'F': F-like, i.e. species are integers starting from 1
+
+    If the current layout already matches the requested one, the
+    system is returned unchanged.
     """
-    map_ids = {1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E'}
-    pid = [p.id for p in system.particle]
-    id_min = numpy.min(pid)
-    if id_min == 0:
+    if not layout in ['A', 'C', 'F']:
+        raise ValueError('species layout must be A, C, or F (not %s)' % layout)
+
+    # Detect species layout (A=alphabetic, C=C style, F=fortran style)
+    try:
+        species = [int(p.species) for p in system.particle]
+    except ValueError:
+        # The species cannot be converted to int, thus layout is
+        # alphabetical
+        current_layout = 'A'
+    else:
+        min_sp = numpy.min(species)
+        if min_sp == 0:
+            current_layout = 'C'
+        elif min_sp == 1:
+            current_layout = 'F'
+        else:
+            raise ValueError('Numeric species should start from 0 or 1')
+
+    # Do nothing if the layout is already ok
+    if layout == current_layout:
+        return system
+
+    # Convert to new layout
+    import string
+    species_map = string.ascii_uppercase
+    if layout == 'A':
+        # We get the index of the species map:
+        # - if current layout is F (min_sp=1), we subtract one.
+        # - if current layout is C (min_sp=0), we do nothing
         for p in system.particle:
-            p.id += 1
-    if alphabetic:
-        for p in system.particle:
-            p.name = map_ids[p.id]
+            p.species = species_map[int(p.species) - min_sp]
+    else:
+        # Output layout is numerical (C or F)
+        from atooms.system.particle import distinct_species
+        offset = 1 if layout == 'F' else 0
+        nsp = len(distinct_species(system.particle))
+        species_list = [species_map[i] for i in range(nsp)]
+        if current_layout == 'A':
+            for p in system.particle:
+                p.species = str(species_list.index(p.species) + offset)
+        else:
+            # If layout=C, current_layout is F and we subtract 2*offset-1=-1
+            # If layout=F, current_layout is C and we add 2*offset-1=+1
+            for p in system.particle:
+                p.species = str(int(p.species) + 2*offset - 1)
     return system
 
 def sort(system):
     """Sort particles by species id."""
     return sorted(system.particle, key=lambda a: a.id)
 
-def filter_id(system, species):
+def filter_species(system, species):
     """Return particles of a given `species` id."""
     system.particle = [p for p in system.particle if p.id == species]
     return system
