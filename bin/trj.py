@@ -107,7 +107,7 @@ def main(args):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(epilog=available_formats(), 
+    parser = argparse.ArgumentParser(epilog=formats(), 
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser = add_first_last_skip(parser)
     parser.add_argument(      '--fmt-fields', dest='fmt', help='format fields')
