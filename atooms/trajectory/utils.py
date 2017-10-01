@@ -65,6 +65,9 @@ def convert(inp, out, fout, force=True, fmt=None,
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
         print 'File exists, conversion skipped'
     else:
+        # Make sure parent folder exists
+        from atooms.core.utils import mkdir
+        mkdir(os.path.dirname(fout))
         with out_class(fout, 'w') as conv:
             format_output(conv, fmt, include, exclude)
             conv.precision = inp.precision
