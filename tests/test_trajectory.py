@@ -43,7 +43,7 @@ class Test(unittest.TestCase):
         self.system.append(System(copy.deepcopy(particle), cell))
         self.inpfile = '/tmp/testtrj'
         self.inpdir = '/tmp/testtrj.d'
-        from atooms.utils import mkdir
+        from atooms.core.utils import mkdir
         mkdir(self.inpdir)
 
     def _read_write(self, cls, path=None, ignore=None):

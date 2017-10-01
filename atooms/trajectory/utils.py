@@ -356,7 +356,7 @@ def info(trajectory):
     print txt
 
 def benchmark_read(th):
-    from atooms.utils import Timer
+    from atooms.core.utils import Timer
     t = Timer()
     t.start()
     for _ in th:

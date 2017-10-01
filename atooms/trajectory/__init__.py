@@ -24,7 +24,7 @@ except ImportError:
     pass
 from .ram import TrajectoryRam
 
-from atooms.utils import NullHandler
+from atooms.core.utils import NullHandler
 logging.getLogger(__name__).addHandler(NullHandler())
 
 # We build an instance of trajectory factory here and update the

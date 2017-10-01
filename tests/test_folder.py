@@ -4,7 +4,7 @@ import os
 import unittest
 import numpy
 
-from atooms.utils import mkdir, rmd
+from atooms.core.utils import mkdir, rmd
 from atooms.trajectory.folder import TrajectoryFolder
 
 

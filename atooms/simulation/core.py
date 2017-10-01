@@ -26,7 +26,7 @@ import datetime
 import logging
 
 from atooms.core import __version__
-from atooms.utils import mkdir, barrier
+from atooms.core.utils import mkdir, barrier
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
 
 _log = logging.getLogger(__name__)

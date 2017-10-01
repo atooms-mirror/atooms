@@ -5,7 +5,7 @@ import logging
 import numpy
 from atooms.simulation import Simulation, Scheduler, write_thermo
 from atooms.backends.dryrun import DryRun
-from atooms.utils import setup_logging
+from atooms.core.utils import setup_logging
 
 setup_logging(level=40)
 

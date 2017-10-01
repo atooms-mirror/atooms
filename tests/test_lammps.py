@@ -3,7 +3,7 @@
 import os
 import unittest
 from atooms.simulation import Simulation, write_thermo, write_config, target
-from atooms.utils import setup_logging
+from atooms.core.utils import setup_logging
 try:
     from atooms.backends.lammps import LAMMPS
     SKIP = False

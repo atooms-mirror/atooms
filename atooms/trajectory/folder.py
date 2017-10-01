@@ -20,7 +20,7 @@ import re
 import tarfile
 import tempfile
 
-from atooms.utils import rmd
+from atooms.core.utils import rmd
 from atooms.trajectory.base import TrajectoryBase
 
 

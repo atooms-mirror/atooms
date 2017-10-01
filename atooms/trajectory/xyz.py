@@ -7,7 +7,7 @@ import logging
 
 from .base import TrajectoryBase
 from .utils import gopen
-from atooms.utils import tipify
+from atooms.core.utils import tipify
 from atooms.system.particle import Particle, distinct_species
 from atooms.system.cell import Cell
 from atooms.system import System

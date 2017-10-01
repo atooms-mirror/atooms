@@ -9,7 +9,7 @@ try:
 except ImportError:
     SKIP = True
 from atooms.simulation import Simulation, write_thermo, write_config, target
-from atooms.utils import setup_logging
+from atooms.core.utils import setup_logging
 
 setup_logging(level=40)
 
