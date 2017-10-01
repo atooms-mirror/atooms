@@ -81,10 +81,6 @@ class RUMD(object):
 
     system = property(_get_system, _set_system, 'System')
 
-    @property
-    def initial_state(self):
-        return System(self._initial_sample)
-
     def __str__(self):
         return 'RUMD v%s' % rumd.GetVersion()
 
