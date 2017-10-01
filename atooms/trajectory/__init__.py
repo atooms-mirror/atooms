@@ -48,8 +48,14 @@ for _, _mod_name, _ in pkgutil.iter_modules(atooms.plugins.__path__, prefix='ato
 # Additional plugins can be put in the atooms_plugins module
 try:
     import atooms_plugins
-    for _, _mod_name, _ in pkgutil.iter_modules(atooms_plugins.__path__, prefix='atooms_plugins.'):
-        m = __import__(_mod_name)
-        Trajectory.update(_mod_name)
 except ImportError:
     pass
+else:
+    for _, _mod_name, _ in pkgutil.iter_modules(atooms_plugins.__path__, 
+                                                prefix='atooms_plugins.'):
+        try:
+            m = __import__(_mod_name)
+            Trajectory.update(_mod_name)
+        except ImportError:
+            # Could not import this trajectory
+            pass
