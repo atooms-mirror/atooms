@@ -17,10 +17,10 @@ Global variables.
 
 __author__ = "Daniele Coslovich <daniele.coslovich@umontpellier.fr>"
 
-from _version import __version__ as __bare_version
+from ._version import __version__ as __bare_version
 
 try:
-    from _commit import __commit__, __date__
+    from ._commit import __commit__, __date__
     __version__ = '%s+%s (%s)' % (__bare_version, __commit__, __date__)
 except ImportError:
     __commit__ = ""
