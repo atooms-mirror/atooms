@@ -93,11 +93,11 @@ def change_species(system, layout):
 
 def sort(system):
     """Sort particles by species id."""
-    return sorted(system.particle, key=lambda a: a.id)
+    return sorted(system.particle, key=lambda a: a.species)
 
 def filter_species(system, species):
     """Return particles of a given `species` id."""
-    system.particle = [p for p in system.particle if p.id == species]
+    system.particle = [p for p in system.particle if p.species == species]
     return system
 
 def set_density(system, rho):
