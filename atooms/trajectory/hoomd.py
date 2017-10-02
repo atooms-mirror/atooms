@@ -43,13 +43,13 @@ class TrajectoryHOOMD(TrajectoryBase):
             tar.extractall(path=self.__tmp_path)
             tar.close()
 
-            self.__f_samples = [os.path.join(self.__tmp_path, f) for f in file_list]
+            self.__f_frames = [os.path.join(self.__tmp_path, f) for f in file_list]
 
-            cfg, box, pos, typ, vel = self.__read_one(self.__f_samples[0])
+            cfg, box, pos, typ, vel = self.__read_one(self.__f_frames[0])
 
             self._timestep = 1.0
             self.steps = []
-            for f in sorted(self.__f_samples):
+            for f in sorted(self.__f_frames):
                 tree = ElementTree.parse(f)
                 root = tree.getroot()
                 cfg = root.find('configuration')
@@ -66,7 +66,7 @@ class TrajectoryHOOMD(TrajectoryBase):
             self._tar = tarfile.open(fname, "w:gz")
 
     def rewind(self):
-        # TODO: rewind automatically when unfolding and restarting from a previous sample
+        # TODO: rewind automatically when unfolding and restarting from a previous frame
         raise NotImplementedError()
 
     def __read_one(self, fname):
@@ -90,14 +90,14 @@ class TrajectoryHOOMD(TrajectoryBase):
             vel_list = None
         return cfg, box_list, pos_list, typ_list, vel_list
 
-    def read_sample(self, sample):
-        cfg, box, pos, typ, vel = self.__read_one(self.__f_samples[sample])
+    def read_sample(self, frame):
+        cfg, box, pos, typ, vel = self.__read_one(self.__f_frames[frame])
         lab = map_label_id(typ)
 
         if vel is None:
-            particle = [Particle(name=t, id=lab[t], position=numpy.array(p)) for p, t in zip(pos, typ)]
+            particle = [Particle(species=t, position=numpy.array(p)) for p, t in zip(pos, typ)]
         else:
-            particle = [Particle(name=t, id=lab[t], position=numpy.array(p), velocity=numpy.array(v))
+            particle = [Particle(species=t, position=numpy.array(p), velocity=numpy.array(v))
                         for p, t, v in zip(pos, typ, vel)]
         cell = Cell(numpy.array(box))
         return System(particle, cell)
@@ -132,7 +132,7 @@ class TrajectoryHOOMD(TrajectoryBase):
 
         fh.write("<type num=\"%d\">\n" % n)
         for p in system.particle:
-            fh.write(("%s\n") % p.name)
+            fh.write(("%s\n") % p.species)
         fh.write("</type>\n")
 
         fh.write("""\

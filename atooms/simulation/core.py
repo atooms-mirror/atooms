@@ -25,16 +25,36 @@ import time
 import datetime
 import logging
 
-from atooms.core import __version__, __commit__, __date__
-from atooms.utils import mkdir, barrier
+from atooms.core import __version__
+from atooms.core.utils import mkdir, barrier
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
 
-log = logging.getLogger(__name__)
+_log = logging.getLogger(__name__)
+
+
+def _report(info, file_handle=None, log_echo=True):
+    """
+    Log `info` string to default logger at level info.
+
+    Optionally write `info` to `file_handle` if the latter is
+    given. Logging is disabled via `log_echo` is False.
+    """
+    if info is None:
+        return
+
+    if log_echo:
+        for line in info.split('\n'):
+            _log.info(line.strip())
+
+    if file_handle is not None:
+        file_handle.write(info)
 
 
 class Simulation(object):
 
     """Simulation base class."""
+
+    version = __version__
 
     def __init__(self, backend, output_path=None, steps=0,
                  checkpoint_interval=0, enable_speedometer=False,
@@ -43,18 +63,14 @@ class Simulation(object):
         Perform a simulation using the specified `backend` and optionally
         write output to `output_path`. This can be a file or directory path.
 
-        Paths. To define output paths we rely on output_path, all
-        other paths are defined based on it and on its
-        base_path. Paths can then be defined locally by writers. Some
-        glue is added in run_pre() to allow writers to cleanup their
-        files.
+        Paths: to define output paths we rely on `output_path`, all
+        other paths are defined based on it and on its base_path.
         """
         self.backend = backend
-        self.restart = restart
         self.output_path = output_path
-        # TODO: use steps for the target steps, current_step instead of steps
-        self.max_steps = steps
-        self.steps = 0
+        self.steps = steps
+        self._restart = restart
+        self.current_step = 0
         self.initial_step = 0
         # We expect subclasses to keep a ref to the trajectory object
         # self.trajectory used to store configurations
@@ -76,13 +92,13 @@ class Simulation(object):
         if enable_speedometer:
             self._speedometer = Speedometer()
             self.add(self._speedometer, Scheduler(None, calls=20,
-                                                  target=self.max_steps))
+                                                  target=self.steps))
 
     @property
     def system(self):
         # Note that setting system as a reference in the instance, like
         #   self.system = self.backend.system
-        # is unsafe because this won't follow the backend's system when the 
+        # is unsafe because this won't follow the backend's system when the
         # latter is reassigned as in
         #   self.backend.system = None
         # So we defined it as a property.
@@ -93,7 +109,12 @@ class Simulation(object):
         self.backend.system = value
 
     def __str__(self):
-        return 'atooms simulation via %s backend' % self.backend
+        return 'atooms simulation via %s' % self.backend
+
+    @property
+    def restart(self):
+        """True is the simulation should be restarted. Read-only property."""
+        return self._restart
 
     @property
     def base_path(self):
@@ -101,8 +122,7 @@ class Simulation(object):
 
     def add(self, callback, scheduler, *args, **kwargs):
         """
-        Register an observer `callback` to be called along with a
-        `scheduler`.
+        Add an observer `callback` to be called along with a `scheduler`.
 
         `scheduler` and `callback` must be callables accepting a
         Simulation instance as unique argument. `scheduler` must
@@ -124,8 +144,8 @@ class Simulation(object):
 
         # Store scheduler, callback and its arguments
         # in a separate dict (NOT in the function object itself!)
-        self._cbk_params[callback] = {'scheduler': scheduler, 
-                                      'args': args, 
+        self._cbk_params[callback] = {'scheduler': scheduler,
+                                      'args': args,
                                       'kwargs': kwargs}
 
         # Keep targeters last
@@ -140,11 +160,11 @@ class Simulation(object):
             self._callback.remove(callback)
             self._cbk_params.pop(callback)
         else:
-            log.debug('attempt to remove inexistent callback %s (dont worry)', callback)
+            _log.debug('attempt to remove inexistent callback %s (dont worry)', callback)
 
     def _notify(self, observers):
         for observer in observers:
-            log.debug('notify %s at step %d', observer, self.steps)
+            _log.debug('notify %s at step %d', observer, self.current_step)
             args = self._cbk_params[observer]['args']
             kwargs = self._cbk_params[observer]['kwargs']
             observer(self, *args, **kwargs)
@@ -162,11 +182,31 @@ class Simulation(object):
         return [o for o in self._callback if isinstance(o, Speedometer)]
 
     def write_checkpoint(self):
-        try:
+        """Write checkpoint to allow restarting a simulation."""
+        if self.output_path is not None:
+            with open(self.output_path + '.chk.step', 'w') as fh:
+                fh.write('%d' % self.current_step)
+        # Do not use try/except to avoid catching wrong exceptions
+        if hasattr(self.backend, 'write_checkpoint'):
             self.backend.write_checkpoint()
-        except AttributeError:
-            # Tolerate missing checkpoint implementation
-            pass
+
+    def read_checkpoint(self):
+        """
+        Read the checkpoint to restart a simulation.
+
+        If the checkpoint file is not found, this method fails
+        gracefully.
+        """
+        if self.output_path is not None:
+            if os.path.exists(self.output_path + '.chk.step'):
+                with open(self.output_path + '.chk.step') as fh:
+                    self.current_step = int(fh.read())
+            else:
+                _log.debug('could not find checkpoint')
+
+        # Do not use try/except to avoid catching wrong exceptions
+        if hasattr(self.backend, 'read_checkpoint'):
+            self.backend.read_checkpoint()
 
     @property
     def rmsd(self):
@@ -175,58 +215,31 @@ class Simulation(object):
         except AttributeError:
             return 0.0
 
-    def elapsed_wall_time(self):
+    def _elapsed_wall_time(self):
         """Elapsed wall time in seconds."""
         return time.time() - self._start_time
 
-    def wall_time_per_step(self):
+    def wall_time(self, per_step=False, per_particle=False):
         """
-        Wall time per step in seconds.
+        Elapsed wall time in seconds.
 
-        It can be subclassed by more complex simulation classes.
+        Optionally normalized per step and or per particle. It can be
+        subclassed by more complex simulation classes.
         """
-        if self.steps - self.initial_step > 0:
-            return self.elapsed_wall_time() / (self.steps - self.initial_step)
-        else:
-            return float('nan')
-
-    def wall_time_per_step_particle(self):
-        """Wall time per step and particle in seconds."""
-        if len(self.system.particle) > 0:
-            return self.wall_time_per_step() / len(self.system.particle)
-        else:
-            # There is no reference to system
-            return float('nan')
-
-    # Our template consists of two steps: run_pre() and run_until()
-    # Typically a backend will implement the until method.
-    # It is recommended to *extend* (not override) the base run_pre() in subclasses
-    # TODO: when should checkpoint be read? The logic must be set here
-    # Having a read_checkpoint() stub method would be OK here.
-    def run_pre(self):
-        """
-        Preliminary step before run_until() to deal with restart
-        conditions.
-        """
-        self._start_time = time.time()
-        if self.output_path is not None:
-            self.backend.output_path = self.output_path
-            if not self.restart:
-                # Clean up the trajectory folder and files.
-                # Callbacks may implement their clean() methods
-                for cbk in self._callback:
-                    try:
-                        cbk.clear(self)
-                    except AttributeError:
-                        pass
-
-        self.backend.run_pre(self.restart)
-        # If backend has reset the step because of restart, we update
-        # it. Note that subclasses may overwrite this, because of
-        # their own restart handling.
-        if self.restart:
-            self.steps = self.backend.steps
-        barrier()
+        norm = 1.0
+        # Normalize per particle
+        if per_particle:
+            if len(self.system.particle) > 0:
+                norm *= len(self.system.particle)
+            else:
+                return float('nan')
+        # Normalize per step
+        if per_step:
+            if self.current_step - self.initial_step > 0:
+                norm *= (self.current_step - self.initial_step)
+            else:
+                return float('nan')
+        return self._elapsed_wall_time() / norm
 
     def run_until(self, steps):
         """
@@ -234,26 +247,33 @@ class Simulation(object):
 
         Subclasses must set steps.
         """
-        self.backend.run_until(steps)
-        self.backend.steps = steps
-        self.steps = steps
+        self.backend.run(steps - self.current_step)
+        self.current_step = steps
 
     def run(self, steps=None):
         """Run the simulation."""
         # If we are restaring we do not allow changing target steps on the fly.
         # because it might have side effects like non constant writing interval.
-        if not self.restart or self.steps == 0:
-            if steps is not None:
-                self.max_steps = steps
-            self.steps = 0
-            self.backend.steps = 0
+        if steps is not None:
+            if not self.restart or self.current_step == 0:
+                self.steps = steps
 
-        # Targeter for max steps. This will the replace an existing one.
-        self.add(self._targeter_steps, Scheduler(self.max_steps), self.max_steps)
-        self.report_header()
-        self.run_pre()
-        self.initial_step = self.steps
-        self.report()
+        # Targeter for steps. This will the replace an existing one.
+        self.add(self._targeter_steps, Scheduler(self.steps),
+                 self.current_step + self.steps)
+
+        # Report
+        _report(self._info_start())
+        _report(self._info_backend())
+        _report(self._info_observers())
+
+        # Read checkpoint if we restart
+        if self.restart:
+            self.read_checkpoint()
+        barrier()
+        self.initial_step = self.current_step
+        self._start_time = time.time()
+
         # Reinitialize speedometers
         for s in self._speedometers:
             s._init = False
@@ -262,12 +282,11 @@ class Simulation(object):
             # Before entering the simulation, check if we can quit right away
             self._notify(self._targeters)
             # Then notify non targeters unless we are restarting
-            if self.steps == 0:
+            if self.current_step == 0:
                 self._notify(self._non_targeters)
             else:
                 self._notify(self._speedometers)
-            log.info('starting at step: %d', self.steps)
-            log.info('')
+            _log.info('starting at step: %d', self.current_step)
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
@@ -283,54 +302,61 @@ class Simulation(object):
                 # Observers should be sorted such that targeters are
                 # last to avoid cropping output files
                 self._notify(next_observers)
-                if self.steps == next_checkpoint:
+                if self.current_step == next_checkpoint:
                     self.write_checkpoint()
+
         except SimulationEnd:
             # Checkpoint configuration at last step
             self.write_checkpoint()
-            self._report_end()
+            _report(self._info_end())
+
         except KeyboardInterrupt:
             pass
+
         except:
-            log.error('simulation failed')
+            _log.error('simulation failed')
             raise
-        finally:
-            log.info('goodbye')
 
-    def report_header(self):
-        txt = '%s' % self
-        log.info('')
-        log.info(txt)
-        log.info('')
-        log.info('atooms version: %s+%s (%s)', __version__, __commit__, __date__)
-        try:
-            log.info('backend version: %s', self.backend.version)
-        except AttributeError:
-            pass
-        log.info('simulation starts on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
-        log.info('output path: %s', self.output_path)
+    def _info_start(self):
+        now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
+        txt = """\
 
-    def report(self):
-        self._report()
-        self._report_observers()
+        {}
 
-    def _report(self):
-        """Implemented by subclasses"""
-        pass
+        version: {}
+        atooms version: {}
+        simulation started on: {}
+        output path: {}\
+        """.format(self, self.version, __version__, now, self.output_path)
+        return txt
 
-    def _report_observers(self):
+    def _info_backend(self):
+        """Subclasses may want to override this method."""
+        if hasattr(self.backend, 'version'):
+            return 'backend version: %s\n' % self.backend.version
+
+    def _info_observers(self):
+        txt = []
         for f in self._callback:
             params = self._cbk_params[f]
             s = params['scheduler']
             if 'target' in f.__name__.lower():
                 args = params['args']
-                log.info('target %s: %s', f.__name__, args[0])
+                txt.append('target %s: %s' % (f.__name__, args[0]))
             else:
-                log.info('writer %s: interval=%s calls=%s', f.__name__, s.interval, s.calls)
+                txt.append('writer %s: interval=%s calls=%s' % \
+                       (f.__name__, s.interval, s.calls))
+        return '\n'.join(txt)
 
-    def _report_end(self):
-        log.info('simulation ended on: %s', datetime.datetime.now().strftime('%Y-%m-%d at %H:%M'))
-        log.info('final steps: %d', self.steps)
-        log.info('final rmsd: %.2f', self.rmsd)
-        log.info('wall time [s]: %.1f', self.elapsed_wall_time())
-        log.info('average TSP [s/step/particle]: %.2e', self.wall_time_per_step_particle())
+    def _info_end(self):
+        now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
+        txt = """
+        simulation ended on: {}
+        final steps: {}
+        final rmsd: {:.2f}\
+        wall time [s]: {:.1f}
+        average TSP [s/step/particle]: {:.2e}\
+        """.format(now, self.current_step, self.rmsd,
+                   self.wall_time(), self.wall_time(per_step=True,
+                                                    per_particle=True))
+        return txt

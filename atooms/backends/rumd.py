@@ -1,7 +1,7 @@
 # This file is part of atooms
 # Copyright 2010-2014, Daniele Coslovich
 
-"""Backend and adapters for the RUMD simulation package."""
+"""Simulation backend for RUMD (http://rumd.org/)."""
 
 # This enables importing the top-level rumd package and still call
 # this file rumd.py
@@ -16,22 +16,24 @@ import rumd
 from rumdSimulation import rumdSimulation
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
+from atooms.core.utils import mkdir
 
 _log = logging.getLogger(__name__)
 
 
 class RUMD(object):
 
-    # TODO: add switch to use RUMD checkpoint
+    """RUMD simulation backend."""
 
     def __init__(self, input_file, forcefield_file=None,
                  integrator=None, temperature=None, dt=0.001,
                  output_path=None, fixcm_interval=0):
-        self.steps = 0
         self.output_path = output_path
         # Keep a reference of the Trajectory backend class
         self.trajectory = Trajectory
-        # Setup internal rumd simulation instance. It is exposed as rumd_simulation.
+
+        # Setup internal rumd simulation instance.
+        # It is exposed as RUMD.rumd_simulation.
         self.rumd_simulation = rumdSimulation(input_file, verbose=False)
         self.rumd_simulation.SetVerbose(False)
         self.rumd_simulation.sample.SetVerbose(False)
@@ -39,14 +41,26 @@ class RUMD(object):
         self.rumd_simulation.SetMomentumResetInterval(fixcm_interval)
         self.rumd_simulation.SetBlockSize(sys.maxint)
         self.rumd_simulation.write_timing_info = False
+
         # By default we mute RUMD output.
-        # self.rumd_simulation.sample.SetOutputDirectory(output_path)
+        if self.output_path is not None:
+            mkdir(self.output_path)
+            self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
         self.rumd_simulation.SetOutputScheduling("energies", "none")
         self.rumd_simulation.SetOutputScheduling("trajectory", "none")
+        self._suppress_all_output = True
+        self._initialize_output = False
+
         # We parse the forcefield file.
         # It should provide a list of potentials named forcefield
         if forcefield_file is not None:
-            self._parse_forcefield(forcefield_file)
+            with open(forcefield_file) as fh:
+                exec(fh.read())
+            if 'potential' not in locals():
+                raise ValueError('forcefield file should contain a list of potentials named potential')
+            for pot in potential:
+                self.rumd_simulation.AddPotential(pot)
+
         # Wrap some rumd integrators.
         if integrator is not None:
             if integrator in ['nvt', 'NVT']:
@@ -56,21 +70,8 @@ class RUMD(object):
                 itg = rumd.IntegratorNVE(timeStep=dt)
             self.rumd_simulation.SetIntegrator(itg)
 
-        # Copy of initial state (it is not always enough to do it in run_pre())
+        # Copy of initial state
         self._initial_sample = self.rumd_simulation.sample.Copy()
-        # Handle output
-        self._suppress_all_output = True
-        self._initialize_output = False
-        # Internal restart toggle
-        self._restart = False
-
-    def _parse_forcefield(self, forcefield_file):
-        with open(forcefield_file) as fh:
-            exec(fh.read())
-        if 'potential' not in locals():
-            raise ValueError('forcefield file should contain a list of potentials named potential')
-        for pot in potential:
-            self.rumd_simulation.AddPotential(pot)
 
     def _get_system(self):
         return System(self.rumd_simulation.sample)
@@ -80,17 +81,15 @@ class RUMD(object):
 
     system = property(_get_system, _set_system, 'System')
 
-    @property
-    def initial_state(self):
-        return System(self._initial_sample)
-
     def __str__(self):
         return 'RUMD v%s' % rumd.GetVersion()
 
     @property
     def rmsd(self):
-        """ Compute the mean square displacement between actual sample and the reference sample """
-        # TODO: not sure it is the backend responsibility
+        """
+        Compute the mean square displacement between actual sample and the
+        reference sample.
+        """
         if self.rumd_simulation.sample is self._initial_sample:
             raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
         ndim = 3  # hard coded
@@ -103,109 +102,29 @@ class RUMD(object):
 
     def write_checkpoint(self):
         if self.output_path is None:
-            _log.warning('output_path is not set so we cannot write checkpoint  %d', self.steps)
-            return
-        with Trajectory(self.output_path + '.chk', 'w') as t:
-            t.write(self.system, None)
-        with open(self.output_path + '.chk.step', 'w') as fh:
-            fh.write('%d' % self.steps)
+            _log.warn('output_path is not set so we cannot write checkpoint')
+        else:
+            with Trajectory(self.output_path + '.chk', 'w') as t:
+                t.write(self.system, None)
 
     def read_checkpoint(self):
-        _log.debug('reading own restart file %s', self.output_path + '.chk')
-        self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
-        with open(self.output_path + '.chk.step') as fh:
-            self.steps = int(fh.read())
-        _log.info('restarting backend from step %d', self.steps)
-
-    def run_pre(self, restart):
-        # Copy of initial state. This way even upon repeated calls to
-        # run() we still get the right rmsd Note restart is handled
-        # after this, so sample here is really the initial one.
-        self._initial_sample = self.rumd_simulation.sample.Copy()
-        self._restart = restart
-        self._rumd_block_index = None
-
-        if self.output_path is not None:
-            self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
-
-        if not self._restart:
-            # We initialize RUMD writers state. Since we make 0 steps,
-            # this won't create the output dir Note: RUMD complains if
-            # we attempt to run some steps and we dont suppress output
-            # without initializing the writers.
-            self.rumd_simulation.Run(0, suppressAllOutput=True, initializeOutput=True)
+        if os.path.exists(self.output_path + '.chk'):
+            self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
         else:
-            _log.debug('restart attempt')
-            if self.output_path is None:
-                _log.warn('it does not make sense to restart when writing is disabled')
-                return
+            _log.debug('could not find checkpoint')
 
-            if os.path.exists(self.output_path + '.chk'):
-                # Use our own checkpoint file. We ignore RUMD checkpoint
-                self.read_checkpoint()
-
-            elif os.path.exists(self.output_path + '/rumd/LastComplete_restart.txt'):
-                # Use RUMD checkpoint
-                # @thomas unfortunately RUMD does not seem to write the last restart
-                # when the simulation is over therefore the last block is always rerun
-                # RUMD restart file contains the block index (block_index)
-                # and the step within the block (nstep) of the most recent backup
-                _log.debug('reading rumd restart %s', self.output_path + '/rumd/LastComplete_restart.txt')
-                with open(self.output_path + '/rumd/LastComplete_restart.txt') as fh:
-                    ibl, nstep = fh.readline().split()
-                self._rumd_block_index = int(ibl)
-                self.steps = int(nstep) * int(ibl)
-                # Cleanup: delete old RUMD restart files
-                import glob
-                restart_files = glob.glob(self.output_path + '/rumd/restart*')
-                restart_files.sort()
-                for f in restart_files[:-1]:
-                    _log.debug('removing restart file %s', f)
-                    os.remove(f)
-            else:
-                _log.warn('restart requested but no checkpoint is found')
-
-    def run_until(self, steps):
-        # 1. suppress all RUMD output and use custom writers. PROS:
-        #    this way running batches of simulations will work without
-        #    rereading the restart file (everything stays in memory)
-        #    CONS: we loose native RUMD output, log-lin and we have to
-        #    pass through atooms trajectory (=> implement system interface)
-        #    or thorugh RUMD WriteSample with names after time steps
-        #    because WriteSample does not store step information!
-        # 2. keep RUMD output. PROS: no need to recalculate things
-        #    during the simulation, it should be more efficient from
-        #    this point of view. CONS: we must read restart files at
-        #    every batch. RUMD has a complicated output logic (blocks)
-
-        # If we use our own restart we must tell RUMD
-        # to run only the difference n-self.steps. However, if we use
-        # the native restart, we must keep n as is.
-        _log.debug('RUMD running from %d to %d steps', self.steps, steps)
-        if self._rumd_block_index is not None:
-            # Restart from RUMD checkpoint
-            self.rumd_simulation.Run(steps, restartBlock=self._rumd_block_index)
-        else:
-            # Not restarting or restart from our checkpoint.
-            if self._restart:
-                # We must toggle it here to prevent future calls to pre to restart. TODO: why??
-                self._restart = False
-            self.rumd_simulation.Run(steps - self.steps,
-                                     suppressAllOutput=self._suppress_all_output,
-                                     initializeOutput=self._initialize_output)
-            # If we are not supressing output and we are calling this
-            # repeatedly we probably do not want rumd to clear up its
-            # own files. Use case: keep rumd blocks for log time saving.
-            if not self._suppress_all_output:
-                self._initialize_output = False
-            self.steps = steps
-
+    def run(self, steps):
+        self.rumd_simulation.Run(steps,
+                                 suppressAllOutput=self._suppress_all_output,
+                                 initializeOutput=self._initialize_output)
+        self._initialize_output = False
 
 class Thermostat(object):
 
     """Wrap a RUMD integrator as a thermostat."""
 
-    # TODO: problem with this approach is that we rely on RUMD keeping the same order in future versions. We should unit test it.
+    # TODO: problem, RUMD must keep the same order in future versions
+    # We should unit test this
     # Info string looks like IntegratorNVT,0.004,0.3602,0.2,-0.7223
 
     def __init__(self, integrator):
@@ -230,28 +149,11 @@ class Thermostat(object):
     temperature = property(_get_temperature, _set_temperature, 'Temperature')
 
 
-class MolecularDynamics(object):
-
-    """Wrap an integrator as MolecularDynamics."""
-
-    def __init__(self, integrator):
-        self._integrator = integrator
-
-    def _get_timestep(self):
-        return self._integrator.GetTimeStep()
-
-    def _set_timestep(self, value):
-        self._integrator.SetTimeStep(value)
-
-    timestep = property(_get_timestep, _set_timestep, 'Timestep')
-
-
 class System(object):
 
     def __init__(self, sample):
         self.sample = sample
         self.thermostat = Thermostat(self.sample.GetIntegrator())
-        self.dynamics = MolecularDynamics(self.sample.GetIntegrator())
 
     def __copy__(self):
         # This is not really needed, it's just there for reference
@@ -307,7 +209,7 @@ class System(object):
                 # then get meta.GetMassOfType(i)
                 mi = self.sample.GetMass(i)
             except:
-                _log.warning('cannot get mass from RUMD interface, setting to 1.0')
+                _log.warn('cannot get mass from RUMD interface, setting to 1.0')
                 mi = 1.0
             mass[ii: ii + ni] = mi
             ii += ni
@@ -320,21 +222,6 @@ class System(object):
         mass = self.__get_mass()
         return 2 * numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
 
-    def mean_square_displacement(self, reference):
-        """ Compute the mean square displacement between actual sample and the reference sample """
-        if reference.sample is self.sample:
-            raise Exception('rmsd between two references of the same system does not make sense (use deepecopy?)')
-
-        ndim = 3  # hard coded
-        N = self.sample.GetNumberOfParticles()
-        L = [self.sample.GetSimulationBox().GetLength(i) for i in range(ndim)]
-
-        # Unfold positions using periodic image information
-        ref = reference.sample.GetPositions() + reference.sample.GetImages() * L
-        unf = self.sample.GetPositions() + self.sample.GetImages() * L
-
-        return sum(sum((unf - ref)**2)) / N
-
     @property
     def cell(self):
         box = self.sample.GetSimulationBox()
@@ -343,7 +230,6 @@ class System(object):
 
     @property
     def particle(self):
-        nmap = ['A', 'B', 'C', 'D']
         npart = self.sample.GetNumberOfParticles()
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
@@ -355,10 +241,11 @@ class System(object):
         ii = 0
         for i in range(nsp):
             ni = self.sample.GetNumberThisType(i)
-            spe[ii: ii + ni] = i + 1
-            name[ii: ii + ni] = nmap[i]
+            spe[ii: ii + ni] = i
             ii += ni
-        p = [Particle(s, n, m, p, v) for s, n, m, p, v in zip(spe, name, mass, pos, vel)]
+        p = [Particle(species=spe, mass=mass, position=pos,
+                      velocity=vel) for spe, mass, pos, vel in
+             zip(spe, mass, pos, vel)]
         for pi, i in zip(p, ima):
             pi.periodic_image = i
         return p
@@ -379,7 +266,9 @@ class Trajectory(object):
         self.close()
 
     def write(self, system, step):
-        """If step is not None, output will follow a folder-based logic and filename will be considered as the root folder
+        """
+        If step is not None, output will follow a folder-based logic and
+        filename will be considered as the root folder
         """
         if step is None:
             f = self.filename

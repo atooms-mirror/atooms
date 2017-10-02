@@ -7,6 +7,13 @@ import numpy
 
 from atooms.trajectory import TrajectoryXYZ
 
+def _equal(system1, system2):
+    for p1, p2 in zip(system1.particle, system2.particle):
+        if p1.species != p2.species:
+            print p1.species, p2.species
+            return False
+    return True
+
 class TestDecorators(unittest.TestCase):
 
     Trajectory = TrajectoryXYZ
@@ -70,6 +77,26 @@ A -2.9 2.9 0.0
             self.assertEqual(th.steps, [1, 2, 3, 4])
             self.assertEqual(list(th[-1].particle[0].position), [1.2*2-1.0, -1.2*2-1.0, 0.0*2-1.0])
             self.assertEqual(memo, [1])
+
+    def test_change_species(self):
+        from copy import deepcopy
+        from atooms.system import System, Particle
+        system_A = System([Particle(species='A'), Particle(species='B')])
+        system_C = System([Particle(species='0'), Particle(species='1')])
+        system_F = System([Particle(species='1'), Particle(species='2')])
+        from atooms.trajectory.decorators import change_species
+        # DO nothing here
+        self.assertTrue(_equal(system_A, change_species(deepcopy(system_A), 'A')))
+        self.assertTrue(_equal(system_C, change_species(deepcopy(system_C), 'C')))
+        self.assertTrue(_equal(system_F, change_species(deepcopy(system_F), 'F')))
+        # Change
+        self.assertTrue(_equal(system_C, change_species(deepcopy(system_A), 'C')))
+        self.assertTrue(_equal(system_F, change_species(deepcopy(system_A), 'F')))
+        self.assertTrue(_equal(system_A, change_species(deepcopy(system_C), 'A')))
+        self.assertTrue(_equal(system_F, change_species(deepcopy(system_C), 'F')))
+        self.assertTrue(_equal(system_A, change_species(deepcopy(system_F), 'A')))
+        self.assertTrue(_equal(system_C, change_species(deepcopy(system_F), 'C')))
+
         
 if __name__ == '__main__':
     unittest.main()

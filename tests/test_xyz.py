@@ -172,40 +172,42 @@ B 2.9 -2.9 0.0 2.0
         with open(finp, 'w') as fh:
             fh.write("""\
 2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z step:1 cell:5.0,5.0,5.0 
 B 1.0 -1.0 0.0
 A 2.9 -2.9 0.0
 2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z step:2 cell:5.0,5.0,5.0 
 C 1.0 -1.0 0.0
 B 2.9 -2.9 0.0
 """)
         with self.Trajectory(finp) as th:
-            th._id_min = 1
-            self.assertEqual(th[0].particle[0].id, 2)
-            self.assertEqual(th[0].particle[1].id, 1)
-            self.assertEqual(th[1].particle[0].id, 3)
-            self.assertEqual(th[1].particle[1].id, 2)
+            self.assertEqual(th[0].particle[0].species, 'B')
+            self.assertEqual(th[0].particle[1].species, 'A')
+            self.assertEqual(th[1].particle[0].species, 'C')
+            self.assertEqual(th[1].particle[1].species, 'B')
 
     def test_xyz_mass(self):
         finp = '/tmp/test_meta.xyz'
         with open(finp, 'w') as fh:
             fh.write("""\
-2
+3
 metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
 B 1.0 -1.0 0.0
 A 2.9 -2.9 0.0
-2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
+C 2.9 -2.9 0.0
+3
+metafmt:space,comma columns:id,x,y,z mass:2.0,3.0 step:1 cell:5.0,5.0,5.0 
 C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
 B 2.9 -2.9 0.0
 """)
         with self.Trajectory(finp) as th:
-            th._id_min = 1
             self.assertEqual(th[0].particle[0].mass, 2.0)
             self.assertEqual(th[0].particle[1].mass, 1.0)
+            self.assertEqual(th[0].particle[2].mass, 3.0)
             self.assertEqual(th[1].particle[0].mass, 3.0)
             self.assertEqual(th[1].particle[1].mass, 2.0)
+            self.assertEqual(th[1].particle[2].mass, 2.0)
 
     def test_xyz_columns(self):
         finp = '/tmp/test_xyz_columns.xyz'
@@ -273,7 +275,7 @@ class TestRumd(TestXYZ):
 2
 ioformat=1 dt=0.005000000 boxLengths=6.000000000,6.000000000,6.000000000 numTypes=2 Nose-Hoover-Ps=-0.154678583 Barostat-Pv=0.000000000 mass=1.000000000,1.000000000 columns=type,x,y,z,imx,imy,imz,vx,vy,vz,fx,fy,fz,pe,vir
 0 2.545111895 -0.159052730 -2.589233398 0 0 1 -0.955896854 -2.176721811 0.771060944 14.875996590 -28.476327896 -15.786120415 -5.331668218 22.538120270
-0 -2.089187145 1.736116767 1.907819748 0 0 -1 -0.717318892 -0.734904408 0.904034972 -28.532371521 13.714955330 0.387423307 -7.276362737 11.813765526
+1 -2.089187145 1.736116767 1.907819748 0 0 -1 -0.717318892 -0.734904408 0.904034972 -28.532371521 13.714955330 0.387423307 -7.276362737 11.813765526
 """
         
         with open('/tmp/test_rumd.xyz', 'w') as fh:
@@ -300,36 +302,29 @@ class TestUtils(unittest.TestCase):
     def setUp(self):
         with open('/tmp/test_1.xyz', 'w') as fh:
             fh.write("""\
-2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0
+1
+metafmt:space,comma columns:id,x,y,z step:1 cell:5.0,5.0,5.0
 B 1.0 -1.0 0.0
-A 2.9 -2.9 0.0
-2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:2 cell:5.0,5.0,5.0 
-C 1.0 -1.0 0.0
+1
+metafmt:space,comma columns:id,x,y,z step:2 cell:5.0,5.0,5.0 
 B 2.9 -2.9 0.0
-2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:4 cell:5.0,5.0,5.0 
-C 1.0 -1.0 0.0
+1
+metafmt:space,comma columns:id,x,y,z step:4 cell:5.0,5.0,5.0 
 B 2.9 -2.9 0.0
 """)
         with open('/tmp/test_2.xyz', 'w') as fh:
             fh.write("""\
-2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:2 cell:5.0,5.0,5.0
+1
+metafmt:space,comma columns:id,x,y,z step:2 cell:5.0,5.0,5.0
 B 1.0 -1.0 0.0
-A 2.9 -2.9 0.0
-2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:3 cell:5.0,5.0,5.0 
-C 1.0 -1.0 0.0
+1
+metafmt:space,comma columns:id,x,y,z step:3 cell:5.0,5.0,5.0 
 B 2.9 -2.9 0.0
-2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:4 cell:5.0,5.0,5.0 
-C 1.0 -1.0 0.0
+1
+metafmt:space,comma columns:id,x,y,z step:4 cell:5.0,5.0,5.0 
 B 2.9 -2.9 0.0
-2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:5 cell:5.0,5.0,5.0 
-C 1.0 -1.0 0.0
+1
+metafmt:space,comma columns:id,x,y,z step:5 cell:5.0,5.0,5.0 
 B 2.9 -2.9 0.0
 """)
 

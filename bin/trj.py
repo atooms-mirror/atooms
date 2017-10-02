@@ -8,55 +8,32 @@ import logging
 import argparse
 import random
 from atooms import trajectory
-from atooms.utils import fractional_slice, add_first_last_skip
-from atooms.trajectory.utils import check_block_size, benchmark_read
+from atooms.core.utils import fractional_slice, add_first_last_skip
+from atooms.trajectory.utils import check_block_size, info, formats
 
 
-# TODO: move functions to api / helpers module and use argh
+def main_info(args):
+    """Print info on trajectory."""
+    args.file_inp = args.file_inp[0]
+    if args.folder:
+        t = trajectory.folder.Foldered(args.file_inp, cls=args.inp)
+    else:
+        t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
 
-def available_formats():
-    txt = 'available trajectory formats:\n'
-    fmts = trajectory.Trajectory.formats
-    maxlen = max([len(name) for name in fmts])
-    for name in sorted(fmts):
-        class_name = fmts[name]
-        if class_name.__doc__:
-            docline = class_name.__doc__.split('\n')[0].rstrip('.')
-        else:
-            docline = '...no description...'
-        fmt = '  %-' + str(maxlen) + 's : %s\n'
-        txt += fmt % (name, docline)
-    return txt
-
-def info(trajectory):
-    from atooms.system.particle import species, composition
-    txt = ''
-    txt += 'path                 = %s\n' % trajectory.filename
-    txt += 'format               = %s\n' % trajectory.__class__
-    txt += 'frames               = %s\n' % len(trajectory)
-    txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
-    txt += 'particles            = %s\n' % len(trajectory[0].particle)
-    txt += 'species              = %s\n' % len(species(trajectory[0].particle))
-    txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
-    txt += 'density              = %s\n' % round(trajectory[0].density, 10)
-    txt += 'cell side            = %s\n' % trajectory[0].cell.side
-    txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
-    if len(trajectory)>1:
-        txt += 'steps                = %s\n' % trajectory.steps[-1]
-        txt += 'duration             = %s\n' % trajectory.times[-1]
-        txt += 'timestep             = %s\n' % trajectory.timestep
-        txt += 'block size           = %s\n' % trajectory.block_size
-        if trajectory.block_size == 1:
-            txt += 'steps between frames = %s\n' % (trajectory.steps[1]-trajectory.steps[0])
-            txt += 'time between frames  = %s\n' % (trajectory.times[1]-trajectory.times[0])
-        else:
-            txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_size-1]
-            txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size)])
-        txt += 'grandcanonical       = %s' % trajectory.grandcanonical
-    print txt
+    print info(t)
+    return
 
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
+    args.file_inp = args.file_inp[0]
+
+    if args.fields is not None:
+        args.fields = args.fields.split(',')
+
+    if args.out is not None and not args.out in trajectory.Trajectory.formats:
+        available_formats()   
+        raise ValueError('Unknown output format %s' % args.out)
+
     if args.file_out == '-':
         args.file_out = '/dev/stdout'
 
@@ -64,14 +41,6 @@ def main(args):
         t = trajectory.folder.Foldered(args.file_inp, cls=args.inp)
     else:
         t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
-
-    if args.read:
-        print benchmark_read(t)
-        return
-
-    if args.info:
-        info(t)
-        return
 
     # If no output format is provided we use the input one
     if args.out is None:
@@ -83,7 +52,7 @@ def main(args):
         t.precision = args.precision
 
     if args.flatten_steps:
-        t.steps = range(1,len(t)+1)
+        t.steps = range(1, len(t)+1)
 
     # Reset random number generator
     if args.seed:
@@ -122,9 +91,9 @@ def main(args):
         ts.register_callback(trajectory.decorators.set_density, args.rho)
     if args.temperature is not None:
         ts.register_callback(trajectory.decorators.set_temperature, args.temperature)
-
-    # We always normalize species id's using fortran convention
-    ts.register_callback(trajectory.decorators.normalize_id, args.alphabetic_ids)
+    # Change species layout if requested
+    if args.species_layout is not None:
+        ts.register_callback(trajectory.decorators.change_species, args.species_layout)
 
     # We enforce regular periodicity; steps is None is trajectory is not periodic
     steps = check_block_size(ts.steps, ts.block_size, prune=True)
@@ -135,12 +104,12 @@ def main(args):
     # ---------------------
     #
     include_list, exclude_list = [], []
-    if len(args.fmt_include) > 0:
-        include_list = args.fmt_include.split(',')
-    if len(args.fmt_exclude) > 0:
-        exclude_list = args.fmt_exclude.split(',')
+    if len(args.fields_include) > 0:
+        include_list = args.fields_include.split(',')
+    if len(args.fields_exclude) > 0:
+        exclude_list = args.fields_exclude.split(',')
     fout = trajectory.convert(ts, out_class, args.file_out,
-                              fmt=args.fmt, include=include_list,
+                              fields=args.fields, include=include_list,
                               exclude=exclude_list, steps=steps)
 
     if args.ff:
@@ -152,40 +121,69 @@ def main(args):
 
     t.close()
 
+def main_paste(args):
+    """
+    Correlate particles properties from trajectory files.
+
+    Example:
+    --------
+
+    trj.py paste.py file1.xyz:radius file2.xyz.voronoi.xyz:volume
+    """
+
+    from atooms import trajectory as trj
+
+    f1, attr1 = args.file_inp[0].split(':')
+    f2, attr2 = args.file_inp[1].split(':')
+    t1 = trj.Trajectory(f1)
+    t2 = trj.Trajectory(f2)
+
+    for step, s1, s2 in trj.utils.paste(t1, t2):
+        try:
+            for i in range(len(s1.particle)):
+                print getattr(s1.particle[i], attr1), getattr(s2.particle[i], attr2)
+        except:
+            print getattr(s1, attr1), getattr(s2, attr2)
+
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(epilog=available_formats(), 
+    # create the top-level parser
+    parser = argparse.ArgumentParser(epilog=formats(), 
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser = add_first_last_skip(parser)
-    parser.add_argument(      '--fmt-fields', dest='fmt', help='format fields')
-    parser.add_argument('-I', '--fmt-include', dest='fmt_include', type=str, default='', help='include patterns in format')
-    parser.add_argument('-E', '--fmt-exclude', dest='fmt_exclude', type=str, default='', help='exclude patterns from format')
-    parser.add_argument('-i', '--fmt-inp', dest='inp', help='input format ')
-    parser.add_argument('-o', '--fmt-out', dest='out', help='output format for conversion')
-    parser.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
-    parser.add_argument('-F', '--ff', dest='ff', type=str, default='', help='force field file')
-    parser.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
-    parser.add_argument(      '--unfold',dest='unfold', action='store_true', help='unfold')
-    parser.add_argument(      '--fix-cm',dest='fix_cm', action='store_true', help='fix cm')
-    parser.add_argument(      '--side', dest='side', type=float, default=None, help='set cell side')
-    parser.add_argument(      '--density', dest='rho', type=float, default=None, help='new density')
-    parser.add_argument('-T', '--temperature', dest='temperature', type=float, default=None, help='new temperature')
-    parser.add_argument(      '--precision', dest='precision', type=int, default=None, help='write precision')
-    parser.add_argument(      '--alphabetic',dest='alphabetic_ids', action='store_true', help='reassign names alphabetically')
-    parser.add_argument(      '--info', dest='info', action='store_true', help='print info')
-    parser.add_argument(      '--seed', dest='seed', type=int, help='set seed of random number generator')
-    parser.add_argument(      '--read', dest='read', action='store_true', help='read performance')
-    parser.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
-    parser.add_argument(nargs='?', dest='file_out', default='-', help='output file')
+    subparsers = parser.add_subparsers()
+
+    parser_convert = subparsers.add_parser('convert')
+    parser_convert.add_argument(      '--fields', dest='fields', help='attributes fields')
+    parser_convert.add_argument('-I', '--fields-include', dest='fields_include', type=str, default='', help='include patterns in fields')
+    parser_convert.add_argument('-E', '--fields-exclude', dest='fields_exclude', type=str, default='', help='exclude patterns from fields')
+    parser_convert.add_argument('-i', '--fmt-inp', dest='inp', help='input format ')
+    parser_convert.add_argument('-o', '--fmt-out', dest='out', help='output format for conversion')
+    parser_convert.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
+    parser_convert.add_argument('-F', '--ff', dest='ff', type=str, default='', help='force field file')
+    parser_convert.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
+    parser_convert.add_argument(      '--unfold',dest='unfold', action='store_true', help='unfold')
+    parser_convert.add_argument(      '--fix-cm',dest='fix_cm', action='store_true', help='fix cm')
+    parser_convert.add_argument(      '--side', dest='side', type=float, default=None, help='set cell side')
+    parser_convert.add_argument(      '--density', dest='rho', type=float, default=None, help='new density')
+    parser_convert.add_argument('-T', '--temperature', dest='temperature', type=float, default=None, help='new temperature')
+    parser_convert.add_argument(      '--precision', dest='precision', type=int, default=None, help='write precision')
+    parser_convert.add_argument(      '--species',dest='species_layout', default=None, help='modify species layout (A, C, F)')
+    parser_convert.add_argument(      '--seed', dest='seed', type=int, help='set seed of random number generator')
+    parser_convert.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
+    parser_convert.add_argument(nargs='?', dest='file_out', default='-', help='output file')
+    parser_convert.set_defaults(func=main)
+
+    parser_info = subparsers.add_parser('info')
+    parser_info.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
+    parser_info.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
+    parser_info.set_defaults(func=main_info)
+
+    parser_info = subparsers.add_parser('paste')
+    parser_info.add_argument(nargs=2, dest='file_inp', help='input files')
+    parser_info.set_defaults(func=main_paste)
+
+    # parse argument lists
     args = parser.parse_args()
+    args.func(args)
 
-    if args.fmt is not None:
-        args.fmt = args.fmt.split(',')
-
-    if args.out is not None and not args.out in trajectory.Trajectory.formats:
-        available_formats()   
-        raise ValueError('Unknown output format %s' % args.out)
-
-    args.file_inp = args.file_inp[0]
-
-    main(args)

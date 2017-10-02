@@ -39,10 +39,9 @@ class System(object):
         """
         return len(self.particle[0].position)
 
-    @property
-    def number_of_species(self):
-        """Number of distinct chemical species in the system."""
-        return len(set(p.id for p in self.particle))
+    def distinct_species(self):
+        """Sorted list of distinct chemical species in the system."""
+        return sorted(set(p.species for p in self.particle))
 
     @property
     def density(self):
@@ -155,17 +154,6 @@ class System(object):
         """Subtract out the the center-of-mass motion."""
         fix_total_momentum(self.particle)
 
-    def mean_square_displacement(self, other):
-        """
-        Return the mean square displacement of the system's particles with
-        respect to those of an `other` System instance.
-        """
-        displ = []
-        for pi, pj in zip(self.particle, other.particle):
-            rij = pi.distance(pj, folded=False)
-            displ.append(numpy.dot(rij, rij))
-        return sum(displ) / len(self.particle)
-
     def dump(self, what, order='C', dtype=None):
         """
         Return a numpy array with system properties specified by `what`.
@@ -204,7 +192,7 @@ class System(object):
 
         aliases = {'pos': 'particle.position',
                    'vel': 'particle.velocity',
-                   'ids': 'particle.id'}
+                   'spe': 'particle.species'}
 
         dump_db = {}
         for what, dtype in zip(what_list, dtype_list):

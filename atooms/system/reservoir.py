@@ -5,12 +5,11 @@ particle numbers in a simulation.
 When added to a `System` object, they will determine the statistical
 ensemble of a simulation:
 
-```python
-system = System()
-system.thermostat = Thermostat(temperature=1.0)
-system.barostat = Barostat(pressure=1.0)
-print system.ensemble == 'NPT'
-```
+    #!python
+    system = System()
+    system.thermostat = Thermostat(temperature=1.0)
+    system.barostat = Barostat(pressure=1.0)
+    print system.ensemble == 'NPT'
 
 Note: in an actual simulation backend, these reservoirs will have
 additional degrees of freedom, e.g. s and pi in a Nose-like

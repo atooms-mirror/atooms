@@ -24,7 +24,7 @@ except ImportError:
     pass
 from .ram import TrajectoryRam
 
-from atooms.utils import NullHandler
+from atooms.core.utils import NullHandler
 logging.getLogger(__name__).addHandler(NullHandler())
 
 # We build an instance of trajectory factory here and update the
@@ -41,15 +41,21 @@ Trajectory.update(__name__)
 
 # Update factory with plugins modules
 import atooms.plugins
-for _, mod_name, _ in pkgutil.iter_modules(atooms.plugins.__path__, prefix='atooms.plugins.'):
-    m = __import__(mod_name)
-    Trajectory.update(mod_name)
+for _, _mod_name, _ in pkgutil.iter_modules(atooms.plugins.__path__, prefix='atooms.plugins.'):
+    m = __import__(_mod_name)
+    Trajectory.update(_mod_name)
 
 # Additional plugins can be put in the atooms_plugins module
 try:
     import atooms_plugins
-    for _, mod_name, _ in pkgutil.iter_modules(atooms_plugins.__path__, prefix='atooms_plugins.'):
-        m = __import__(mod_name)
-        Trajectory.update(mod_name)
 except ImportError:
     pass
+else:
+    for _, _mod_name, _ in pkgutil.iter_modules(atooms_plugins.__path__, 
+                                                prefix='atooms_plugins.'):
+        try:
+            m = __import__(_mod_name)
+            Trajectory.update(_mod_name)
+        except ImportError:
+            # Could not import this trajectory
+            pass

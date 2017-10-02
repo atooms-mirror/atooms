@@ -139,7 +139,7 @@ class TestBackendRUMD(unittest.TestCase):
         s = Simulation(self.backend, self.dout, steps=sys.maxint)
         s.add(target, 10, 'rmsd', 0.3)
         s.run()
-        self.assertGreater(s.steps, 1)
+        self.assertGreater(s.current_step, 1)
         self.assertGreater(s.rmsd, 0.3)
 
     def test_checkpoint(self):

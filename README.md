@@ -23,7 +23,7 @@ Here we pick the last frame of the trajectory, change the density of the system 
 ```python
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
-    factor = (system.density / `rho`)**(1./3)
+    factor = (system.density / rho)**(1./3)
     for particle in system.particle:
         particle.position *= factor
     system.cell.side *= factor
@@ -39,6 +39,11 @@ See the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/dani
 
 Installation
 ------------
+From the python package index
+```
+pip install atooms
+```
+
 From the code repository
 ```
 git clone https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms.git
@@ -46,17 +51,12 @@ cd atooms
 make install
 ```
 
-From the python package index [*coming up soon!*]
-```
-pip install atooms
-```
-
 Trajectory conversion
 ---------------------
 Atooms provides a command line tool to convert between various trajectory formats. The following command will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
 
 ```bash
-$ trj.py -i rumd -o xyz trajectory.xyz.gz output.xyz
+$ trj.py convert -i rumd -o xyz trajectory.xyz.gz output.xyz
 ```
 If you don't specify the output path, the trajectory is written to standard output. This is useful for quick inspection of complex trajectory formats or for piping into sed / awk.
 
@@ -74,7 +74,7 @@ directory). You can now convert an existing xyz trajectory to your custom
 format:
 
 ```bash
-$ trj.py output.xyz output.abc
+$ trj.py convert output.xyz output.abc
 ```
 
 Remember to add an empty `__init__.py` file at the root of `atooms_plugins`. 
@@ -83,15 +83,15 @@ Actually, the `atooms_plugins` package can be put anywhere in your `PYTHONPATH`.
 Simulation backends
 -------------------
 
-Atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation "backend" that exposes a minimal but unified interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://gitlab.info-ufr.univ-montp2.fr/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
+Atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://gitlab.info-ufr.univ-montp2.fr/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
 
 This is a quick example how to run 10000 molecular dynamics steps using the [RUMD](http://rumd.org) backend:
 
 ```python
-from atooms.backends.rumd import Rumd
+from atooms.backends.rumd import RUMD
 from atooms.simulation import Simulation
 
-backend = Rumd('rescaled.xyz.gz', forcefield_file='lj_rumd.ff', 
+backend = RUMD('rescaled.xyz.gz', forcefield_file='lj_rumd.ff', 
                output_path='/tmp/outdir', integrator='nve')
 sim = Simulation(backend)
 sim.run(10000)

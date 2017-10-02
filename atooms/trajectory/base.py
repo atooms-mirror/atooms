@@ -11,10 +11,10 @@ class TrajectoryBase(object):
     """
     Trajectory abstract base class.
 
-    A trajectory are composed by one or several samples (or frames),
-    each frame being a snapshot of a `System` taken at a given `step`
-    during a simulation. `Trajectory` instances are iterable and can
-    be opened and closed using the `with` syntax..
+    A trajectory are composed by one or several frames, each frame
+    being a sample of a `System` taken at a given `step` during a
+    simulation. `Trajectory` instances are iterable and can be opened
+    and closed using the `with` syntax..
 
         #!python
         with Trajectory(inpfile) as th:
@@ -30,7 +30,7 @@ class TrajectoryBase(object):
     counter, grab metadata, i.e. invariants. Need *not* be implemented
     by subclasses.
 
-    - `read_sample(n)`: actually return the system at sample n. It
+    - `read_sample(n)`: actually return the system at frame n. It
       must be implemented by subclasses.
 
     Similarly, `write()` is a template composed of `write_init()` and
@@ -63,10 +63,10 @@ class TrajectoryBase(object):
         self.filename = filename
         self.mode = mode
         self.callbacks = []
-        # fmt is a list of strings describing data to be written by
+        # self.fields is a list of strings describing data to be written by
         # write_sample(). Subclasses may use it to filter out some
         # data from their format or can even ignore it entirely.
-        self.fmt = []
+        self.fields = []
         self.precision = 6
         self.steps = []
         # These are cached properties
@@ -101,8 +101,8 @@ class TrajectoryBase(object):
             # The Sliced decorator doesn't have this issue.
             # If we make this a generator, then access a single sample
             # wont work. Unless we put it in separate functions?
-            samples = range(len(self.steps))
-            return [self.read(i) for i in samples[key]]
+            frames = range(len(self.steps))
+            return [self.read(i) for i in frames[key]]
 
         elif isinstance(key, int):
             if key < 0:
@@ -118,12 +118,12 @@ class TrajectoryBase(object):
         pass
 
     def read(self, index):
-        """Read and return system at sample `index`."""
+        """Read and return system at frame `index`."""
         if not self._initialized_read:
             self.read_init()
             self._initialized_read = True
         s = self.read_sample(index)
-        # TODO: add some means to access the current sample / step in a callback? 11.09.2017
+        # TODO: add some means to access the current frame / step in a callback? 11.09.2017
         for cbk, args, kwargs in self.callbacks:
             s = cbk(s, *args, **kwargs)
         return s
@@ -136,7 +136,7 @@ class TrajectoryBase(object):
             self.write_init(system)
             self._initialized_write = True
         self.write_sample(system, step)
-        # Step is added last, sample index starts from 0 by default
+        # Step is added last, frame index starts from 0 by default
         # If step is already there we overwrite (do not append)
         if step not in self.steps:
             self.steps.append(step)
@@ -155,7 +155,7 @@ class TrajectoryBase(object):
     # These methods must be implemented by subclasses
 
     def read_sample(self, index):
-        """Return the system at the given sample `index`."""
+        """Return the system at the given frame `index`."""
         raise NotImplementedError()
 
     def write_sample(self, system, step):
@@ -259,7 +259,7 @@ class SuperTrajectory(TrajectoryBase):
         self.files.sort()
         # This list holds the file containing a given step
         self._steps_file = []
-        self._steps_sample = []
+        self._steps_frame = []
         # This caches the last trajectory used to minimize __init__() overhead
         self._last_trajectory = None
         self.steps = []
@@ -272,13 +272,13 @@ class SuperTrajectory(TrajectoryBase):
                     if len(self.steps) == 0 or step != self.steps[-1]:
                         self.steps.append(step)
                         self._steps_file.append(f)
-                        self._steps_sample.append(j)
+                        self._steps_frame.append(j)
 
-    def read_sample(self, sample):
-        f = self._steps_file[sample]
-        j = self._steps_sample[sample]
+    def read_sample(self, frame):
+        f = self._steps_file[frame]
+        j = self._steps_frame[frame]
         # Optimization: use the last trajectory in cache (it works
-        # well if samples are read sequentially)
+        # well if frames are read sequentially)
         if self._last_trajectory is None:
             self._last_trajectory = self.trajectoryclass(f)
         elif self._last_trajectory.filename != f or \

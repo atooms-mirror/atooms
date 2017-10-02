@@ -163,10 +163,15 @@ def fractional_slice(first, last, skip, n):
 
     return slice(first, last, skip)
 
-def add_first_last_skip(parser, what=['first', 'last', 'skip']):
-    """Add first, last, skip arguments to ArgumentParser object.
-    Compatible with fractional_slice().
-    Convenience function for analysis scripts."""
+def add_first_last_skip(parser, what=None):
+    """
+    Add first, last, skip arguments to ArgumentParser object.
+
+    Compatible with fractional_slice(). Convenience function for
+    analysis scripts.
+    """
+    if what is None:
+        what = ['first', 'last', 'skip']
     if 'first' in what:
         parser.add_argument('-f', '--first', dest='first', type=float, default=None, help='first cfg (accepts fractions)')
     if 'last' in what:
@@ -217,16 +222,24 @@ def setup_logging(name=None, level=40):
     return log
 
 def tipify(s):
-    """Convert a string into the best matching type.
-    Example: 2 -> int; 2.32 -> float; text -> str
+    """
+    Convert a string into the best matching type.
+
+    Example: 
+    -------
+        2 -> int
+        2.32 -> float
+        text -> str
+
     The only risk is if a variable is required to be float,
     but is passed without dot.
 
     Tests:
-    print type(tipify('2.0')) is float
-    print type(tipify('2')) is int
-    print type(tipify('t2')) is str
-    print map(tipify, ['2.0', '2'])
+    -----
+        print type(tipify("2.0")) is float
+        print type(tipify("2")) is int
+        print type(tipify("t2")) is str
+        print map(tipify, ["2.0", "2"])
     """
     try:
         return int(s)
@@ -292,3 +305,62 @@ def report_command(cmd, params, main, fileout):
         with open(fileout, 'w') as fh:
             fh.write(txt)
     return txt
+
+
+# Miscellaneous
+
+class OrderedSet(object):
+
+    """
+    Simple class to store an ordered set of items.
+
+    It does not try to reproduce either set or list interface. It just
+    provides a simple interface to deal with the set of distinct
+    chemical species in a system as it gets populated e.g. when
+    reading a trajectory. This covers the use case of grand-canonical
+    simulations.
+
+    Example:
+    -------
+
+        particle = [Particle(species='A'), Particle(species='C')]
+        periodic_table = OrderedSet()
+        periodic_table.update([p.species for p in particle])
+        particle = [Particle(species='A'), Particle(species='D')]
+        periodic_table.update([p.species for p in particle])
+        print periodic_table.index('C')
+        print periodic_table[0]
+        print periodic_table
+    """
+
+    def __init__(self):
+        self.items = []
+
+    def __repr__(self):
+        return repr(self.items)
+
+    def __iter__(self):
+        return self.items.__iter__()
+
+    def __getitem__(self, key):
+        return self.items[key]
+
+    def __setitem__(self, key, item):
+        self.items.__setitem__
+        return self.items[key]
+
+    def update(self, items):
+        sort_needed = False
+        for item in items:
+            if not item in self.items:
+                self.items.append(item)
+                sort_needed = True
+        if sort_needed:
+            self.items.sort()
+
+    def index(self, item):
+        try:
+            return self.items.index(item)
+        except ValueError:
+            raise ValueError('item %s not in %s' % (item, self))
+

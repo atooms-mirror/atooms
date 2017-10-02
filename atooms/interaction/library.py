@@ -7,10 +7,11 @@ common pair potentials.
 
 Example:
 -------
-The Lennard-Jones potential:
+
+The Lennard-Jones potential calculated at a reduced squared distance
+equal to 1.0:
 
     lj = lennard_jones(1.0, epsilon=1.0, sigma=1.0)
-
 """
 
 from math import sqrt

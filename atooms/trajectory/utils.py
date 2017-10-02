@@ -16,30 +16,30 @@ def gopen(filename, mode):
     else:
         return open(filename, mode)
 
-def format_output(trj, fmt=None, include=None, exclude=None):
+def modify_fields(trajectory, fields=None, include=None, exclude=None):
     """
-    Modify output format of an input trajectory.
+    Modify fields of a trajectory.
 
-    Either provide a new format, such as ['id', 'x', 'y'], or
+    Either provide a new list of fields, such as ['id', 'x', 'y'], or
     specify explicit patterns to exclude or include.
     """
-    if fmt is not None:
+    if fields is not None:
         # Reset the output format
-        trj.fmt = fmt
+        trajectory.fields = fields
     else:
         # Exclude and/or include lists of patterns from output format
         if exclude is not None:
             for pattern in exclude:
-                if pattern in trj.fmt:
-                    trj.fmt.remove(pattern)
+                if pattern in trajectory.fields:
+                    trajectory.fields.remove(pattern)
         if include is not None:
             for pattern in include:
-                if pattern not in trj.fmt:
-                    trj.fmt.append(pattern)
+                if pattern not in trajectory.fields:
+                    trajectory.fields.append(pattern)
 
-    return trj
+    return trajectory
 
-def convert(inp, out, fout, force=True, fmt=None,
+def convert(inp, out, fout, force=True, fields=None,
             exclude=None, include=None, steps=None):
     """
     Convert trajectory into a different format.
@@ -65,8 +65,11 @@ def convert(inp, out, fout, force=True, fmt=None,
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
         print 'File exists, conversion skipped'
     else:
+        # Make sure parent folder exists
+        from atooms.core.utils import mkdir
+        mkdir(os.path.dirname(fout))
         with out_class(fout, 'w') as conv:
-            format_output(conv, fmt, include, exclude)
+            modify_fields(conv, fields, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
             conv.block_size = inp.block_size
@@ -91,17 +94,20 @@ def convert(inp, out, fout, force=True, fmt=None,
     return fout
 
 def split(inp, index='step', archive=False):
-    """Split the trajectory into independent trajectory files, one per sample."""
+    """
+    Split the trajectory into independent trajectory files, one per
+    sample.
+    """
     if archive:
         tar = tarfile.open(inp.filename + '.tar.gz', "w:gz")
     base, ext = os.path.splitext(inp.filename)
 
-    # TODO: fix zipping of steps
-    for system, step, sample in zip(inp, inp.steps, inp.samples):
+    for frame, step in enumerate(inp.steps):
+        system = inp[frame]
         if index == 'step':
             filename = '%s-%09i%s' % (base, step, ext)
-        elif index == 'sample':
-            filename = '%s-%09i%s' % (base, sample, ext)
+        elif index == 'frame' or index == 'sample':
+            filename = '%s-%09i%s' % (base, frame, ext)
         else:
             raise ValueError('unknown option %s' % index)
         with inp.__class__(filename, 'w') as t:
@@ -112,13 +118,6 @@ def split(inp, index='step', archive=False):
 
     if archive:
         tar.close()
-
-def sort_files_steps(files, steps):
-    file_steps = zip(files, steps)
-    file_steps.sort(key=lambda a: a[1])
-    new_files = [a[0] for a in file_steps]
-    new_steps = [a[1] for a in file_steps]
-    return new_files, new_steps
 
 def get_block_size(data):
     """
@@ -202,7 +201,7 @@ def check_block_size(steps, block_size, prune=False):
     if prune and len(prune_me) > 0:
         print '#', len(prune_me), 'samples should be pruned'
         for step in prune_me:
-            pp = steps_local.pop(steps_local.index(step))
+            _ = steps_local.pop(steps_local.index(step))
 
     # Check if the number of steps is an integer multiple of
     # block period (we tolerate a rest of 1)
@@ -227,7 +226,8 @@ def check_block_size(steps, block_size, prune=False):
     return steps_local
 
 def dump(trajectory, what='pos'):
-    """Dump coordinates as a list of (npart, ndim) numpy arrays if the
+    """
+    Dump coordinates as a list of (npart, ndim) numpy arrays if the
     trajectory is grandcanonical or as (nsteps, npart, ndim) numpy
     array if it is not grandcanonical.
     """
@@ -244,11 +244,15 @@ def dump(trajectory, what='pos'):
 
     return data
 
-def field(trajectory, trajectory_field, x_field, sample):
-    step = trajectory.steps[sample]
+def field(trajectory, trajectory_field, x_field, frame):
+    """
+    Return the field specified by particle attribute `x_field` at a
+    given `frame`.
+    """
+    step = trajectory.steps[frame]
     try:
         index_field = trajectory_field.steps.index(step)
-    except:
+    except ValueError:
         return None
     x = []
     for pi in trajectory_field[index_field].particle:
@@ -289,8 +293,10 @@ def time_when_msd_is(th, msd_target, sigma=1.0):
 
 def is_cell_variable(trajectory, tests=1):
     """
-    Simple test to check if cell changes. We compare the first frame
-    to `tests` other frames starting from the end of `trajectory`.
+    Simple test to check if cell changes.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
     """
     is_variable = False
     frames = len(trajectory)
@@ -306,7 +312,8 @@ def is_cell_variable(trajectory, tests=1):
             break
     return is_variable
 
-def available_formats():
+def formats():
+    """Return a string with the available trajectory formats."""
     from atooms import trajectory
     txt = 'available trajectory formats:\n'
     fmts = trajectory.Trajectory.formats
@@ -322,14 +329,15 @@ def available_formats():
     return txt
 
 def info(trajectory):
-    from atooms.system.particle import species, composition
+    """Return a string with information about a `trajectory` instance."""
+    from atooms.system.particle import distinct_species, composition
     txt = ''
     txt += 'path                 = %s\n' % trajectory.filename
     txt += 'format               = %s\n' % trajectory.__class__
     txt += 'frames               = %s\n' % len(trajectory)
     txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
     txt += 'particles            = %s\n' % len(trajectory[0].particle)
-    txt += 'species              = %s\n' % len(species(trajectory[0].particle))
+    txt += 'species              = %s\n' % len(distinct_species(trajectory[0].particle))
     txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
     txt += 'density              = %s\n' % round(trajectory[0].density, 10)
     txt += 'cell side            = %s\n' % trajectory[0].cell.side
@@ -346,13 +354,5 @@ def info(trajectory):
             txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_size-1]
             txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size)])
         txt += 'grandcanonical       = %s' % trajectory.grandcanonical
-    print txt
+    return txt
 
-def benchmark_read(th):
-    from atooms.utils import Timer
-    t = Timer()
-    t.start()
-    for _ in th:
-        pass
-    t.stop()
-    return t.wall_time, os.path.getsize(th.filename) / 1e6 / t.wall_time

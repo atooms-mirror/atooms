@@ -7,8 +7,8 @@ import logging
 
 from .base import TrajectoryBase
 from .utils import gopen
-from atooms.utils import tipify
-from atooms.system.particle import Particle
+from atooms.core.utils import tipify
+from atooms.system.particle import Particle, distinct_species
 from atooms.system.cell import Cell
 from atooms.system import System
 
@@ -28,8 +28,6 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def __init__(self, filename, mode='r'):
         TrajectoryBase.__init__(self, filename, mode)
         self._cell = None
-        self._id_map = []  # list to map numerical ids (indexes) to chemical species (entries)
-        self._id_min = 1  # minimum integer for ids, can be modified by subclasses
         self.trajectory = open(self.filename, self.mode)
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
@@ -40,7 +38,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
-        self._index_sample = []
+        self._index_frame = []
         self._index_header = []
         self._index_cell = None
         self.trajectory.seek(0)
@@ -64,12 +62,12 @@ class TrajectorySimpleXYZ(TrajectoryBase):
 
             # Skip npart+1 lines
             _ = self.trajectory.readline()
-            self._index_sample.append(self.trajectory.tell())
+            self._index_frame.append(self.trajectory.tell())
             for i in range(npart):
                 _ = self.trajectory.readline()
 
-    def _read_metadata(self, sample):
-        """Internal xyz method to get header metadata from comment line of given *sample*.
+    def _read_metadata(self, frame):
+        """Internal xyz method to get header metadata from comment line of given `frame`.
 
         We assume metadata format is a space-separated sequence of
         comma separated entries such as:
@@ -78,7 +76,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         columns=id,x,y,z step=10
         """
         # Go to line and skip Npart info
-        self.trajectory.seek(self._index_header[sample])
+        self.trajectory.seek(self._index_header[frame])
         npart = int(self.trajectory.readline())
         data = self.trajectory.readline()
 
@@ -102,26 +100,13 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def _setup_steps(self):
         """Find steps list."""
         self.steps = []
-        for sample in range(len(self._index_sample)):
-            meta = self._read_metadata(sample)
+        for frame in range(len(self._index_frame)):
+            meta = self._read_metadata(frame)
             try:
                 self.steps.append(meta['step'])
             except KeyError:
                 # If no step info is found, we add steps sequentially
-                self.steps.append(sample+1)
-
-    def update_id(self, particle):
-        """Update chemical ids of *particle* list and global database id_map."""
-        # TODO: use sets instead
-        # We keep the id database sorted by name.
-        for p in particle:
-            if p.name not in self._id_map:
-                self._id_map.append(p.name)
-                self._id_map.sort()
-
-        # Assign ids to particles according to the updated database
-        for p in particle:
-            p.id = self._id_map.index(p.name) + self._id_min
+                self.steps.append(frame+1)
 
     def read_init(self):
         # Grab cell from the end of file if it is there
@@ -140,18 +125,17 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             cell = Cell(side)
         return cell
 
-    def read_sample(self, sample):
-        meta = self._read_metadata(sample)
-        self.trajectory.seek(self._index_sample[sample])
+    def read_sample(self, frame):
+        meta = self._read_metadata(frame)
+        self.trajectory.seek(self._index_frame[frame])
 
         # Read particles
         particle = []
         for _ in range(meta['npart']):
             data = self.trajectory.readline().strip().split()
-            name = data[0]
+            species = data[0]
             r = numpy.array(data[1:4], dtype=float)
-            particle.append(Particle(name=name, position=r))
-        self.update_id(particle)
+            particle.append(Particle(species=species, position=r))
 
         # Read cell
         try:
@@ -174,7 +158,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         ndim = len(system.particle[0].position)
         fmt = "%s" + ndim*" %14.6f" + "\n"
         for p in system.particle:
-            self.trajectory.write(fmt % ((p.name,) + tuple(p.position)))
+            self.trajectory.write(fmt % ((p.species,) + tuple(p.position)))
 
     def close(self):
         self.trajectory.close()
@@ -191,8 +175,8 @@ def update_tag(particle, data, meta):
     particle.tag = data[0:]
     return data[1:]
 
-def update_name(particle, data, meta):
-    particle.name = data[0]
+def update_species(particle, data, meta):
+    particle.species = data[0]
     return data[1:]
 
 def update_position(particle, data, meta):
@@ -207,15 +191,15 @@ def update_velocity(particle, data, meta):
     particle.velocity = numpy.array(data[0:ndim], dtype=float)
     return data[ndim:]
 
-def _optimize_fmt(fmt):
-    if 'x' in fmt:
-        fmt[fmt.index('x')] = 'pos'
-    if 'vx' in fmt:
-        fmt[fmt.index('vx')] = 'vel'
+def _optimize_fields(fields):
+    if 'x' in fields:
+        fields[fields.index('x')] = 'pos'
+    if 'vx' in fields:
+        fields[fields.index('vx')] = 'vel'
     for tag in ['y', 'z', 'vy', 'vz']:
-        if tag in fmt:
-            fmt.remove(tag)
-    return fmt
+        if tag in fields:
+            fields.remove(tag)
+    return fields
 
 
 class TrajectoryXYZ(TrajectoryBase):
@@ -226,25 +210,26 @@ class TrajectoryXYZ(TrajectoryBase):
     """
 
     suffix = 'xyz'
-    callback_read = {'name': update_name,
-                     'type': update_name,  # alias
-                     'id': update_name,  # alias
+    callback_read = {'species': update_species,
+                     'type': update_species,  # alias
+                     'name': update_species,  # alias
+                     'id': update_species,  # alias
                      'tag': update_tag,
                      'radius': update_radius,
                      'pos': update_position,
                      'vel': update_velocity}
 
-    def __init__(self, filename, mode='r', alias=None, fmt=None):
+    def __init__(self, filename, mode='r', alias=None, fields=None):
         TrajectoryBase.__init__(self, filename, mode)
         if alias is None:
             alias = {}
-        # TODO: actualize fmt on reading if found and not given on input
-        # TODO: clarify fmt / _fmt handling
-        if fmt is None:
-            fmt = ['name', 'pos']
-        self.fmt = fmt
-        self._fmt = None
-        self._fmt_float = True
+        # TODO: actualize fields on reading if found and not given on input
+        # TODO: clarify fields / _fields handling
+        if fields is None:
+            fields = ['id', 'pos']
+        self.fields = fields
+        self._fields = None
+        self._fields_float = True
         self._done_format_setup = False
         self.alias = alias
         self.shortcuts = {'pos': 'position',
@@ -255,11 +240,9 @@ class TrajectoryXYZ(TrajectoryBase):
                           'vx': 'velocity[0]',
                           'vy': 'velocity[1]',
                           'vz': 'velocity[2]',
-                          'id': 'name',
-                          'type': 'name'}
-        self._id_min = 1  # minimum integer for ids, can be modified by subclasses
+                          'id': 'species',
+                          'type': 'species'}
         self._cell = None
-        self._id_map = []  # list to map numerical ids (indexes) to chemical species (entries)
         self.trajectory = gopen(self.filename, self.mode)
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
@@ -275,7 +258,7 @@ class TrajectoryXYZ(TrajectoryBase):
             self._done_format_setup = True
             # %g allows to format both float and int but it's 2x slower.
             # This switch is for performance
-            if self._fmt_float:
+            if self._fields_float:
                 _fmt = '%.' + str(self.precision) + 'f'
             else:
                 _fmt = '%g'
@@ -295,7 +278,7 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
-        self._index_sample = []
+        self._index_frame = []
         self._index_header = []
         self._index_cell = None
         self.trajectory.seek(0)
@@ -319,32 +302,34 @@ class TrajectoryXYZ(TrajectoryBase):
 
             # Skip npart+1 lines
             _ = self.trajectory.readline()
-            self._index_sample.append(self.trajectory.tell())
+            self._index_frame.append(self.trajectory.tell())
             for i in range(npart):
                 _ = self.trajectory.readline()
 
     def _setup_steps(self):
         """Find steps list."""
         self.steps = []
-        for sample in range(len(self._index_sample)):
-            meta = self._read_metadata(sample)
+        for frame in range(len(self._index_frame)):
+            meta = self._read_metadata(frame)
             try:
                 self.steps.append(meta['step'])
             except KeyError:
                 # If no step info is found, we add steps sequentially
-                self.steps.append(sample+1)
+                self.steps.append(frame+1)
 
     def _expand_shortcuts(self):
-        _fmt = []
-        for field in self.fmt:
+        _fields = []
+        for field in self.fields:
             try:
-                _fmt.append(self.shortcuts[field])
+                _fields.append(self.shortcuts[field])
             except KeyError:
-                _fmt.append(field)
-        return _fmt
+                _fields.append(field)
+        return _fields
 
-    def _read_metadata(self, sample):
-        """Internal xyz method to get header metadata from comment line of given *sample*.
+    def _read_metadata(self, frame):
+        """
+        Internal xyz method to get header metadata from comment line of
+        given `frame`.
 
         We assume metadata fmt is a space-separated sequence of comma
         separated entries such as:
@@ -353,7 +338,7 @@ class TrajectoryXYZ(TrajectoryBase):
         columns=id,x,y,z step=10
         """
         # Go to line and skip Npart info
-        self.trajectory.seek(self._index_header[sample])
+        self.trajectory.seek(self._index_header[frame])
         npart = int(self.trajectory.readline())
         data = self.trajectory.readline()
 
@@ -393,32 +378,6 @@ class TrajectoryXYZ(TrajectoryBase):
 
         return meta
 
-    def update_id(self, particle):
-        """Update chemical ids of *particle* list and global database id_map."""
-        # We keep the id database sorted by name.
-        for p in particle:
-            if p.name not in self._id_map:
-                self._id_map.append(p.name)
-                self._id_map.sort()
-
-        # Assign ids to particles according to the updated database
-        for p in particle:
-            p.id = self._id_map.index(p.name) + self._id_min
-
-    def update_mass(self, particle, metadata):
-        """Fix the masses of *particle* list."""
-        # We assume masses read from the header metadata are sorted by name
-        try:
-            mass_db = {}
-            for key, value in zip(self._id_map, metadata['mass']):
-                mass_db[key] = value
-            for p in particle:
-                p.mass = mass_db[p.name]
-        except KeyError:
-            return
-        except TypeError:
-            return
-
     def read_init(self):
         # Grab cell from the end of file if it is there
         try:
@@ -427,44 +386,63 @@ class TrajectoryXYZ(TrajectoryBase):
         except KeyError:
             self._cell = self._parse_cell()
 
-    def read_sample(self, sample):
-        # Use columns if they are found in the header, or stick to the
-        # default format.
-        meta = self._read_metadata(sample)
+    def read_sample(self, frame):
+        meta = self._read_metadata(frame)
         if 'columns' in meta:
-            fmt = meta['columns']
+            # Use columns if they are found in the header
+            fields = meta['columns']
             # Fix single column
-            if type(fmt) != list:
-                fmt = [fmt]
+            if not isinstance(fields, list):
+                fields = [fields]
         else:
-            fmt = self.fmt
-        fmt = _optimize_fmt(fmt)
+            # Stick to the default
+            fields = self.fields
+        fields = _optimize_fields(fields)
 
-        # Read sample now
-        self.trajectory.seek(self._index_sample[sample])
+        # Read frame now
+        self.trajectory.seek(self._index_frame[frame])
         particle = []
         for i in range(meta['npart']):
             p = Particle()
-            # Note: we cannot optimize by shifting an index instead of cropping lists all the time
+            # Note: we cannot optimize by shifting an index instead of
+            # cropping lists all the time
             data = self.trajectory.readline().split()
-            for key in fmt:
-                # If the key is associated to a explicit callback, go for it.
-                # Otherwise we throw the field in an particle attribute named key.
+            for key in fields:
+                # If the key is associated to a explicit callback, go
+                # for it. Otherwise we throw the field in an particle
+                # attribute named key.
                 if key in self.callback_read:
                     data = self.callback_read[key](p, data, meta)
                 else:
                     p.__dict__[key] = tipify(data[0])
                     data = data[1:]
             particle.append(p)
-        # Now we fix ids and other metadata
-        self.update_id(particle)
-        self.update_mass(particle, meta)
 
-        # Check if we also have a cell
+        # Fix the masses.
+        # We assume masses read from the header are sorted by species name.
+        # The mass metadata must be adjusted to the given frame.
+        if 'mass' in meta:
+            species = distinct_species(particle)
+            if len(species) == 1:
+                for p in particle:
+                    p.mass = float(meta['mass'])
+            else:
+                # We must have as many mass entries as species
+                if len(species) != len(meta['mass']):
+                    raise ValueError('mass metadata issue %s, %s' %
+                                     (species, meta['mass']))
+                db = {}
+                for key, value in zip(species, meta['mass']):
+                    db[key] = value
+                for p in particle:
+                    p.mass = float(db[p.species])
+
+        # Check if we have a cell
         try:
             cell = Cell(meta['cell'])
         except KeyError:
             cell = self._cell
+
         return System(particle, cell)
 
     def read_timestep(self):
@@ -479,7 +457,7 @@ class TrajectoryXYZ(TrajectoryBase):
     def _comment_header(self, step, system):
         # Comment line: concatenate metadata
         line = 'step:%d ' % step
-        line += 'columns:' + ','.join(self.fmt)
+        line += 'columns:' + ','.join(self.fields)
         if system.cell is not None:
             line += " cell:" + ','.join(['%s' % x for x in system.cell.side])
         try:
@@ -490,11 +468,11 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def write_sample(self, system, step):
         self._setup_format()
-        if self._fmt is None:
-            self._fmt = self._expand_shortcuts()
+        if self._fields is None:
+            self._fields = self._expand_shortcuts()
         self.trajectory.write('%d\n' % len(system.particle))
         self.trajectory.write(self._comment_header(step, system) + '\n')
-        fmt = ' '.join(['{0.' + field + '}' for field in self._fmt]) + '\n'
+        fmt = ' '.join(['{0.' + field + '}' for field in self._fields]) + '\n'
         for i, p in enumerate(system.particle):
             p._index = i
             p._step = step
@@ -525,9 +503,9 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         self._netwon3 = False
         self._netwon3_message = False
 
-    def read_sample(self, sample):
-        meta = self._read_metadata(sample)
-        self.trajectory.seek(self._index_sample[sample])
+    def read_sample(self, frame):
+        meta = self._read_metadata(frame)
+        self.trajectory.seek(self._index_frame[frame])
         s = System()
         s.neighbors = []
         for _ in range(meta['npart']):
@@ -536,7 +514,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
             s.neighbors.append(neigh-self._offset)
 
         # Ensure III law Newton.
-        # If this is ok on first sample we skip it for the next ones
+        # If this is ok on first frame we skip it for the next ones
         # if not self._netwon3:
         #     self._netwon3 = True
         #     for i, ilist in enumerate(p):
