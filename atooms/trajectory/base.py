@@ -63,10 +63,10 @@ class TrajectoryBase(object):
         self.filename = filename
         self.mode = mode
         self.callbacks = []
-        # fmt is a list of strings describing data to be written by
+        # self.fields is a list of strings describing data to be written by
         # write_sample(). Subclasses may use it to filter out some
         # data from their format or can even ignore it entirely.
-        self.fmt = []
+        self.fields = []
         self.precision = 6
         self.steps = []
         # These are cached properties

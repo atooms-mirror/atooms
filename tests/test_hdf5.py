@@ -9,7 +9,7 @@ except:
 
 from atooms.system import System, Cell, Particle
 from atooms.interaction import Interaction, CutOff, PairPotential
-from atooms.trajectory.utils import format_output
+from atooms.trajectory.utils import modify_fields
 
 class PairPotentialTest(unittest.TestCase):
 
@@ -31,7 +31,7 @@ class PairPotentialTest(unittest.TestCase):
     @unittest.skipIf(not HAS_HDF5, 'no h5py module')
     def test_fmt(self):
         with TrajectoryHDF5('/tmp/test.h5', 'w') as t:
-            format_output(t, exclude=['velocity'], include=['position'])
+            modify_fields(t, exclude=['velocity'], include=['position'])
 
 if __name__ == '__main__':
     unittest.main()

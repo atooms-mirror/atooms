@@ -16,30 +16,30 @@ def gopen(filename, mode):
     else:
         return open(filename, mode)
 
-def format_output(trj, fmt=None, include=None, exclude=None):
+def modify_fields(trajectory, fields=None, include=None, exclude=None):
     """
-    Modify output format of an input trajectory.
+    Modify fields of a trajectory.
 
-    Either provide a new format, such as ['id', 'x', 'y'], or
+    Either provide a new list of fields, such as ['id', 'x', 'y'], or
     specify explicit patterns to exclude or include.
     """
-    if fmt is not None:
+    if fields is not None:
         # Reset the output format
-        trj.fmt = fmt
+        trajectory.fields = fields
     else:
         # Exclude and/or include lists of patterns from output format
         if exclude is not None:
             for pattern in exclude:
-                if pattern in trj.fmt:
-                    trj.fmt.remove(pattern)
+                if pattern in trajectory.fields:
+                    trajectory.fields.remove(pattern)
         if include is not None:
             for pattern in include:
-                if pattern not in trj.fmt:
-                    trj.fmt.append(pattern)
+                if pattern not in trajectory.fields:
+                    trajectory.fields.append(pattern)
 
-    return trj
+    return trajectory
 
-def convert(inp, out, fout, force=True, fmt=None,
+def convert(inp, out, fout, force=True, fields=None,
             exclude=None, include=None, steps=None):
     """
     Convert trajectory into a different format.
@@ -69,7 +69,7 @@ def convert(inp, out, fout, force=True, fmt=None,
         from atooms.core.utils import mkdir
         mkdir(os.path.dirname(fout))
         with out_class(fout, 'w') as conv:
-            format_output(conv, fmt, include, exclude)
+            modify_fields(conv, fields, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
             conv.block_size = inp.block_size

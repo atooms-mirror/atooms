@@ -86,7 +86,7 @@ class TrajectoryHDF5(TrajectoryBase):
         self.general_info = {}
         self._grandcanonical = False
         self._system = None
-        self.fmt = ['position', 'velocity', 'cell']
+        self.fields = ['position', 'velocity', 'cell']
 
         if self.mode == 'r' or self.mode == 'r+':
             self.trajectory = h5py.File(self.filename, mode)
@@ -253,19 +253,19 @@ class TrajectoryHDF5(TrajectoryBase):
 
         if system.particle is not None:
             self.trajectory.create_group_safe('/trajectory/particle')
-            if 'position' in self.fmt:
+            if 'position' in self.fields:
                 self.trajectory.create_group_safe('/trajectory/particle/position')
                 self.trajectory['/trajectory/particle/position' + csample] = [p.position for p in system.particle]
-            if 'velocity' in self.fmt:
+            if 'velocity' in self.fields:
                 self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
                 self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if 'radius' in self.fmt:
+            if 'radius' in self.fields:
                 self.trajectory.create_group_safe('/trajectory/particle/radius')
                 self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
 
         if system.cell is not None:
             self.trajectory.create_group_safe('/trajectory/cell')
-            if 'cell' in self.fmt:
+            if 'cell' in self.fields:
                 self.trajectory.create_group_safe('/trajectory/cell/sidebox')
                 self.trajectory['/trajectory/cell/sidebox' + csample] = system.cell.side
 
@@ -400,11 +400,11 @@ class TrajectoryHDF5(TrajectoryBase):
             r = group['radius' + csample][:]
             for i, pi in enumerate(p):
                 pi.radius = r[i]
-            if 'radius' not in self.fmt:
-                self.fmt.append('radius')
+            if 'radius' not in self.fields:
+                self.fields.append('radius')
         except KeyError:
-            if 'radius' in self.fmt:
-                self.fmt.remove('radius')
+            if 'radius' in self.fields:
+                self.fields.remove('radius')
 
         # Read cell
         group = self.trajectory['/trajectory/cell']

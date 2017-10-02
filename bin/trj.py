@@ -27,8 +27,8 @@ def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
     args.file_inp = args.file_inp[0]
 
-    if args.fmt is not None:
-        args.fmt = args.fmt.split(',')
+    if args.fields is not None:
+        args.fields = args.fields.split(',')
 
     if args.out is not None and not args.out in trajectory.Trajectory.formats:
         available_formats()   
@@ -104,12 +104,12 @@ def main(args):
     # ---------------------
     #
     include_list, exclude_list = [], []
-    if len(args.fmt_include) > 0:
-        include_list = args.fmt_include.split(',')
-    if len(args.fmt_exclude) > 0:
-        exclude_list = args.fmt_exclude.split(',')
+    if len(args.fields_include) > 0:
+        include_list = args.fields_include.split(',')
+    if len(args.fields_exclude) > 0:
+        exclude_list = args.fields_exclude.split(',')
     fout = trajectory.convert(ts, out_class, args.file_out,
-                              fmt=args.fmt, include=include_list,
+                              fields=args.fields, include=include_list,
                               exclude=exclude_list, steps=steps)
 
     if args.ff:
@@ -154,9 +154,9 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers()
 
     parser_convert = subparsers.add_parser('convert')
-    parser_convert.add_argument(      '--fmt-fields', dest='fmt', help='format fields')
-    parser_convert.add_argument('-I', '--fmt-include', dest='fmt_include', type=str, default='', help='include patterns in format')
-    parser_convert.add_argument('-E', '--fmt-exclude', dest='fmt_exclude', type=str, default='', help='exclude patterns from format')
+    parser_convert.add_argument(      '--fields', dest='fields', help='attributes fields')
+    parser_convert.add_argument('-I', '--fields-include', dest='fields_include', type=str, default='', help='include patterns in fields')
+    parser_convert.add_argument('-E', '--fields-exclude', dest='fields_exclude', type=str, default='', help='exclude patterns from fields')
     parser_convert.add_argument('-i', '--fmt-inp', dest='inp', help='input format ')
     parser_convert.add_argument('-o', '--fmt-out', dest='out', help='output format for conversion')
     parser_convert.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')

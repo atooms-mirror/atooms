@@ -191,15 +191,15 @@ def update_velocity(particle, data, meta):
     particle.velocity = numpy.array(data[0:ndim], dtype=float)
     return data[ndim:]
 
-def _optimize_fmt(fmt):
-    if 'x' in fmt:
-        fmt[fmt.index('x')] = 'pos'
-    if 'vx' in fmt:
-        fmt[fmt.index('vx')] = 'vel'
+def _optimize_fields(fields):
+    if 'x' in fields:
+        fields[fields.index('x')] = 'pos'
+    if 'vx' in fields:
+        fields[fields.index('vx')] = 'vel'
     for tag in ['y', 'z', 'vy', 'vz']:
-        if tag in fmt:
-            fmt.remove(tag)
-    return fmt
+        if tag in fields:
+            fields.remove(tag)
+    return fields
 
 
 class TrajectoryXYZ(TrajectoryBase):
@@ -219,17 +219,17 @@ class TrajectoryXYZ(TrajectoryBase):
                      'pos': update_position,
                      'vel': update_velocity}
 
-    def __init__(self, filename, mode='r', alias=None, fmt=None):
+    def __init__(self, filename, mode='r', alias=None, fields=None):
         TrajectoryBase.__init__(self, filename, mode)
         if alias is None:
             alias = {}
-        # TODO: actualize fmt on reading if found and not given on input
-        # TODO: clarify fmt / _fmt handling
-        if fmt is None:
-            fmt = ['id', 'pos']
-        self.fmt = fmt
-        self._fmt = None
-        self._fmt_float = True
+        # TODO: actualize fields on reading if found and not given on input
+        # TODO: clarify fields / _fields handling
+        if fields is None:
+            fields = ['id', 'pos']
+        self.fields = fields
+        self._fields = None
+        self._fields_float = True
         self._done_format_setup = False
         self.alias = alias
         self.shortcuts = {'pos': 'position',
@@ -258,7 +258,7 @@ class TrajectoryXYZ(TrajectoryBase):
             self._done_format_setup = True
             # %g allows to format both float and int but it's 2x slower.
             # This switch is for performance
-            if self._fmt_float:
+            if self._fields_float:
                 _fmt = '%.' + str(self.precision) + 'f'
             else:
                 _fmt = '%g'
@@ -318,13 +318,13 @@ class TrajectoryXYZ(TrajectoryBase):
                 self.steps.append(frame+1)
 
     def _expand_shortcuts(self):
-        _fmt = []
-        for field in self.fmt:
+        _fields = []
+        for field in self.fields:
             try:
-                _fmt.append(self.shortcuts[field])
+                _fields.append(self.shortcuts[field])
             except KeyError:
-                _fmt.append(field)
-        return _fmt
+                _fields.append(field)
+        return _fields
 
     def _read_metadata(self, frame):
         """
@@ -390,14 +390,14 @@ class TrajectoryXYZ(TrajectoryBase):
         meta = self._read_metadata(frame)
         if 'columns' in meta:
             # Use columns if they are found in the header
-            fmt = meta['columns']
+            fields = meta['columns']
             # Fix single column
-            if not isinstance(fmt, list):
-                fmt = [fmt]
+            if not isinstance(fields, list):
+                fields = [fields]
         else:
             # Stick to the default
-            fmt = self.fmt
-        fmt = _optimize_fmt(fmt)
+            fields = self.fields
+        fields = _optimize_fields(fields)
 
         # Read frame now
         self.trajectory.seek(self._index_frame[frame])
@@ -407,7 +407,7 @@ class TrajectoryXYZ(TrajectoryBase):
             # Note: we cannot optimize by shifting an index instead of
             # cropping lists all the time
             data = self.trajectory.readline().split()
-            for key in fmt:
+            for key in fields:
                 # If the key is associated to a explicit callback, go
                 # for it. Otherwise we throw the field in an particle
                 # attribute named key.
@@ -457,7 +457,7 @@ class TrajectoryXYZ(TrajectoryBase):
     def _comment_header(self, step, system):
         # Comment line: concatenate metadata
         line = 'step:%d ' % step
-        line += 'columns:' + ','.join(self.fmt)
+        line += 'columns:' + ','.join(self.fields)
         if system.cell is not None:
             line += " cell:" + ','.join(['%s' % x for x in system.cell.side])
         try:
@@ -468,11 +468,11 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def write_sample(self, system, step):
         self._setup_format()
-        if self._fmt is None:
-            self._fmt = self._expand_shortcuts()
+        if self._fields is None:
+            self._fields = self._expand_shortcuts()
         self.trajectory.write('%d\n' % len(system.particle))
         self.trajectory.write(self._comment_header(step, system) + '\n')
-        fmt = ' '.join(['{0.' + field + '}' for field in self._fmt]) + '\n'
+        fmt = ' '.join(['{0.' + field + '}' for field in self._fields]) + '\n'
         for i, p in enumerate(system.particle):
             p._index = i
             p._step = step
