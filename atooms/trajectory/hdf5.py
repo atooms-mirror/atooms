@@ -19,6 +19,7 @@ from atooms.interaction.cutoff import CutOff
 
 _log = logging.getLogger(__name__)
 
+
 #  Helper functions and classes
 
 class _SafeFile(h5py.File):

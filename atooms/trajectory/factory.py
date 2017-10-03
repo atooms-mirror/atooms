@@ -41,6 +41,7 @@ try:
 except ImportError:
     pass
 
+
 # Note: trajectories should implement a method to check if a file is
 # of their own format or not, to avoid relying on suffix check out
 # http://stackoverflow.com/questions/456672/class-factory-in-python.

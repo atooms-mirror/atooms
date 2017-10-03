@@ -11,6 +11,7 @@ from atooms.system.particle import Particle, distinct_species
 from atooms.system.cell import Cell
 from atooms.system import System
 
+
 def _read_item(t, item):
     """Parse generic `item`."""
     data = t.readline()
@@ -44,7 +45,6 @@ def _lammps_parse_system(finp):
     c = Cell(numpy.array(L))
 
     # Read positions and velocities
-    imap = {1: 'A', 2: 'B', 3: 'C', 4: 'D'}
     data = _read_item(finp, "ITEM: ATOMS").split()[2:]
     # Determine how many variables are there
     n = len(data)

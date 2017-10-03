@@ -32,7 +32,6 @@ def init_folder(filename, file_pattern='*', step_pattern='(\d*)'):
 
     Filename can be a folder, a compressed tar file, a simple file.
     """
-    path = filename.rstrip('/')
     if os.path.isdir(filename):
         # Configurations are stored in a folder
         dirname = filename

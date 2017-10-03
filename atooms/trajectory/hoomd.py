@@ -92,8 +92,6 @@ class TrajectoryHOOMD(TrajectoryBase):
 
     def read_sample(self, frame):
         cfg, box, pos, typ, vel = self.__read_one(self.__f_frames[frame])
-        lab = map_label_id(typ)
-
         if vel is None:
             particle = [Particle(species=t, position=numpy.array(p)) for p, t in zip(pos, typ)]
         else:

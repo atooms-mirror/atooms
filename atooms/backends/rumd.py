@@ -237,15 +237,14 @@ class System(object):
         ima = self.sample.GetImages()
         mass = self.__get_mass()
         spe = numpy.ndarray(npart, dtype=int)
-        name = numpy.ndarray(npart, dtype='|S1')
         ii = 0
         for i in range(nsp):
             ni = self.sample.GetNumberThisType(i)
             spe[ii: ii + ni] = i
             ii += ni
-        p = [Particle(species=spe, mass=mass, position=pos,
-                      velocity=vel) for spe, mass, pos, vel in
-             zip(spe, mass, pos, vel)]
+        p = [Particle(species=spe_i, mass=mass_i, position=pos_i,
+                      velocity=vel_i) for spe_i, mass_i, pos_i, vel_i
+             in zip(spe, mass, pos, vel)]
         for pi, i in zip(p, ima):
             pi.periodic_image = i
         return p

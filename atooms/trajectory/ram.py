@@ -3,8 +3,8 @@
 import copy
 from atooms.system.system import System
 from atooms.system.particle import Particle
-from atooms.system.cell import Cell
 from .base import TrajectoryBase
+
 
 class TrajectoryRamFull(TrajectoryBase):
 

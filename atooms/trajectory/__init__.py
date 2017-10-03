@@ -3,8 +3,6 @@
 
 """Read and write trajectory files in various formats."""
 
-import os
-import sys
 import logging
 import pkgutil
 
@@ -51,7 +49,7 @@ try:
 except ImportError:
     pass
 else:
-    for _, _mod_name, _ in pkgutil.iter_modules(atooms_plugins.__path__, 
+    for _, _mod_name, _ in pkgutil.iter_modules(atooms_plugins.__path__,
                                                 prefix='atooms_plugins.'):
         try:
             m = __import__(_mod_name)

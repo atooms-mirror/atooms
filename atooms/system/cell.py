@@ -6,6 +6,7 @@
 import numpy
 from atooms.core import ndim as _ndim
 
+
 class Cell(object):
 
     def __init__(self, side, origin=numpy.zeros(_ndim)):

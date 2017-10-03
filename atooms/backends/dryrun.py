@@ -11,7 +11,7 @@ It just exposes a minimal backend interface.
 class DryRun(object):
 
     "A simulation backend that performs no simulation at all."
-    
+
     def __init__(self, system=None):
         self.system = system
         if self.system is None:

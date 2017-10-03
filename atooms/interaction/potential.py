@@ -7,6 +7,7 @@ import numpy
 
 from .library import *
 
+
 # Potentials factory
 
 _factory = {}

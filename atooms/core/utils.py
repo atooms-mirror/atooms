@@ -3,6 +3,7 @@
 import os
 import sys
 import shutil
+import time
 
 # Logging facilities
 
@@ -10,6 +11,7 @@ LOGGER_NAME = 'atooms'
 DEFAULT_LOGGING_FORMAT = '[%(levelname)s/%(processName)s] %(message)s'
 
 _logger = None
+
 
 # We define the logging handler here to avoid "No handler found" warnings.
 # Client classes should use this instead of logging.NullHandler
@@ -36,6 +38,7 @@ def log_to_stderr(level=None):
         logger.setLevel(level)
     return _logger
 
+
 # Parallel environment
 
 try:
@@ -58,6 +61,7 @@ except:
 def barrier():
     if size > 1:
         comm.barrier()
+
 
 # Utility functions to mimic bash directory / file handling
 
@@ -96,9 +100,8 @@ def cp(finp, fout):
         with open(fout, 'w') as fh_out:
             fh_out.write(fh.read())
 
-# Timer class, inspired by John Paulett's stopwatch
 
-import time
+# Timer class, inspired by John Paulett's stopwatch
 
 class Timer(object):
 
@@ -180,6 +183,7 @@ def add_first_last_skip(parser, what=None):
         parser.add_argument('-s', '--skip', dest='skip', type=int, default=1, help='interval between cfg')
     return parser
 
+
 # Logging facilities
 
 class ParallelFilter(logging.Filter):
@@ -192,6 +196,7 @@ class ParallelFilter(logging.Filter):
         else:
             return rank == 0
 
+
 class MyFormatter(logging.Formatter):
     def format(self, record):
         if record.levelname in ['WARNING', 'ERROR']:
@@ -199,8 +204,9 @@ class MyFormatter(logging.Formatter):
         else:
             return '# ' + record.msg % record.args
 
-# Logging API
+
 def setup_logging(name=None, level=40):
+    """Logging API."""
     if name is None:
         log = logging.getLogger()
     else:
@@ -225,7 +231,7 @@ def tipify(s):
     """
     Convert a string into the best matching type.
 
-    Example: 
+    Example:
     -------
         2 -> int
         2.32 -> float
@@ -249,12 +255,6 @@ def tipify(s):
         except ValueError:
             return s
 
-def __header_dict(line):
-    # Array entry have comma separated elements, split them into lists
-    params = {}
-    for key, value in [d.split('=') for d in line.split()]:
-        params[key] = value
-    return params
 
 # Unit test enhancements
 
@@ -274,9 +274,18 @@ class TestCase(unittest.TestCase):
         else:
             return abs(first-second) <= delta
 
-# Report parameters and command line options
+
+# Miscellaneous
+
+def __header_dict(line):
+    # Array entry have comma separated elements, split them into lists
+    params = {}
+    for key, value in [d.split('=') for d in line.split()]:
+        params[key] = value
+    return params
 
 def report_parameters(params, fileout, version, comment=''):
+    """Report parameters."""
     maxlen = max([len(key) for key in params])
     fmt = comment + '%-' + str(maxlen) + 's = %s\n'
     txt = ""
@@ -289,6 +298,7 @@ def report_parameters(params, fileout, version, comment=''):
     return txt
 
 def report_command(cmd, params, main, fileout):
+    """Report command line options."""
     txt = cmd + ' \\\n'
     for key in sorted(params.keys()):
         if key in main:
@@ -305,9 +315,6 @@ def report_command(cmd, params, main, fileout):
         with open(fileout, 'w') as fh:
             fh.write(txt)
     return txt
-
-
-# Miscellaneous
 
 class OrderedSet(object):
 
@@ -352,7 +359,7 @@ class OrderedSet(object):
     def update(self, items):
         sort_needed = False
         for item in items:
-            if not item in self.items:
+            if item not in self.items:
                 self.items.append(item)
                 sort_needed = True
         if sort_needed:
@@ -363,4 +370,3 @@ class OrderedSet(object):
             return self.items.index(item)
         except ValueError:
             raise ValueError('item %s not in %s' % (item, self))
-

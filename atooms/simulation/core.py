@@ -344,8 +344,8 @@ class Simulation(object):
                 args = params['args']
                 txt.append('target %s: %s' % (f.__name__, args[0]))
             else:
-                txt.append('writer %s: interval=%s calls=%s' % \
-                       (f.__name__, s.interval, s.calls))
+                txt.append('writer %s: interval=%s calls=%s' %
+                           (f.__name__, s.interval, s.calls))
         return '\n'.join(txt)
 
     def _info_end(self):
