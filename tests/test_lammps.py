@@ -5,7 +5,7 @@ import unittest
 from atooms.simulation import Simulation, write_thermo, write_config, target
 from atooms.core.utils import setup_logging
 try:
-    from atooms.backends.lammps import LAMMPS
+    from atooms.backends.lammps import LAMMPS, Interaction
     SKIP = False
 except ImportError:
     SKIP = True
@@ -39,6 +39,16 @@ class Test(unittest.TestCase):
         sim.run(10)
         x = sim.system.particle[0].position[0]
         self.assertAlmostEqual(x, 3.67598, places=5)
+
+    def test_energy(self):
+        import sys
+        cmd = """
+        pair_style      lj/cut 2.5
+        pair_coeff      1 1 1.0 1.0 2.5
+        """
+        bck = LAMMPS(self.input_file, cmd)
+        bck.system.interaction.compute("energy", bck.system.particle, bck.system.cell)
+        self.assertEqual(bck.system.interaction.energy, -4.2446836)  # crosschecked
 
     def tearDown(self):
         pass
