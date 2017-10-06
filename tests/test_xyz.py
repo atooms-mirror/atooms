@@ -251,7 +251,6 @@ A 1.0 -1.0 0.0
 
 class TestSimpleXYZ(TestXYZ):
 
-    # TODO: refactor generic tests for trajectories like this :-)
     Trajectory = TrajectorySimpleXYZ
 
     def test_xyz_4d(self):
@@ -272,7 +271,6 @@ class TestSimpleXYZ(TestXYZ):
 
 class TestRumd(TestXYZ):
 
-    # TODO: refactor generic tests for trajectories like this :-)
     Trajectory = TrajectoryRUMD
 
     def setUp(self):

@@ -43,7 +43,7 @@ ioformat=2 timeStepIndex=1234 numTypes=4 integrator=IntegratorNVT,0.00400000019,
 0 -0.468039989 -0.332848012 1.445088983 0 0 0 -0.344832987 -0.324809015 -0.497487992 0.0 0.0 0.0 0.0 0.0
 """
 
-# TODO: make test_backend a package
+# TODO: introduce generic tests for backends
 
 class TestBackendRUMD(unittest.TestCase):
 
@@ -147,10 +147,6 @@ class TestBackendRUMD(unittest.TestCase):
         s.run()
         # TODO: this will fail, change test for existence of chk file
         # self.assertTrue(os.path.exists(s.trajectory.filename + '.chk'))
-        # TODO: this will fail, because changing steps should update scheduler!
-        # s.target_steps = 20
-        # s.restart = True
-        # s.run()
                 
     def tearDown(self):
         import shutil
