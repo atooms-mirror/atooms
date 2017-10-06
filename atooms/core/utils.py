@@ -86,11 +86,29 @@ def rmd(files):
         pass
 
 def rmf(files):
-    for f in files:
-        try:
-            os.remove(f)
-        except:
-            pass
+    """
+    Remove `files` without complaining.
+
+    The variable `files` can be a list or tuple of paths or a single
+    string parseable by glob.glob().
+    """
+    import glob
+    try:
+        # This a single pattern
+        for pathname in glob.glob(files):
+            try:
+                os.remove(pathname)
+            except OSError:
+                # File does not exists or it is a folder
+                pass
+    except TypeError:
+        # This is a list
+        for pathname in files:
+            try:
+                os.remove(pathname)
+            except OSError:
+                # File does not exists or it is a folder
+                pass
 
 def cp(finp, fout):
     # Avoid erasing file
@@ -101,9 +119,11 @@ def cp(finp, fout):
             fh_out.write(fh.read())
 
 
-# Timer class, inspired by John Paulett's stopwatch
+# Timings
 
 class Timer(object):
+
+    """Timer class inspired by John Paulett's stopwatch class."""
 
     def __init__(self):
         self.__start_cpu = None
@@ -132,8 +152,9 @@ class Timer(object):
 
 
 def clockit(func):
-    """Function decorator that times the evaluation of *func* and prints the
-    execution time.
+    """
+    Function decorator that times the evaluation of `func` and prints
+    the execution time.
     """
     def new(*args, **kw):
         t = Timer()
@@ -147,8 +168,10 @@ def clockit(func):
 
 
 def fractional_slice(first, last, skip, n):
-    """Return a slice assuming first or last are fractions of n, the length of the iterable,
-    if first or last are in (0,1)"""
+    """
+    Return a slice assuming `first` or `last` are fractions of `n`,
+    the length of the iterable, if `first` or `last` are in (0,1)
+    """
     # We use an implicit convention here:
     # If first or last are in (0,1) then they are considered as fractions of the iterable
     # otherwise they are integer indexes. Note the explicit int() cast in the latter case.
