@@ -332,8 +332,10 @@ class Simulation(object):
 
     def _info_backend(self):
         """Subclasses may want to override this method."""
+        txt = 'backend: {}\n'.format(self.backend)
         if hasattr(self.backend, 'version'):
-            return 'backend version: %s\n' % self.backend.version
+            txt += 'backend version: %s\n' % self.backend.version
+        return txt
 
     def _info_observers(self):
         txt = []

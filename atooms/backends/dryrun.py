@@ -12,6 +12,8 @@ class DryRun(object):
 
     "A simulation backend that performs no simulation at all."
 
+    version = '0.1.0'
+
     def __init__(self, system=None):
         self.system = system
         if self.system is None:
@@ -19,6 +21,9 @@ class DryRun(object):
         self.trajectory = Trajectory
         self.output_path = None
         self.steps = 0
+
+    def __str__(self):
+        return 'dryrun'
 
     def write_checkpoint(self):
         pass

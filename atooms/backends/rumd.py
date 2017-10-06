@@ -19,11 +19,14 @@ from atooms.system.cell import Cell
 from atooms.core.utils import mkdir
 
 _log = logging.getLogger(__name__)
+_version = rumd.GetVersion()
 
 
 class RUMD(object):
 
     """RUMD simulation backend."""
+
+    version = _version
 
     def __init__(self, input_file, forcefield_file=None,
                  integrator=None, temperature=None, dt=0.001,
@@ -82,7 +85,7 @@ class RUMD(object):
     system = property(_get_system, _set_system, 'System')
 
     def __str__(self):
-        return 'RUMD v%s' % rumd.GetVersion()
+        return 'RUMD'
 
     @property
     def rmsd(self):
