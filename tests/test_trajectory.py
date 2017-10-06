@@ -76,6 +76,10 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectoryXYZ, ignore=['mass'])
         self._read_write(trj.TrajectorySimpleXYZ, ignore=['mass'])
 
+    def test_ram(self):
+        self._read_write(trj.TrajectoryRam)
+        self._read_write(trj.ram.TrajectoryRamFull)
+
     def test_hdf5(self):
         self._read_write(trj.TrajectoryHDF5)
 
