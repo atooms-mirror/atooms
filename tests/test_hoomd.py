@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import unittest
 
 from atooms import trajectory
@@ -7,7 +8,7 @@ from atooms import trajectory
 class Test(unittest.TestCase):
 
     def setUp(self):
-        self.finp = '/tmp/test.xyz'
+        self.finp = '/tmp/test_hoomd.xyz'
         fh = open(self.finp, 'w')
         fh.write("""\
 2
@@ -31,7 +32,7 @@ A -2.8 2.8 0.0
         fh.close()
 
     def test(self):
-        fname = '/tmp/test.tgz'
+        fname = '/tmp/test_hoomd.tgz'
         txyz = trajectory.TrajectoryXYZ(self.finp)
 
         with trajectory.TrajectoryHOOMD(fname, 'w:gz') as t:
@@ -44,6 +45,10 @@ A -2.8 2.8 0.0
             self.assertEqual(t[0].cell.side[1], txyz[0].cell.side[1])
 
         txyz.close()
+
+    def tearDown(self):
+        os.remove('/tmp/test_hoomd.tgz')
+        os.remove('/tmp/test_hoomd.xyz')
 
 if __name__ == '__main__':
     unittest.main()

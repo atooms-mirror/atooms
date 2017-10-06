@@ -4,10 +4,12 @@ import os
 import unittest
 import numpy
 
+from atooms.core.utils import rmd, rmf
 from atooms.system import System, Particle, Cell
 from atooms.trajectory import Unfolded
 from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD
 import atooms.trajectory as trj
+
 
 def _equal(system1, system2, ignore=None):
     check = {}
@@ -30,6 +32,7 @@ def _rename_species(particle, db):
         p.species = db[p.species]
     return particle
 
+
 class Test(unittest.TestCase):
     
     def setUp(self):
@@ -41,8 +44,8 @@ class Test(unittest.TestCase):
         self.system = []
         self.system.append(System(copy.deepcopy(particle), cell))
         self.system.append(System(copy.deepcopy(particle), cell))
-        self.inpfile = '/tmp/testtrj'
-        self.inpdir = '/tmp/testtrj.d'
+        self.inpfile = '/tmp/test_trajectory'
+        self.inpdir = '/tmp/test_trajectory.d'
         from atooms.core.utils import mkdir
         mkdir(self.inpdir)
 
@@ -100,8 +103,9 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
         self.assertTrue(output == reference)
 
     def tearDown(self):
-        os.system('rm -rf /tmp/testtrj')
-        os.system('rm -rf /tmp/testtrj.d')
+        rmf(self.inpfile)
+        rmd(self.inpdir)
+
 
 if __name__ == '__main__':
     unittest.main()

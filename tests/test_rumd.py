@@ -13,6 +13,7 @@ from atooms.core.utils import setup_logging
 
 setup_logging(level=40)
 
+
 class Test(unittest.TestCase):
 
     def setUp(self):

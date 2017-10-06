@@ -9,6 +9,7 @@ from atooms.system.cell import Cell
 from atooms.system.particle import Particle
 from atooms.system.reservoir import Thermostat, Barostat, Reservoir
 
+
 class Test(unittest.TestCase):
 
     def setUp(self):

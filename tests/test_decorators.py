@@ -2,6 +2,7 @@
 
 """Test trajectory decorators."""
 
+import os
 import unittest
 import numpy
 
@@ -96,6 +97,9 @@ A -2.9 2.9 0.0
         self.assertTrue(_equal(system_F, change_species(deepcopy(system_C), 'F')))
         self.assertTrue(_equal(system_A, change_species(deepcopy(system_F), 'A')))
         self.assertTrue(_equal(system_C, change_species(deepcopy(system_F), 'C')))
+
+    def tearDown(self):
+        os.remove(self.finp)
 
         
 if __name__ == '__main__':

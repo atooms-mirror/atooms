@@ -5,7 +5,7 @@ import logging
 import numpy
 from atooms.simulation import Simulation, Scheduler, write_thermo
 from atooms.backends.dryrun import DryRun
-from atooms.core.utils import setup_logging
+from atooms.core.utils import setup_logging, rmd
 
 setup_logging(level=40)
 
@@ -26,7 +26,7 @@ class Test(unittest.TestCase):
         s.run()
 
     def test_target_restart(self):
-        f='/tmp/test_simulation_restart/trajectory'
+        f='/tmp/test_simulation/restart/trajectory'
         s=Simulation(DryRun(), output_path=f)
         s.add(write_thermo, Scheduler(20))
         s.run(100)
@@ -40,7 +40,7 @@ class Test(unittest.TestCase):
         self.assertEqual(int(data[0][-1]), 200)
 
     def test_target_restart_fake(self):
-        f = '/tmp/test_simulation_restart/trajectory'
+        f = '/tmp/test_simulation/restart/trajectory'
         s=Simulation(DryRun(), output_path=f)
         #s.add(WriterThermo(), Scheduler(20))
         s.add(write_thermo, Scheduler(20))
@@ -99,6 +99,9 @@ class Test(unittest.TestCase):
         new_sim.run()
         self.assertEqual(new_sim.current_step, 1)
         self.assertEqual(sim.current_step, 3)
+
+    def tearDown(self):
+        rmd('/tmp/test_simulation')
 
 if __name__ == '__main__':
     unittest.main()

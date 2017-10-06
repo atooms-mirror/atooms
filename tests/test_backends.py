@@ -51,8 +51,8 @@ class TestBackendRUMD(unittest.TestCase):
         if SKIP:
             self.skipTest('no rumd')
 
-        self.dout = '/tmp/test_adapter_rumd_out'
-        self.finp = '/tmp/test_adapter_rumd_in.xyz'
+        self.dout = '/tmp/test_backends_rumd_out'
+        self.finp = '/tmp/test_backends_rumd_in.xyz'
         with open(self.finp, 'w') as fh:
             fh.write(xyz)
 
@@ -67,16 +67,16 @@ class TestBackendRUMD(unittest.TestCase):
         itg = rumd.IntegratorNVT(targetTemperature=2.0, timeStep=0.002)
         self.backend.rumd_simulation.SetIntegrator(itg)
 
-        self.finp2 = '/tmp/test_adapter_rumd_in2.xyz'
+        self.finp2 = '/tmp/test_backends_rumd_in2.xyz'
         with open(self.finp2, 'w') as fh:
             fh.write(xyz_2)
         self.sim2 = rumdSimulation(self.finp2, verbose=False)
 
-        self.finp_io2 = '/tmp/test_adapter_rumd_io2.xyz'
+        self.finp_io2 = '/tmp/test_backends_rumd_io2.xyz'
         with open(self.finp_io2, 'w') as fh:
             fh.write(xyz_io2)
 
-        self.finp_io2_base = '/tmp/0000001.xyz'
+        self.finp_io2_base = '/tmp/test_backends_0000001.xyz'
         with open(self.finp_io2_base, 'w') as fh:
             fh.write(xyz_io2)
 

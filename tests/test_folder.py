@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import shutil
 import unittest
 import numpy
 
@@ -28,6 +29,11 @@ A 2.9 -2.9 0.0
         r_ref = [[1., -1., 0.], [2.9, -2.9, 0.]]
         t = TrajectoryFolder(self.dirname, step_pattern='step_(\d*)')
         self.assertEqual(t.steps, [10, 11, 12])
+
+    def tearDown(self):
+        if os.path.exists(self.dirname):
+            shutil.rmtree(self.dirname)
+
 
 if __name__ == '__main__':
     unittest.main()

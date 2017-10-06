@@ -4,6 +4,7 @@ import unittest
 from atooms.trajectory import utils
 from atooms.trajectory import TrajectoryXYZ
 
+
 class Test(unittest.TestCase):
 
     def setUp(self):
@@ -81,6 +82,9 @@ A 1.0 -1.0 0.0
         self.assertFalse(utils.is_cell_variable(t, tests=1))
         self.assertTrue(utils.is_cell_variable(t, tests=2))
 
-
+    def tearDown(self):
+        from atooms.core.utils import rmf
+        rmf('/tmp/test_utils*')
+        
 if __name__ == '__main__':
     unittest.main(verbosity=0)

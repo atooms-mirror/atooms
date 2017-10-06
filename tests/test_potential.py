@@ -7,6 +7,7 @@ try:
 except:
     HAS_HDF5 = False
 
+from atooms.core.utils import rmf
 from atooms.system import System
 from atooms.system.cell import Cell
 from atooms.interaction import Interaction, PairPotential, CutOff
@@ -38,13 +39,16 @@ class PairPotentialTest(unittest.TestCase):
         i = [Interaction(p, 'atomic')]
         s = System()
         s.cell = Cell([1.0, 1.0, 1.0])
-        t = TrajectoryHDF5('/tmp/test.h5', 'w')
+        t = TrajectoryHDF5('/tmp/test_potential.h5', 'w')
         t.write_interaction(i)
         t.close()
 
-        t = TrajectoryHDF5('/tmp/test.h5', 'r')
+        t = TrajectoryHDF5('/tmp/test_potential.h5', 'r')
         i = t.read_interaction()
         t.close()
+
+    def tearDown(self):
+        rmf('/tmp/test_potential.h5')
 
 if __name__ == '__main__':
     unittest.main()
