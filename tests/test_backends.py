@@ -17,6 +17,11 @@ if not SKIP:
     from atooms.backends.rumd import System, Trajectory
     from atooms.backends.rumd import RUMD as Backend
 
+from atooms.core.utils import setup_logging
+
+
+setup_logging(level=40)
+
 xyz = """\
      3
 ioformat=1 dt=0.005000000 boxLengths=6.34960421,6.34960421,6.34960421 numTypes=1 Nose-Hoover-Ps=-0.027281716 Barostat-Pv=0.000000000 mass=1.0000000 columns=type,x,y,z,vx,vy,vz
@@ -77,7 +82,9 @@ class TestBackendRUMD(unittest.TestCase):
         with open(self.finp_io2, 'w') as fh:
             fh.write(xyz_io2)
 
-        self.finp_io2_base = '/tmp/test_backends_0000001.xyz'
+        from atooms.core.utils import mkdir
+        mkdir('/tmp/test_backends')
+        self.finp_io2_base = '/tmp/test_backends/0000001.xyz'
         with open(self.finp_io2_base, 'w') as fh:
             fh.write(xyz_io2)
 
@@ -150,13 +157,9 @@ class TestBackendRUMD(unittest.TestCase):
         # self.assertTrue(os.path.exists(s.trajectory.filename + '.chk'))
 
     def tearDown(self):
-        import shutil
-        if os.path.exists(self.finp):
-            os.remove(self.finp)
-        if os.path.exists(self.finp2):
-            os.remove(self.finp2)
-        if os.path.exists(self.dout):
-            shutil.rmtree(self.dout)
+        from atooms.core.utils import rmf, rmd
+        rmf('/tmp/test_backends*')
+        rmd('/tmp/test_backends')
 
 
 if __name__ == '__main__':
