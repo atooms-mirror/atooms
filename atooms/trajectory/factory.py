@@ -1,5 +1,5 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """
 Abstract factory class for trajectories.
@@ -40,6 +40,7 @@ try:
     from .hdf5 import TrajectoryHDF5
 except ImportError:
     pass
+
 
 # Note: trajectories should implement a method to check if a file is
 # of their own format or not, to avoid relying on suffix check out

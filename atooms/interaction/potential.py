@@ -1,11 +1,12 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """Pair potential classes and factory."""
 
 import numpy
 
 from .library import *
+
 
 # Potentials factory
 

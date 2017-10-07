@@ -1,10 +1,10 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """PDB format, write-only."""
 
-import os
 from base import TrajectoryBase
+
 
 class TrajectoryPDB(TrajectoryBase):
 

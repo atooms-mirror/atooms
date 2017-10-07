@@ -1,5 +1,5 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """
 Base simulation class with callback logic.
@@ -332,8 +332,10 @@ class Simulation(object):
 
     def _info_backend(self):
         """Subclasses may want to override this method."""
+        txt = 'backend: {}\n'.format(self.backend)
         if hasattr(self.backend, 'version'):
-            return 'backend version: %s\n' % self.backend.version
+            txt += 'backend version: %s\n' % self.backend.version
+        return txt
 
     def _info_observers(self):
         txt = []
@@ -344,8 +346,8 @@ class Simulation(object):
                 args = params['args']
                 txt.append('target %s: %s' % (f.__name__, args[0]))
             else:
-                txt.append('writer %s: interval=%s calls=%s' % \
-                       (f.__name__, s.interval, s.calls))
+                txt.append('writer %s: interval=%s calls=%s' %
+                           (f.__name__, s.interval, s.calls))
         return '\n'.join(txt)
 
     def _info_end(self):

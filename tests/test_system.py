@@ -9,6 +9,7 @@ from atooms.system.cell import Cell
 from atooms.system.particle import Particle
 from atooms.system.reservoir import Thermostat, Barostat, Reservoir
 
+
 class Test(unittest.TestCase):
 
     def setUp(self):
@@ -21,16 +22,16 @@ class Test(unittest.TestCase):
         self.ref.barostat = Barostat(1.0)
         self.ref.reservoir = Reservoir(1.0)
         while len(self.ref.particle) <= N:
-            pos = [(random.random()-0.5) * L,
-                   (random.random()-0.5) * L,
-                   (random.random()-0.5) * L]
+            pos = [(random.random() - 0.5) * L,
+                   (random.random() - 0.5) * L,
+                   (random.random() - 0.5) * L]
             self.ref.particle.append(Particle(position=pos))
 
     def test_density(self):
         system = copy.copy(self.ref)
         density_old = system.density
-        system.density = density_old*1.1
-        self.assertAlmostEqual(system.density, density_old*1.1)
+        system.density = density_old * 1.1
+        self.assertAlmostEqual(system.density, density_old * 1.1)
 
     def test_temperature(self):
         system = copy.copy(self.ref)
@@ -92,7 +93,6 @@ class Test(unittest.TestCase):
         self.assertEqual(composition(system.particle)['B'], 10)
         self.assertEqual(composition(system.particle)['C'], 20)
 
+
 if __name__ == '__main__':
     unittest.main()
-
-

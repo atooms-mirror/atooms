@@ -4,6 +4,7 @@ import os
 import tarfile
 import numpy
 
+
 def gopen(filename, mode):
     """Open a file recognizing gzipped and bzipped files by extension."""
     ext = os.path.splitext(filename)[1]
@@ -355,4 +356,3 @@ def info(trajectory):
             txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size)])
         txt += 'grandcanonical       = %s' % trajectory.grandcanonical
     return txt
-

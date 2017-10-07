@@ -1,5 +1,5 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """
 Dry run backend.
@@ -11,7 +11,9 @@ It just exposes a minimal backend interface.
 class DryRun(object):
 
     "A simulation backend that performs no simulation at all."
-    
+
+    version = '0.1.0'
+
     def __init__(self, system=None):
         self.system = system
         if self.system is None:
@@ -19,6 +21,9 @@ class DryRun(object):
         self.trajectory = Trajectory
         self.output_path = None
         self.steps = 0
+
+    def __str__(self):
+        return 'dryrun'
 
     def write_checkpoint(self):
         pass

@@ -1,5 +1,5 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """Simulation backend for RUMD (http://rumd.org/)."""
 
@@ -19,11 +19,14 @@ from atooms.system.cell import Cell
 from atooms.core.utils import mkdir
 
 _log = logging.getLogger(__name__)
+_version = rumd.GetVersion()
 
 
 class RUMD(object):
 
     """RUMD simulation backend."""
+
+    version = _version
 
     def __init__(self, input_file, forcefield_file=None,
                  integrator=None, temperature=None, dt=0.001,
@@ -82,7 +85,7 @@ class RUMD(object):
     system = property(_get_system, _set_system, 'System')
 
     def __str__(self):
-        return 'RUMD v%s' % rumd.GetVersion()
+        return 'RUMD'
 
     @property
     def rmsd(self):
@@ -237,15 +240,14 @@ class System(object):
         ima = self.sample.GetImages()
         mass = self.__get_mass()
         spe = numpy.ndarray(npart, dtype=int)
-        name = numpy.ndarray(npart, dtype='|S1')
         ii = 0
         for i in range(nsp):
             ni = self.sample.GetNumberThisType(i)
             spe[ii: ii + ni] = i
             ii += ni
-        p = [Particle(species=spe, mass=mass, position=pos,
-                      velocity=vel) for spe, mass, pos, vel in
-             zip(spe, mass, pos, vel)]
+        p = [Particle(species=spe_i, mass=mass_i, position=pos_i,
+                      velocity=vel_i) for spe_i, mass_i, pos_i, vel_i
+             in zip(spe, mass, pos, vel)]
         for pi, i in zip(p, ima):
             pi.periodic_image = i
         return p

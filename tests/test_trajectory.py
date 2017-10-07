@@ -4,10 +4,12 @@ import os
 import unittest
 import numpy
 
+from atooms.core.utils import rmd, rmf
 from atooms.system import System, Particle, Cell
 from atooms.trajectory import Unfolded
 from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD
 import atooms.trajectory as trj
+
 
 def _equal(system1, system2, ignore=None):
     check = {}
@@ -25,24 +27,26 @@ def _equal(system1, system2, ignore=None):
             return False
     return True
 
+
 def _rename_species(particle, db):
     for p in particle:
         p.species = db[p.species]
     return particle
 
+
 class Test(unittest.TestCase):
-    
+
     def setUp(self):
         import copy
         particle = [Particle(position=[0.0, 0.0, 0.0], species='A', mass=1.0),
                     Particle(position=[1.0, 1.0, 1.0], species='B', mass=2.0),
-                ]
+                    ]
         cell = Cell([2.0, 2.0, 2.0])
         self.system = []
         self.system.append(System(copy.deepcopy(particle), cell))
         self.system.append(System(copy.deepcopy(particle), cell))
-        self.inpfile = '/tmp/testtrj'
-        self.inpdir = '/tmp/testtrj.d'
+        self.inpfile = '/tmp/test_trajectory'
+        self.inpdir = '/tmp/test_trajectory.d'
         from atooms.core.utils import mkdir
         mkdir(self.inpdir)
 
@@ -73,6 +77,10 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectoryXYZ, ignore=['mass'])
         self._read_write(trj.TrajectorySimpleXYZ, ignore=['mass'])
 
+    def test_ram(self):
+        self._read_write(trj.TrajectoryRam)
+        self._read_write(trj.ram.TrajectoryRamFull)
+
     def test_hdf5(self):
         self._read_write(trj.TrajectoryHDF5)
 
@@ -81,7 +89,7 @@ class Test(unittest.TestCase):
         for s in self.system:
             s.particle = _rename_species(s.particle, {'A': '0', 'B': '1'})
         self._read_write(trj.TrajectoryRUMD)
-        # TODO: add write_sample() to supertrajectory 
+        # TODO: add write_sample() to supertrajectory
         #self._read_write(trj.SuperTrajectoryRUMD, self.inpdir, ignore=['id', 'name'])
 
     def test_pdb(self):
@@ -100,10 +108,9 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
         self.assertTrue(output == reference)
 
     def tearDown(self):
-        os.system('rm -rf /tmp/testtrj')
-        os.system('rm -rf /tmp/testtrj.d')
+        rmf(self.inpfile)
+        rmd(self.inpdir)
+
 
 if __name__ == '__main__':
     unittest.main()
-
-

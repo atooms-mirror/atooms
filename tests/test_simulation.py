@@ -5,7 +5,7 @@ import logging
 import numpy
 from atooms.simulation import Simulation, Scheduler, write_thermo
 from atooms.backends.dryrun import DryRun
-from atooms.core.utils import setup_logging
+from atooms.core.utils import setup_logging, rmd
 
 setup_logging(level=40)
 
@@ -19,29 +19,29 @@ class Test(unittest.TestCase):
         # Disable writers completely
         s = Simulation(DryRun(), output_path=None, steps=10, enable_speedometer=False)
         s.run()
-        self.assertEqual(len(s._non_targeters),0)
+        self.assertEqual(len(s._non_targeters), 0)
 
     def test_target(self):
         s = Simulation(DryRun(), output_path='/tmp/test_simulation/trajectory', steps=100)
         s.run()
 
     def test_target_restart(self):
-        f='/tmp/test_simulation_restart/trajectory'
-        s=Simulation(DryRun(), output_path=f)
+        f = '/tmp/test_simulation/restart/trajectory'
+        s = Simulation(DryRun(), output_path=f)
         s.add(write_thermo, Scheduler(20))
         s.run(100)
         data = numpy.loadtxt(f + '.thermo', unpack=True)
         self.assertEqual(int(data[0][-1]), 100)
 
-        s=Simulation(DryRun(), output_path=f, restart=True)
+        s = Simulation(DryRun(), output_path=f, restart=True)
         s.add(write_thermo, Scheduler(20))
         s.run(200)
         data = numpy.loadtxt(f + '.thermo', unpack=True)
         self.assertEqual(int(data[0][-1]), 200)
 
     def test_target_restart_fake(self):
-        f = '/tmp/test_simulation_restart/trajectory'
-        s=Simulation(DryRun(), output_path=f)
+        f = '/tmp/test_simulation/restart/trajectory'
+        s = Simulation(DryRun(), output_path=f)
         #s.add(WriterThermo(), Scheduler(20))
         s.add(write_thermo, Scheduler(20))
         s.run(100)
@@ -99,6 +99,10 @@ class Test(unittest.TestCase):
         new_sim.run()
         self.assertEqual(new_sim.current_step, 1)
         self.assertEqual(sim.current_step, 3)
+
+    def tearDown(self):
+        rmd('/tmp/test_simulation')
+
 
 if __name__ == '__main__':
     unittest.main()

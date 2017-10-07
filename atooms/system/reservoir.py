@@ -16,6 +16,7 @@ additional degrees of freedom, e.g. s and pi in a Nose-like
 thermostat.
 """
 
+
 class Thermostat(object):
 
     """Thermostat to control the temperature during a simulation."""
@@ -26,6 +27,7 @@ class Thermostat(object):
         self.mass = mass
         self.collision_period = collision_period
 
+
 class Barostat(object):
 
     """Barostat to control the pressure during a simulation."""
@@ -34,6 +36,7 @@ class Barostat(object):
         self.name = name
         self.pressure = pressure
         self.mass = mass
+
 
 class Reservoir(object):
 

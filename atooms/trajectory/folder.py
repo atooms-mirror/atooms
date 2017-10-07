@@ -1,5 +1,5 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """
 Folder based trajectory.
@@ -26,13 +26,12 @@ from atooms.trajectory.base import TrajectoryBase
 
 # Helper functions
 
-def init_folder(filename, file_pattern='*', step_pattern='(\d*)'):
+def init_folder(filename, file_pattern='*', step_pattern=r'(\d*)'):
     """
     Initial setup in read mode.
 
     Filename can be a folder, a compressed tar file, a simple file.
     """
-    path = filename.rstrip('/')
     if os.path.isdir(filename):
         # Configurations are stored in a folder
         dirname = filename
@@ -85,7 +84,7 @@ class TrajectoryFolder(TrajectoryBase):
 
     """Folder based trajectory."""
 
-    def __init__(self, filename, mode='r', file_pattern='*', step_pattern='(\d*)'):
+    def __init__(self, filename, mode='r', file_pattern='*', step_pattern=r'(\d*)'):
         TrajectoryBase.__init__(self, filename.rstrip('/'), mode)
         if mode == 'r':
             output = init_folder(filename, file_pattern, step_pattern)
@@ -104,7 +103,7 @@ class Foldered(TrajectoryFolder):
 
     """Transform a file-based trajectory into folder-based one. Read-only."""
 
-    def __init__(self, filename, mode='r', cls=None, file_pattern='*', step_pattern='(\d*)'):
+    def __init__(self, filename, mode='r', cls=None, file_pattern='*', step_pattern=r'(\d*)'):
         if mode != 'r':
             raise ValueError('Not ready for write mode')
         TrajectoryFolder.__init__(self, filename, mode)

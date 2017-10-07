@@ -1,5 +1,5 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """
 Trajectory callbacks and class decorators.
@@ -16,6 +16,7 @@ import numpy
 __all__ = ['center', 'change_species', 'sort', 'filter_species',
            'set_density', 'set_temperature', 'fix_cm', 'fold',
            'Sliced', 'Unfolded']
+
 
 # Callbacks
 
@@ -43,7 +44,7 @@ def change_species(system, layout):
     If the current layout already matches the requested one, the
     system is returned unchanged.
     """
-    if not layout in ['A', 'C', 'F']:
+    if layout not in ['A', 'C', 'F']:
         raise ValueError('species layout must be A, C, or F (not %s)' % layout)
 
     # Detect species layout (A=alphabetic, C=C style, F=fortran style)

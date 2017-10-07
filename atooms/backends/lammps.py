@@ -1,5 +1,5 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """
 Minimal simulation backend for LAMMPS (http://lammps.sandia.gov).
@@ -13,7 +13,7 @@ from atooms.trajectory import TrajectoryLAMMPS
 
 try:
     _ = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT)
-    _version = _.split('\n')[0]
+    _version = _.split('\n')[0][8:-1]
 except subprocess.CalledProcessError:
     raise ImportError('lammps not installed')
 
@@ -52,6 +52,8 @@ class LAMMPS(object):
 
     """LAMMPS simulation backend."""
 
+    version = _version
+
     def __init__(self, fileinp, commands):
         """
         The input trajectory file `fileinp` can be any trajectory format
@@ -68,7 +70,7 @@ class LAMMPS(object):
         self.trajectory = TrajectoryLAMMPS
 
     def __str__(self):
-        return _version
+        return 'LAMMPS'
 
     @property
     def rmsd(self):

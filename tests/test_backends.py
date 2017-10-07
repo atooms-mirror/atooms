@@ -17,6 +17,11 @@ if not SKIP:
     from atooms.backends.rumd import System, Trajectory
     from atooms.backends.rumd import RUMD as Backend
 
+from atooms.core.utils import setup_logging
+
+
+setup_logging(level=40)
+
 xyz = """\
      3
 ioformat=1 dt=0.005000000 boxLengths=6.34960421,6.34960421,6.34960421 numTypes=1 Nose-Hoover-Ps=-0.027281716 Barostat-Pv=0.000000000 mass=1.0000000 columns=type,x,y,z,vx,vy,vz
@@ -43,7 +48,8 @@ ioformat=2 timeStepIndex=1234 numTypes=4 integrator=IntegratorNVT,0.00400000019,
 0 -0.468039989 -0.332848012 1.445088983 0 0 0 -0.344832987 -0.324809015 -0.497487992 0.0 0.0 0.0 0.0 0.0
 """
 
-# TODO: make test_backend a package
+# TODO: introduce generic tests for backends
+
 
 class TestBackendRUMD(unittest.TestCase):
 
@@ -51,8 +57,8 @@ class TestBackendRUMD(unittest.TestCase):
         if SKIP:
             self.skipTest('no rumd')
 
-        self.dout = '/tmp/test_adapter_rumd_out'
-        self.finp = '/tmp/test_adapter_rumd_in.xyz'
+        self.dout = '/tmp/test_backends_rumd_out'
+        self.finp = '/tmp/test_backends_rumd_in.xyz'
         with open(self.finp, 'w') as fh:
             fh.write(xyz)
 
@@ -60,23 +66,25 @@ class TestBackendRUMD(unittest.TestCase):
         self.sim = self.backend.rumd_simulation
         self.backend.rumd_simulation.sample.SetOutputDirectory(self.dout)
         self.backend.rumd_simulation.suppressAllOutput = True
-        p = rumd.Pot_LJ_12_6(cutoff_method = rumd.ShiftedPotential)
+        p = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
         p.SetVerbose(False)
         p.SetParams(0, 0, 1., 1., 2.5)
         self.backend.rumd_simulation.SetPotential(p)
         itg = rumd.IntegratorNVT(targetTemperature=2.0, timeStep=0.002)
         self.backend.rumd_simulation.SetIntegrator(itg)
 
-        self.finp2 = '/tmp/test_adapter_rumd_in2.xyz'
+        self.finp2 = '/tmp/test_backends_rumd_in2.xyz'
         with open(self.finp2, 'w') as fh:
             fh.write(xyz_2)
         self.sim2 = rumdSimulation(self.finp2, verbose=False)
 
-        self.finp_io2 = '/tmp/test_adapter_rumd_io2.xyz'
+        self.finp_io2 = '/tmp/test_backends_rumd_io2.xyz'
         with open(self.finp_io2, 'w') as fh:
             fh.write(xyz_io2)
 
-        self.finp_io2_base = '/tmp/0000001.xyz'
+        from atooms.core.utils import mkdir
+        mkdir('/tmp/test_backends')
+        self.finp_io2_base = '/tmp/test_backends/0000001.xyz'
         with open(self.finp_io2_base, 'w') as fh:
             fh.write(xyz_io2)
 
@@ -85,7 +93,7 @@ class TestBackendRUMD(unittest.TestCase):
         U = system.potential_energy()
         T = system.temperature
         Uref = 36.9236726612
-        Tref = 2*6.0/6
+        Tref = 2 * 6.0 / 6
         # Note places is the number of decimal places, not significant digits, 4 is enough
         self.assertAlmostEqual(U, Uref, 4)
         self.assertAlmostEqual(T, Tref)
@@ -93,7 +101,7 @@ class TestBackendRUMD(unittest.TestCase):
     def test_temperature_mass(self):
         system = System(self.sim2.sample)
         T = system.temperature
-        Tref = 20.0/9 # if we don't have the right masses this will fail
+        Tref = 20.0 / 9  # if we don't have the right masses this will fail
         self.assertAlmostEqual(T, Tref)
 
     def test_particle(self):
@@ -105,7 +113,7 @@ class TestBackendRUMD(unittest.TestCase):
     def test_particle_mass(self):
         system = System(self.sim2.sample)
         p = system.particle
-        for mref, m in zip(numpy.array([1.,1.,1.,2.]), [pi.mass for pi in p]):
+        for mref, m in zip(numpy.array([1., 1., 1., 2.]), [pi.mass for pi in p]):
             self.assertAlmostEqual(m, mref)
 
     def test_trajectory_one_step(self):
@@ -147,21 +155,12 @@ class TestBackendRUMD(unittest.TestCase):
         s.run()
         # TODO: this will fail, change test for existence of chk file
         # self.assertTrue(os.path.exists(s.trajectory.filename + '.chk'))
-        # TODO: this will fail, because changing steps should update scheduler!
-        # s.target_steps = 20
-        # s.restart = True
-        # s.run()
-                
+
     def tearDown(self):
-        import shutil
-        if os.path.exists(self.finp):
-            os.remove(self.finp)
-        if os.path.exists(self.finp2):
-            os.remove(self.finp2)
-        if os.path.exists(self.dout):
-            shutil.rmtree(self.dout)
+        from atooms.core.utils import rmf, rmd
+        rmf('/tmp/test_backends*')
+        rmd('/tmp/test_backends')
+
 
 if __name__ == '__main__':
     unittest.main()
-
-

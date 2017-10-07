@@ -12,6 +12,7 @@ except ImportError:
 
 setup_logging(level=40)
 
+
 class Test(unittest.TestCase):
 
     def setUp(self):
@@ -42,6 +43,7 @@ class Test(unittest.TestCase):
 
     def tearDown(self):
         pass
+
 
 if __name__ == '__main__':
     unittest.main()

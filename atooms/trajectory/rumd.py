@@ -1,5 +1,5 @@
 # This file is part of atooms
-# Copyright 2010-2014, Daniele Coslovich
+# Copyright 2010-2017, Daniele Coslovich
 
 """RUMD trajectory format."""
 
@@ -35,7 +35,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
         if s:
             # Redefine samples and steps to make sure these are the absolute step indexes
             # This is important when trajectories are written in blocks.
-            base, block = s.group(1), s.group(2)
+            _, block = s.group(1), s.group(2)
             iblock = int(block)
             dt = self.steps[-1]
             self.steps = [i+dt*iblock for i in self.steps]
