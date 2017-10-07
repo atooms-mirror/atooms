@@ -14,7 +14,7 @@ class TestXYZ(unittest.TestCase):
     def setUp(self):
         self.dirname = '/tmp/test_folder'
         rmd(self.dirname)
-        mkdir(self.dirname)        
+        mkdir(self.dirname)
         for i in range(10, 13):
             fname = os.path.join(self.dirname, 'step_%d' % i)
             with open(fname, 'w') as fh:
@@ -37,5 +37,3 @@ A 2.9 -2.9 0.0
 
 if __name__ == '__main__':
     unittest.main()
-
-

@@ -5,6 +5,7 @@ import unittest
 
 from atooms import trajectory
 
+
 class Test(unittest.TestCase):
 
     def setUp(self):
@@ -39,7 +40,7 @@ A -2.8 2.8 0.0
             t.write(txyz[0], 0)
 
         with trajectory.TrajectoryHOOMD(fname, 'r') as t:
-            self.assertEqual(t[0].particle[0].position[1], 
+            self.assertEqual(t[0].particle[0].position[1],
                              txyz[0].particle[0].position[1])
 
             self.assertEqual(t[0].cell.side[1], txyz[0].cell.side[1])
@@ -50,7 +51,6 @@ A -2.8 2.8 0.0
         os.remove('/tmp/test_hoomd.tgz')
         os.remove('/tmp/test_hoomd.xyz')
 
+
 if __name__ == '__main__':
     unittest.main()
-
-

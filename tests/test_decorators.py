@@ -8,6 +8,7 @@ import numpy
 
 from atooms.trajectory import TrajectoryXYZ
 
+
 def _equal(system1, system2):
     for p1, p2 in zip(system1.particle, system2.particle):
         if p1.species != p2.species:
@@ -15,11 +16,12 @@ def _equal(system1, system2):
             return False
     return True
 
+
 class TestDecorators(unittest.TestCase):
 
     Trajectory = TrajectoryXYZ
 
-    def setUp(self):        
+    def setUp(self):
         self.finp = '/tmp/test_decorators.xyz'
         with open(self.finp, 'w') as fh:
             fh.write("""\
@@ -46,25 +48,27 @@ A -2.9 2.9 0.0
         from atooms.trajectory.decorators import Unfolded
         with self.Trajectory(self.finp) as th:
             with Unfolded(th) as tu:
-                self.assertEqual(list(tu[2].particle[1].position), [3.1, -3.1, 0.0]) # unfolded
-                self.assertEqual(list(th[2].particle[1].position), [-2.9, 2.9, 0.0]) # original
+                self.assertEqual(list(tu[2].particle[1].position), [3.1, -3.1, 0.0])  # unfolded
+                self.assertEqual(list(th[2].particle[1].position), [-2.9, 2.9, 0.0])  # original
 
     def test_sliced(self):
         from atooms.trajectory.decorators import Sliced
         with Sliced(self.Trajectory(self.finp), slice(0, 2, 1)) as th:
             self.assertEqual(th.steps, [1, 2])
             self.assertEqual(list(th[-1].particle[0].position), [1.1, -1.1, 0.0])
-            self.assertEqual(list(th[-1].particle[1].position), [-2.9,-2.9, 0.0])
+            self.assertEqual(list(th[-1].particle[1].position), [-2.9, -2.9, 0.0])
 
     def test_callback_args(self):
         def cbk_1(system, scale):
             for p in system.particle:
                 p.position *= scale
             return system
+
         def cbk_2(system, offset):
             for p in system.particle:
                 p.position -= offset
             return system
+
         def cbk_3(system, memory):
             """Callback that modifies a mutable."""
             memory.append(1)
@@ -76,7 +80,8 @@ A -2.9 2.9 0.0
             th.register_callback(cbk_2, offset=1.0)
             th.register_callback(cbk_3, memo)
             self.assertEqual(th.steps, [1, 2, 3, 4])
-            self.assertEqual(list(th[-1].particle[0].position), [1.2*2-1.0, -1.2*2-1.0, 0.0*2-1.0])
+            self.assertEqual(list(th[-1].particle[0].position),
+                             [1.2 * 2 - 1.0, -1.2 * 2 - 1.0, 0.0 * 2 - 1.0])
             self.assertEqual(memo, [1])
 
     def test_change_species(self):
@@ -101,8 +106,6 @@ A -2.9 2.9 0.0
     def tearDown(self):
         os.remove(self.finp)
 
-        
+
 if __name__ == '__main__':
     unittest.main()
-
-

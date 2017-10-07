@@ -27,6 +27,7 @@ def _equal(system1, system2, ignore=None):
             return False
     return True
 
+
 def _rename_species(particle, db):
     for p in particle:
         p.species = db[p.species]
@@ -34,12 +35,12 @@ def _rename_species(particle, db):
 
 
 class Test(unittest.TestCase):
-    
+
     def setUp(self):
         import copy
         particle = [Particle(position=[0.0, 0.0, 0.0], species='A', mass=1.0),
                     Particle(position=[1.0, 1.0, 1.0], species='B', mass=2.0),
-                ]
+                    ]
         cell = Cell([2.0, 2.0, 2.0])
         self.system = []
         self.system.append(System(copy.deepcopy(particle), cell))
@@ -88,7 +89,7 @@ class Test(unittest.TestCase):
         for s in self.system:
             s.particle = _rename_species(s.particle, {'A': '0', 'B': '1'})
         self._read_write(trj.TrajectoryRUMD)
-        # TODO: add write_sample() to supertrajectory 
+        # TODO: add write_sample() to supertrajectory
         #self._read_write(trj.SuperTrajectoryRUMD, self.inpdir, ignore=['id', 'name'])
 
     def test_pdb(self):
@@ -113,5 +114,3 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
 
 if __name__ == '__main__':
     unittest.main()
-
-

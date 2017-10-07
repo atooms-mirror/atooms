@@ -22,11 +22,11 @@ class Test(unittest.TestCase):
         self.input_file = os.path.join(os.path.dirname(__file__),
                                        '../data/ka_N256_rho1.185_rumd.xyz.gz')
         self.forcefield_file = os.path.join(os.path.dirname(__file__),
-                                            '../data/ka_rumd.ff')            
+                                            '../data/ka_rumd.ff')
         from atooms.backends.rumd import RUMD
         self.backend = RUMD(self.input_file,
-                                   self.forcefield_file, integrator='nvt',
-                                   temperature=0.80, dt=0.002)
+                            self.forcefield_file, integrator='nvt',
+                            temperature=0.80, dt=0.002)
         self.backend_2 = RUMD(self.input_file,
                               self.forcefield_file, integrator='nvt',
                               temperature=0.80, dt=0.002)
@@ -57,7 +57,7 @@ class Test(unittest.TestCase):
         tmp = open('/tmp/test_rumd_multi/trajectory.thermo', 'r').readlines()
         steps = int(tmp[-1].split()[0])
         self.assertEqual(steps, 3000)
-        self.assertEqual(len(tmp), 61+1)  # one is for comment line
+        self.assertEqual(len(tmp), 61 + 1)  # one is for comment line
 
     def test_multi_writing(self):
         # Test that we cumulate current_step and configurations
@@ -110,6 +110,7 @@ class Test(unittest.TestCase):
 
     def tearDown(self):
         os.system('rm -rf /tmp/test_rumd_*')
+
 
 if __name__ == '__main__':
     unittest.main()

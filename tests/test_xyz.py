@@ -7,11 +7,12 @@ from atooms.core.utils import mkdir
 from atooms.trajectory import Unfolded
 from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD
 
+
 class TestXYZ(unittest.TestCase):
 
     Trajectory = TrajectoryXYZ
 
-    def setUp(self):        
+    def setUp(self):
         mkdir('/tmp/test_xyz')
         self.finp = '/tmp/test_xyz/pbc.xyz'
         with open(self.finp, 'w') as fh:
@@ -143,10 +144,10 @@ B 2.9 -2.9 0.0 2.0
         with self.Trajectory(self.finp + '.out', 'w') as to:
             with self.Trajectory(self.finp) as t:
                 # This is necessary because timestep is not copied automatically
-                # and if the class tries to read it, it won't find 
+                # and if the class tries to read it, it won't find
                 to.timestep = t.timestep
                 to.write(t[0], 0)
-                
+
         with self.Trajectory(self.finp + '.out') as to:
             self.assertEqual(r_ref[0], list(to[0].particle[0].position))
 
@@ -225,7 +226,7 @@ A 1.0 -1.0 0.0 1.0 2.0 3.0
 
     def test_xyz_cell(self):
         """Test that fluctuating cell side is read correctly."""
-        finp = '/tmp/test_xyz/cell.xyz' 
+        finp = '/tmp/test_xyz/cell.xyz'
         with open(finp, 'w') as fh:
             fh.write("""\
 1
@@ -281,7 +282,7 @@ ioformat=1 dt=0.005000000 boxLengths=6.000000000,6.000000000,6.000000000 numType
 0 2.545111895 -0.159052730 -2.589233398 0 0 1 -0.955896854 -2.176721811 0.771060944 14.875996590 -28.476327896 -15.786120415 -5.331668218 22.538120270
 1 -2.089187145 1.736116767 1.907819748 0 0 -1 -0.717318892 -0.734904408 0.904034972 -28.532371521 13.714955330 0.387423307 -7.276362737 11.813765526
 """
-        
+
         with open('/tmp/test_xyz/rumd.xyz', 'w') as fh:
             fh.write(ioformat_1)
             self.input_file = fh.name
@@ -346,7 +347,6 @@ B 2.9 -2.9 0.0
         from atooms.core.utils import rmd
         rmd('/tmp/test_xyz')
 
+
 if __name__ == '__main__':
     unittest.main()
-
-

@@ -45,6 +45,7 @@ ioformat=2 timeStepIndex=1234 numTypes=4 integrator=IntegratorNVT,0.00400000019,
 
 # TODO: introduce generic tests for backends
 
+
 class TestBackendRUMD(unittest.TestCase):
 
     def setUp(self):
@@ -60,7 +61,7 @@ class TestBackendRUMD(unittest.TestCase):
         self.sim = self.backend.rumd_simulation
         self.backend.rumd_simulation.sample.SetOutputDirectory(self.dout)
         self.backend.rumd_simulation.suppressAllOutput = True
-        p = rumd.Pot_LJ_12_6(cutoff_method = rumd.ShiftedPotential)
+        p = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
         p.SetVerbose(False)
         p.SetParams(0, 0, 1., 1., 2.5)
         self.backend.rumd_simulation.SetPotential(p)
@@ -85,7 +86,7 @@ class TestBackendRUMD(unittest.TestCase):
         U = system.potential_energy()
         T = system.temperature
         Uref = 36.9236726612
-        Tref = 2*6.0/6
+        Tref = 2 * 6.0 / 6
         # Note places is the number of decimal places, not significant digits, 4 is enough
         self.assertAlmostEqual(U, Uref, 4)
         self.assertAlmostEqual(T, Tref)
@@ -93,7 +94,7 @@ class TestBackendRUMD(unittest.TestCase):
     def test_temperature_mass(self):
         system = System(self.sim2.sample)
         T = system.temperature
-        Tref = 20.0/9 # if we don't have the right masses this will fail
+        Tref = 20.0 / 9  # if we don't have the right masses this will fail
         self.assertAlmostEqual(T, Tref)
 
     def test_particle(self):
@@ -105,7 +106,7 @@ class TestBackendRUMD(unittest.TestCase):
     def test_particle_mass(self):
         system = System(self.sim2.sample)
         p = system.particle
-        for mref, m in zip(numpy.array([1.,1.,1.,2.]), [pi.mass for pi in p]):
+        for mref, m in zip(numpy.array([1., 1., 1., 2.]), [pi.mass for pi in p]):
             self.assertAlmostEqual(m, mref)
 
     def test_trajectory_one_step(self):
@@ -147,7 +148,7 @@ class TestBackendRUMD(unittest.TestCase):
         s.run()
         # TODO: this will fail, change test for existence of chk file
         # self.assertTrue(os.path.exists(s.trajectory.filename + '.chk'))
-                
+
     def tearDown(self):
         import shutil
         if os.path.exists(self.finp):
@@ -157,7 +158,6 @@ class TestBackendRUMD(unittest.TestCase):
         if os.path.exists(self.dout):
             shutil.rmtree(self.dout)
 
+
 if __name__ == '__main__':
     unittest.main()
-
-

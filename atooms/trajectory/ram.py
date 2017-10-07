@@ -24,7 +24,7 @@ class TrajectoryRamFull(TrajectoryBase):
 class TrajectoryRam(TrajectoryBase):
 
     """
-    Store trajectory in RAM. 
+    Store trajectory in RAM.
 
     Somewhat lighter in terms of memory than TrajectoryRamFull. We do
     not store velocities.
@@ -72,7 +72,7 @@ class TrajectoryRam(TrajectoryBase):
         cell = self._cell[frame]
         return System(particles, cell)
 
-    def __setitem__(self, i, y):
+    def __setitem__(self, i, value):
         try:
             step = self.steps[i]
         except IndexError:
@@ -80,4 +80,4 @@ class TrajectoryRam(TrajectoryBase):
                 step = self.steps[-1]+1
             else:
                 step = 0
-        self.write(y, step)
+        self.write(value, step)

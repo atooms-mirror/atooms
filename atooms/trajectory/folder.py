@@ -26,7 +26,7 @@ from atooms.trajectory.base import TrajectoryBase
 
 # Helper functions
 
-def init_folder(filename, file_pattern='*', step_pattern='(\d*)'):
+def init_folder(filename, file_pattern='*', step_pattern=r'(\d*)'):
     """
     Initial setup in read mode.
 
@@ -84,7 +84,7 @@ class TrajectoryFolder(TrajectoryBase):
 
     """Folder based trajectory."""
 
-    def __init__(self, filename, mode='r', file_pattern='*', step_pattern='(\d*)'):
+    def __init__(self, filename, mode='r', file_pattern='*', step_pattern=r'(\d*)'):
         TrajectoryBase.__init__(self, filename.rstrip('/'), mode)
         if mode == 'r':
             output = init_folder(filename, file_pattern, step_pattern)
@@ -103,7 +103,7 @@ class Foldered(TrajectoryFolder):
 
     """Transform a file-based trajectory into folder-based one. Read-only."""
 
-    def __init__(self, filename, mode='r', cls=None, file_pattern='*', step_pattern='(\d*)'):
+    def __init__(self, filename, mode='r', cls=None, file_pattern='*', step_pattern=r'(\d*)'):
         if mode != 'r':
             raise ValueError('Not ready for write mode')
         TrajectoryFolder.__init__(self, filename, mode)
