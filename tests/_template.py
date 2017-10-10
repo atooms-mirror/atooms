@@ -11,6 +11,6 @@ class Test(unittest.TestCase):
         self.assertLess()
 
 if __name__ == '__main__':
-    unittest.main(verbosity=0)
+    unittest.main()
 
 
