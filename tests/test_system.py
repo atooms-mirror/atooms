@@ -73,8 +73,8 @@ class Test(unittest.TestCase):
         self.assertEqual(ipart, [(0, 1)])
 
     def test_dump(self):
-        self.assertAlmostEqual(self.ref.dump('spe')[-1],
-                               self.ref.dump('particle.species')[-1])
+        self.assertEqual(self.ref.dump('spe')[-1],
+                         self.ref.dump('particle.species')[-1])
         self.assertAlmostEqual(self.ref.dump('pos')[-1][-1],
                                self.ref.dump('particle.position')[-1][-1])
         self.assertAlmostEqual(self.ref.dump('vel')[-1][-1],
