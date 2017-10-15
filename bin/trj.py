@@ -157,7 +157,7 @@ if __name__ == '__main__':
     parser_convert.add_argument(      '--fields', dest='fields', help='attributes fields')
     parser_convert.add_argument('-I', '--fields-include', dest='fields_include', type=str, default='', help='include patterns in fields')
     parser_convert.add_argument('-E', '--fields-exclude', dest='fields_exclude', type=str, default='', help='exclude patterns from fields')
-    parser_convert.add_argument('-i', '--fmt-inp', dest='inp', help='input format ')
+    parser_convert.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
     parser_convert.add_argument('-o', '--fmt-out', dest='out', help='output format for conversion')
     parser_convert.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
     parser_convert.add_argument('-F', '--ff', dest='ff', type=str, default='', help='force field file')
@@ -176,12 +176,14 @@ if __name__ == '__main__':
 
     parser_info = subparsers.add_parser('info')
     parser_info.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
+    parser_info.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
     parser_info.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
     parser_info.set_defaults(func=main_info)
 
-    parser_info = subparsers.add_parser('paste')
-    parser_info.add_argument(nargs=2, dest='file_inp', help='input files')
-    parser_info.set_defaults(func=main_paste)
+    parser_paste = subparsers.add_parser('paste')
+    parser_paste.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
+    parser_paste.add_argument(nargs=2, dest='file_inp', help='input files')
+    parser_paste.set_defaults(func=main_paste)
 
     # parse argument lists
     args = parser.parse_args()
