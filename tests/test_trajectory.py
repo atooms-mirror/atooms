@@ -82,7 +82,12 @@ class Test(unittest.TestCase):
         self._read_write(trj.ram.TrajectoryRamFull)
 
     def test_hdf5(self):
-        self._read_write(trj.TrajectoryHDF5)
+        try:
+            import h5py
+        except ImportError:
+            self.skipTest('missing hdf5')
+        else:
+            self._read_write(trj.TrajectoryHDF5)
 
     def test_rumd(self):
         # RUMD uses integer ids for checmical species. They should be integers.
