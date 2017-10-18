@@ -5,7 +5,7 @@
 
 import numpy
 import random
-import copy
+from copy import deepcopy
 from atooms.core import ndim as _ndim
 
 
@@ -37,7 +37,6 @@ class Particle(object):
         rij = self.position - particle.position
         _periodic_vector(rij, cell.side)
         if copy:
-            from copy import deepcopy
             image = deepcopy(self)
             image.position = particle.position + rij
             return image
@@ -174,7 +173,7 @@ def rotate(particle, cell):
                             [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
                             [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
-    p = copy.deepcopy(particle)
+    p = deepcopy(particle)
     dist = [sum(p[0].distance(pi, cell)**2) for pi in p]
     dmax = max(dist)
     imax = dist.index(dmax)
