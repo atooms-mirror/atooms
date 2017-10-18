@@ -101,7 +101,7 @@ def rmf(files):
             except OSError:
                 # File does not exists or it is a folder
                 pass
-    except TypeError:
+    except (TypeError, AttributeError):
         # This is a list
         for pathname in files:
             try:
