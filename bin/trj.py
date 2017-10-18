@@ -135,8 +135,12 @@ def main_paste(args):
 
     f1, attr1 = args.file_inp[0].split(':')
     f2, attr2 = args.file_inp[1].split(':')
-    t1 = trj.Trajectory(f1)
-    t2 = trj.Trajectory(f2)
+    if args.inp is None:
+        fmt1, fmt2 = None, None
+    else:
+        fmt1, fmt2 = args.inp.split(',')
+    t1 = trj.Trajectory(f1, fmt=fmt1)
+    t2 = trj.Trajectory(f2, fmt=fmt2)
 
     for step, s1, s2 in trj.utils.paste(t1, t2):
         try:
