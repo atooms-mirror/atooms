@@ -201,3 +201,77 @@ def overlaps(particle, cell):
             if d < (pi.radius + pj.radius):
                 x.append((i, j))
     return len(x) > 0, x
+
+
+
+def gyration_radius(particles, cell=None, weight=None, center=None,
+                    method="N1"):
+    """
+    Gyration radius of a list of `particles` in a `cell` with an
+    optional `weight`.
+
+    The optional `center` variable is the index of the central
+    particle for pbc unfolding. If `weight` is given but `center` is
+    not, the latter will be the index of the first largest element of
+    `weight`.
+
+    Possible values of `methods` are `N1` (default), `N2` and `min`.
+    """
+    if method not in ['N1', 'N2', 'min']:
+        raise ValueError('unknown method %s' % method)
+
+    # Order N^2 calculation
+    if method == 'N2':
+        rg = 0.0
+        for pi in particles:
+            for pj in particles:
+                if pi is pj:
+                    continue
+                dr = pi.distance(pj, cell)
+                rg += numpy.dot(dr, dr)
+        return (rg / (2*len(particles)**2))**0.5
+
+    # Order N^1 calculation
+    elif method == 'N1':
+        # Assign weights
+        if weight is None:
+            weight = numpy.ones(len(particles))
+            if center is None:
+                center = 0
+        else:
+            if len(weight) != len(particles):
+                raise ValueError('n. weights differs from n. particles')
+            weight = numpy.asarray(weight)
+            if center is None:
+                center = weight.argmax()
+
+        # Unfold cluster across pbc
+        p_central = particles[center]
+        if cell is None:
+            cluster = particles
+        else:
+            cluster = []
+            for p in particles:
+                cluster.append(p.nearest_image(p_central, cell, copy=True))
+
+        # Compute gyration radius
+        rcm = cm_position(cluster)
+        rg = 0.0
+        for p in cluster:
+            dr = p.position - rcm
+            rg += numpy.dot(dr, dr)
+        rg /= len(cluster)
+        return rg**0.5
+
+    # Minimize over possible centers
+    elif method == 'min':
+        rg = None
+        for center in range(len(particles)):
+            rg_new = gyration_radius(particles, cell=cell,
+                                     weight=weight, center=center,
+                                     method="N1")
+            if rg is None:
+                rg = rg_new
+            else:
+                rg = min(rg_new, rg)
+        return rg
