@@ -66,6 +66,11 @@ class Particle(object):
                 r = _periodic_vector_unfolded(r, cell.sidebox)
         return r
 
+    def __repr__(self):
+        return 'Particle(species={0.species}, mass={0.mass}, ' \
+            'position={0.position}, velocity={0.velocity}, ' \
+            'radius={0.radius})'.format(self)
+
     def fold(self, cell):
         """Fold self into central cell."""
         self.position = _periodic_vector_unfolded(self.position, cell.side)
