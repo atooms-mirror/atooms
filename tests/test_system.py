@@ -93,6 +93,40 @@ class Test(unittest.TestCase):
         self.assertEqual(composition(system.particle)['B'], 10)
         self.assertEqual(composition(system.particle)['C'], 20)
 
+    def test_gyration(self):
+        from atooms.system.particle import gyration_radius
+        system = copy.copy(self.ref)
+
+        # Ignore cell
+        rg1 = gyration_radius(system.particle, method='N1')
+        rg2 = gyration_radius(system.particle, method='N2')
+        self.assertAlmostEqual(rg1, rg2)
+
+        # With PBC all estimates are different but bounds must be ok
+        rg1 = gyration_radius(system.particle, system.cell, method='min')
+        rg2 = gyration_radius(system.particle, system.cell, method='N1')
+        rg3 = gyration_radius(system.particle, system.cell, method='N2')
+        self.assertLessEqual(rg1, rg2)
+        self.assertLessEqual(rg3, rg2)
+
+        # Equilateral triangle
+        system.particle = [Particle(), Particle(), Particle()]
+        system.particle[0].position = numpy.array([0.0, 0.0, 0.0])
+        system.particle[1].position = numpy.array([1.0, 0.0, 0.0])
+        system.particle[2].position = numpy.array([0.5, 0.5*3**0.5, 0])
+        # Put the triangle across the cell
+        system.particle[0].position -= 1.01*system.cell.side/2
+        system.particle[1].position -= 1.01*system.cell.side/2
+        system.particle[2].position -= 1.01*system.cell.side/2
+        system.particle[0].fold(system.cell)
+        system.particle[1].fold(system.cell)
+        system.particle[2].fold(system.cell)
+        rg1 = gyration_radius(system.particle, system.cell, method='min')
+        rg2 = gyration_radius(system.particle, system.cell, method='N1')
+        rg3 = gyration_radius(system.particle, system.cell, method='N2')
+        self.assertAlmostEqual(rg1, 0.57735026919)
+        self.assertAlmostEqual(rg2, 0.57735026919)
+        self.assertAlmostEqual(rg3, 0.57735026919)
 
 if __name__ == '__main__':
     unittest.main()
