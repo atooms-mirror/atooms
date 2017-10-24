@@ -96,11 +96,11 @@ class TrajectoryLAMMPS(TrajectoryBase):
         def parse_z(data, particle):
             particle.position[2] = float(data)
         def parse_xs(data, particle):
-            particle.position[0] = float(data) * cell.side[0]
+            particle.position[0] = (float(data)-0.5) * cell.side[0]
         def parse_ys(data, particle):
-            particle.position[1] = float(data) * cell.side[1]
+            particle.position[1] = (float(data)-0.5) * cell.side[1]
         def parse_zs(data, particle):
-            particle.position[2] = float(data) * cell.side[2]
+            particle.position[2] = (float(data)-0.5) * cell.side[2]
         def parse_vx(data, particle):
             particle.velocity[0] = float(data)
         def parse_vy(data, particle):
