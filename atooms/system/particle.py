@@ -11,15 +11,20 @@ from atooms.core import ndim as _ndim
 
 class Particle(object):
 
-    def __init__(self, species='A', mass=1.0,
-                 position=numpy.zeros(_ndim),
-                 velocity=numpy.zeros(_ndim), radius=0.5):
+    def __init__(self, species='A', mass=1.0, position=None,
+                 velocity=None, radius=0.5):
         self.species = species
         """The chemical species of the particle."""
         self.mass = mass
         self.radius = radius
-        self.position = numpy.asarray(position)
-        self.velocity = numpy.asarray(velocity)
+        if position is None:
+            self.position = numpy.zeros(_ndim)
+        else:
+            self.position = numpy.asarray(position)
+        if velocity is None:
+            self.velocity = numpy.zeros(_ndim)
+        else:
+            self.velocity = numpy.asarray(velocity)
 
     @property
     def diameter(self):
