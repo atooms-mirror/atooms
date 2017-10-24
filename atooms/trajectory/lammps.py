@@ -12,74 +12,6 @@ from atooms.system.cell import Cell
 from atooms.system import System
 
 
-def _read_item(t, item):
-    """Parse generic `item`."""
-    data = t.readline()
-    if item not in data:
-        raise ValueError('expecting "%s" got "%s" on %s' % (item, data, t.name))
-    return data
-
-def _lammps_parse_step(finp):
-    """Read step from `finp`."""
-    data = _read_item(finp, 'ITEM: TIMESTEP')
-    data = finp.readline()
-    return int(float(data))
-
-def _lammps_parse_system(finp):
-    """Read system from `finp`."""
-    # Read number of particles
-    data = _read_item(finp, 'ITEM: NUMBER OF ATOMS')
-    data = finp.readline()
-    npart = int(data)
-
-    # Read box
-    data = _read_item(finp, "ITEM: BOX BOUNDS")
-    ndim = len(data.split()[3:])  # line is ITEM: BOX BONDS pp pp pp
-    if len(data.split()) == 3:
-        ndim = 3
-    L, offset = [], []
-    for i in range(ndim):
-        data = [float(x) for x in finp.readline().split()]
-        L.append(data[1] - data[0])
-        offset.append(data[0])
-    c = Cell(numpy.array(L))
-
-    # Read positions and velocities
-    data = _read_item(finp, "ITEM: ATOMS").split()[2:]
-    # Determine how many variables are there
-    n = len(data)
-    ind = data.index('type')
-    # Index of x coordinate
-    try:
-        ix = data.index('x')
-    except ValueError:
-        ix = data.index('xu')
-    # Index of vx coordinate, if there at all
-    try:
-        ivx = data.index('vx')
-    except ValueError:
-        ivx = None
-
-    # Rather well optimized now. Ignore velocities, do not fold particles.
-    from itertools import islice
-    data = ''.join(list(islice(finp, npart)))
-    d = numpy.fromstring(data, sep=' ').reshape((npart, n))
-    if ivx is not None:
-        p = [Particle(species=d[i, ind], mass=1.0,
-                      position=d[i, ix: ix+3], velocity=d[i, ivx: ivx+3])
-             for i in xrange(npart)]
-
-    else:
-        p = [Particle(species=d[i, ind], mass=1.0,
-                      position=d[i, ix: ix+3]) for i in xrange(npart)]
-
-    for pi in p:
-        pi.fold(c)
-
-    p.sort(key=lambda a: a.species)
-    return System(particle=p, cell=c)
-
-
 class TrajectoryLAMMPS(TrajectoryBase):
 
     """
@@ -90,14 +22,117 @@ class TrajectoryLAMMPS(TrajectoryBase):
 
     def __init__(self, filename, mode='r'):
         TrajectoryBase.__init__(self, filename, mode)
-        self.steps = [0]
+        self._fh = open(self.filename, self.mode)
+        if mode == 'r':
+            self._setup_index()
+            self._setup_steps()
+
+    def _setup_index(self):
+        """Sample indexing via tell / seek"""
+        from collections import defaultdict
+        self._fh.seek(0)
+        self._index_db = defaultdict(list)
+        while True:
+            line = self._fh.tell()
+            data = self._fh.readline()
+            # We break if file is over or we found an empty line
+            if not data:
+                break
+            if data.startswith('ITEM:'):                
+                for block in ['TIMESTEP', 'NUMBER OF ATOMS', 'BOX BOUNDS', 'ATOMS']:
+                    if data[6:].startswith(block):
+                        # entry contains whatever is found after block
+                        entry = data[7+len(block):]
+                        self._index_db[block].append((line, entry))
+                        break
+        self._fh.seek(0)
+
+    def _setup_steps(self):
+        self.steps = []
+        for idx, _ in self._index_db['TIMESTEP']:
+            self._fh.seek(idx)
+            self._fh.readline()
+            step = int(self._fh.readline())
+            self.steps.append(step)
+        self._fh.seek(0)
 
     def read_sample(self, frame):
         # TODO: respect input frame
-        with open(self.filename, 'r') as fh:
-            _ = _lammps_parse_step(fh)
-            s = _lammps_parse_system(fh)
-        return s
+        idx, _ = self._index_db['TIMESTEP'][frame]
+        self._fh.seek(idx)
+        self._fh.readline()
+        step = int(self._fh.readline())
+
+        # Read number of particles
+        idx, _ = self._index_db['NUMBER OF ATOMS'][frame]
+        self._fh.seek(idx)
+        self._fh.readline()
+        data = self._fh.readline()
+        npart = int(data)
+
+        # Read box
+        idx, data = self._index_db['BOX BOUNDS'][frame]
+        self._fh.seek(idx)
+        self._fh.readline()
+        ndim = len(data.split())  # line is ITEM: BOX BONDS pp pp pp
+        L, offset = [], []
+        for i in range(ndim):
+            data = [float(x) for x in self._fh.readline().split()]
+            L.append(data[1] - data[0])
+        cell = Cell(numpy.array(L))
+
+        # Read atoms data
+        idx, data = self._index_db['ATOMS'][frame]
+        # Determine how many fields are there
+        fields = data.split()
+        nfields = len(data)
+
+        def parse_type(data, particle):
+            particle.species = data
+        def parse_x(data, particle):
+            particle.position[0] = float(data)
+        def parse_y(data, particle):
+            particle.position[1] = float(data)
+        def parse_z(data, particle):
+            particle.position[2] = float(data)
+        def parse_xs(data, particle):
+            particle.position[0] = float(data) * cell.side[0]
+        def parse_ys(data, particle):
+            particle.position[1] = float(data) * cell.side[1]
+        def parse_zs(data, particle):
+            particle.position[2] = float(data) * cell.side[2]
+        def parse_vx(data, particle):
+            particle.velocity[0] = float(data)
+        def parse_vy(data, particle):
+            particle.velocity[1] = float(data)
+        def parse_vz(data, particle):
+            particle.velocity[2] = float(data)
+
+        _cbk = {'x': parse_x, 'y': parse_y, 'z': parse_z,
+                'vx': parse_vx, 'vy': parse_vy, 'vz': parse_vz,
+                'xu': parse_x, 'yu': parse_y, 'zu': parse_z,
+                'xs': parse_xs, 'ys': parse_ys, 'zs': parse_zs,
+                'xsu': parse_xs, 'ysu': parse_ys, 'zsu': parse_zs,
+                'type': parse_type}
+
+        _ = self._fh.readline()
+        particles = [Particle() for i in range(npart)]
+        for i in range(npart):
+            data = self._fh.readline().split()
+            # Accept unsorted particles by parsing their id
+            if 'id' in fields:
+                idx = int(data[0]) - 1
+            else:
+                idx = i
+
+            for j, field in enumerate(fields):
+                if field in _cbk:
+                    _cbk[field](data[j], particles[idx])
+                else:
+                    # We should store these fields in particle anyway
+                    pass
+
+        return System(particle=particles, cell=cell)
 
     def write_init(self, system):
         f = open(self.filename + '.inp', 'w')
@@ -150,16 +185,14 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 
     suffix = '.tgz'
 
-    def _get_step(self, fileinp):
-        with open(fileinp) as fh:
-            step = _lammps_parse_step(fh)
-        return step
+    def __init__(self, filename, mode='r', file_pattern='*', step_pattern=r'[a-zA-Z\.]*(\d*)'):
+        TrajectoryFolder.__init__(self, filename, mode=mode,
+                                  file_pattern=file_pattern,
+                                  step_pattern=step_pattern)
 
     def read_sample(self, frame):
-        with open(self.files[frame], 'r') as fh:
-            _ = _lammps_parse_step(fh)
-            s = _lammps_parse_system(fh)
-        return s
+        with TrajectoryLAMMPS(self.files[frame], 'r') as th:
+            return th[0]
 
     def write_init(self, system):
         f = open(self.filename + '.inp', 'w')
