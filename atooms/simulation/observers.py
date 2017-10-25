@@ -109,11 +109,11 @@ class Scheduler(object):
         """
         if self.interval is not None and self.interval > 0:
             # Regular interval
-            return (sim.current_step / self.interval + 1) * self.interval
+            return (sim.current_step // self.interval + 1) * self.interval
         elif self.calls is not None and self.interval > 0:
             # Fixed number of calls
-            interval = int(sim.steps / self.calls)
-            return (sim.current_step / interval + 1) * interval
+            interval = sim.steps // self.calls
+            return (sim.current_step // interval + 1) * interval
         elif self.steps is not None:
             # List of selected steps
             inext = self.steps[0]

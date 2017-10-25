@@ -213,7 +213,7 @@ def check_block_size(steps, block_size, prune=False):
 
     # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
-    nbl = len(steps_local) / block_size
+    nbl = len(steps_local) // block_size
     for i in range(nbl):
         i0 = steps_local[i*block_size]
         current = steps_local[i*block_size: (i+1)*block_size]
