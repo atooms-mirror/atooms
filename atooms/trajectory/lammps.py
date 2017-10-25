@@ -27,13 +27,13 @@ def _parse_z(data, particle, cell):
     particle.position[2] = float(data)
 
 def _parse_xs(data, particle, cell):
-    particle.position[0] = (float(data)-0.5) * cell.side[0]
+    particle.position[0] = (float(data) - 0.5) * cell.side[0] * 0.5
 
 def _parse_ys(data, particle, cell):
-    particle.position[1] = (float(data)-0.5) * cell.side[1]
+    particle.position[1] = (float(data) - 0.5) * cell.side[1] * 0.5
 
 def _parse_zs(data, particle, cell):
-    particle.position[2] = (float(data)-0.5) * cell.side[2]
+    particle.position[2] = (float(data) - 0.5) * cell.side[2] * 0.5
 
 def _parse_vx(data, particle, cell):
     particle.velocity[0] = float(data)

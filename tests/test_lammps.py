@@ -79,11 +79,15 @@ ITEM: ATOMS id type xs ys zs
 2 1 0.50 0.51 0.52
 """)
         from atooms.trajectory import TrajectoryLAMMPS
+        def scale(pos, side):
+            return [(x - 0.5) * L/2 for x, L in zip(pos, side)]
         with TrajectoryLAMMPS('/tmp/test_lammps.atom') as th:
-            th[0].cell.side
-            th[0].particle[0].position
-            th[1].cell.side
-            th[1].particle[0].position
+            self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
+            self.assertEqual(list(th[0].particle[0].position), scale([0.20, 0.21, 0.22], [6.0, 6.0, 6.0]))
+            self.assertEqual(list(th[0].particle[1].position), scale([0.10, 0.11, 0.12], [6.0, 6.0, 6.0]))
+            self.assertEqual(list(th[1].cell.side), [8.0, 8.0, 8.0])
+            self.assertEqual(list(th[1].particle[0].position), scale([0.00, 0.01, 0.02], [8.0, 8.0, 8.0]))
+            self.assertEqual(list(th[1].particle[1].position), scale([0.50, 0.51, 0.52], [8.0, 8.0, 8.0]))
 
     def tearDown(self):
         pass
