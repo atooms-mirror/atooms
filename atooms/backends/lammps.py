@@ -14,7 +14,7 @@ from atooms.trajectory import TrajectoryLAMMPS
 
 try:
     _ = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT)
-    _version = _.split('\n')[0][8:-1]
+    _version = _.decode().split('\n')[0][8:-1]
 except subprocess.CalledProcessError:
     raise ImportError('lammps not installed')
 
@@ -24,7 +24,7 @@ def _run_lammps_command(cmd):
     p = subprocess.Popen(['lammps'], shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE)
-    stdout = p.communicate(input=cmd)[0]
+    stdout = p.communicate(input=cmd.encode('utf8'))[0]
     code = p.returncode
     if code != 0:
         raise RuntimeError(stdout)
