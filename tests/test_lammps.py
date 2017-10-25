@@ -51,6 +51,40 @@ class Test(unittest.TestCase):
         bck.system.interaction.compute("energy", bck.system.particle, bck.system.cell)
         self.assertEqual(bck.system.interaction.energy, -4.2446836)  # crosschecked
 
+    def test_trajectory(self):
+        import sys
+        with open('/tmp/test_lammps.atom', 'w') as fh:
+            fh.write("""\
+ITEM: TIMESTEP
+0
+ITEM: NUMBER OF ATOMS
+2
+ITEM: BOX BOUNDS pp pp pp
+-3 3
+-3 3
+-3 3
+ITEM: ATOMS id type xs ys zs
+2 1 0.10 0.11 0.12
+1 1 0.20 0.21 0.22
+ITEM: TIMESTEP
+1
+ITEM: NUMBER OF ATOMS
+2
+ITEM: BOX BOUNDS pp pp pp
+-4 4
+-4 4
+-4 4
+ITEM: ATOMS id type xs ys zs
+1 1 0.00 0.01 0.02
+2 1 0.50 0.51 0.52
+""")
+        from atooms.trajectory import TrajectoryLAMMPS
+        with TrajectoryLAMMPS('/tmp/test_lammps.atom') as th:
+            th[0].cell.side
+            th[0].particle[0].position
+            th[1].cell.side
+            th[1].particle[0].position
+
     def tearDown(self):
         pass
 

@@ -12,6 +12,39 @@ from atooms.system.cell import Cell
 from atooms.system import System
 
 
+# Formatting callbacks
+
+def _parse_type(data, particle, cell):
+    particle.species = data
+
+def _parse_x(data, particle, cell):
+    particle.position[0] = float(data)
+
+def _parse_y(data, particle, cell):
+    particle.position[1] = float(data)
+
+def _parse_z(data, particle, cell):
+    particle.position[2] = float(data)
+
+def _parse_xs(data, particle, cell):
+    particle.position[0] = (float(data)-0.5) * cell.side[0]
+
+def _parse_ys(data, particle, cell):
+    particle.position[1] = (float(data)-0.5) * cell.side[1]
+
+def _parse_zs(data, particle, cell):
+    particle.position[2] = (float(data)-0.5) * cell.side[2]
+
+def _parse_vx(data, particle, cell):
+    particle.velocity[0] = float(data)
+
+def _parse_vy(data, particle, cell):
+    particle.velocity[1] = float(data)
+
+def _parse_vz(data, particle, cell):
+    particle.velocity[2] = float(data)
+
+
 class TrajectoryLAMMPS(TrajectoryBase):
 
     """
@@ -19,6 +52,14 @@ class TrajectoryLAMMPS(TrajectoryBase):
 
     In write mode, an additional .inp file is used as startup file.
     """
+
+    suffix = 'atom'
+    _cbk = {'x': _parse_x, 'y': _parse_y, 'z': _parse_z,
+            'xu': _parse_x, 'yu': _parse_y, 'zu': _parse_z,
+            'xs': _parse_xs, 'ys': _parse_ys, 'zs': _parse_zs,
+            'xsu': _parse_xs, 'ysu': _parse_ys, 'zsu': _parse_zs,
+            'vx': _parse_vx, 'vy': _parse_vy, 'vz': _parse_vz,
+            'type': _parse_type}
 
     def __init__(self, filename, mode='r'):
         TrajectoryBase.__init__(self, filename, mode)
@@ -39,7 +80,8 @@ class TrajectoryLAMMPS(TrajectoryBase):
             if not data:
                 break
             if data.startswith('ITEM:'):                
-                for block in ['TIMESTEP', 'NUMBER OF ATOMS', 'BOX BOUNDS', 'ATOMS']:
+                for block in ['TIMESTEP', 'NUMBER OF ATOMS', 
+                              'BOX BOUNDS', 'ATOMS']:
                     if data[6:].startswith(block):
                         # entry contains whatever is found after block
                         entry = data[7+len(block):]
@@ -57,12 +99,6 @@ class TrajectoryLAMMPS(TrajectoryBase):
         self._fh.seek(0)
 
     def read_sample(self, frame):
-        # TODO: respect input frame
-        idx, _ = self._index_db['TIMESTEP'][frame]
-        self._fh.seek(idx)
-        self._fh.readline()
-        step = int(self._fh.readline())
-
         # Read number of particles
         idx, _ = self._index_db['NUMBER OF ATOMS'][frame]
         self._fh.seek(idx)
@@ -83,38 +119,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
 
         # Read atoms data
         idx, data = self._index_db['ATOMS'][frame]
-        # Determine how many fields are there
-        fields = data.split()
-        nfields = len(data)
-
-        def parse_type(data, particle):
-            particle.species = data
-        def parse_x(data, particle):
-            particle.position[0] = float(data)
-        def parse_y(data, particle):
-            particle.position[1] = float(data)
-        def parse_z(data, particle):
-            particle.position[2] = float(data)
-        def parse_xs(data, particle):
-            particle.position[0] = (float(data)-0.5) * cell.side[0]
-        def parse_ys(data, particle):
-            particle.position[1] = (float(data)-0.5) * cell.side[1]
-        def parse_zs(data, particle):
-            particle.position[2] = (float(data)-0.5) * cell.side[2]
-        def parse_vx(data, particle):
-            particle.velocity[0] = float(data)
-        def parse_vy(data, particle):
-            particle.velocity[1] = float(data)
-        def parse_vz(data, particle):
-            particle.velocity[2] = float(data)
-
-        _cbk = {'x': parse_x, 'y': parse_y, 'z': parse_z,
-                'vx': parse_vx, 'vy': parse_vy, 'vz': parse_vz,
-                'xu': parse_x, 'yu': parse_y, 'zu': parse_z,
-                'xs': parse_xs, 'ys': parse_ys, 'zs': parse_zs,
-                'xsu': parse_xs, 'ysu': parse_ys, 'zsu': parse_zs,
-                'type': parse_type}
-
+        fields = data.split()  # fields on a line
         _ = self._fh.readline()
         particles = [Particle() for i in range(npart)]
         for i in range(npart):
@@ -124,10 +129,10 @@ class TrajectoryLAMMPS(TrajectoryBase):
                 idx = int(data[0]) - 1
             else:
                 idx = i
-
+            # Read fields
             for j, field in enumerate(fields):
-                if field in _cbk:
-                    _cbk[field](data[j], particles[idx])
+                if field in self._cbk:
+                    self._cbk[field](data[j], particles[idx], cell)
                 else:
                     # We should store these fields in particle anyway
                     pass
