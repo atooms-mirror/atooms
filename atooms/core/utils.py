@@ -1,9 +1,10 @@
-"""Helper functions."""
+"""Helper functions"""
 
 import os
 import sys
 import shutil
 import time
+
 
 # Logging facilities
 
@@ -11,7 +12,6 @@ LOGGER_NAME = 'atooms'
 DEFAULT_LOGGING_FORMAT = '[%(levelname)s/%(processName)s] %(message)s'
 
 _logger = None
-
 
 # We define the logging handler here to avoid "No handler found" warnings.
 # Client classes should use this instead of logging.NullHandler
@@ -23,6 +23,7 @@ except ImportError:
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
+
 
 def log_to_stderr(level=None):
     '''
@@ -58,6 +59,7 @@ except:
     rank = 0
     size = 1
 
+
 def barrier():
     if size > 1:
         comm.barrier()
@@ -79,11 +81,13 @@ def mkdir(d):
         except:
             pass
 
+
 def rmd(files):
     try:
         shutil.rmtree(files)
     except:
         pass
+
 
 def rmf(files):
     """
@@ -109,6 +113,7 @@ def rmf(files):
             except OSError:
                 # File does not exists or it is a folder
                 pass
+
 
 def cp(finp, fout):
     # Avoid erasing file
@@ -189,6 +194,7 @@ def fractional_slice(first, last, skip, n):
 
     return slice(first, last, skip)
 
+
 def add_first_last_skip(parser, what=None):
     """
     Add first, last, skip arguments to ArgumentParser object.
@@ -250,6 +256,7 @@ def setup_logging(name=None, level=40):
     log.setLevel(level)
     return log
 
+
 def tipify(s):
     """
     Convert a string into the best matching type.
@@ -279,25 +286,6 @@ def tipify(s):
             return s
 
 
-# Unit test enhancements
-
-import unittest
-
-class TestCase(unittest.TestCase):
-
-    """unittest in python 2.7 has a convenient argument delta in
-    assertAlmostEqual. However, this is missing in python 2.6. To avoid
-    requiring unittest2, which backports new features introduced in 2.7,
-    we provide our custom subclass of TestCase.
-    """
-
-    def assertAlmostEqual(self, first, second, places=7, msg=None, delta=None):
-        if delta is None:
-            unittest.TestCase.assertAlmostEqual(self, first, second, places, msg)
-        else:
-            return abs(first-second) <= delta
-
-
 # Miscellaneous
 
 def __header_dict(line):
@@ -306,6 +294,7 @@ def __header_dict(line):
     for key, value in [d.split('=') for d in line.split()]:
         params[key] = value
     return params
+
 
 def report_parameters(params, fileout, version, comment=''):
     """Report parameters."""
@@ -338,6 +327,7 @@ def report_command(cmd, params, main, fileout):
         with open(fileout, 'w') as fh:
             fh.write(txt)
     return txt
+
 
 class OrderedSet(object):
 
