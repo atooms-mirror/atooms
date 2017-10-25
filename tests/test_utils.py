@@ -77,10 +77,10 @@ A 1.0 -1.0 0.0
 step:3 cell:1.0,1.0,1.0
 A 1.0 -1.0 0.0
 """)
-        t = TrajectoryXYZ(finp)
-        self.assertTrue(utils.is_cell_variable(t, tests=-1))
-        self.assertFalse(utils.is_cell_variable(t, tests=1))
-        self.assertTrue(utils.is_cell_variable(t, tests=2))
+        with TrajectoryXYZ(finp) as th:
+            self.assertTrue(utils.is_cell_variable(th, tests=-1))
+            self.assertFalse(utils.is_cell_variable(th, tests=1))
+            self.assertTrue(utils.is_cell_variable(th, tests=2))
 
     def tearDown(self):
         from atooms.core.utils import rmf

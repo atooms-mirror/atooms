@@ -109,7 +109,8 @@ CRYST1    2.000    2.000    2.000     90     90     90 P 1           1
 HETATM    0             A       0.000   0.000   0.000  1.00  1.00             A
 HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
 """
-        output = open(self.inpfile).read()
+        with open(self.inpfile) as fh:
+            output = fh.read()
         self.assertTrue(output == reference)
 
     def tearDown(self):

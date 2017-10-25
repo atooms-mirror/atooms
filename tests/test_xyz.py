@@ -88,10 +88,10 @@ B 2.9 -2.9 0.0 2.0
 
     def test_xyz_indexed(self):
         r_ref = [[1., -1., 0.], [2.9, -2.9, 0.]]
-        t = self.Trajectory(self.finp)
-        self.assertEqual(t.steps, [1, 2, 3, 4])
-        self.assertEqual(r_ref[0], list(t[0].particle[0].position))
-        self.assertEqual(r_ref[1], list(t[0].particle[1].position))
+        with self.Trajectory(self.finp) as t:
+            self.assertEqual(t.steps, [1, 2, 3, 4])
+            self.assertEqual(r_ref[0], list(t[0].particle[0].position))
+            self.assertEqual(r_ref[1], list(t[0].particle[1].position))
 
     def test_xyz_indexed_unfolded(self):
         t1 = self.Trajectory(self.finp)
@@ -121,7 +121,6 @@ B 2.9 -2.9 0.0 2.0
         t1[0]
         s1 = t1[3]
         t1.close()
-        t.close()
 
         self.assertEqual(list(s.particle[0].position), list(s1.particle[0].position))
         self.assertEqual(list(s.particle[1].position), list(s1.particle[1].position))
@@ -342,6 +341,8 @@ B 2.9 -2.9 0.0
         for step, s1, s2 in trj.utils.paste(t1, t2):
             steps.append(step)
         self.assertEqual(steps, [2, 4])
+        t1.close()
+        t2.close()
 
     def tearDown(self):
         from atooms.core.utils import rmd
