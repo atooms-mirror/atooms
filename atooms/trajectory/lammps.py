@@ -179,6 +179,9 @@ class TrajectoryLAMMPS(TrajectoryBase):
     def write_sample(self, system, step):
         pass
 
+    def close(self):
+        self._fh.close()
+
 
 class TrajectoryFolderLAMMPS(TrajectoryFolder):
 
