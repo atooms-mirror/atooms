@@ -23,7 +23,7 @@ def _equal(system1, system2, ignore=None):
         if ignore is not None and key in ignore:
             continue
         if not check[key]:
-            print key, 'differs'
+            print(key, 'differs')
             return False
     return True
 

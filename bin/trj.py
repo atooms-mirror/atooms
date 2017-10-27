@@ -20,7 +20,7 @@ def main_info(args):
     else:
         t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
 
-    print info(t)
+    print(info(t))
     return
 
 def main(args):
@@ -117,7 +117,7 @@ def main(args):
         add_interaction_hdf5(fout, args.ff)
     
     if args.file_out != '/dev/stdout':
-        print '%s' % fout
+        print('%s' % fout)
 
     t.close()
 
@@ -145,9 +145,9 @@ def main_paste(args):
     for step, s1, s2 in trj.utils.paste(t1, t2):
         try:
             for i in range(len(s1.particle)):
-                print getattr(s1.particle[i], attr1), getattr(s2.particle[i], attr2)
+                print(getattr(s1.particle[i], attr1), getattr(s2.particle[i], attr2))
         except:
-            print getattr(s1, attr1), getattr(s2, attr2)
+            print(getattr(s1, attr1), getattr(s2, attr2))
 
 if __name__ == '__main__':
 

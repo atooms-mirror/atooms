@@ -213,7 +213,7 @@ class Unfolded(object):
         self._old += dif
 
         # Return unfolded system
-        for i in xrange(len(pos)):
+        for i in range(len(pos)):
             s.particle[i].position = self._old[i][:]
 
         return s

@@ -92,15 +92,16 @@ class TrajectoryBase(object):
         self.close()
 
     def __iter__(self):
-        for i in xrange(len(self.steps)):
+        for i in range(len(self.steps)):
             yield self.read(i)
 
     def __getitem__(self, key):
         if isinstance(key, slice):
             # This works but it loads the whole trajectory in ram.
-            # The Sliced decorator doesn't have this issue.
             # If we make this a generator, then access a single sample
-            # wont work. Unless we put it in separate functions?
+            # wont work.
+            # The Sliced decorator doesn't have this issue.
+            # Or just slice range(self.steps) instead.
             frames = range(len(self.steps))
             return [self.read(i) for i in frames[key]]
 

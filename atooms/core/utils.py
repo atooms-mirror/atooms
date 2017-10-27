@@ -166,7 +166,7 @@ def clockit(func):
         t.start()
         retval = func(*args, **kw)
         t.stop()
-        print '%s in %s' % (func.__name__, t)
+        print('%s in %s' % (func.__name__, t))
         del t
         return retval
     return new

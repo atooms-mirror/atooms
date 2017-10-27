@@ -156,7 +156,7 @@ write_dump all custom %s id type x y z vx vy vz modify sort id
 
         stdout = _run_lammps_command(cmd)
         if self.verbose:
-            print stdout
+            print(stdout)
 
         # Update internal reference to self.system
         self.system = System(file_tmp, self.commands)

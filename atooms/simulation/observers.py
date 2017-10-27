@@ -128,7 +128,7 @@ class Scheduler(object):
         elif self.seconds is not None:
             pass
         else:
-            return sys.maxint
+            return sys.maxsize
 
 
 # Writer callbacks
@@ -309,7 +309,7 @@ class Speedometer(object):
                           d_eta.strftime('%Y-%m-%d %H:%M'),
                           speed, sim.wall_time_per_step_particle())
             except ZeroDivisionError:
-                print x_now, self.x_last
+                print(x_now, self.x_last)
                 raise
 
         self.t_last = t_now
