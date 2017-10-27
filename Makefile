@@ -16,7 +16,7 @@ user: version
 develop: version
 	python setup.py develop --user
 
-test:
+test:	version
 	python -m unittest discover -s tests
 
 doc: clean
