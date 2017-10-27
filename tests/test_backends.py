@@ -144,7 +144,7 @@ class TestBackendRUMD(unittest.TestCase):
         self.assertGreater(s.rmsd, 0.0)
 
     def test_target_rmsd(self):
-        s = Simulation(self.backend, self.dout, steps=sys.maxint)
+        s = Simulation(self.backend, self.dout, steps=sys.maxsize)
         s.add(target, 10, 'rmsd', 0.3)
         s.run()
         self.assertGreater(s.current_step, 1)

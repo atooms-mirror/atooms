@@ -81,11 +81,11 @@ class TrajectoryHOOMD(TrajectoryBase):
             vel = None
         typ = cfg.find('type')
         # TODO: use tipify here
-        pos_list = [map(float, r.split()) for r in pos.text.strip().split('\n')]
+        pos_list = [list([float(x) for x in r.split()]) for r in pos.text.strip().split('\n')]
         box_list = [float(box.attrib[r]) for r in ['lx', 'ly', 'lz']]
         typ_list = typ.text.strip().split('\n')
         if vel is not None:
-            vel_list = [map(float, v.split()) for v in vel.text.strip().split('\n')]
+            vel_list = [list([float(x) for x in v.split()]) for v in vel.text.strip().split('\n')]
         else:
             vel_list = None
         return cfg, box_list, pos_list, typ_list, vel_list

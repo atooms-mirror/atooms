@@ -100,7 +100,7 @@ class Particle(object):
 # Utility functions
 
 def _periodic_vector(vec, box):
-    for i in xrange(vec.shape[0]):
+    for i in range(vec.shape[0]):
         if vec[i] > box[i] / 2:
             vec[i] += - box[i]
         elif vec[i] < -box[i] / 2:

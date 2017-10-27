@@ -12,7 +12,7 @@ from atooms.trajectory import TrajectoryXYZ
 def _equal(system1, system2):
     for p1, p2 in zip(system1.particle, system2.particle):
         if p1.species != p2.species:
-            print p1.species, p2.species
+            print(p1.species, p2.species)
             return False
     return True
 

@@ -58,13 +58,13 @@ def convert(inp, out, fout, force=True, fields=None,
     """
     # TODO: convert metadata (interaction etc) !
     from atooms.trajectory import Trajectory
-    if isinstance(out, basestring):
+    if isinstance(out, str):
         out_class = Trajectory.formats[out]
     else:
         out_class = out
 
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
-        print 'File exists, conversion skipped'
+        print('File exists, conversion skipped')
     else:
         # Make sure parent folder exists
         from atooms.core.utils import mkdir
@@ -200,7 +200,7 @@ def check_block_size(steps, block_size, prune=False):
 
     # Remove samples that do not conform with first block
     if prune and len(prune_me) > 0:
-        print '#', len(prune_me), 'samples should be pruned'
+        print('#', len(prune_me), 'samples should be pruned')
         for step in prune_me:
             _ = steps_local.pop(steps_local.index(step))
 
@@ -209,7 +209,7 @@ def check_block_size(steps, block_size, prune=False):
     rest = len(steps_local) % block_size
     if rest > 1:
         steps_local = steps_local[:-rest]
-        print '# block was truncated'
+        print('# block was truncated')
 
     # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
@@ -219,9 +219,9 @@ def check_block_size(steps, block_size, prune=False):
         current = steps_local[i*block_size: (i+1)*block_size]
         current = [ii-i0 for ii in current]
         if not current == block:
-            print '# periodicity issue at block %i out of %i' % (i, nbl)
-            print '# current     :', current
-            print '# finger print:', block
+            print('# periodicity issue at block %i out of %i' % (i, nbl))
+            print('# current     :', current)
+            print('# finger print:', block)
             raise ValueError('block does not match finger print')
 
     return steps_local
