@@ -17,6 +17,7 @@ def gopen(filename, mode):
     else:
         return open(filename, mode)
 
+
 def modify_fields(trajectory, fields=None, include=None, exclude=None):
     """
     Modify fields of a trajectory.
@@ -39,6 +40,7 @@ def modify_fields(trajectory, fields=None, include=None, exclude=None):
                     trajectory.fields.append(pattern)
 
     return trajectory
+
 
 def convert(inp, out, fout, force=True, fields=None,
             exclude=None, include=None, steps=None):
@@ -74,14 +76,13 @@ def convert(inp, out, fout, force=True, fields=None,
             conv.precision = inp.precision
             conv.timestep = inp.timestep
             conv.block_size = inp.block_size
-            # TODO: Zipping t, t.steps is causing a massive mem leak!
-            # In python <3 zip returns a list, not a generator! Therefore this
+            # In python 3, zip returns a generator so this is ok
+            #
             # for system, step in zip(inp, inp.steps):
             #     conv.write(system, step)
-            # will use a lot of RAM! Workarounds (in order of personal preference)
-            # 1. zip is a generator in python 3
-            # 2. use enumerate instead and grab the step from inp.steps[i]
-            # 3. add an attribute system.step for convenience
+            #
+            # In python 2, zipping t and t.steps will load everything
+            # in RAM. In this case, it is better to use enumerate()
             if steps is None:
                 for i, system in enumerate(inp):
                     conv.write(system, inp.steps[i])
@@ -93,6 +94,7 @@ def convert(inp, out, fout, force=True, fields=None,
                     conv.write(inp[idx], step)
 
     return fout
+
 
 def split(inp, index='step', archive=False):
     """
@@ -119,6 +121,7 @@ def split(inp, index='step', archive=False):
 
     if archive:
         tar.close()
+
 
 def get_block_size(data):
     """
@@ -156,6 +159,7 @@ def get_block_size(data):
     else:
         # There is no periodicity, the block size is the whole trajectory
         return period
+
 
 def check_block_size(steps, block_size, prune=False):
     """
@@ -215,9 +219,9 @@ def check_block_size(steps, block_size, prune=False):
     # sampling, otherwise there was some error
     nbl = len(steps_local) // block_size
     for i in range(nbl):
-        i0 = steps_local[i*block_size]
-        current = steps_local[i*block_size: (i+1)*block_size]
-        current = [ii-i0 for ii in current]
+        i0 = steps_local[i * block_size]
+        current = steps_local[i * block_size: (i + 1) * block_size]
+        current = [ii - i0 for ii in current]
         if not current == block:
             print('# periodicity issue at block %i out of %i' % (i, nbl))
             print('# current     :', current)
@@ -225,6 +229,7 @@ def check_block_size(steps, block_size, prune=False):
             raise ValueError('block does not match finger print')
 
     return steps_local
+
 
 def dump(trajectory, what='pos'):
     """
@@ -245,6 +250,7 @@ def dump(trajectory, what='pos'):
 
     return data
 
+
 def field(trajectory, trajectory_field, x_field, frame):
     """
     Return the field specified by particle attribute `x_field` at a
@@ -260,6 +266,7 @@ def field(trajectory, trajectory_field, x_field, frame):
         fi = getattr(pi, x_field)
         x.append(fi)
     return x
+
 
 def paste(t1, t2):
     """
@@ -281,6 +288,7 @@ def paste(t1, t2):
         s2 = t2[t2.steps.index(step)]
         yield step, s1, s2
 
+
 def time_when_msd_is(th, msd_target, sigma=1.0):
     """
     Estimate the time when the MSD reaches target_msd in units of
@@ -291,6 +299,7 @@ def time_when_msd_is(th, msd_target, sigma=1.0):
         msd_total = th_unf[0].mean_square_displacement(th_unf[-1])
     frac = msd_target * sigma**2 / msd_total
     return min(1.0, frac) * th.total_time
+
 
 def is_cell_variable(trajectory, tests=1):
     """
@@ -313,6 +322,7 @@ def is_cell_variable(trajectory, tests=1):
             break
     return is_variable
 
+
 def formats():
     """Return a string with the available trajectory formats."""
     from atooms import trajectory
@@ -329,6 +339,7 @@ def formats():
         txt += fmt % (name, docline)
     return txt
 
+
 def info(trajectory):
     """Return a string with information about a `trajectory` instance."""
     from atooms.system.particle import distinct_species, composition
@@ -338,10 +349,10 @@ def info(trajectory):
     txt += 'frames               = %s\n' % len(trajectory)
     txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
     txt += 'particles            = %s\n' % len(trajectory[0].particle)
-    txt += 'species              = %s\n' % len(distinct_species(trajectory[0].particle))
-    txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
+    txt += 'species              = %s\n' % ', '.join(distinct_species(trajectory[0].particle))
+    txt += 'composition          = %s\n' % dict(composition(trajectory[0].particle))
     txt += 'density              = %s\n' % round(trajectory[0].density, 10)
-    txt += 'cell side            = %s\n' % trajectory[0].cell.side
+    txt += 'cell side            = %s\n' % str(list(trajectory[0].cell.side))[1: -1]
     txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
     if len(trajectory) > 1:
         txt += 'steps                = %s\n' % trajectory.steps[-1]

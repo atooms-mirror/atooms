@@ -16,6 +16,7 @@ MANIFEST
 *.egg-info
 .coverage
 cover
+.tox
 
 # Simulations
 rumd_timing_info.dat
