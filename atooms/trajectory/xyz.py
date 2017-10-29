@@ -166,27 +166,27 @@ class TrajectorySimpleXYZ(TrajectoryBase):
 
 # Format callbacks
 
-def update_radius(particle, data, meta):
+def _update_radius(particle, data, meta):
     particle.radius = float(data[0])
     return data[1:]
 
-def update_tag(particle, data, meta):
+def _update_tag(particle, data, meta):
     # TODO: what is this???
     particle.tag = data[0:]
     return data[1:]
 
-def update_species(particle, data, meta):
+def _update_species(particle, data, meta):
     particle.species = data[0]
     return data[1:]
 
-def update_position(particle, data, meta):
+def _update_position(particle, data, meta):
     ndim = meta['ndim']
     # It is crucial to assing position, not to use the slice!
     # Otherwise we get a reference, not a copy.
     particle.position = numpy.array(data[0:ndim], dtype=float)
     return data[ndim:]
 
-def update_velocity(particle, data, meta):
+def _update_velocity(particle, data, meta):
     ndim = meta['ndim']
     particle.velocity = numpy.array(data[0:ndim], dtype=float)
     return data[ndim:]
@@ -210,19 +210,20 @@ class TrajectoryXYZ(TrajectoryBase):
     """
 
     suffix = 'xyz'
-    callback_read = {'species': update_species,
-                     'type': update_species,  # alias
-                     'name': update_species,  # alias
-                     'id': update_species,  # alias
-                     'tag': update_tag,
-                     'radius': update_radius,
-                     'pos': update_position,
-                     'vel': update_velocity}
+    _cbk = {'species': _update_species,
+            'type': _update_species,  # alias
+            'name': _update_species,  # alias
+            'id': _update_species,  # alias
+            'tag': _update_tag,
+            'radius': _update_radius,
+            'pos': _update_position,
+            'vel': _update_velocity}
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
         TrajectoryBase.__init__(self, filename, mode)
         if alias is None:
             alias = {}
+        self.alias = alias
         # TODO: actualize fields on reading if found and not given on input
         # TODO: clarify fields / _fields handling
         if fields is None:
@@ -231,17 +232,16 @@ class TrajectoryXYZ(TrajectoryBase):
         self._fields = None
         self._fields_float = True
         self._done_format_setup = False
-        self.alias = alias
-        self.shortcuts = {'pos': 'position',
-                          'x': 'position[0]',
-                          'y': 'position[1]',
-                          'z': 'position[2]',
-                          'vel': 'velocity',
-                          'vx': 'velocity[0]',
-                          'vy': 'velocity[1]',
-                          'vz': 'velocity[2]',
-                          'id': 'species',
-                          'type': 'species'}
+        self._shortcuts = {'pos': 'position',
+                           'x': 'position[0]',
+                           'y': 'position[1]',
+                           'z': 'position[2]',
+                           'vel': 'velocity',
+                           'vx': 'velocity[0]',
+                           'vy': 'velocity[1]',
+                           'vz': 'velocity[2]',
+                           'id': 'species',
+                           'type': 'species'}
         self._cell = None
         self.trajectory = gopen(self.filename, self.mode)
         if self.mode == 'r':
@@ -321,7 +321,7 @@ class TrajectoryXYZ(TrajectoryBase):
         _fields = []
         for field in self.fields:
             try:
-                _fields.append(self.shortcuts[field])
+                _fields.append(self._shortcuts[field])
             except KeyError:
                 _fields.append(field)
         return _fields
@@ -411,8 +411,8 @@ class TrajectoryXYZ(TrajectoryBase):
                 # If the key is associated to a explicit callback, go
                 # for it. Otherwise we throw the field in an particle
                 # attribute named key.
-                if key in self.callback_read:
-                    data = self.callback_read[key](p, data, meta)
+                if key in self._cbk:
+                    data = self._cbk[key](p, data, meta)
                 else:
                     p.__dict__[key] = tipify(data[0])
                     data = data[1:]
