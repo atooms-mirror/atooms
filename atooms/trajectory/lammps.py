@@ -66,7 +66,6 @@ class TrajectoryLAMMPS(TrajectoryBase):
         self._fh = open(self.filename, self.mode)
         if mode == 'r':
             self._setup_index()
-            self._setup_steps()
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
@@ -89,14 +88,15 @@ class TrajectoryLAMMPS(TrajectoryBase):
                         break
         self._fh.seek(0)
 
-    def _setup_steps(self):
-        self.steps = []
+    def read_steps(self):
+        steps = []
         for idx, _ in self._index_db['TIMESTEP']:
             self._fh.seek(idx)
             self._fh.readline()
             step = int(self._fh.readline())
-            self.steps.append(step)
+            steps.append(step)
         self._fh.seek(0)
+        return steps
 
     def read_sample(self, frame):
         # Read number of particles

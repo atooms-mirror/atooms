@@ -41,7 +41,7 @@ class TrajectoryRam(TrajectoryBase):
 
     def write_sample(self, system, step):
         try:
-            # Ovewrite
+            # Overwrite
             ind = self.steps.index(step)
         except:
             ind = None

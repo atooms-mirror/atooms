@@ -42,22 +42,8 @@ class TrajectoryHOOMD(TrajectoryBase):
             file_list = sorted([f.name for f in tar.getmembers()])
             tar.extractall(path=self.__tmp_path)
             tar.close()
-
             self.__f_frames = [os.path.join(self.__tmp_path, f) for f in file_list]
-
-            cfg, box, pos, typ, vel = self.__read_one(self.__f_frames[0])
-
-            self._timestep = 1.0
-            self.steps = []
-            for f in sorted(self.__f_frames):
-                tree = ElementTree.parse(f)
-                root = tree.getroot()
-                cfg = root.find('configuration')
-                self.steps.append(int(cfg.attrib['time_step']))
-
-            # First sort them, then subtract out the first step
-            self.steps.sort()
-            self.steps = [s - self.steps[0] for s in self.steps]
+            #cfg, box, pos, typ, vel = self.__read_one(self.__f_frames[0])
 
         elif mode == 'w':
             pass
@@ -65,9 +51,17 @@ class TrajectoryHOOMD(TrajectoryBase):
         elif mode == 'w:gz':
             self._tar = tarfile.open(fname, "w:gz")
 
-    def rewind(self):
-        # TODO: rewind automatically when unfolding and restarting from a previous frame
-        raise NotImplementedError()
+    def read_steps(self):
+        steps = []
+        for f in sorted(self.__f_frames):
+            tree = ElementTree.parse(f)
+            root = tree.getroot()
+            cfg = root.find('configuration')
+            steps.append(int(cfg.attrib['time_step']))
+
+        # First sort them, then subtract out the first step
+        steps = sorted(steps)
+        return [s - steps[0] for s in steps]
 
     def __read_one(self, fname):
         tree = ElementTree.parse(fname)
