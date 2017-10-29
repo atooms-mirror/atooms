@@ -23,8 +23,8 @@ class TrajectoryRUMD(TrajectoryXYZ):
         # The minimum id for RUMD is 0
         self._min_id = 0
 
-    def _setup_steps(self):
-        super(TrajectoryRUMD, self)._setup_steps()
+    def read_steps(self):
+        steps = super(TrajectoryRUMD, self).read_steps()
 
         # RUMD specific stuff
         basename_ext = os.path.basename(self.filename)
@@ -37,8 +37,8 @@ class TrajectoryRUMD(TrajectoryXYZ):
             # This is important when trajectories are written in blocks.
             _, block = s.group(1), s.group(2)
             iblock = int(block)
-            dt = self.steps[-1]
-            self.steps = [i+dt*iblock for i in self.steps]
+            dt = steps[-1]
+            steps = [i + dt*iblock for i in steps]
 
         # If we follow a folder based logic, files are named according
         # to the step and contain a single step like
@@ -46,8 +46,9 @@ class TrajectoryRUMD(TrajectoryXYZ):
         # We grab the step from
         # the file name.
         s = re.search(r'^(\d+)$', basename)
-        if s and len(self.steps) == 1:
-            self.steps = [int(basename)]
+        if s and len(steps) == 1:
+            steps = [int(basename)]
+        return steps
 
     def _read_metadata(self, frame):
         meta = super(TrajectoryRUMD, self)._read_metadata(frame)
@@ -68,9 +69,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
             return meta['dt']
         else:
             return 1.0
-
-    def write_timestep(self, value):
-        self._timestep = value
 
     def _comment_header(self, step, system):
 

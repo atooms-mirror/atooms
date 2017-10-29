@@ -34,7 +34,17 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             # We may delay setup, moving to read_init() assuming
             # self.steps becomes a property
             self._setup_index()
-            self._setup_steps()
+            
+    def read_steps(self):
+        steps = []
+        for frame in range(len(self._index_frame)):
+            meta = self._read_metadata(frame)
+            try:
+                steps.append(meta['step'])
+            except KeyError:
+                # If no step info is found, we add steps sequentially
+                steps.append(frame+1)
+        return steps
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
@@ -96,17 +106,6 @@ class TrajectorySimpleXYZ(TrajectoryBase):
                 else:
                     meta[tag] = tipify(data)
         return meta
-
-    def _setup_steps(self):
-        """Find steps list."""
-        self.steps = []
-        for frame in range(len(self._index_frame)):
-            meta = self._read_metadata(frame)
-            try:
-                self.steps.append(meta['step'])
-            except KeyError:
-                # If no step info is found, we add steps sequentially
-                self.steps.append(frame+1)
 
     def read_init(self):
         # Grab cell from the end of file if it is there
@@ -245,13 +244,8 @@ class TrajectoryXYZ(TrajectoryBase):
         self._cell = None
         self.trajectory = gopen(self.filename, self.mode)
         if self.mode == 'r':
-            # Internal index of lines to seek and tell.
-            # We may delay setup, moving to read_init() assuming
-            # self.steps becomes a property
+            # Internal index of lines via seek and tell.
             self._setup_index()
-            # Warning: setting up steps require aliases to be defined in
-            # init and not later.
-            self._setup_steps()
 
     def _setup_format(self):
         if not self._done_format_setup:
@@ -306,16 +300,17 @@ class TrajectoryXYZ(TrajectoryBase):
             for i in range(npart):
                 _ = self.trajectory.readline()
 
-    def _setup_steps(self):
+    def read_steps(self):
         """Find steps list."""
-        self.steps = []
+        steps = []
         for frame in range(len(self._index_frame)):
             meta = self._read_metadata(frame)
             try:
-                self.steps.append(meta['step'])
+                steps.append(meta['step'])
             except KeyError:
                 # If no step info is found, we add steps sequentially
-                self.steps.append(frame+1)
+                steps.append(frame+1)
+        return steps
 
     def _expand_shortcuts(self):
         _fields = []

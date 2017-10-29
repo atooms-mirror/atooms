@@ -11,7 +11,7 @@ class TrajectoryBase(object):
     """
     Trajectory abstract base class.
 
-    A trajectory are composed by one or several frames, each frame
+    A trajectory is composed by one or several frames, each frame
     being a sample of a `System` taken at a given `step` during a
     simulation. `Trajectory` instances are iterable and can be opened
     and closed using the `with` syntax..
@@ -26,52 +26,38 @@ class TrajectoryBase(object):
 
     `read()` is a template composed of the two following steps:
 
-    - `read_init()`: called only once, initialize samples and steps
-    counter, grab metadata, i.e. invariants. Need *not* be implemented
-    by subclasses.
+    - `read_init()`: called only once to initialize internal data
+    structures, grab metadata, etc. Need *not* be implemented by
+    subclasses.
 
-    - `read_sample(n)`: actually return the system at frame n. It
-      must be implemented by subclasses.
+    - `read_sample(n)`: actually return the system at frame n. It must
+      be implemented by subclasses.
 
     Similarly, `write()` is a template composed of `write_init()` and
     `write_sample()`. Only the latter method must be implemented by
     subclasses.
     """
 
-    # TODO: there is a problem with putting metatdata reading in read_init. It means that steps and timestep are not known before calling read(). These should then be properties that get initialized by calling read_init, rather than their specific read_timestep, read_steps methods
-
-    # We might consider renaming, although it is a bad idea.
-    # What init methods are supposed to be is parsing / writing metadata.
-    # read_init -> read_metadata
-    # write_init -> write_metadata
-
-    # metadata is:
-    # read: dt, steps, cell (if invariant).
-    # Subclasses may have additional simulation info: integration algorithm etc
-    # write, dt, cell (if invariant)
-
-    # steps wants to become a property then.
-
-    # in xyz, rename read_metadata -> read_header
-
     suffix = None
 
     def __init__(self, filename, mode='r'):
         """
-        When mode is 'r', `__init__` must set the list of available steps.
+        The `mode` can be 'r' (read) or 'w' (write).
         """
         self.filename = filename
         self.mode = mode
         self.callbacks = []
-        # self.fields is a list of strings describing data to be written by
-        # write_sample(). Subclasses may use it to filter out some
-        # data from their format or can even ignore it entirely.
         self.fields = []
+        """
+        A list of strings describing data to be written by #
+        write_sample(). Subclasses may use it to filter out some #
+        data from their format or can even ignore it entirely.
+        """
         self.precision = 6
-        self.steps = []
         # These are cached properties
-        self._grandcanonical = None
+        self._steps = None
         self._timestep = None
+        self._grandcanonical = None
         self._block_size = None
         # Internal state
         self._initialized_write = False
@@ -139,6 +125,7 @@ class TrajectoryBase(object):
         self.write_sample(system, step)
         # Step is added last, frame index starts from 0 by default
         # If step is already there we overwrite (do not append)
+        # TODO: just check last step
         if step not in self.steps:
             self.steps.append(step)
 
@@ -176,17 +163,34 @@ class TrajectoryBase(object):
     # To read/write timestep and block size sublcasses may implement
     # these methods. The default is dt=1 and block determined dynamically.
 
+    def read_steps(self):
+        """Return a list of steps."""
+        return []
+
     def read_timestep(self):
         return 1.0
 
     def write_timestep(self, value):
-        pass
+        self._timestep = value
 
     def read_block_size(self):
         return None
 
     def write_block_size(self, value):
         pass
+
+    @property
+    def steps(self):
+        if self._steps is None:
+            if self.mode == 'r':
+                self._steps = self.read_steps()
+            else:
+                self._steps = []
+        return self._steps
+
+    @steps.setter
+    def steps(self, value):
+        self._steps = value
 
     @property
     def timestep(self):
