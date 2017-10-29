@@ -170,7 +170,8 @@ def _update_radius(particle, data, meta):
     return data[1:]
 
 def _update_tag(particle, data, meta):
-    # TODO: what is this???
+    # Kept for backward compatibility. We should rather rely on
+    # tipified properties.
     particle.tag = data[0:]
     return data[1:]
 
@@ -200,6 +201,16 @@ def _optimize_fields(fields):
             fields.remove(tag)
     return fields
 
+def _expand_fields(fields, shortcuts):
+    """Expand `shortcuts` present in `fields`"""
+    _fields = []
+    for field in fields:
+        try:
+            _fields.append(shortcuts[field])
+        except KeyError:
+            _fields.append(field)
+    return _fields
+
 
 class TrajectoryXYZ(TrajectoryBase):
 
@@ -220,15 +231,11 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
         TrajectoryBase.__init__(self, filename, mode)
-        if alias is None:
-            alias = {}
-        self.alias = alias
-        # TODO: actualize fields on reading if found and not given on input
-        # TODO: clarify fields / _fields handling
-        if fields is None:
-            fields = ['id', 'pos']
-        self.fields = fields
-        self._fields = None
+        self.alias = {} if alias is None else alias
+        self.fields = ['id', 'pos'] if fields is None else fields
+
+        # Internal variables
+        self._cell = None
         self._fields_float = True
         self._done_format_setup = False
         self._shortcuts = {'pos': 'position',
@@ -241,10 +248,12 @@ class TrajectoryXYZ(TrajectoryBase):
                            'vz': 'velocity[2]',
                            'id': 'species',
                            'type': 'species'}
-        self._cell = None
+
+        # Trajectory file handle
         self.trajectory = gopen(self.filename, self.mode)
+
+        # Internal index of lines via seek and tell.
         if self.mode == 'r':
-            # Internal index of lines via seek and tell.
             self._setup_index()
 
     def _setup_format(self):
@@ -312,15 +321,6 @@ class TrajectoryXYZ(TrajectoryBase):
                 steps.append(frame+1)
         return steps
 
-    def _expand_shortcuts(self):
-        _fields = []
-        for field in self.fields:
-            try:
-                _fields.append(self._shortcuts[field])
-            except KeyError:
-                _fields.append(field)
-        return _fields
-
     def _read_metadata(self, frame):
         """
         Internal xyz method to get header metadata from comment line of
@@ -383,8 +383,10 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def read_sample(self, frame):
         meta = self._read_metadata(frame)
+
+        # Redefine fields
         if 'columns' in meta:
-            # Use columns if they are found in the header
+            # Use columns as fields if they are found in the header
             fields = meta['columns']
             # Fix single column
             if not isinstance(fields, list):
@@ -450,24 +452,22 @@ class TrajectoryXYZ(TrajectoryBase):
             return 1.0
 
     def _comment_header(self, step, system):
-        # Comment line: concatenate metadata
-        line = 'step:%d ' % step
-        line += 'columns:' + ','.join(self.fields)
+        # Concatenate metadata in comment line
+        line = 'step:{} '.format(step)
+        line += 'columns:{} '.format(','.join(self.fields))
+        line += 'dt:{:g} '.format(self.timestep)
         if system.cell is not None:
-            line += " cell:" + ','.join(['%s' % x for x in system.cell.side])
-        try:
-            line += " dt:%g" % self.timestep
-        except:
-            pass
+            line += 'cell:{} '.format(','.join([str(x) for x in system.cell.side]))
         return line
 
     def write_sample(self, system, step):
+        # Make sure fields are expanded 
         self._setup_format()
-        if self._fields is None:
-            self._fields = self._expand_shortcuts()
         self.trajectory.write('%d\n' % len(system.particle))
         self.trajectory.write(self._comment_header(step, system) + '\n')
-        fmt = ' '.join(['{0.' + field + '}' for field in self._fields]) + '\n'
+        # Expand shortcut fields now (the comment header keeps the shortcuts)
+        fields = _expand_fields(self.fields, self._shortcuts)
+        fmt = ' '.join(['{0.' + field + '}' for field in fields]) + '\n'
         for i, p in enumerate(system.particle):
             p._index = i
             p._step = step
@@ -493,7 +493,6 @@ class TrajectoryNeighbors(TrajectoryXYZ):
     def __init__(self, filename, mode='r', offset=1):
         super(TrajectoryNeighbors, self).__init__(filename, mode=mode, alias={'time': 'step'})
         # TODO: determine minimum value of index automatically
-        # TODO: possible regression here if no 'time' tag is found
         self._offset = offset  # neighbors produced by voronoi are indexed from 1
         self._netwon3 = False
         self._netwon3_message = False

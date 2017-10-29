@@ -3,6 +3,7 @@
 import os
 import tarfile
 import numpy
+import copy
 
 
 def gopen(filename, mode):
@@ -58,7 +59,6 @@ def convert(inp, out, fout, force=True, fields=None,
 
     Return: name of converted trajectory file
     """
-    # TODO: convert metadata (interaction etc) !
     from atooms.trajectory import Trajectory
     if isinstance(out, str):
         out_class = Trajectory.formats[out]
@@ -178,8 +178,6 @@ def check_block_size(steps, block_size, prune=False):
 
     Note that in this case, len(steps) % block_size == 1, which is tolerated.
     """
-    import copy
-
     if block_size == 1:
         return None
 
