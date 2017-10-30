@@ -44,7 +44,7 @@ class Interaction(interaction.Interaction):
         # This will write the .inp startup file
         file_inp = file_tmp + '.inp'
         with TrajectoryLAMMPS(file_tmp, 'w') as th:
-            #th.write(self.system, 0)
+            # th.write(self.system, 0)
             th.write(system.System(particle, cell), 0)
 
         # Do things in lammps order: units, read, commands, run. A

@@ -109,10 +109,12 @@ def _periodic_vector(vec, box):
     # return numpy.where(abs(a) > box/2, a-numpy.copysign(box, a), a)
     return vec
 
+
 def _periodic_vector_unfolded(vec, box):
     return vec - numpy.rint(vec / box) * box
     # Optimized version
     # return vec - numpy.rint(vec * invbox) * box
+
 
 def fix_total_momentum(particles):
     """
@@ -124,6 +126,7 @@ def fix_total_momentum(particles):
         p.velocity -= vcm
     return particles
 
+
 def cm_velocity(particle):
     """Velocity of the center of mass of a list of particles."""
     vcm = numpy.zeros_like(particle[0].velocity)
@@ -132,6 +135,7 @@ def cm_velocity(particle):
         vcm += p.velocity * p.mass
         mtot += p.mass
     return vcm / mtot
+
 
 def cm_position(particle):
     """Center-of-mass of a list of particles."""
@@ -142,9 +146,11 @@ def cm_position(particle):
         mtot += p.mass
     return rcm / mtot
 
+
 def distinct_species(particles):
     """Return sorted list of distinct `species` of `particles`."""
     return list(sorted(set([p.species for p in particles])))
+
 
 def composition(particles):
     """
@@ -156,6 +162,7 @@ def composition(particles):
     for p in particles:
         comp[p.species] += 1
     return comp
+
 
 def rotate(particle, cell):
     """
@@ -206,7 +213,6 @@ def overlaps(particle, cell):
             if d < (pi.radius + pj.radius):
                 x.append((i, j))
     return len(x) > 0, x
-
 
 
 def gyration_radius(particles, cell=None, weight=None, center=None,

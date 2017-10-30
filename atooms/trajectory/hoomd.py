@@ -43,7 +43,7 @@ class TrajectoryHOOMD(TrajectoryBase):
             tar.extractall(path=self.__tmp_path)
             tar.close()
             self.__f_frames = [os.path.join(self.__tmp_path, f) for f in file_list]
-            #cfg, box, pos, typ, vel = self.__read_one(self.__f_frames[0])
+            # cfg, box, pos, typ, vel = self.__read_one(self.__f_frames[0])
 
         elif mode == 'w':
             pass

@@ -34,7 +34,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             # We may delay setup, moving to read_init() assuming
             # self.steps becomes a property
             self._setup_index()
-            
+
     def read_steps(self):
         steps = []
         for frame in range(len(self._index_frame)):
@@ -461,7 +461,7 @@ class TrajectoryXYZ(TrajectoryBase):
         return line
 
     def write_sample(self, system, step):
-        # Make sure fields are expanded 
+        # Make sure fields are expanded
         self._setup_format()
         self.trajectory.write('%d\n' % len(system.particle))
         self.trajectory.write(self._comment_header(step, system) + '\n')

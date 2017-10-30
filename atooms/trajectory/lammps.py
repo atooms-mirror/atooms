@@ -78,8 +78,8 @@ class TrajectoryLAMMPS(TrajectoryBase):
             # We break if file is over or we found an empty line
             if not data:
                 break
-            if data.startswith('ITEM:'):                
-                for block in ['TIMESTEP', 'NUMBER OF ATOMS', 
+            if data.startswith('ITEM:'):
+                for block in ['TIMESTEP', 'NUMBER OF ATOMS',
                               'BOX BOUNDS', 'ATOMS']:
                     if data[6:].startswith(block):
                         # entry contains whatever is found after block
