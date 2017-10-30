@@ -197,51 +197,23 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
         TrajectoryFolder.__init__(self, filename, mode=mode,
                                   file_pattern=file_pattern,
                                   step_pattern=step_pattern)
+        # We force reading steps from lammps file
+        self._steps = None
+
+    def read_steps(self):
+        steps = []
+        for filename in self.files:
+            with TrajectoryLAMMPS(filename, 'r') as th:
+                steps.append(th.steps[0])
+        return steps
 
     def read_sample(self, frame):
         with TrajectoryLAMMPS(self.files[frame], 'r') as th:
             return th[0]
 
-    def write_init(self, system):
-        f = open(self.filename + '.inp', 'w')
-        np = len(system.particle)
-        L = system.cell.side
-        sp = distinct_species(system.particle)
-
-        # LAMMPS header
-        h = '\n'
-        h += "%i atoms\n" % np
-        h += "%i atom types\n" % len(sp)
-        h += "%g %g  xlo xhi\n" % (-L[0]/2, L[0]/2)
-        h += "%g %g  ylo yhi\n" % (-L[1]/2, L[1]/2)
-        h += "%g %g  zlo zhi\n" % (-L[2]/2, L[2]/2)
-        f.write(h + '\n')
-
-        # LAMMPS body
-        # Masses of species
-        m = "\nMasses\n\n"
-        for isp in range(len(sp)):
-            # Iterate over particles. Find instances of species and get masses
-            for p in system.particle:
-                if p.species == sp[isp]:
-                    m += '%s %g\n' % (isp+1, p.mass)
-                    break
-
-        # Atom coordinates
-        r = "\nAtoms\n\n"
-        v = "\nVelocities\n\n"
-        for i, p in enumerate(system.particle):
-            r += '%s %s %g %g %g\n' % tuple([i+1, sp.index(p.species)+1] + list(p.position))
-            v += '%s    %g %g %g\n' % tuple([i+1] + list(p.velocity))
-
-        f.write(m)
-        f.write(r)
-        f.write(v)
-        f.close()
-
     def write_sample(self, system, step):
         # We cannot write
-        return
+        raise NotImplementedError('cannot write lammps folder trajectory')
 
 # Note: to get the tabulated potential from a dump of potential.x do
 # > { echo -e "\nPOTENTIAL\nN 10000\n"; grep -v '#' /tmp/kalj.ff.potential.1-1 | \
