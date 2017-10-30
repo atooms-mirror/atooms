@@ -72,10 +72,36 @@ class Test(unittest.TestCase):
             for i, system in enumerate(self.system):
                 th.write(self.system[i], i)
 
+    def _convert(self, cls_inp, cls_out, path=None, ignore=None):
+        """Write then convert"""
+        if path is None:
+            path = self.inpfile
+        fout = self.inpfile + '.out'
+        with cls_inp(path, 'w') as th:
+            th.write_timestep(1.0)
+            for i, system in enumerate(self.system):
+                th.write(self.system[i], i)
+        
+        with cls_inp(path) as th:
+            from atooms.trajectory.utils import convert
+            _ = convert(th, cls_out, fout)
+
+        if isinstance(cls_out, str):
+            th = trj.Trajectory(fout, fmt=cls_out)
+        else:
+            th = cls_out(fout)
+        self.assertEqual(th.timestep, 1.0)
+        self.assertTrue(len(th.steps), len(self.system))
+        for i, system in enumerate(th):
+            self.assertTrue(_equal(self.system[i], system, ignore))
+        th.close()
+
     def test_xyz(self):
         # TODO: mass is not written by xyz
         self._read_write(trj.TrajectoryXYZ, ignore=['mass'])
         self._read_write(trj.TrajectorySimpleXYZ, ignore=['mass'])
+        self._convert(trj.TrajectoryXYZ, trj.TrajectoryXYZ, ignore=['mass'])
+        self._convert(trj.TrajectoryXYZ, 'xyz', ignore=['mass'])
 
     def test_ram(self):
         self._read_write(trj.TrajectoryRam)
@@ -88,6 +114,7 @@ class Test(unittest.TestCase):
             self.skipTest('missing hdf5')
         else:
             self._read_write(trj.TrajectoryHDF5)
+            self._convert(trj.TrajectoryXYZ, 'hdf5', ignore=['mass'])
 
     def test_rumd(self):
         # RUMD uses integer ids for checmical species. They should be integers.
@@ -112,6 +139,51 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
         with open(self.inpfile) as fh:
             output = fh.read()
         self.assertTrue(output == reference)
+
+    def test_super(self):
+        import glob
+        with TrajectoryXYZ(os.path.join(self.inpdir, '0.xyz'), 'w') as th:
+            th.timestep = 0.001
+            th.write(self.system[0], 10)
+        with TrajectoryXYZ(os.path.join(self.inpdir, '1.xyz'), 'w') as th:
+            th.timestep = 0.001
+            th.write(self.system[0], 20)
+        with trj.SuperTrajectory(glob.glob(self.inpdir + '/*'), TrajectoryXYZ) as th:
+            self.assertFalse(th.grandcanonical)
+            self.assertEqual(th.times, [0.001*10, 0.001*20])
+            self.assertEqual(th.timestep, 0.001)
+            self.assertEqual(th.steps, [10, 20])
+            for i, system in enumerate(th):
+                self.assertTrue(_equal(self.system[i], system, ignore=['mass']))
+
+    def test_super_rumd(self):
+        with trj.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz'), 'w') as th:
+            th.timestep = 0.001
+            th.write(self.system[0], 0)
+        with trj.TrajectoryRUMD(os.path.join(self.inpdir, '1.xyz.gz'), 'w') as th:
+            th.timestep = 0.001
+            th.write(self.system[0], 1)
+        with trj.rumd.SuperTrajectoryRUMD(self.inpdir) as th:
+            self.assertEqual(th.times, [0.001*0, 0.001*1])
+            self.assertEqual(th.timestep, 0.001)
+            self.assertEqual(th.steps, [0, 1])
+            for i, system in enumerate(th):
+                self.assertTrue(_equal(self.system[i], system, ignore=['mass', 'species']))
+
+    def test_folder(self):
+        import glob
+        with TrajectoryXYZ(os.path.join(self.inpdir, '10.xyz'), 'w') as th:
+            th.timestep = 0.001
+            th.write(self.system[0], 10)
+        with TrajectoryXYZ(os.path.join(self.inpdir, '20.xyz'), 'w') as th:
+            th.timestep = 0.001
+            th.write(self.system[0], 20)
+        with trj.folder.Foldered(self.inpdir, cls='xyz') as th:
+            self.assertEqual(th.times, [0.001*10, 0.001*20])
+            self.assertEqual(th.timestep, 0.001)
+            self.assertEqual(th.steps, [10, 20])
+            for i, system in enumerate(th):
+                self.assertTrue(_equal(self.system[i], system, ignore=['mass']))
 
     def tearDown(self):
         rmf(self.inpfile)

@@ -3,7 +3,7 @@
 import os
 import unittest
 from atooms.simulation import Simulation, write_thermo, write_config, target
-from atooms.core.utils import setup_logging
+from atooms.core.utils import setup_logging, mkdir
 try:
     from atooms.backends.lammps import LAMMPS, Interaction
     SKIP = False
@@ -82,6 +82,49 @@ ITEM: ATOMS id type xs ys zs
         def scale(pos, side):
             return [(x - 0.5) * L/2 for x, L in zip(pos, side)]
         with TrajectoryLAMMPS('/tmp/test_lammps.atom') as th:
+            self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
+            self.assertEqual(list(th[0].particle[0].position), scale([0.20, 0.21, 0.22], [6.0, 6.0, 6.0]))
+            self.assertEqual(list(th[0].particle[1].position), scale([0.10, 0.11, 0.12], [6.0, 6.0, 6.0]))
+            self.assertEqual(list(th[1].cell.side), [8.0, 8.0, 8.0])
+            self.assertEqual(list(th[1].particle[0].position), scale([0.00, 0.01, 0.02], [8.0, 8.0, 8.0]))
+            self.assertEqual(list(th[1].particle[1].position), scale([0.50, 0.51, 0.52], [8.0, 8.0, 8.0]))
+
+    def test_trajectory_folder(self):
+        import sys
+        mkdir('/tmp/test_lammps.d')
+        with open('/tmp/test_lammps.d/0.atom', 'w') as fh:
+            fh.write("""\
+ITEM: TIMESTEP
+10
+ITEM: NUMBER OF ATOMS
+2
+ITEM: BOX BOUNDS pp pp pp
+-3 3
+-3 3
+-3 3
+ITEM: ATOMS id type xs ys zs
+2 1 0.10 0.11 0.12
+1 1 0.20 0.21 0.22
+""")
+        with open('/tmp/test_lammps.d/1.atom', 'w') as fh:
+            fh.write("""\
+ITEM: TIMESTEP
+20
+ITEM: NUMBER OF ATOMS
+2
+ITEM: BOX BOUNDS pp pp pp
+-4 4
+-4 4
+-4 4
+ITEM: ATOMS id type xs ys zs
+1 1 0.00 0.01 0.02
+2 1 0.50 0.51 0.52
+""")
+        from atooms.trajectory import TrajectoryFolderLAMMPS
+        def scale(pos, side):
+            return [(x - 0.5) * L/2 for x, L in zip(pos, side)]
+        with TrajectoryFolderLAMMPS('/tmp/test_lammps.d') as th:
+            self.assertEqual(th.steps, [10, 20])
             self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
             self.assertEqual(list(th[0].particle[0].position), scale([0.20, 0.21, 0.22], [6.0, 6.0, 6.0]))
             self.assertEqual(list(th[0].particle[1].position), scale([0.10, 0.11, 0.12], [6.0, 6.0, 6.0]))

@@ -89,9 +89,15 @@ class Test(unittest.TestCase):
             p.species = 'C'
         from atooms.system.particle import composition, distinct_species
         self.assertEqual(distinct_species(system.particle), ['A', 'B', 'C'])
+        self.assertEqual(system.distinct_species(), ['A', 'B', 'C'])
         self.assertEqual(composition(system.particle)['A'], npart - 30)
         self.assertEqual(composition(system.particle)['B'], 10)
         self.assertEqual(composition(system.particle)['C'], 20)
+
+    def test_packing(self):
+        import math
+        system = copy.copy(self.ref)
+        self.assertAlmostEqual(system.packing_fraction * 6 / math.pi, system.density)
 
     def test_gyration(self):
         from atooms.system.particle import gyration_radius
@@ -127,6 +133,18 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rg1, 0.57735026919)
         self.assertAlmostEqual(rg2, 0.57735026919)
         self.assertAlmostEqual(rg3, 0.57735026919)
+
+    def test_interaction(self):
+        from atooms.interaction import Interaction
+        system = copy.copy(self.ref)
+        self.assertAlmostEqual(system.potential_energy(), 0.0)
+        system.interaction = Interaction([])
+        system.interaction.compute('energy', system.particle, system.cell)
+        system.interaction.compute('forces', system.particle, system.cell)
+        system.interaction.compute('stress', system.particle, system.cell)
+        self.assertAlmostEqual(system.potential_energy(), 0.0)
+        self.assertAlmostEqual(system.potential_energy(normed=True), 0.0)
+        self.assertAlmostEqual(system.total_energy(), system.kinetic_energy())
 
 if __name__ == '__main__':
     unittest.main()
