@@ -423,29 +423,3 @@ class TrajectoryHDF5(TrajectoryBase):
             self._system.interaction.total_stress = group['stress' + csample][:]
 
         return System(p, self._system.cell, self._system.interaction)
-
-    def add_interaction(self, ff):
-
-        """Add interaction from a fortran forcefield file"""
-
-        import os
-
-        pid = os.getpid()
-        f_ref = '/tmp/cnv_%s.h5' % pid
-        # TODO: we can cache a ref file if ff is the same
-        if not os.path.exists(ff):
-            raise IOError('forcefield file does not exist %s' % ff)
-        os.system('system.x -n 2 -f %s %s 1>/dev/null 2>/dev/null' % (ff, f_ref))
-
-        # Add interaction
-        ref = h5py.File(f_ref, 'r')
-        # Make sure interaction does not exist
-        try:
-            del self.trajectory['initialstate/interaction']
-        except:
-            pass
-        self.trajectory.copy(ref['initialstate/interaction'], 'initialstate/interaction')
-
-        # Cleanup
-        ref.close()
-        os.remove(f_ref)
