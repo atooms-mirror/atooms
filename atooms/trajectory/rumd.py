@@ -115,8 +115,8 @@ class SuperTrajectoryRUMD(SuperTrajectory):
         if len(f_all) == 0:
             # Let's try with 00000.xyz.gz lie files
             f_all = glob.glob(inp + '/[0-9]*gz')
-        f_all.sort()
-        # Avoid last block because rumd does not write the last cfg!
-        if len(f_all) > 1:
+        else:
+            # Avoid last block because rumd does not write the last cfg!
             f_all = f_all[:-1]
+        f_all.sort()
         return SuperTrajectory(f_all, TrajectoryRUMD)
