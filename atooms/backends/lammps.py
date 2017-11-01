@@ -88,7 +88,7 @@ class System(system.System):
             try:
                 with trajectory.Trajectory(filename) as t:
                     s = t[0]
-            except:
+            except ValueError:
                 with trajectory.TrajectoryLAMMPS(filename) as t:
                     s = t[0]
 
