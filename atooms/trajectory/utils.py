@@ -11,7 +11,7 @@ def gopen(filename, mode):
     ext = os.path.splitext(filename)[1]
     if ext == '.gz':
         import gzip
-        return gzip.open(filename, mode)
+        return gzip.open(filename, mode + 't')
     elif ext == '.bz2':
         import bz2
         return bz2.BZ2File(filename, mode)
