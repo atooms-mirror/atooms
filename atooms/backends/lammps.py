@@ -35,6 +35,14 @@ def _run_lammps_command(cmd):
 
 class Interaction(interaction.Interaction):
 
+    """
+    Interaction wrapper for LAMMPS.
+
+    For the time being, it assumes `self.potential` is a string
+    containing appropriate lammps commands that define the
+    interaction.
+    """
+
     # TODO: assign interaction to system based on pair_style entries in cmd
 
     def compute(self, observable, particle, cell):
@@ -74,11 +82,13 @@ run 0
 
 class System(system.System):
 
+    """System wrapper for LAMMPS."""
+
     def __init__(self, filename, commands):
         """
-        The input trajectory file `filename` can be any trajectory format
-        recognized by atooms. Lammps `commands` are passed as a string
-        and should not contain dump and run commands.
+        The input file `filename` must be in LAMMPS format or match a
+        trajectory format recognized by atooms. LAMMPS `commands` must
+        be a string and should not contain dump or run commands.
         """
         self._filename = filename
         self._commands = commands
@@ -109,9 +119,9 @@ class LAMMPS(object):
 
     def __init__(self, fileinp, commands):
         """
-        The input trajectory file `fileinp` can be any trajectory format
-        recognized by atooms. Lammps `commands` are passed as a string
-        and should not contain dump and run commands.
+        The input file `filename` must be in LAMMPS format or match a
+        trajectory format recognized by atooms. LAMMPS `commands` must
+        be a string and should not contain dump or run commands.
         """
         self.fileinp = fileinp
         self.commands = commands

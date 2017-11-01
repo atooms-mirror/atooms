@@ -154,6 +154,8 @@ class Thermostat(object):
 
 class System(object):
 
+    """System wrapper for RUMD."""
+
     def __init__(self, sample):
         self.sample = sample
         self.thermostat = Thermostat(self.sample.GetIntegrator())
