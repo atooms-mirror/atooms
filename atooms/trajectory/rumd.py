@@ -76,7 +76,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
             for i, p in enumerate(system.particle):
                 if p.species == species:
                     return i
-            raise ValueError('no species %d found in system' % isp)
+            raise ValueError('no species %d found in system' % species)
 
         sp = distinct_species(system.particle)
         mass = [system.particle[first_of_species(system, isp)].mass for isp in sp]
@@ -107,7 +107,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
 class SuperTrajectoryRUMD(SuperTrajectory):
 
-    def __new__(self, inp, mode='r', basename='trajectory'):
+    def __new__(cls, inp, mode='r', basename='trajectory'):
         """ Takes a directory as input and get all block*gz files in there """
         if not os.path.isdir(inp):
             raise IOError("We expected this to be a dir (%s)" % inp)
