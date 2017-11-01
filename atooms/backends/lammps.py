@@ -7,10 +7,12 @@ Minimal simulation backend for LAMMPS (http://lammps.sandia.gov).
 
 import os
 import subprocess
+import tempfile
 from atooms import trajectory
 from atooms import system
 from atooms import interaction
 from atooms.trajectory import TrajectoryLAMMPS
+from atooms.core.utils import rmd
 
 try:
     _ = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT)
@@ -37,14 +39,12 @@ class Interaction(interaction.Interaction):
 
     def compute(self, observable, particle, cell):
         # We use self.potential as lammps commands
-
-        # TODO: remove hard coded paths
-        file_tmp = '/tmp/out.atom'
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, 'lammps.atom')
+        file_inp = os.path.join(dirout, 'lammps.atom.inp')
         # Update lammps startup file using self.system
         # This will write the .inp startup file
-        file_inp = file_tmp + '.inp'
         with TrajectoryLAMMPS(file_tmp, 'w') as th:
-            # th.write(self.system, 0)
             th.write(system.System(particle, cell), 0)
 
         # Do things in lammps order: units, read, commands, run. A
@@ -67,6 +67,9 @@ run 0
             elif found:
                 self.energy = float(line.split()[2])
                 break
+
+        # Clean up
+        rmd(dirout)
 
 
 class System(system.System):
@@ -133,11 +136,11 @@ class LAMMPS(object):
         pass
 
     def run(self, steps):
-        # TODO: remove hard coded paths
-        file_tmp = '/tmp/out.atom'
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, 'lammps.atom')
+        file_inp = os.path.join(dirout, 'lammps.atom.inp')
         # Update lammps startup file using self.system
         # This will write the .inp startup file
-        file_inp = file_tmp + '.inp'
         with TrajectoryLAMMPS(file_tmp, 'w') as th:
             th.write(self.system, 0)
 
@@ -160,3 +163,6 @@ write_dump all custom %s id type x y z vx vy vz modify sort id
 
         # Update internal reference to self.system
         self.system = System(file_tmp, self.commands)
+
+        # Clean up
+        rmd(dirout)
