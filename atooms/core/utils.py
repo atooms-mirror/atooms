@@ -72,7 +72,7 @@ def mkdir(dirname):
     """
     Create a directory `dirname` or a list `dirname` of directories,
     silently ignoring existing directories.
-    
+
     This is just a wrapper to `os.makedirs`. All intermediate
     subdirectories are created as needed.
     """
