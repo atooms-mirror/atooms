@@ -3,7 +3,7 @@
 import os
 import unittest
 from atooms.simulation import Simulation, write_thermo, write_config, target
-from atooms.core.utils import setup_logging, mkdir
+from atooms.core.utils import setup_logging, mkdir, rmd, rmf
 try:
     from atooms.backends.lammps import LAMMPS, Interaction
     SKIP = False
@@ -133,7 +133,8 @@ ITEM: ATOMS id type xs ys zs
             self.assertEqual(list(th[1].particle[1].position), scale([0.50, 0.51, 0.52], [8.0, 8.0, 8.0]))
 
     def tearDown(self):
-        pass
+        rmd('/tmp/test_lammps.d')
+        rmf('/tmp/test_lammps*')
 
 
 if __name__ == '__main__':
