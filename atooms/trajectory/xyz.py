@@ -287,7 +287,7 @@ class TrajectoryXYZ(TrajectoryBase):
         self.trajectory.seek(0)
         while True:
             line = self.trajectory.tell()
-            data = self.trajectory.readline().strip()
+            data = self.trajectory.readline()
 
             # We break if file is over or we found an empty line
             if not data:
@@ -383,7 +383,6 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def read_sample(self, frame):
         meta = self._read_metadata(frame)
-
         # Redefine fields
         if 'columns' in meta:
             # Use columns as fields if they are found in the header
@@ -405,6 +404,8 @@ class TrajectoryXYZ(TrajectoryBase):
             # cropping lists all the time
             data = self.trajectory.readline().split()
             for key in fields:
+                # This block below takes ~50% of the time
+                # ------
                 # If the key is associated to a explicit callback, go
                 # for it. Otherwise we throw the field in an particle
                 # attribute named key.
@@ -413,6 +414,8 @@ class TrajectoryXYZ(TrajectoryBase):
                 else:
                     p.__dict__[key] = tipify(data[0])
                     data = data[1:]
+                # ------
+                #
             particle.append(p)
 
         # Fix the masses.
