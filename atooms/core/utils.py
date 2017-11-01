@@ -26,9 +26,9 @@ except ImportError:
 
 
 def log_to_stderr(level=None):
-    '''
+    """
     Turn on logging and add a handler which prints to stderr
-    '''
+    """
     logger = logging.getLogger(LOGGER_NAME)
     formatter = logging.Formatter(DEFAULT_LOGGING_FORMAT)
     handler = logging.StreamHandler()
@@ -61,28 +61,37 @@ except:
 
 
 def barrier():
+    """Syncronize processes in parallel."""
     if size > 1:
         comm.barrier()
 
 
 # Utility functions to mimic bash directory / file handling
 
-def mkdir(d):
-    if d is None:
+def mkdir(dirname):
+    """
+    Create a directory `dirname` or a list `dirname` of directories,
+    silently ignoring existing directories.
+    
+    This is just a wrapper to `os.makedirs`. All intermediate
+    subdirectories are created as needed.
+    """
+    if dirname is None:
         return
-    if isinstance(d, str):
-        dirs = [d]
+    if isinstance(dirname, str):
+        dirs = [dirname]
     else:
-        dirs = d
+        dirs = dirname
 
     for dd in dirs:
         try:
             os.makedirs(dd)
-        except:
+        except OSError:
             pass
 
 
 def rmd(files):
+    """Totally silent wrapper to shutil.rmtree."""
     try:
         shutil.rmtree(files)
     except:
@@ -116,12 +125,15 @@ def rmf(files):
 
 
 def cp(finp, fout):
-    # Avoid erasing file
+    """
+    Copy `finp` to `fout`.
+
+    Wrapper to shutil.copy().
+    """
+    # Avoid overwriting file
     if finp == fout:
         return
-    with open(finp) as fh:
-        with open(fout, 'w') as fh_out:
-            fh_out.write(fh.read())
+    shutil.copy(finp, fout)
 
 
 # Timings
@@ -215,7 +227,7 @@ def add_first_last_skip(parser, what=None):
 
 # Logging facilities
 
-class ParallelFilter(logging.Filter):
+class _ParallelFilter(logging.Filter):
     def filter(self, rec):
         if hasattr(rec, 'rank'):
             if rec.rank == 'all':
@@ -226,7 +238,7 @@ class ParallelFilter(logging.Filter):
             return rank == 0
 
 
-class MyFormatter(logging.Formatter):
+class _MyFormatter(logging.Formatter):
     def format(self, record):
         if record.levelname in ['WARNING', 'ERROR']:
             return '# ' + record.levelname + ' ' + record.msg % record.args
@@ -240,7 +252,7 @@ def setup_logging(name=None, level=40):
         log = logging.getLogger()
     else:
         log = logging.getLogger(name)
-    formatter = MyFormatter()
+    formatter = _MyFormatter()
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
     # From the doc: "Note that filters attached to handlers are
@@ -251,7 +263,7 @@ def setup_logging(name=None, level=40):
     # descendant loggers will not be filtered by a logger filter
     # setting, unless the filter has also been applied to those
     # descendant loggers."
-    handler.addFilter(ParallelFilter())
+    handler.addFilter(_ParallelFilter())
     log.addHandler(handler)
     log.setLevel(level)
     return log
