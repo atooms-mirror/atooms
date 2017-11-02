@@ -220,14 +220,14 @@ class TrajectoryXYZ(TrajectoryBase):
     """
 
     suffix = 'xyz'
-    _cbk = {'species': _update_species,
-            'type': _update_species,  # alias
-            'name': _update_species,  # alias
-            'id': _update_species,  # alias
-            'tag': _update_tag,
-            'radius': _update_radius,
-            'pos': _update_position,
-            'vel': _update_velocity}
+    callback_read = {'species': _update_species,
+                     'type': _update_species,  # alias
+                     'name': _update_species,  # alias
+                     'id': _update_species,  # alias
+                     'tag': _update_tag,
+                     'radius': _update_radius,
+                     'pos': _update_position,
+                     'vel': _update_velocity}
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
         TrajectoryBase.__init__(self, filename, mode)
@@ -405,17 +405,16 @@ class TrajectoryXYZ(TrajectoryBase):
             data = self.trajectory.readline().split()
             for key in fields:
                 # This block below takes ~50% of the time
-                # ------
+                # --
                 # If the key is associated to a explicit callback, go
                 # for it. Otherwise we throw the field in an particle
                 # attribute named key.
-                if key in self._cbk:
-                    data = self._cbk[key](p, data, meta)
+                if key in self.callback_read:
+                    data = self.callback_read[key](p, data, meta)
                 else:
                     p.__dict__[key] = tipify(data[0])
                     data = data[1:]
-                # ------
-                #
+                # --
             particle.append(p)
 
         # Fix the masses.
