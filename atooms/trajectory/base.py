@@ -197,6 +197,8 @@ class TrajectoryBase(object):
         if self._timestep is None:
             if self.mode == 'r':
                 self._timestep = self.read_timestep()
+            else:
+                self._timestep = 1.0
         return self._timestep
 
     @timestep.setter
