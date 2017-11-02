@@ -1,6 +1,10 @@
 Atooms
 ======
 
+[![pypi](https://img.shields.io/pypi/v/atooms.svg)]()
+[![version](https://img.shields.io/pypi/pyversions/atooms.svg)]()
+[![license](https://img.shields.io/badge/license-GPL3-lightgrey.svg)]()
+
 <p align="left">
     <a href="https://pypi.python.org/pypi/atooms">
         <img src="https://img.shields.io/pypi/v/atooms.svg" alt="pypiv">
@@ -9,16 +13,16 @@ Atooms
         <img src="https://img.shields.io/pypi/pyversions/atooms.svg" alt="pyv">
     </a>
     <a href="https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms/raw/master/LICENSE">
-        <img src="https://img.shields.io/badge/license-GPL3-blue.svg" alt="License">
+        <img src="https://img.shields.io/badge/license-GPL3-lightgrey.svg" alt="License">
     </a>
 </p>
 
-`atooms` is a python framework for classical simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
+atooms is a python framework for classical simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
 
-The goal of `atooms` is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
+The goal of atooms is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
 The simulation data are stored in trajectory files, whose format usually depends on the code that produced the simulation.
 
 In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format). Accessing the coordinates of the particles in a trajectory file goes like this:
@@ -31,7 +35,7 @@ with Trajectory('input.xyz') as trajectory:
 ```
 Note that trajectories support iteration and slicing, just like lists.
 
-Here we pick the last frame of the trajectory, change the density of the system to `rho` and write this new configuration using a different trajectory format. We use a format suitable for the [RUMD](http://rumd.org) simulation package:
+Here we pick the last frame of the trajectory, change the density of the system to some new value `rho` and write this new configuration using a different trajectory format. We use a format suitable for the [RUMD](http://rumd.org) simulation package:
 ```python
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
