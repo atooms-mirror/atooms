@@ -249,11 +249,14 @@ def dump(trajectory, what='pos'):
     return data
 
 
-def field(trajectory, trajectory_field, x_field, frame):
+def field(trajectory, trajectory_field, field_name, frame, x_field=None):
     """
-    Return the field specified by particle attribute `x_field` at a
+    Return the field specified by particle attribute `field_name` at a
     given `frame`.
     """
+    if x_field is not None:
+        raise DeprecationWarning('use field_name instead of x_field')
+        field_name = x_field
     step = trajectory.steps[frame]
     try:
         index_field = trajectory_field.steps.index(step)
@@ -261,7 +264,7 @@ def field(trajectory, trajectory_field, x_field, frame):
         return None
     x = []
     for pi in trajectory_field[index_field].particle:
-        fi = getattr(pi, x_field)
+        fi = getattr(pi, field_name)
         x.append(fi)
     return x
 
