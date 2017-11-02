@@ -195,7 +195,8 @@ class TrajectoryBase(object):
     @property
     def timestep(self):
         if self._timestep is None:
-            self._timestep = self.read_timestep()
+            if self.mode == 'r':
+                self._timestep = self.read_timestep()
         return self._timestep
 
     @timestep.setter
