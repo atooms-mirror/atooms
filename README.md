@@ -3,19 +3,7 @@ Atooms
 
 [![pypi](https://img.shields.io/pypi/v/atooms.svg)]()
 [![version](https://img.shields.io/pypi/pyversions/atooms.svg)]()
-[![license](https://img.shields.io/badge/license-GPL3-lightgrey.svg)]()
-
-<p align="left">
-    <a href="https://pypi.python.org/pypi/atooms">
-        <img src="https://img.shields.io/pypi/v/atooms.svg" alt="pypiv">
-    </a>
-    <a href="https://pypi.python.org/pypi/atooms">
-        <img src="https://img.shields.io/pypi/pyversions/atooms.svg" alt="pyv">
-    </a>
-    <a href="https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms/raw/master/LICENSE">
-        <img src="https://img.shields.io/badge/license-GPL3-lightgrey.svg" alt="License">
-    </a>
-</p>
+[![license](https://img.shields.io/pypi/l/atooms.svg)]()
 
 atooms is a python framework for classical simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
 
