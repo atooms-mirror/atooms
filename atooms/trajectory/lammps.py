@@ -111,11 +111,12 @@ class TrajectoryLAMMPS(TrajectoryBase):
         self._fh.seek(idx)
         self._fh.readline()
         ndim = len(data.split())  # line is ITEM: BOX BONDS pp pp pp
-        L, offset = [], []
+        L, center = [], []
         for i in range(ndim):
             data = [float(x) for x in self._fh.readline().split()]
             L.append(data[1] - data[0])
-        cell = Cell(numpy.array(L))
+            center.append((data[1] + data[0]) / 2)
+        cell = Cell(numpy.array(L), center=numpy.array(center))
 
         # Read atoms data
         idx, data = self._index_db['ATOMS'][frame]

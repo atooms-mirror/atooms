@@ -4,22 +4,29 @@
 """Simulation cell."""
 
 import numpy
+from warnings import DeprecationWarning
 from atooms.core import ndim as _ndim
 
 
 class Cell(object):
 
-    def __init__(self, side=None, origin=None):
+    def __init__(self, side=None, center=None):
         if side is None:
             self.side = numpy.zeros(_ndim)
         else:
             self.side = numpy.asarray(side, dtype=numpy.float64)
-        if origin is None:
-            self.origin = numpy.zeros(_ndim)
+        # By default, the center is at the origin of the reference frame
+        if center is None:
+            self.center = numpy.zeros(_ndim)
         else:
-            self.origin = numpy.asarray(side, dtype=numpy.float64)          
+            self.center = numpy.asarray(center, dtype=numpy.float64)
         self.shape = 'cubic'
 
     @property
     def volume(self):
         return numpy.prod(self.side)
+
+    @property
+    def origin(self):
+        raise DeprecationWarning('cell origin is deprecated')
+        return numpy.zeros(_ndim)

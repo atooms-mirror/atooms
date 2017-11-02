@@ -86,7 +86,13 @@ class Particle(object):
 
     def fold(self, cell):
         """Fold self into central cell."""
+
+        # Move the center to 0
+        self.position -= cell.center
         self.position = _periodic_vector_unfolded(self.position, cell.side)
+
+        # Restore the center
+        self.position += cell.center
         return self
 
     def maxwellian(self, T):
@@ -343,7 +349,7 @@ def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
     """
     import matplotlib.pyplot as plt
     from .particle import distinct_species
-    
+
     color_db = ['b', 'r', 'g', 'y']
     species = distinct_species(particle)
     fig = plt.figure()
