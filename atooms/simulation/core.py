@@ -50,6 +50,16 @@ def _report(info, file_handle=None, log_echo=True):
         file_handle.write(info)
 
 
+def _callable_name(callback):
+    try:
+        # This is a function
+        name = callback.__name__
+    except AttributeError:
+        # This is callable class
+        name = callback.__class__.__name__
+    return name.lower()
+
+
 class Simulation(object):
 
     """Simulation base class."""
@@ -91,8 +101,7 @@ class Simulation(object):
         self._cbk_params = {}  # hold scheduler and parameters of callbacks
         if enable_speedometer:
             self._speedometer = Speedometer()
-            self.add(self._speedometer, Scheduler(None, calls=20,
-                                                  target=self.steps))
+            self.add(self._speedometer, Scheduler(self.steps, calls=20))
 
     @property
     def system(self):
@@ -149,7 +158,7 @@ class Simulation(object):
                                       'kwargs': kwargs}
 
         # Keep targeters last
-        if 'target' not in callback.__name__.lower():
+        if 'target' not in _callable_name(callback):
             self._callback.insert(0, callback)
         else:
             self._callback.append(callback)
@@ -171,11 +180,11 @@ class Simulation(object):
 
     @property
     def _targeters(self):
-        return [o for o in self._callback if 'target' in o.__name__.lower()]
+        return [o for o in self._callback if 'target' in _callable_name(o)]
 
     @property
     def _non_targeters(self):
-        return [o for o in self._callback if 'target' not in o.__name__.lower()]
+        return [o for o in self._callback if 'target' not in _callable_name(o)]
 
     @property
     def _speedometers(self):
@@ -342,12 +351,12 @@ class Simulation(object):
         for f in self._callback:
             params = self._cbk_params[f]
             s = params['scheduler']
-            if 'target' in f.__name__.lower():
+            if 'target' in _callable_name(f):
                 args = params['args']
-                txt.append('target %s: %s' % (f.__name__, args[0]))
+                txt.append('target %s: %s' % (_callable_name(f), args[0]))
             else:
                 txt.append('writer %s: interval=%s calls=%s' %
-                           (f.__name__, s.interval, s.calls))
+                           (_callable_name(f), s.interval, s.calls))
         return '\n'.join(txt)
 
     def _info_end(self):
