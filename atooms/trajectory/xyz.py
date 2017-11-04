@@ -421,11 +421,8 @@ class TrajectoryXYZ(TrajectoryBase):
         # We assume masses read from the header are sorted by species name.
         # The mass metadata must be adjusted to the given frame.
         if 'mass' in meta:
-            species = distinct_species(particle)
-            if len(species) == 1:
-                for p in particle:
-                    p.mass = float(meta['mass'])
-            else:
+            if isinstance(meta['mass'], list) or isinstance(meta['mass'], tuple):
+                species = distinct_species(particle)
                 # We must have as many mass entries as species
                 if len(species) != len(meta['mass']):
                     raise ValueError('mass metadata issue %s, %s' %
@@ -435,6 +432,9 @@ class TrajectoryXYZ(TrajectoryBase):
                     db[key] = value
                 for p in particle:
                     p.mass = float(db[p.species])
+            else:
+                for p in particle:
+                    p.mass = float(meta['mass'])
 
         # Check if we have a cell
         try:
@@ -489,36 +489,25 @@ class TrajectoryXYZ(TrajectoryBase):
         self.trajectory.close()
 
 
+def _update_neighbors_consume(particle, data, meta):
+    # Consume all entries in data
+    particle.neighbors = numpy.array(data, dtype=int)
+    return []
+
+def _update_neighbors(particle, data, meta):
+    # Extract comma separated entries in the first element of data
+    particle.neighbors = numpy.array(data[0].split(','), dtype=int)
+    return data[1:]
+
+
 class TrajectoryNeighbors(TrajectoryXYZ):
 
     """Neighbors trajectory."""
 
-    def __init__(self, filename, mode='r', offset=1):
-        super(TrajectoryNeighbors, self).__init__(filename, mode=mode, alias={'time': 'step'})
-        # TODO: determine minimum value of index automatically
-        self._offset = offset  # neighbors produced by voronoi are indexed from 1
-        self._netwon3 = False
-        self._netwon3_message = False
-
-    def read_sample(self, frame):
-        meta = self._read_metadata(frame)
-        self.trajectory.seek(self._index_frame[frame])
-        s = System()
-        s.neighbors = []
-        for _ in range(meta['npart']):
-            data = self.trajectory.readline().split()
-            neigh = numpy.array(data, dtype=int)
-            s.neighbors.append(neigh-self._offset)
-
-        # Ensure III law Newton.
-        # If this is ok on first frame we skip it for the next ones
-        # if not self._netwon3:
-        #     self._netwon3 = True
-        #     for i, ilist in enumerate(p):
-        #         for j in ilist:
-        #             if not i in p[j]:
-        #                 p[j].append(i)
-        #                 self._netwon3 = False
-        #     if not self._netwon3 and not self._netwon3_message:
-        #         print 'Warning: enforcing 3rd law of Newton...'
-        return s
+    def __init__(self, filename, mode='r', fields=None):
+        super(TrajectoryNeighbors, self).__init__(filename, mode=mode,
+                                                  alias={'time':
+                                                         'step'})
+        self.fields = ['neighbors*'] if fields is None else fields
+        self.callback_read = {'neighbors': _update_neighbors,
+                              'neighbors*': _update_neighbors_consume}

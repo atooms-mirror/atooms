@@ -193,10 +193,10 @@ B 2.9 -2.9 0.0
         with open(finp, 'w') as fh:
             fh.write("""\
 3
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
-B 1.0 -1.0 0.0
-A 2.9 -2.9 0.0
-C 2.9 -2.9 0.0
+metafmt:space,comma columns:id,x,y,z,radius mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
+B 1.0 -1.0 0.0 0.5
+A 2.9 -2.9 0.0 0.6
+C 2.9 -2.9 0.0 0.7
 3
 metafmt:space,comma columns:id,x,y,z mass:2.0,3.0 step:1 cell:5.0,5.0,5.0 
 C 1.0 -1.0 0.0
@@ -204,12 +204,42 @@ B 2.9 -2.9 0.0
 B 2.9 -2.9 0.0
 """)
         with self.Trajectory(finp) as th:
+            self.assertEqual(th[0].particle[0].radius, 0.5)
+            self.assertEqual(th[0].particle[1].radius, 0.6)
+            self.assertEqual(th[0].particle[2].radius, 0.7)
             self.assertEqual(th[0].particle[0].mass, 2.0)
             self.assertEqual(th[0].particle[1].mass, 1.0)
             self.assertEqual(th[0].particle[2].mass, 3.0)
             self.assertEqual(th[1].particle[0].mass, 3.0)
             self.assertEqual(th[1].particle[1].mass, 2.0)
             self.assertEqual(th[1].particle[2].mass, 2.0)
+
+        # This is ok
+        with open(finp, 'w') as fh:
+            fh.write("""\
+3
+columns:id,x,y,z mass:2 step:1
+B 1.0 -1.0 0.0
+A 2.9 -2.9 0.0
+C 2.9 -2.9 0.0
+""")
+        with self.Trajectory(finp) as th:
+            self.assertEqual(th[0].particle[0].mass, 2.0)
+            self.assertEqual(th[0].particle[1].mass, 2.0)
+            self.assertEqual(th[0].particle[2].mass, 2.0)
+
+        # This is not ok, mass / species mismatch
+        with open(finp, 'w') as fh:
+            fh.write("""\
+3
+columns:id,x,y,z mass:1,2 step:1
+B 1.0 -1.0 0.0
+A 2.9 -2.9 0.0
+C 2.9 -2.9 0.0
+""")
+        with self.Trajectory(finp) as th:
+            with self.assertRaises(ValueError):
+                th[0]
 
     def test_xyz_columns(self):
         finp = '/tmp/test_xyz/columns.xyz'
@@ -243,6 +273,55 @@ A 1.0 -1.0 0.0
 """)
         with TrajectoryXYZ(finp) as th:
             self.assertEqual([s.cell.side[0] for s in th], [1.0, 2.0, 1.0, 3.0])
+
+    def tearDown(self):
+        from atooms.core.utils import rmd
+        rmd('/tmp/test_xyz')
+
+
+from atooms.trajectory.xyz import TrajectoryNeighbors
+
+class TestNeighbors(unittest.TestCase):
+
+    Trajectory = TrajectoryNeighbors
+
+    def setUp(self):
+        mkdir('/tmp/test_xyz')
+
+    def test_neighbors_consume(self):
+        with open('/tmp/test_xyz/neighbors.xyz', 'w') as fh:
+            fh.write("""\
+4
+step:1
+2 4
+1 3
+2 
+1
+""")
+        with TrajectoryNeighbors('/tmp/test_xyz/neighbors.xyz') as th:
+            s = th[0]
+            self.assertEqual(list(s.particle[0].neighbors), [2, 4])
+            self.assertEqual(list(s.particle[1].neighbors), [1, 3])
+            self.assertEqual(list(s.particle[2].neighbors), [2])
+            self.assertEqual(list(s.particle[3].neighbors), [1])
+
+    def test_neighbors_comma(self):
+        with open('/tmp/test_xyz/neighbors.xyz', 'w') as fh:
+            fh.write("""\
+4
+step:1 columns:neighbors timestep:0.001
+2,4
+1,3
+2
+1
+""")
+        with TrajectoryNeighbors('/tmp/test_xyz/neighbors.xyz') as th:
+            s = th[0]
+            self.assertEqual(th.timestep, 0.001)
+            self.assertEqual(list(s.particle[0].neighbors), [2, 4])
+            self.assertEqual(list(s.particle[1].neighbors), [1, 3])
+            self.assertEqual(list(s.particle[2].neighbors), [2])
+            self.assertEqual(list(s.particle[3].neighbors), [1])
 
     def tearDown(self):
         from atooms.core.utils import rmd
