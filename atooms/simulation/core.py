@@ -27,7 +27,7 @@ import logging
 
 from atooms.core import __version__
 from atooms.core.utils import mkdir, barrier
-from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
+from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, WallTimeLimit
 
 _log = logging.getLogger(__name__)
 
@@ -314,7 +314,7 @@ class Simulation(object):
                 if self.current_step == next_checkpoint:
                     self.write_checkpoint()
 
-        except SimulationEnd:
+        except (SimulationEnd, WallTimeLimit):
             # Checkpoint configuration at last step
             self.write_checkpoint()
             _report(self._info_end())

@@ -50,10 +50,10 @@ class Test(unittest.TestCase):
             s = Simulation(DryRun(), output_path=f, enable_speedometer=False, steps=100)
             s.add(write, Scheduler(20), 'output', ['system.particle.position'])
             s.run()
-            setup_logging(level=40)
 
         # Test generic writer and write_config
-        s = Simulation(DryRun(), output_path=f, enable_speedometer=False, steps=100)
+        setup_logging(level=40)
+        s = Simulation(DryRun(), output_path=f, enable_speedometer=True, steps=100)
         s.trajectory = TrajectoryXYZ
         s.add(write_config, Scheduler(20))
         s.add(write, Scheduler(20), 'output', ['current_step',
