@@ -80,7 +80,7 @@ class Test(unittest.TestCase):
         s = Simulation(DryRun(), output_path=f, steps=1000000000)
         s.add(target_walltime, Scheduler(20), 1.)
         s.run()
-        self.assertTrue(s.wall_time > 1.)
+        self.assertTrue(s.wall_time() > 1.)
 
     def test_target_restart_fake(self):
         f = '/tmp/test_simulation/restart/trajectory'
