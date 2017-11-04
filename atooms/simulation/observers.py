@@ -39,6 +39,7 @@ import shutil
 import time
 import datetime
 import logging
+from atooms.core.utils import rmd, rmf
 
 __all__ = ['SimulationEnd', 'WallTimeLimit', 'Scheduler',
            'write_config', 'write_thermo', 'write', 'target',
@@ -144,11 +145,8 @@ def write_config(sim):
     """
     if sim.current_step == 0:
         # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
-        # TODO: refactor as rm()
-        if os.path.isdir(sim.output_path):
-            shutil.rmtree(sim.output_path)
-        elif os.path.isfile(sim.output_path):
-            os.remove(sim.output_path)
+        rmd(sim.output_path)
+        rmf(sim.output_path)
 
     with sim.trajectory(sim.output_path, 'a') as t:
         t.write(sim.system, sim.current_step)
