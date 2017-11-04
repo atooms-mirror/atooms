@@ -3,7 +3,7 @@
 import unittest
 import logging
 import numpy
-from atooms.simulation import Simulation, Scheduler, write_thermo
+from atooms.simulation import Simulation, Scheduler, write_thermo, write_config, target_rmsd, write
 from atooms.backends.dryrun import DryRun
 from atooms.core.utils import setup_logging, rmd
 
@@ -38,6 +38,49 @@ class Test(unittest.TestCase):
         s.run(200)
         data = numpy.loadtxt(f + '.thermo', unpack=True)
         self.assertEqual(int(data[0][-1]), 200)
+
+    def test_config(self):
+        from atooms.trajectory import TrajectoryXYZ
+        f = '/tmp/test_simulation/config/trajectory.xyz'
+
+        # We do not accept too deep introspection
+        with self.assertRaises(ValueError):
+            # Mute errors temporarily
+            setup_logging(level=50)
+            s = Simulation(DryRun(), output_path=f, enable_speedometer=False, steps=100)
+            s.add(write, Scheduler(20), 'output', ['system.particle.position'])
+            s.run()
+            setup_logging(level=40)
+
+        # Test generic writer and write_config
+        s = Simulation(DryRun(), output_path=f, enable_speedometer=False, steps=100)
+        s.trajectory = TrajectoryXYZ
+        s.add(write_config, Scheduler(20))
+        s.add(write, Scheduler(20), 'output', ['current_step',
+                                               'system.cell'])
+        s.run()
+        import os
+        self.assertTrue(os.path.exists(f))
+        self.assertTrue(os.path.exists(f + '.output'))
+
+    def test_target_rmsd(self):
+        f = '/tmp/test_simulation/config/trajectory'
+        with self.assertRaises(IndexError):
+            s = Simulation(DryRun(), output_path=f, steps=100)
+            s.add(target_rmsd, Scheduler(20))
+            s.run()
+        s = Simulation(DryRun(), output_path=f, steps=100)
+        s.add(target_rmsd, Scheduler(20), 1.0)
+        s.run()
+
+    def test_target_walltime(self):
+        """Check that walltime targeting works."""
+        from atooms.simulation.observers import target_walltime
+        f = '/tmp/test_simulation/config/trajectory'
+        s = Simulation(DryRun(), output_path=f, steps=1000000000)
+        s.add(target_walltime, Scheduler(20), 1.)
+        s.run()
+        self.assertTrue(s.wall_time > 1.)
 
     def test_target_restart_fake(self):
         f = '/tmp/test_simulation/restart/trajectory'
