@@ -182,7 +182,7 @@ class TrajectoryBase(object):
     @property
     def steps(self):
         if self._steps is None:
-            if self.mode == 'r':
+            if 'r' in self.mode:
                 self._steps = self.read_steps()
             else:
                 self._steps = []
