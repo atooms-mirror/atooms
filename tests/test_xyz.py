@@ -298,7 +298,7 @@ step:1
 2 
 1
 """)
-        with TrajectoryNeighbors('/tmp/test_xyz/neighbors.xyz') as th:
+        with TrajectoryNeighbors('/tmp/test_xyz/neighbors.xyz', offset=0) as th:
             s = th[0]
             self.assertEqual(list(s.particle[0].neighbors), [2, 4])
             self.assertEqual(list(s.particle[1].neighbors), [1, 3])
@@ -315,7 +315,7 @@ step:1 columns:neighbors timestep:0.001
 2
 1
 """)
-        with TrajectoryNeighbors('/tmp/test_xyz/neighbors.xyz') as th:
+        with TrajectoryNeighbors('/tmp/test_xyz/neighbors.xyz', offset=0) as th:
             s = th[0]
             self.assertEqual(th.timestep, 0.001)
             self.assertEqual(list(s.particle[0].neighbors), [2, 4])

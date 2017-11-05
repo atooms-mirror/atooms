@@ -351,15 +351,23 @@ def _update_neighbors(particle, data, meta):
     particle.neighbors = numpy.array(data[0].split(','), dtype=int)
     return data[1:]
 
+def _add_neighbors_to_system(system, offset):
+    for p in system.particle:
+        p.neighbors -= offset
+    system.neighbors = [p.neighbors for p in system.particle]
+    return system
+
 
 class TrajectoryNeighbors(TrajectoryXYZ):
 
     """Neighbors trajectory."""
 
-    def __init__(self, filename, mode='r', fields=None):
+    def __init__(self, filename, mode='r', fields=None, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename, mode=mode,
                                                   alias={'time':
                                                          'step'})
+        self._offset = offset
         self.fields = ['neighbors*'] if fields is None else fields
         self.callback_read = {'neighbors': _update_neighbors,
                               'neighbors*': _update_neighbors_consume}
+        self.add_callback(_add_neighbors_to_system, self._offset)
