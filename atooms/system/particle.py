@@ -31,16 +31,24 @@ class Particle(object):
         """Particle diameter."""
         return self.radius * 2
 
-    def nearest_image(self, particle, cell, copy=False):
+    def nearest_image(self, particle, cell, copy=False, folded=False):
         """
         Return the nearest image of `particle` in the given `cell`.
 
         If `copy` is `False`, the particle is transformed into to its
         nearest image, otherwise the fucction returns a copy of the
         nearest image particle and leave the original particle as is.
+
+        If `folded` is True, the coordinates are assumed to be folded
+        into the central cell (or in a cell just next to it),
+        otherwise they will be assumed to lie in an arbitrary periodic
+        cell.
         """
         rij = self.position - particle.position
-        _periodic_vector(rij, cell.side)
+        if folded:
+            rij = _periodic_vector(rij, cell.side)
+        else:
+            rij = _periodic_vector_unfolded(rij, cell.side)
         if copy:
             image = deepcopy(self)
             image.position = particle.position + rij
@@ -200,6 +208,7 @@ def rotate(particle, cell):
     theta = math.acos(numpy.dot(pr_axis, z_axis) / (norm2(pr_axis) * norm2(z_axis))**0.5)
     for pi in p:
         pi.position = numpy.dot(rotation(ro_axis, theta), pi.position)
+    return p
 
 
 def overlaps(particle, cell):
