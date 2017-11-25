@@ -195,15 +195,21 @@ class Simulation(object):
         if self.output_path is not None:
             with open(self.output_path + '.chk.step', 'w') as fh:
                 fh.write('%d' % self.current_step)
-        # Do not use try/except to avoid catching wrong exceptions
+
         if hasattr(self.backend, 'write_checkpoint'):
-            self.backend.write_checkpoint()
+            # Use native backend checkpoint method
+            self.backend.write_checkpoint(self.output_path)
+        else:
+            # Fallback to backend trajectory class with high precision
+            with self.trajectory(self.output_path + '.chk', 'w') as t:
+                t.precision = 12
+                t.write(self.system, 0)
 
     def read_checkpoint(self):
         """
         Read the checkpoint to restart a simulation.
 
-        If the checkpoint file is not found, this method fails
+        If the checkpoint file is not found, this method exits
         gracefully.
         """
         if self.output_path is not None:
@@ -213,9 +219,14 @@ class Simulation(object):
             else:
                 _log.debug('could not find checkpoint')
 
-        # Do not use try/except to avoid catching wrong exceptions
         if hasattr(self.backend, 'read_checkpoint'):
+            # Use native backend checkpoint method
             self.backend.read_checkpoint()
+        else:
+            # Fallback to backend trajectory class with high precision
+            if os.path.exists(self.output_path + '.chk'):
+                with self.trajectory(self.output_path + '.chk') as t:
+                    self.system = t[0]
 
     @property
     def rmsd(self):
