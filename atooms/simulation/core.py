@@ -307,6 +307,7 @@ class Simulation(object):
             else:
                 self._notify(self._speedometers)
             _log.info('starting at step: %d', self.current_step)
+            _log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
@@ -373,12 +374,12 @@ class Simulation(object):
     def _info_end(self):
         now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
         txt = """
-        simulation ended on: {}
         final steps: {}
-        final rmsd: {:.2f}\
+        final rmsd: {:.2f}
         wall time [s]: {:.1f}
-        average TSP [s/step/particle]: {:.2e}\
-        """.format(now, self.current_step, self.rmsd,
-                   self.wall_time(), self.wall_time(per_step=True,
-                                                    per_particle=True))
+        average TSP [s/step/particle]: {:.2e}
+        simulation ended on: {}\
+        """.format(self.current_step, self.rmsd, self.wall_time(),
+                   self.wall_time(per_step=True, per_particle=True),
+                   now)
         return txt
