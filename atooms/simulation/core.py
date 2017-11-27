@@ -230,9 +230,9 @@ class Simulation(object):
 
     @property
     def rmsd(self):
-        try:
+        if hasattr(self.backend, 'rmsd'):
             return self.backend.rmsd
-        except AttributeError:
+        else:
             return 0.0
 
     def _elapsed_wall_time(self):
