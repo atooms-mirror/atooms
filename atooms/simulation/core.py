@@ -198,7 +198,7 @@ class Simulation(object):
 
         if hasattr(self.backend, 'write_checkpoint'):
             # Use native backend checkpoint method
-            self.backend.write_checkpoint(self.output_path)
+            self.backend.write_checkpoint()
         else:
             # Fallback to backend trajectory class with high precision
             with self.trajectory(self.output_path + '.chk', 'w') as t:
