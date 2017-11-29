@@ -300,6 +300,7 @@ class Simulation(object):
 
         try:
             # Before entering the simulation, check if we can quit right away
+            # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
             self._notify(self._targeters)
             # Then notify non targeters unless we are restarting
             if self.current_step == 0:
