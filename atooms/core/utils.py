@@ -246,14 +246,23 @@ class _MyFormatter(logging.Formatter):
             return '# ' + record.msg % record.args
 
 
-def setup_logging(name=None, level=40):
+def setup_logging(name=None, level=40, filename=None):
     """Logging API."""
     if name is None:
         log = logging.getLogger()
     else:
         log = logging.getLogger(name)
+
+    # The logger should always pass messages to all handlers
+    current_level = log.getEffectiveLevel()
+    log.setLevel(min(level, current_level))
+
     formatter = _MyFormatter()
-    handler = logging.StreamHandler(sys.stdout)
+    if filename is None:
+        handler = logging.StreamHandler(sys.stdout)
+    else:
+        handler = logging.FileHandler(filename)
+
     handler.setFormatter(formatter)
     # From the doc: "Note that filters attached to handlers are
     # consulted before an event is emitted by the handler, whereas
@@ -264,8 +273,9 @@ def setup_logging(name=None, level=40):
     # setting, unless the filter has also been applied to those
     # descendant loggers."
     handler.addFilter(_ParallelFilter())
+    handler.setLevel(level)
     log.addHandler(handler)
-    log.setLevel(level)
+    
     return log
 
 
