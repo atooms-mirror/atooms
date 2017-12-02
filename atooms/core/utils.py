@@ -246,16 +246,21 @@ class _MyFormatter(logging.Formatter):
             return '# ' + record.msg % record.args
 
 
-def setup_logging(name=None, level=40, filename=None):
+def setup_logging(name=None, level=40, filename=None, update=False):
     """Logging API."""
     if name is None:
         log = logging.getLogger()
     else:
         log = logging.getLogger(name)
 
-    # The logger should always pass messages to all handlers
-    current_level = log.getEffectiveLevel()
-    log.setLevel(min(level, current_level))
+    if update:
+        # We only update the level of the logger
+        log.setLevel(level)
+        return
+    else:
+        # The logger should always pass messages to all handlers
+        current_level = log.getEffectiveLevel()
+        log.setLevel(min(level, current_level))
 
     formatter = _MyFormatter()
     if filename is None:
@@ -274,7 +279,10 @@ def setup_logging(name=None, level=40, filename=None):
     # descendant loggers."
     handler.addFilter(_ParallelFilter())
     handler.setLevel(level)
-    log.addHandler(handler)
+    if update:
+        log.handlers(handler)
+    else:
+        log.addHandler(handler)
     
     return log
 
