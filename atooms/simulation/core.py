@@ -200,10 +200,11 @@ class Simulation(object):
             # Use native backend checkpoint method
             self.backend.write_checkpoint()
         else:
-            # Fallback to backend trajectory class with high precision
-            with self.trajectory(self.output_path + '.chk', 'w') as t:
-                t.precision = 12
-                t.write(self.system, 0)
+            if self.output_path is not None:
+                # Fallback to backend trajectory class with high precision
+                with self.trajectory(self.output_path + '.chk', 'w') as t:
+                    t.precision = 12
+                    t.write(self.system, 0)
 
     def read_checkpoint(self):
         """
