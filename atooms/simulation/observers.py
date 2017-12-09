@@ -117,7 +117,7 @@ class Scheduler(object):
         if self.interval is not None and self.calls is None:
             # Regular interval
             return (sim.current_step // self.interval + 1) * self.interval
-        elif self.calls is not None and self.interval is not None:
+        elif self.calls is not None:
             # Fixed number of calls
             interval = sim.steps // self.calls
             return (sim.current_step // interval + 1) * interval
@@ -142,7 +142,7 @@ class Scheduler(object):
 # Callbacks as pure function to distinguish their role we adopt a naming convention:
 # if the callback contains write (target) in its __name__ then it is a writer (targeter).
 
-def write_config(sim):
+def write_config(sim, fields=None, precision=None):
     """
     Write configurations to a trajectory file.
 
@@ -154,7 +154,9 @@ def write_config(sim):
         rmd(sim.output_path)
         rmf(sim.output_path)
 
-    with sim.trajectory(sim.output_path, 'a') as t:
+    with sim.trajectory(sim.output_path, mode='a', fields=fields) as t:
+        if precision is not None:
+            t.precision = precision
         t.write(sim.system, sim.current_step)
 
 def write_thermo(sim):
