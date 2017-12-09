@@ -154,9 +154,11 @@ def write_config(sim, fields=None, precision=None):
         rmd(sim.output_path)
         rmf(sim.output_path)
 
-    with sim.trajectory(sim.output_path, mode='a', fields=fields) as t:
+    with sim.trajectory(sim.output_path, 'a') as t:
         if precision is not None:
             t.precision = precision
+        if fields is not None:
+            t.fields = fields
         t.write(sim.system, sim.current_step)
 
 def write_thermo(sim):
