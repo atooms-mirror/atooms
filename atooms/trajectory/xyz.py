@@ -339,6 +339,9 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def close(self):
         self.trajectory.close()
+        # Restore numpy formatting defaults
+        numpy.set_string_function(None, False)
+        numpy.set_string_function(None, True)
 
 
 def _update_neighbors_consume(particle, data, meta):
