@@ -7,13 +7,13 @@ from atooms.simulation import Simulation, Scheduler, write_thermo, write_config,
 from atooms.backends.dryrun import DryRun
 from atooms.core.utils import setup_logging, rmd
 
-setup_logging(level=40)
 
+setup_logging(level=40)
 
 class Test(unittest.TestCase):
 
     def setUp(self):
-        pass
+        setup_logging(level=40, update=True)
 
     def test_no_output(self):
         # Disable writers completely
@@ -46,13 +46,13 @@ class Test(unittest.TestCase):
         # We do not accept too deep introspection
         with self.assertRaises(ValueError):
             # Mute errors temporarily
-            setup_logging(level=50)
+            setup_logging(level=50, update=True)
             s = Simulation(DryRun(), output_path=f, enable_speedometer=False, steps=100)
             s.add(write, Scheduler(20), 'output', ['system.particle.position'])
             s.run()
 
         # Test generic writer and write_config
-        setup_logging(level=40)
+        setup_logging(level=40, update=True)
         s = Simulation(DryRun(), output_path=f, enable_speedometer=True, steps=100)
         s.trajectory = TrajectoryXYZ
         s.add(write_config, Scheduler(20))
