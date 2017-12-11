@@ -76,7 +76,7 @@ class Particle(object):
             if folded:
                 r = _periodic_vector(r, cell.side)
             else:
-                r = _periodic_vector_unfolded(r, cell.sidebox)
+                r = _periodic_vector_unfolded(r, cell.side)
         return r
 
     def __repr__(self):
