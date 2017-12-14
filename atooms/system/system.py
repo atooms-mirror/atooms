@@ -154,6 +154,11 @@ class System(object):
         """Subtract out the the center-of-mass motion."""
         fix_total_momentum(self.particle)
 
+    def fold(self):
+        """Fold positions into central cell."""
+        for p in self.particle:
+            p.fold(self.cell)
+
     def dump(self, what, order='C', dtype=None):
         """
         Return a numpy array with system properties specified by `what`.
