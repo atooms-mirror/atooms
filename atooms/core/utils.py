@@ -1,9 +1,10 @@
-"""Helper functions."""
+"""Helper functions"""
 
 import os
 import sys
 import shutil
 import time
+
 
 # Logging facilities
 
@@ -11,7 +12,6 @@ LOGGER_NAME = 'atooms'
 DEFAULT_LOGGING_FORMAT = '[%(levelname)s/%(processName)s] %(message)s'
 
 _logger = None
-
 
 # We define the logging handler here to avoid "No handler found" warnings.
 # Client classes should use this instead of logging.NullHandler
@@ -24,10 +24,11 @@ except ImportError:
         def emit(self, record):
             pass
 
+
 def log_to_stderr(level=None):
-    '''
+    """
     Turn on logging and add a handler which prints to stderr
-    '''
+    """
     logger = logging.getLogger(LOGGER_NAME)
     formatter = logging.Formatter(DEFAULT_LOGGING_FORMAT)
     handler = logging.StreamHandler()
@@ -58,32 +59,44 @@ except:
     rank = 0
     size = 1
 
+
 def barrier():
+    """Syncronize processes in parallel."""
     if size > 1:
         comm.barrier()
 
 
 # Utility functions to mimic bash directory / file handling
 
-def mkdir(d):
-    if d is None:
+def mkdir(dirname):
+    """
+    Create a directory `dirname` or a list `dirname` of directories,
+    silently ignoring existing directories.
+
+    This is just a wrapper to `os.makedirs`. All intermediate
+    subdirectories are created as needed.
+    """
+    if dirname is None:
         return
-    if isinstance(d, str):
-        dirs = [d]
+    if isinstance(dirname, str):
+        dirs = [dirname]
     else:
-        dirs = d
+        dirs = dirname
 
     for dd in dirs:
         try:
             os.makedirs(dd)
-        except:
+        except OSError:
             pass
 
+
 def rmd(files):
+    """Totally silent wrapper to shutil.rmtree."""
     try:
         shutil.rmtree(files)
     except:
         pass
+
 
 def rmf(files):
     """
@@ -110,13 +123,17 @@ def rmf(files):
                 # File does not exists or it is a folder
                 pass
 
+
 def cp(finp, fout):
-    # Avoid erasing file
+    """
+    Copy `finp` to `fout`.
+
+    Wrapper to shutil.copy().
+    """
+    # Avoid overwriting file
     if finp == fout:
         return
-    with open(finp) as fh:
-        with open(fout, 'w') as fh_out:
-            fh_out.write(fh.read())
+    shutil.copy(finp, fout)
 
 
 # Timings
@@ -161,7 +178,7 @@ def clockit(func):
         t.start()
         retval = func(*args, **kw)
         t.stop()
-        print '%s in %s' % (func.__name__, t)
+        print('%s in %s' % (func.__name__, t))
         del t
         return retval
     return new
@@ -189,6 +206,7 @@ def fractional_slice(first, last, skip, n):
 
     return slice(first, last, skip)
 
+
 def add_first_last_skip(parser, what=None):
     """
     Add first, last, skip arguments to ArgumentParser object.
@@ -209,7 +227,7 @@ def add_first_last_skip(parser, what=None):
 
 # Logging facilities
 
-class ParallelFilter(logging.Filter):
+class _ParallelFilter(logging.Filter):
     def filter(self, rec):
         if hasattr(rec, 'rank'):
             if rec.rank == 'all':
@@ -220,7 +238,7 @@ class ParallelFilter(logging.Filter):
             return rank == 0
 
 
-class MyFormatter(logging.Formatter):
+class _MyFormatter(logging.Formatter):
     def format(self, record):
         if record.levelname in ['WARNING', 'ERROR']:
             return '# ' + record.levelname + ' ' + record.msg % record.args
@@ -228,14 +246,28 @@ class MyFormatter(logging.Formatter):
             return '# ' + record.msg % record.args
 
 
-def setup_logging(name=None, level=40):
+def setup_logging(name=None, level=40, filename=None, update=False):
     """Logging API."""
     if name is None:
         log = logging.getLogger()
     else:
         log = logging.getLogger(name)
-    formatter = MyFormatter()
-    handler = logging.StreamHandler(sys.stdout)
+
+    if update:
+        # We only update the level of the logger
+        log.setLevel(level)
+        return
+    else:
+        # The logger should always pass messages to all handlers
+        current_level = log.getEffectiveLevel()
+        log.setLevel(min(level, current_level))
+
+    formatter = _MyFormatter()
+    if filename is None:
+        handler = logging.StreamHandler(sys.stdout)
+    else:
+        handler = logging.FileHandler(filename)
+
     handler.setFormatter(formatter)
     # From the doc: "Note that filters attached to handlers are
     # consulted before an event is emitted by the handler, whereas
@@ -245,10 +277,15 @@ def setup_logging(name=None, level=40):
     # descendant loggers will not be filtered by a logger filter
     # setting, unless the filter has also been applied to those
     # descendant loggers."
-    handler.addFilter(ParallelFilter())
-    log.addHandler(handler)
-    log.setLevel(level)
+    handler.addFilter(_ParallelFilter())
+    handler.setLevel(level)
+    if update:
+        log.handlers(handler)
+    else:
+        log.addHandler(handler)
+    
     return log
+
 
 def tipify(s):
     """
@@ -279,25 +316,6 @@ def tipify(s):
             return s
 
 
-# Unit test enhancements
-
-import unittest
-
-class TestCase(unittest.TestCase):
-
-    """unittest in python 2.7 has a convenient argument delta in
-    assertAlmostEqual. However, this is missing in python 2.6. To avoid
-    requiring unittest2, which backports new features introduced in 2.7,
-    we provide our custom subclass of TestCase.
-    """
-
-    def assertAlmostEqual(self, first, second, places=7, msg=None, delta=None):
-        if delta is None:
-            unittest.TestCase.assertAlmostEqual(self, first, second, places, msg)
-        else:
-            return abs(first-second) <= delta
-
-
 # Miscellaneous
 
 def __header_dict(line):
@@ -306,6 +324,7 @@ def __header_dict(line):
     for key, value in [d.split('=') for d in line.split()]:
         params[key] = value
     return params
+
 
 def report_parameters(params, fileout, version, comment=''):
     """Report parameters."""
@@ -338,6 +357,7 @@ def report_command(cmd, params, main, fileout):
         with open(fileout, 'w') as fh:
             fh.write(txt)
     return txt
+
 
 class OrderedSet(object):
 

@@ -1,12 +1,16 @@
 Atooms
 ======
 
-`atooms` is a python framework for classical simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
+[![pypi](https://img.shields.io/pypi/v/atooms.svg)](https://pypi.python.org/pypi/atooms/)
+[![version](https://img.shields.io/pypi/pyversions/atooms.svg)](https://pypi.python.org/pypi/atooms/)
+[![license](https://img.shields.io/pypi/l/atooms.svg)](https://en.wikipedia.org/wiki/GNU_General_Public_License)
+
+atooms is a python framework for classical simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. This is achieved by offloading the critical parts of the calculation to backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
 
-The goal of `atooms` is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
+The goal of atooms is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
 The simulation data are stored in trajectory files, whose format usually depends on the code that produced the simulation.
 
 In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format). Accessing the coordinates of the particles in a trajectory file goes like this:
@@ -15,23 +19,34 @@ from atooms.trajectory import Trajectory
 
 with Trajectory('input.xyz') as trajectory:
     for system in trajectory:
-        print 'The position of particle 0 is', system.particle[0].position
+        print('The position of particle 0 is', system.particle[0].position)
 ```
 Note that trajectories support iteration and slicing, just like lists.
 
-Here we pick the last frame of the trajectory, change the density of the system to `rho` and write this new configuration using a different trajectory format. We use a format suitable for the [RUMD](http://rumd.org) simulation package:
+Here we pick the last frame of the trajectory, change the density of the system to unity and write this new configuration to a trajectory format suitable for the [RUMD](http://rumd.org) simulation package:
 ```python
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
-    factor = (system.density / rho)**(1./3)
-    for particle in system.particle:
-        particle.position *= factor
-    system.cell.side *= factor
+    system.density = 1.0
+    print('The new density is', len(system.particle) / system.cell.volume)
 
 from atooms.trajectory import TrajectoryRUMD
-with TrajectoryRUMD('trajectory.xyz.gz', 'w') as trajectory:
+with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
     trajectory.write(system, step=0)
 ```
+
+We can now run 1000 molecular dynamics steps using the Lennard-Jones potential:
+```python
+from atooms.backends.rumd import RUMD
+from atooms.simulation import Simulation
+
+backend = RUMD('rescaled.xyz.gz', forcefield_file='lj_rumd.ff', 
+               output_path='/tmp/outdir', integrator='nve')
+sim = Simulation(backend)
+sim.run(1000)
+print('Final temperature and density', sim.system.temperature, sim.system.density)
+```
+The forcefield file `lj_rumd.ff` (available in `data/`) defines the interaction potential.
 
 Documentation
 -------------
@@ -51,9 +66,13 @@ cd atooms
 make install
 ```
 
+Simulation backends
+-------------------
+atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://gitlab.info-ufr.univ-montp2.fr/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
+
 Trajectory conversion
 ---------------------
-Atooms provides a command line tool to convert between various trajectory formats. The following command will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
+atooms provides a command line tool to convert between various trajectory formats. The following command will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
 
 ```bash
 $ trj.py convert -i rumd -o xyz trajectory.xyz.gz output.xyz
@@ -79,25 +98,6 @@ $ trj.py convert output.xyz output.abc
 
 Remember to add an empty `__init__.py` file at the root of `atooms_plugins`. 
 Actually, the `atooms_plugins` package can be put anywhere in your `PYTHONPATH`.
-
-Simulation backends
--------------------
-
-Atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://gitlab.info-ufr.univ-montp2.fr/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
-
-This is a quick example how to run 10000 molecular dynamics steps using the [RUMD](http://rumd.org) backend:
-
-```python
-from atooms.backends.rumd import RUMD
-from atooms.simulation import Simulation
-
-backend = RUMD('rescaled.xyz.gz', forcefield_file='lj_rumd.ff', 
-               output_path='/tmp/outdir', integrator='nve')
-sim = Simulation(backend)
-sim.run(10000)
-print 'Final temperature and density', sim.system.temperature, sim.system.density
-```
-The forcefield file `lj_rumd.ff` (available in `data/`) defines the interaction potential.
 
 Additional packages 
 -------------------

@@ -10,7 +10,7 @@ except ImportError:
 try:
     from pypandoc import convert
     readme = convert('README.md', 'rst')
-except ImportError:
+except (ImportError, OSError):
     readme = open('README.md', 'r').read()
 
 with open('atooms/core/_version.py') as f:
@@ -34,6 +34,9 @@ setup(name='atooms',
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Science/Research',
           'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.4',
           'Topic :: Scientific/Engineering :: Physics',
       ]
 )

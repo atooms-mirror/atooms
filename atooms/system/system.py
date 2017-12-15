@@ -154,18 +154,27 @@ class System(object):
         """Subtract out the the center-of-mass motion."""
         fix_total_momentum(self.particle)
 
+    def fold(self):
+        """Fold positions into central cell."""
+        for p in self.particle:
+            p.fold(self.cell)
+
     def dump(self, what, order='C', dtype=None):
         """
         Return a numpy array with system properties specified by `what`.
 
-        If `what` is a string, it should be of the form
+        If `what` is a string, it must be of the form
         `particle.<attribute>` or `cell.<attribute>`. The following
-        aliases are allowed: pos, vel, ids, box.
+        aliases are allowed:
+
+        - `pos` (`particle.position`)
+        - `vel` (`particle.velocity`)
+        - `spe` (`particle.species`)
 
         If `what` is a list of strings of the form above, a dict of
         numpy arrays is returned with `what` as keys.
 
-        Particles' coordinates are retruned as (N, ndim) arrays if
+        Particles' coordinates are returned as (N, ndim) arrays if
         `order` is `C` or (ndim, N) arrays if `order` is `F`.
 
         Examples:
@@ -205,7 +214,9 @@ class System(object):
             attr = what_aliased.split('.')[-1]
             # Make array of attributes
             if what_aliased.startswith('particle'):
-                data = numpy.array([p.__getattribute__(attr) for p in self.particle], dtype=dtype)
+                data = numpy.array([getattr(p, attr) for p in self.particle], dtype=dtype)
+            elif what_aliased.startswith('cell'):
+                data = numpy.array(getattr(self.cell, attr), dtype=dtype)
             else:
                 raise ValueError('Unknown attribute %s' % what_aliased)
             # We transpose the array if F order is requested (only meaningful for 2d arrays)
@@ -216,6 +227,6 @@ class System(object):
         # If what is a string or we only have one entry we return an
         # array, otherwise we return the whole dict
         if len(what_list) == 1:
-            return dump_db.values()[0]
+            return dump_db[what_list[0]]
         else:
             return dump_db

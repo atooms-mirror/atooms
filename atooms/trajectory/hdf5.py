@@ -95,22 +95,15 @@ class TrajectoryHDF5(TrajectoryBase):
             for entry in self.trajectory['/']:
                 if type(self.trajectory[entry]) == h5py.highlevel.Dataset:
                     self.general_info[entry] = self.trajectory[entry]
-            try:
-                # get steps list (could be cached and put in init_read())
-                self.steps = [d[0] for d in self.trajectory['trajectory/realtime/stepindex'].values()]
-                # private list of frames. This solves the problem that frames may start from 0
-                # or 1 depending on the code that initially produced the data
-                # TODO: can we drop this for performance?
-                self._frames = [d[0] for d in self.trajectory['trajectory/realtime/sampleindex'].values()]
-            except KeyError:
-                self.steps = []
-                self._frames = []
 
         elif self.mode == 'w' or self.mode == 'r+' or self.mode == "w-":
             self.trajectory = _SafeFile(self.filename, self.mode)
 
         else:
             raise ValueError('Specify mode (r/w) for file %s (invalid: %s)' % (self.filename, self.mode))
+
+    def read_steps(self):
+        return [d[0] for d in self.trajectory['trajectory/realtime/stepindex'].values()]
 
     def close(self):
         try:
@@ -361,8 +354,9 @@ class TrajectoryHDF5(TrajectoryBase):
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
-        iframe = self._frames[frame]
-        csample = '/sample_%7.7i' % iframe
+        # TODO: are keys cached?
+        csample = '/' + self.trajectory['/trajectory/realtime/stepindex'].keys()[frame]
+
         # read particles
         group = self.trajectory['/trajectory/particle']
         if unfolded:
@@ -429,29 +423,3 @@ class TrajectoryHDF5(TrajectoryBase):
             self._system.interaction.total_stress = group['stress' + csample][:]
 
         return System(p, self._system.cell, self._system.interaction)
-
-    def add_interaction(self, ff):
-
-        """Add interaction from a fortran forcefield file"""
-
-        import os
-
-        pid = os.getpid()
-        f_ref = '/tmp/cnv_%s.h5' % pid
-        # TODO: we can cache a ref file if ff is the same
-        if not os.path.exists(ff):
-            raise IOError('forcefield file does not exist %s' % ff)
-        os.system('system.x -n 2 -f %s %s 1>/dev/null 2>/dev/null' % (ff, f_ref))
-
-        # Add interaction
-        ref = h5py.File(f_ref, 'r')
-        # Make sure interaction does not exist
-        try:
-            del self.trajectory['initialstate/interaction']
-        except:
-            pass
-        self.trajectory.copy(ref['initialstate/interaction'], 'initialstate/interaction')
-
-        # Cleanup
-        ref.close()
-        os.remove(f_ref)

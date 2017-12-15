@@ -3,6 +3,7 @@
 import os
 import tarfile
 import numpy
+import copy
 
 
 def gopen(filename, mode):
@@ -10,12 +11,13 @@ def gopen(filename, mode):
     ext = os.path.splitext(filename)[1]
     if ext == '.gz':
         import gzip
-        return gzip.open(filename, mode)
+        return gzip.open(filename, mode + 't')
     elif ext == '.bz2':
         import bz2
         return bz2.BZ2File(filename, mode)
     else:
         return open(filename, mode)
+
 
 def modify_fields(trajectory, fields=None, include=None, exclude=None):
     """
@@ -40,6 +42,7 @@ def modify_fields(trajectory, fields=None, include=None, exclude=None):
 
     return trajectory
 
+
 def convert(inp, out, fout, force=True, fields=None,
             exclude=None, include=None, steps=None):
     """
@@ -56,15 +59,14 @@ def convert(inp, out, fout, force=True, fields=None,
 
     Return: name of converted trajectory file
     """
-    # TODO: convert metadata (interaction etc) !
     from atooms.trajectory import Trajectory
-    if isinstance(out, basestring):
+    if isinstance(out, str):
         out_class = Trajectory.formats[out]
     else:
         out_class = out
 
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
-        print 'File exists, conversion skipped'
+        print('File exists, conversion skipped')
     else:
         # Make sure parent folder exists
         from atooms.core.utils import mkdir
@@ -74,14 +76,13 @@ def convert(inp, out, fout, force=True, fields=None,
             conv.precision = inp.precision
             conv.timestep = inp.timestep
             conv.block_size = inp.block_size
-            # TODO: Zipping t, t.steps is causing a massive mem leak!
-            # In python <3 zip returns a list, not a generator! Therefore this
+            # In python 3, zip returns a generator so this is ok
+            #
             # for system, step in zip(inp, inp.steps):
             #     conv.write(system, step)
-            # will use a lot of RAM! Workarounds (in order of personal preference)
-            # 1. zip is a generator in python 3
-            # 2. use enumerate instead and grab the step from inp.steps[i]
-            # 3. add an attribute system.step for convenience
+            #
+            # In python 2, zipping t and t.steps will load everything
+            # in RAM. In this case, it is better to use enumerate()
             if steps is None:
                 for i, system in enumerate(inp):
                     conv.write(system, inp.steps[i])
@@ -93,6 +94,7 @@ def convert(inp, out, fout, force=True, fields=None,
                     conv.write(inp[idx], step)
 
     return fout
+
 
 def split(inp, index='step', archive=False):
     """
@@ -119,6 +121,7 @@ def split(inp, index='step', archive=False):
 
     if archive:
         tar.close()
+
 
 def get_block_size(data):
     """
@@ -157,6 +160,7 @@ def get_block_size(data):
         # There is no periodicity, the block size is the whole trajectory
         return period
 
+
 def check_block_size(steps, block_size, prune=False):
     """
     Perform some consistency checks on periodicity of non linear sampling.
@@ -174,8 +178,6 @@ def check_block_size(steps, block_size, prune=False):
 
     Note that in this case, len(steps) % block_size == 1, which is tolerated.
     """
-    import copy
-
     if block_size == 1:
         return None
 
@@ -200,7 +202,7 @@ def check_block_size(steps, block_size, prune=False):
 
     # Remove samples that do not conform with first block
     if prune and len(prune_me) > 0:
-        print '#', len(prune_me), 'samples should be pruned'
+        print('#', len(prune_me), 'samples should be pruned')
         for step in prune_me:
             _ = steps_local.pop(steps_local.index(step))
 
@@ -209,22 +211,23 @@ def check_block_size(steps, block_size, prune=False):
     rest = len(steps_local) % block_size
     if rest > 1:
         steps_local = steps_local[:-rest]
-        print '# block was truncated'
+        print('# block was truncated')
 
     # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
-    nbl = len(steps_local) / block_size
+    nbl = len(steps_local) // block_size
     for i in range(nbl):
-        i0 = steps_local[i*block_size]
-        current = steps_local[i*block_size: (i+1)*block_size]
-        current = [ii-i0 for ii in current]
+        i0 = steps_local[i * block_size]
+        current = steps_local[i * block_size: (i + 1) * block_size]
+        current = [ii - i0 for ii in current]
         if not current == block:
-            print '# periodicity issue at block %i out of %i' % (i, nbl)
-            print '# current     :', current
-            print '# finger print:', block
+            print('# periodicity issue at block %i out of %i' % (i, nbl))
+            print('# current     :', current)
+            print('# finger print:', block)
             raise ValueError('block does not match finger print')
 
     return steps_local
+
 
 def dump(trajectory, what='pos'):
     """
@@ -245,11 +248,15 @@ def dump(trajectory, what='pos'):
 
     return data
 
-def field(trajectory, trajectory_field, x_field, frame):
+
+def field(trajectory, trajectory_field, field_name, frame, x_field=None):
     """
-    Return the field specified by particle attribute `x_field` at a
+    Return the field specified by particle attribute `field_name` at a
     given `frame`.
     """
+    if x_field is not None:
+        raise DeprecationWarning('use field_name instead of x_field')
+        field_name = x_field
     step = trajectory.steps[frame]
     try:
         index_field = trajectory_field.steps.index(step)
@@ -257,9 +264,10 @@ def field(trajectory, trajectory_field, x_field, frame):
         return None
     x = []
     for pi in trajectory_field[index_field].particle:
-        fi = getattr(pi, x_field)
+        fi = getattr(pi, field_name)
         x.append(fi)
     return x
+
 
 def paste(t1, t2):
     """
@@ -281,6 +289,7 @@ def paste(t1, t2):
         s2 = t2[t2.steps.index(step)]
         yield step, s1, s2
 
+
 def time_when_msd_is(th, msd_target, sigma=1.0):
     """
     Estimate the time when the MSD reaches target_msd in units of
@@ -291,6 +300,7 @@ def time_when_msd_is(th, msd_target, sigma=1.0):
         msd_total = th_unf[0].mean_square_displacement(th_unf[-1])
     frac = msd_target * sigma**2 / msd_total
     return min(1.0, frac) * th.total_time
+
 
 def is_cell_variable(trajectory, tests=1):
     """
@@ -313,6 +323,7 @@ def is_cell_variable(trajectory, tests=1):
             break
     return is_variable
 
+
 def formats():
     """Return a string with the available trajectory formats."""
     from atooms import trajectory
@@ -329,6 +340,7 @@ def formats():
         txt += fmt % (name, docline)
     return txt
 
+
 def info(trajectory):
     """Return a string with information about a `trajectory` instance."""
     from atooms.system.particle import distinct_species, composition
@@ -338,10 +350,10 @@ def info(trajectory):
     txt += 'frames               = %s\n' % len(trajectory)
     txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
     txt += 'particles            = %s\n' % len(trajectory[0].particle)
-    txt += 'species              = %s\n' % len(distinct_species(trajectory[0].particle))
-    txt += 'composition          = %s\n' % list(composition(trajectory[0].particle))
+    txt += 'species              = %s\n' % ', '.join(distinct_species(trajectory[0].particle))
+    txt += 'composition          = %s\n' % dict(composition(trajectory[0].particle))
     txt += 'density              = %s\n' % round(trajectory[0].density, 10)
-    txt += 'cell side            = %s\n' % trajectory[0].cell.side
+    txt += 'cell side            = %s\n' % str(list(trajectory[0].cell.side))[1: -1]
     txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
     if len(trajectory) > 1:
         txt += 'steps                = %s\n' % trajectory.steps[-1]

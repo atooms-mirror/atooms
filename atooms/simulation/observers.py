@@ -39,6 +39,7 @@ import shutil
 import time
 import datetime
 import logging
+from atooms.core.utils import rmd, rmf
 
 __all__ = ['SimulationEnd', 'WallTimeLimit', 'Scheduler',
            'write_config', 'write_thermo', 'write', 'target',
@@ -102,18 +103,24 @@ class Scheduler(object):
         self.block = block
         self.seconds = seconds
 
+        # Normalize non-positive intervals and n. of calls
+        if self.interval <= 0:
+            self.interval = None
+        if self.calls <= 0:
+            self.calls = None
+
     def __call__(self, sim):
         """
         Given a simulation instance `sim`, return the next step at which
         the observer will be called.
         """
-        if self.interval is not None and self.interval > 0:
+        if self.interval is not None and self.calls is None:
             # Regular interval
-            return (sim.current_step / self.interval + 1) * self.interval
-        elif self.calls is not None and self.interval > 0:
+            return (sim.current_step // self.interval + 1) * self.interval
+        elif self.calls is not None:
             # Fixed number of calls
-            interval = int(sim.steps / self.calls)
-            return (sim.current_step / interval + 1) * interval
+            interval = sim.steps // self.calls
+            return (sim.current_step // interval + 1) * interval
         elif self.steps is not None:
             # List of selected steps
             inext = self.steps[0]
@@ -128,14 +135,14 @@ class Scheduler(object):
         elif self.seconds is not None:
             pass
         else:
-            return sys.maxint
+            return sys.maxsize
 
 
 # Writer callbacks
 # Callbacks as pure function to distinguish their role we adopt a naming convention:
 # if the callback contains write (target) in its __name__ then it is a writer (targeter).
 
-def write_config(sim):
+def write_config(sim, fields=None, precision=None):
     """
     Write configurations to a trajectory file.
 
@@ -144,13 +151,14 @@ def write_config(sim):
     """
     if sim.current_step == 0:
         # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
-        # TODO: refactor as rm()
-        if os.path.isdir(sim.output_path):
-            shutil.rmtree(sim.output_path)
-        elif os.path.isfile(sim.output_path):
-            os.remove(sim.output_path)
+        rmd(sim.output_path)
+        rmf(sim.output_path)
 
     with sim.trajectory(sim.output_path, 'a') as t:
+        if precision is not None:
+            t.precision = precision
+        if fields is not None:
+            t.fields = fields
         t.write(sim.system, sim.current_step)
 
 def write_thermo(sim):
@@ -205,7 +213,8 @@ def write(sim, name, attributes):
             fh.write(fmt % tuple(values))
 
 
-# Target callbacks
+# Target callbacks.
+# They should return a fractional measure of completion
 
 def target(sim, attribute, value):
     """
@@ -213,6 +222,8 @@ def target(sim, attribute, value):
     target `value` of a property is reached during a simulation. The
     property is `attribute` and is assumed to be an attribute of
     simulation.
+
+    Return: the ratio between current and target values of the attribute.
     """
     x = float(getattr(sim, attribute))
     if value > 0:
@@ -230,6 +241,7 @@ def target_steps(sim, value):
     """Target the number of steps."""
     if sim.current_step >= value:
         raise SimulationEnd('reached target steps %d' % value)
+    return float(sim.current_step) / value
 
 def target_walltime(sim, value):
     """
@@ -240,10 +252,10 @@ def target_walltime(sim, value):
     limits.
     """
     wtime_limit = value
-    if sim.elapsed_wall_time() > wtime_limit:
+    if sim.wall_time() > wtime_limit:
         raise WallTimeLimit('target wall time reached')
     else:
-        t = sim.elapsed_wall_time()
+        t = sim.wall_time()
         dt = wtime_limit - t
         _log.debug('elapsed time %g, reamining time %g', t, dt)
 
@@ -280,37 +292,40 @@ class Speedometer(object):
             # We could store all this in __init__() but this
             # way we allow targeters added to simulation via add()
             for c in sim._callback:
+                if c is self:
+                    continue
                 if 'target' in c.__name__.lower():
-                    self.name_target = c.name
-                    self.x_target = c.target
+                    self._callback = c
+                    args = sim._cbk_params[c]['args']
+                    kwargs = sim._cbk_params[c]['kwargs']
+                    self.x_last = c(sim, *args, **kwargs)
                     self.t_last = time.time()
-                    # TODO: this assumes that targeters all get their target as attributes of simulation.
-                    # We should fail or ask the targeter a cached value
-                    self.x_last = float(getattr(sim, self.name_target))
+                    # # TODO: this assumes that targeters all get their target as attributes of simulation.
+                    # # We should fail or ask the targeter a cached value
+                    # self.x_last = c(sim._cbk_params[c])
                     self._init = True
                     return
 
-        if self.x_target > 0:
-            t_now = time.time()
-            x_now = float(getattr(sim, self.name_target))
-            # Get the speed at which the simulation advances
-            speed = (x_now - self.x_last) / (t_now - self.t_last)
-            # Report fraction of target achieved and ETA
-            frac = float(x_now) / self.x_target
-            try:
-                eta = (self.x_target - x_now) / speed
-                d_now = datetime.datetime.now()
-                d_delta = datetime.timedelta(seconds=eta)
-                d_eta = d_now + d_delta
-                _log.info('%s: %d%% %s/%s estimated end: %s rate: %.2e TSP: %.2e',
-                          self.name_target, int(frac * 100),
-                          getattr(sim, self.name_target),
-                          self.x_target,
-                          d_eta.strftime('%Y-%m-%d %H:%M'),
-                          speed, sim.wall_time_per_step_particle())
-            except ZeroDivisionError:
-                print x_now, self.x_last
-                raise
+        t_now = time.time()
+        args = sim._cbk_params[self._callback]['args']
+        kwargs = sim._cbk_params[self._callback]['kwargs']
+        x_now = self._callback(sim, *args, **kwargs)
+        # Get the speed at which the simulation advances
+        speed = (x_now - self.x_last) / (t_now - self.t_last)
+        # Report fraction of target achieved and ETA
+        frac = float(x_now) / 1
+        try:
+            eta = (1.0 - x_now) / speed
+            d_now = datetime.datetime.now()
+            d_delta = datetime.timedelta(seconds=eta)
+            d_eta = d_now + d_delta
+            _log.info('%s: %d%% estimated end: %s rate: %.2e TSP: %.2e',
+                      self._callback.__name__, int(frac * 100),
+                      d_eta.strftime('%Y-%m-%d %H:%M'),
+                      speed, sim.wall_time(per_step=True, per_particle=True))
+        except ZeroDivisionError:
+            print(x_now, self.x_last)
+            raise
 
         self.t_last = t_now
         self.x_last = x_now

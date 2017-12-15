@@ -3,7 +3,7 @@
 
 """PDB format, write-only."""
 
-from base import TrajectoryBase
+from .base import TrajectoryBase
 
 
 class TrajectoryPDB(TrajectoryBase):

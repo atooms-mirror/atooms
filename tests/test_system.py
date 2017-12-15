@@ -89,10 +89,62 @@ class Test(unittest.TestCase):
             p.species = 'C'
         from atooms.system.particle import composition, distinct_species
         self.assertEqual(distinct_species(system.particle), ['A', 'B', 'C'])
+        self.assertEqual(system.distinct_species(), ['A', 'B', 'C'])
         self.assertEqual(composition(system.particle)['A'], npart - 30)
         self.assertEqual(composition(system.particle)['B'], 10)
         self.assertEqual(composition(system.particle)['C'], 20)
 
+    def test_packing(self):
+        import math
+        system = copy.copy(self.ref)
+        self.assertAlmostEqual(system.packing_fraction * 6 / math.pi, system.density)
+
+    def test_gyration(self):
+        from atooms.system.particle import gyration_radius
+        system = copy.copy(self.ref)
+
+        # Ignore cell
+        rg1 = gyration_radius(system.particle, method='N1')
+        rg2 = gyration_radius(system.particle, method='N2')
+        self.assertAlmostEqual(rg1, rg2)
+
+        # With PBC all estimates are different but bounds must be ok
+        rg1 = gyration_radius(system.particle, system.cell, method='min')
+        rg2 = gyration_radius(system.particle, system.cell, method='N1')
+        rg3 = gyration_radius(system.particle, system.cell, method='N2')
+        self.assertLessEqual(rg1, rg2)
+        self.assertLessEqual(rg3, rg2)
+
+        # Equilateral triangle
+        system.particle = [Particle(), Particle(), Particle()]
+        system.particle[0].position = numpy.array([0.0, 0.0, 0.0])
+        system.particle[1].position = numpy.array([1.0, 0.0, 0.0])
+        system.particle[2].position = numpy.array([0.5, 0.5*3**0.5, 0])
+        # Put the triangle across the cell
+        system.particle[0].position -= 1.01*system.cell.side/2
+        system.particle[1].position -= 1.01*system.cell.side/2
+        system.particle[2].position -= 1.01*system.cell.side/2
+        system.particle[0].fold(system.cell)
+        system.particle[1].fold(system.cell)
+        system.particle[2].fold(system.cell)
+        rg1 = gyration_radius(system.particle, system.cell, method='min')
+        rg2 = gyration_radius(system.particle, system.cell, method='N1')
+        rg3 = gyration_radius(system.particle, system.cell, method='N2')
+        self.assertAlmostEqual(rg1, 0.57735026919)
+        self.assertAlmostEqual(rg2, 0.57735026919)
+        self.assertAlmostEqual(rg3, 0.57735026919)
+
+    def test_interaction(self):
+        from atooms.interaction import Interaction
+        system = copy.copy(self.ref)
+        self.assertAlmostEqual(system.potential_energy(), 0.0)
+        system.interaction = Interaction([])
+        system.interaction.compute('energy', system.particle, system.cell)
+        system.interaction.compute('forces', system.particle, system.cell)
+        system.interaction.compute('stress', system.particle, system.cell)
+        self.assertAlmostEqual(system.potential_energy(), 0.0)
+        self.assertAlmostEqual(system.potential_energy(normed=True), 0.0)
+        self.assertAlmostEqual(system.total_energy(), system.kinetic_energy())
 
 if __name__ == '__main__':
     unittest.main()

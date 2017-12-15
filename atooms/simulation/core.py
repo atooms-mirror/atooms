@@ -27,7 +27,7 @@ import logging
 
 from atooms.core import __version__
 from atooms.core.utils import mkdir, barrier
-from .observers import target_steps, Speedometer, Scheduler, SimulationEnd
+from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, WallTimeLimit
 
 _log = logging.getLogger(__name__)
 
@@ -48,6 +48,16 @@ def _report(info, file_handle=None, log_echo=True):
 
     if file_handle is not None:
         file_handle.write(info)
+
+
+def _callable_name(callback):
+    try:
+        # This is a function
+        name = callback.__name__
+    except AttributeError:
+        # This is callable class
+        name = callback.__class__.__name__
+    return name.lower()
 
 
 class Simulation(object):
@@ -91,8 +101,7 @@ class Simulation(object):
         self._cbk_params = {}  # hold scheduler and parameters of callbacks
         if enable_speedometer:
             self._speedometer = Speedometer()
-            self.add(self._speedometer, Scheduler(None, calls=20,
-                                                  target=self.steps))
+            self.add(self._speedometer, Scheduler(self.steps, calls=20))
 
     @property
     def system(self):
@@ -149,7 +158,7 @@ class Simulation(object):
                                       'kwargs': kwargs}
 
         # Keep targeters last
-        if 'target' not in callback.__name__.lower():
+        if 'target' not in _callable_name(callback):
             self._callback.insert(0, callback)
         else:
             self._callback.append(callback)
@@ -171,11 +180,11 @@ class Simulation(object):
 
     @property
     def _targeters(self):
-        return [o for o in self._callback if 'target' in o.__name__.lower()]
+        return [o for o in self._callback if 'target' in _callable_name(o)]
 
     @property
     def _non_targeters(self):
-        return [o for o in self._callback if 'target' not in o.__name__.lower()]
+        return [o for o in self._callback if 'target' not in _callable_name(o)]
 
     @property
     def _speedometers(self):
@@ -186,15 +195,22 @@ class Simulation(object):
         if self.output_path is not None:
             with open(self.output_path + '.chk.step', 'w') as fh:
                 fh.write('%d' % self.current_step)
-        # Do not use try/except to avoid catching wrong exceptions
+
         if hasattr(self.backend, 'write_checkpoint'):
+            # Use native backend checkpoint method
             self.backend.write_checkpoint()
+        else:
+            if self.output_path is not None:
+                # Fallback to backend trajectory class with high precision
+                with self.trajectory(self.output_path + '.chk', 'w') as t:
+                    t.precision = 12
+                    t.write(self.system, 0)
 
     def read_checkpoint(self):
         """
         Read the checkpoint to restart a simulation.
 
-        If the checkpoint file is not found, this method fails
+        If the checkpoint file is not found, this method exits
         gracefully.
         """
         if self.output_path is not None:
@@ -204,15 +220,20 @@ class Simulation(object):
             else:
                 _log.debug('could not find checkpoint')
 
-        # Do not use try/except to avoid catching wrong exceptions
         if hasattr(self.backend, 'read_checkpoint'):
+            # Use native backend checkpoint method
             self.backend.read_checkpoint()
+        else:
+            # Fallback to backend trajectory class with high precision
+            if os.path.exists(self.output_path + '.chk'):
+                with self.trajectory(self.output_path + '.chk') as t:
+                    self.system = t[0]
 
     @property
     def rmsd(self):
-        try:
+        if hasattr(self.backend, 'rmsd'):
             return self.backend.rmsd
-        except AttributeError:
+        else:
             return 0.0
 
     def _elapsed_wall_time(self):
@@ -280,6 +301,7 @@ class Simulation(object):
 
         try:
             # Before entering the simulation, check if we can quit right away
+            # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
             self._notify(self._targeters)
             # Then notify non targeters unless we are restarting
             if self.current_step == 0:
@@ -287,6 +309,7 @@ class Simulation(object):
             else:
                 self._notify(self._speedometers)
             _log.info('starting at step: %d', self.current_step)
+            _log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
@@ -305,7 +328,7 @@ class Simulation(object):
                 if self.current_step == next_checkpoint:
                     self.write_checkpoint()
 
-        except SimulationEnd:
+        except (SimulationEnd, WallTimeLimit):
             # Checkpoint configuration at last step
             self.write_checkpoint()
             _report(self._info_end())
@@ -342,23 +365,23 @@ class Simulation(object):
         for f in self._callback:
             params = self._cbk_params[f]
             s = params['scheduler']
-            if 'target' in f.__name__.lower():
+            if 'target' in _callable_name(f):
                 args = params['args']
-                txt.append('target %s: %s' % (f.__name__, args[0]))
+                txt.append('target %s: %s' % (_callable_name(f), args[0]))
             else:
                 txt.append('writer %s: interval=%s calls=%s' %
-                           (f.__name__, s.interval, s.calls))
+                           (_callable_name(f), s.interval, s.calls))
         return '\n'.join(txt)
 
     def _info_end(self):
         now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
         txt = """
-        simulation ended on: {}
         final steps: {}
-        final rmsd: {:.2f}\
+        final rmsd: {:.2f}
         wall time [s]: {:.1f}
-        average TSP [s/step/particle]: {:.2e}\
-        """.format(now, self.current_step, self.rmsd,
-                   self.wall_time(), self.wall_time(per_step=True,
-                                                    per_particle=True))
+        average TSP [s/step/particle]: {:.2e}
+        simulation ended on: {}\
+        """.format(self.current_step, self.rmsd, self.wall_time(),
+                   self.wall_time(per_step=True, per_particle=True),
+                   now)
         return txt

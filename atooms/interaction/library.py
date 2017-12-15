@@ -16,11 +16,37 @@ equal to 1.0:
 
 from math import sqrt
 
-__all__ = ['constant', 'lennard_jones', 'harmonic_sphere']
+__all__ = ['constant', 'inverse_power', 'lennard_jones', 'harmonic_sphere', 'sum_inverse_power']
 
 def constant(rsq, epsilon):
     """Constant potential."""
     return epsilon, 0.0, 0.0
+
+def inverse_power(rsq, n, epsilon, sigma):
+    """
+    Inverse power potential.
+
+    u(r) = epsilon * (r/sigma)^n
+    """
+    sigsq = sigma**2
+    u = epsilon * (sigsq / rsq)**(n/2)
+    w = n / rsq * u
+    h = n * (n+2) / rsq**2 * u
+    return u, w, h
+
+def sum_inverse_power(rsq, n, epsilon, sigma):
+    """
+    Sum of inverse power potentials.
+
+    u(r) = epsilon * (r/sigma)^n
+    """
+    u, w, h = 0, 0, 0
+    for n_i, epsilon_i, sigma_i in zip(n, epsilon, sigma):
+        u_i, w_i, h_i = inverse_power(rsq, n_i, epsilon_i, sigma_i)
+        u += u_i
+        w += w_i
+        h += h_i
+    return u, w, h
 
 def lennard_jones(rsq, epsilon, sigma):
     """
