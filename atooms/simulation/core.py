@@ -378,7 +378,7 @@ class Simulation(object):
         txt = """
         final steps: {}
         final rmsd: {:.2f}
-        wall time [s]: {:.1f}
+        wall time [s]: {:.2f}
         average TSP [s/step/particle]: {:.2e}
         simulation ended on: {}\
         """.format(self.current_step, self.rmsd, self.wall_time(),
