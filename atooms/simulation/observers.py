@@ -44,7 +44,7 @@ from atooms.core.utils import rmd, rmf
 __all__ = ['SimulationEnd', 'WallTimeLimit', 'Scheduler',
            'write_config', 'write_thermo', 'write', 'target',
            'target_rmsd', 'target_steps', 'target_walltime',
-           'user_stop', 'Speedometer']
+           'user_stop', 'Speedometer', 'shell_stop']
 
 _log = logging.getLogger(__name__)
 
@@ -258,6 +258,23 @@ def target_walltime(sim, value):
         t = sim.wall_time()
         dt = wtime_limit - t
         _log.debug('elapsed time %g, reamining time %g', t, dt)
+
+def shell_stop(sim, cmd, exit_code=1):
+    """
+    Stop the simulation if execution of shell command `cmd` returns a
+    non-zero exit value.
+    """
+    import subprocess
+    try:
+        output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        if len(output) > 0:
+            _log.info('shell command "{}" returned: {}'.format(cmd, output.strip()))
+    except subprocess.CalledProcessError as e: 
+        if e.returncode == exit_code:
+            raise SimulationEnd('shell command "{}" returned "{}"'.format(cmd, e.output.strip()))
+        else:
+            _log.error('shell command {} failed with output {}'.format(cmd, e.output))
+            raise
 
 def user_stop(sim):
     """
