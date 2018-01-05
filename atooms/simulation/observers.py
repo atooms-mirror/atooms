@@ -265,6 +265,8 @@ def shell_stop(sim, cmd, exit_code=1):
     non-zero exit value.
     """
     import subprocess
+    if sim.current_step == 0:
+        return
     try:
         output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
         if len(output) > 0:
