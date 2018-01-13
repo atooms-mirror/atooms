@@ -140,6 +140,28 @@ class System(object):
         """
         return self.potential_energy(normed) + self.kinetic_energy(normed)
 
+    def virial(self):
+        """
+        Return the total virial of the system.
+
+        If `normed` is `True`, return the virial per unit volume.
+        """
+        if self.interaction is not None:
+            self.interaction.compute('forces', self.particle, self.cell)
+            return self.interaction.virial
+        else:
+            return 0.0
+    
+    @property
+    def pressure(self):
+        """
+        Return the pressure of the system.
+
+        It assumes that `self.interaction` has already been computed.
+        """
+        return (len(self.particle) * self.temperature +
+                self.interaction.virial / self.number_of_dimensions) / self.cell.volume
+
     @property
     def cm_velocity(self):
         """Center-of-mass velocity."""
