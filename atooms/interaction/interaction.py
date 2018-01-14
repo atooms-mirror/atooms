@@ -54,3 +54,10 @@ class Interaction(object):
             self.forces = numpy.zeros((len(particle), len(cell.side)))
         else:
             raise ValueError('unsupported observable %s' % observable)
+
+    def report(self):
+        txt = ''
+        for p in self.potential:
+            txt += p.report()
+        return txt
+
