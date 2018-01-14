@@ -159,8 +159,11 @@ class System(object):
 
         It assumes that `self.interaction` has already been computed.
         """
-        return (len(self.particle) * self.temperature +
-                self.interaction.virial / self.number_of_dimensions) / self.cell.volume
+        if self.thermostat:
+            T = self.thermostat.temperature
+        else:
+            T = self.temperature
+        return (len(self.particle) * T + self.interaction.virial / self.number_of_dimensions) / self.cell.volume
 
     @property
     def cm_velocity(self):
