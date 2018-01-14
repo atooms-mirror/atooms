@@ -287,6 +287,7 @@ class Simulation(object):
         _report(self._info_start())
         _report(self._info_backend())
         _report(self._info_observers())
+        _report(self.system.report())
 
         # Read checkpoint if we restart
         if self.restart:
@@ -371,7 +372,7 @@ class Simulation(object):
             else:
                 txt.append('writer %s: interval=%s calls=%s' %
                            (_callable_name(f), s.interval, s.calls))
-        return '\n'.join(txt)
+        return '\n'.join(txt) + '\n'
 
     def _info_end(self):
         now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')

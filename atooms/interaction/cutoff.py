@@ -8,6 +8,11 @@ The potential is truncated and optionally smoothed at the cut-off
 distance `radius`.
 """
 
+_db = {'c': 'cut',
+        'cs': 'cut and shifted',
+        'cspl': 'cut and cubic splined',
+        'qs': 'cut and quadratically shifted'}
+
 class CutOff(object):
 
     def __init__(self, scheme, radius):
@@ -24,7 +29,7 @@ class CutOff(object):
         self.radius_mid_sq = radius**2
 
     def __str__(self):
-        return self.scheme
+        return _db[self.scheme]
 
     @property
     def effective_radius(self):
