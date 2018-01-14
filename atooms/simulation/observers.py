@@ -245,8 +245,8 @@ def target_steps(sim, value):
 
 def target_walltime(sim, value):
     """
-    Target a value of the elapsed wall time from the beginning of the
-    simulation.
+    Target a value of the elapsed wall time in seconds from the
+    beginning of the simulation.
 
     Useful to self restarting jobs in a queining system with time
     limits.
