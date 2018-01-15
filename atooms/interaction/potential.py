@@ -128,12 +128,14 @@ class PairPotential(object):
             return self.func.__name__
 
     def report(self):
-        return """\
+        txt = """\
 potential {0.species}: {0.func.__name__}
 parameters: {0.params}
-hardcore: {0.hard_core}
 cutoff: {0.cutoff} at {0.cutoff.radius}
-""".format(self) 
+""".format(self)
+        if self.hard_core > 0:
+            txt += "hardcore: {0.hard_core}\n".format(self)
+        return txt
 
     def _adjust(self):
         """Adjust the cutoff to the potential."""
