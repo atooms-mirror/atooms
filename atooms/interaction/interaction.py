@@ -58,6 +58,9 @@ class Interaction(object):
     def report(self):
         txt = ''
         for p in self.potential:
-            txt += p.report()
+            try:
+                txt += p.report()
+            except AttributeError:
+                pass
         return txt
 
