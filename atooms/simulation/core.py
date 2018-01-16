@@ -225,10 +225,18 @@ class Simulation(object):
             self.backend.read_checkpoint()
         else:
             # Fallback to backend trajectory class with high precision
+            # Trajectory will not store the interaction, thermostat, barostat
+            # and we must preserve it
+            interaction = self.system.interaction
+            barostat = self.system.barostat
+            thermostat = self.system.thermostat
             if os.path.exists(self.output_path + '.chk'):
                 with self.trajectory(self.output_path + '.chk') as t:
                     self.system = t[0]
-
+            self.system.interaction = interaction
+            self.system.barostat = barostat
+            self.system.thermostat = thermostat
+            
     @property
     def rmsd(self):
         if hasattr(self.backend, 'rmsd'):
