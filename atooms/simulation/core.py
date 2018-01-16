@@ -225,10 +225,13 @@ class Simulation(object):
             self.backend.read_checkpoint()
         else:
             # Fallback to backend trajectory class with high precision
+            # Trajectory will not store the interaction, we must preserve it
+            interaction = self.system.interaction
             if os.path.exists(self.output_path + '.chk'):
                 with self.trajectory(self.output_path + '.chk') as t:
                     self.system = t[0]
-
+            self.system.interaction = interaction
+            
     @property
     def rmsd(self):
         if hasattr(self.backend, 'rmsd'):
