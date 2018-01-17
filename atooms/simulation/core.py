@@ -225,10 +225,18 @@ class Simulation(object):
             self.backend.read_checkpoint()
         else:
             # Fallback to backend trajectory class with high precision
+            # Trajectory will not store the interaction, thermostat, barostat
+            # and we must preserve it
+            interaction = self.system.interaction
+            barostat = self.system.barostat
+            thermostat = self.system.thermostat
             if os.path.exists(self.output_path + '.chk'):
                 with self.trajectory(self.output_path + '.chk') as t:
                     self.system = t[0]
-
+            self.system.interaction = interaction
+            self.system.barostat = barostat
+            self.system.thermostat = thermostat
+            
     @property
     def rmsd(self):
         if hasattr(self.backend, 'rmsd'):
@@ -287,6 +295,7 @@ class Simulation(object):
         _report(self._info_start())
         _report(self._info_backend())
         _report(self._info_observers())
+        _report(self.system.report())
 
         # Read checkpoint if we restart
         if self.restart:
@@ -371,14 +380,14 @@ class Simulation(object):
             else:
                 txt.append('writer %s: interval=%s calls=%s' %
                            (_callable_name(f), s.interval, s.calls))
-        return '\n'.join(txt)
+        return '\n'.join(txt) + '\n'
 
     def _info_end(self):
         now = datetime.datetime.now().strftime('%Y-%m-%d at %H:%M')
         txt = """
         final steps: {}
         final rmsd: {:.2f}
-        wall time [s]: {:.1f}
+        wall time [s]: {:.2f}
         average TSP [s/step/particle]: {:.2e}
         simulation ended on: {}\
         """.format(self.current_step, self.rmsd, self.wall_time(),

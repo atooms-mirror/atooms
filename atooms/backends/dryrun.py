@@ -68,6 +68,8 @@ class System(object):
     def temperature(self):
         return 0.
 
+    def report(self):
+        return ''
 
 class Thermostat(object):
 

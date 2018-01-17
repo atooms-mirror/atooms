@@ -124,7 +124,7 @@ class System(object):
         particle.
         """
         if self.interaction is not None:
-            self.interaction.compute('energy', self.particle, self.cell)
+            self.interaction.compute('forces', self.particle, self.cell)
             if not normed:
                 return self.interaction.energy
             else:
@@ -139,6 +139,31 @@ class System(object):
         If `normed` is `True`, return the total energy per particle.
         """
         return self.potential_energy(normed) + self.kinetic_energy(normed)
+
+    def virial(self):
+        """
+        Return the total virial of the system.
+
+        If `normed` is `True`, return the virial per unit volume.
+        """
+        if self.interaction is not None:
+            self.interaction.compute('forces', self.particle, self.cell)
+            return self.interaction.virial
+        else:
+            return 0.0
+    
+    @property
+    def pressure(self):
+        """
+        Return the pressure of the system.
+
+        It assumes that `self.interaction` has already been computed.
+        """
+        if self.thermostat:
+            T = self.thermostat.temperature
+        else:
+            T = self.temperature
+        return (len(self.particle) * T + self.interaction.virial / self.number_of_dimensions) / self.cell.volume
 
     @property
     def cm_velocity(self):
@@ -230,3 +255,22 @@ class System(object):
             return dump_db[what_list[0]]
         else:
             return dump_db
+
+    def report(self):
+        # Summary
+        txt = ''
+        if self.particle:
+            txt += 'system composed by {0} particles\n'.format(len(self.particle))
+        if self.cell:
+            txt += 'enclosed in a {0.shape} box\n'.format(self.cell)
+        if self.thermostat:
+            txt += 'in contact with a thermostat at T={0.temperature}\n'.format(self.thermostat)
+        if self.barostat:
+            txt += 'in contact with a barostat at P={0.pressure}\n'.format(self.barostat)
+        if self.reservoir:
+            txt += 'in contact with a reservoir at mu={0.chemical_potential}\n'.format(self.reservoir)
+            
+        if self.interaction:
+            txt += '\n'
+            txt += self.interaction.report()
+        return txt

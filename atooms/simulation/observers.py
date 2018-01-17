@@ -44,7 +44,8 @@ from atooms.core.utils import rmd, rmf
 __all__ = ['SimulationEnd', 'WallTimeLimit', 'Scheduler',
            'write_config', 'write_thermo', 'write', 'target',
            'target_rmsd', 'target_steps', 'target_walltime',
-           'user_stop', 'Speedometer']
+           'user_stop', 'target_user_stop', 'Speedometer',
+           'shell_stop', 'target_shell_stop']
 
 _log = logging.getLogger(__name__)
 
@@ -245,8 +246,8 @@ def target_steps(sim, value):
 
 def target_walltime(sim, value):
     """
-    Target a value of the elapsed wall time from the beginning of the
-    simulation.
+    Target a value of the elapsed wall time in seconds from the
+    beginning of the simulation.
 
     Useful to self restarting jobs in a queining system with time
     limits.
@@ -259,6 +260,25 @@ def target_walltime(sim, value):
         dt = wtime_limit - t
         _log.debug('elapsed time %g, reamining time %g', t, dt)
 
+def shell_stop(sim, cmd, exit_code=1):
+    """
+    Stop the simulation if execution of shell command `cmd` returns a
+    non-zero exit value.
+    """
+    import subprocess
+    if sim.current_step == 0:
+        return
+    try:
+        output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        if len(output) > 0:
+            _log.info('shell command "{}" returned: {}'.format(cmd, output.strip()))
+    except subprocess.CalledProcessError as e: 
+        if e.returncode == exit_code:
+            raise SimulationEnd('shell command "{}" returned "{}"'.format(cmd, e.output.strip()))
+        else:
+            _log.error('shell command {} failed with output {}'.format(cmd, e.output))
+            raise
+
 def user_stop(sim):
     """
     Allows a user to stop the simulation smoothly by touching a STOP
@@ -267,14 +287,18 @@ def user_stop(sim):
     """
     # To make it work in parallel we should broadcast and then rm
     # or subclass userstop in classes that use parallel execution
-    # TODO: support files as well
     if sim.output_path is not None:
-        try:
-            _log.debug('User Stop %s/STOP', sim.output_path)
-            if os.path.exists('%s/STOP' % sim.output_path):
-                raise SimulationEnd('user has stopped the simulation')
-        except IOError:
-            raise IOError('user_stop wont work atm with file storage')
+        if os.path.isdir(sim.output_path):
+            dirpath = sim.output_path
+        else:
+            dirpath = os.path.dirname(sim.output_path)
+        if os.path.exists('%s/STOP' % dirpath):
+            raise SimulationEnd('user has stopped the simulation')
+
+# Aliases
+
+target_user_stop = user_stop
+target_shell_stop = shell_stop
 
 
 class Speedometer(object):
