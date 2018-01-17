@@ -287,14 +287,13 @@ def user_stop(sim):
     """
     # To make it work in parallel we should broadcast and then rm
     # or subclass userstop in classes that use parallel execution
-    # TODO: support files as well
     if sim.output_path is not None:
-        try:
-            _log.debug('User Stop %s/STOP', sim.output_path)
-            if os.path.exists('%s/STOP' % sim.output_path):
-                raise SimulationEnd('user has stopped the simulation')
-        except IOError:
-            raise IOError('user_stop wont work atm with file storage')
+        if os.path.isdir(sim.output_path):
+            dirpath = sim.output_path
+        else:
+            dirpath = os.path.dirname(sim.output_path)
+        if os.path.exists('%s/STOP' % dirpath):
+            raise SimulationEnd('user has stopped the simulation')
 
 # Aliases
 
