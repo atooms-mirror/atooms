@@ -253,6 +253,9 @@ class System(object):
         for pi, i in zip(p, ima):
             pi.periodic_image = i
         return p
+        
+    def report(self):
+        return ''
 
 
 class Trajectory(object):
