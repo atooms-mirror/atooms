@@ -44,7 +44,8 @@ from atooms.core.utils import rmd, rmf
 __all__ = ['SimulationEnd', 'WallTimeLimit', 'Scheduler',
            'write_config', 'write_thermo', 'write', 'target',
            'target_rmsd', 'target_steps', 'target_walltime',
-           'user_stop', 'Speedometer', 'shell_stop']
+           'user_stop', 'target_user_stop', 'Speedometer',
+           'shell_stop', 'target_shell_stop']
 
 _log = logging.getLogger(__name__)
 
@@ -294,6 +295,11 @@ def user_stop(sim):
                 raise SimulationEnd('user has stopped the simulation')
         except IOError:
             raise IOError('user_stop wont work atm with file storage')
+
+# Aliases
+
+target_user_stop = user_stop
+target_shell_stop = shell_stop
 
 
 class Speedometer(object):
