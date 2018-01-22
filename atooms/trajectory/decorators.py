@@ -12,6 +12,7 @@ Trajectory callbacks and class decorators.
 """
 
 import numpy
+import copy
 
 __all__ = ['center', 'change_species', 'sort', 'filter_species',
            'set_density', 'set_temperature', 'fix_cm', 'fold',
@@ -180,7 +181,6 @@ class Unfolded(object):
         # Cache the initial sample and cell
         s = super(Unfolded, self).read_sample(0)
         self._old = numpy.array([p.position for p in s.particle])
-        self._old_cm = s.cm_position
         self._last_read = 0
 
     def read_sample(self, frame):
@@ -207,14 +207,18 @@ class Unfolded(object):
         # The best thing in this case is to get unfolded positions
         # from the simulation.
         L = s.cell.side
-        pos = numpy.array([p.position for p in s.particle])
+        pos = numpy.array([p.position.copy() for p in s.particle])
         dif = pos - self._old
-        dif = dif - numpy.rint(dif/L) * L
+        dif = dif - numpy.rint(dif / L) * L
         self._old += dif
 
-        # Return unfolded system
+        # Copy unfolded positions back to the system
+        # Here we cannot do 
+        #   s.particle[i].position = self._old[i][:]
+        # because this a shallow view and the arrays share memory.
+        # Fixing the CM later on will not work correctly.
         for i in range(len(pos)):
-            s.particle[i].position = self._old[i][:]
+            s.particle[i].position = self._old[i].copy()
 
         if self.fixed_cm:
             s = fix_cm(s)
