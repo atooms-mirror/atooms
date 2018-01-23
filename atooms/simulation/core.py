@@ -295,7 +295,8 @@ class Simulation(object):
         _report(self._info_start())
         _report(self._info_backend())
         _report(self._info_observers())
-        _report(self.system.report())
+        if hasattr(self.system, 'report'):
+            _report(self.system.report())
         if hasattr(self.backend, 'report'):
             _report(self.backend.report())
 
