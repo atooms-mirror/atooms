@@ -296,6 +296,8 @@ class Simulation(object):
         _report(self._info_backend())
         _report(self._info_observers())
         _report(self.system.report())
+        if hasattr(self.backend, 'report'):
+            _report(self.backend.report())
 
         # Read checkpoint if we restart
         if self.restart:
