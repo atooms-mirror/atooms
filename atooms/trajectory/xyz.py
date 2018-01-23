@@ -79,7 +79,9 @@ class TrajectoryXYZ(TrajectoryBase):
                      'tag': _update_tag,
                      'radius': _update_radius,
                      'pos': _update_position,
-                     'vel': _update_velocity}
+                     'vel': _update_velocity,
+                     'position': _update_position,
+                     'velocity': _update_velocity}
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
         TrajectoryBase.__init__(self, filename, mode)

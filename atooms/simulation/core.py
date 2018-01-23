@@ -198,11 +198,16 @@ class Simulation(object):
 
         if hasattr(self.backend, 'write_checkpoint'):
             # Use native backend checkpoint method
-            self.backend.write_checkpoint()
+            try:
+                self.backend.write_checkpoint(self.output_path)
+            except TypeError:
+                self.backend.write_checkpoint()
         else:
             if self.output_path is not None:
                 # Fallback to backend trajectory class with high precision
-                with self.trajectory(self.output_path + '.chk', 'w') as t:
+                with self.trajectory(self.output_path + '.chk', 'w',
+                                     fields=['species', 'position',
+                                             'velocity', 'radius']) as t:
                     t.precision = 12
                     t.write(self.system, 0)
 
@@ -222,7 +227,10 @@ class Simulation(object):
 
         if hasattr(self.backend, 'read_checkpoint'):
             # Use native backend checkpoint method
-            self.backend.read_checkpoint()
+            try:
+                self.backend.read_checkpoint(self.output_path)
+            except TypeError:
+                self.backend.read_checkpoint()
         else:
             # Fallback to backend trajectory class with high precision
             # Trajectory will not store the interaction, thermostat, barostat
@@ -295,7 +303,10 @@ class Simulation(object):
         _report(self._info_start())
         _report(self._info_backend())
         _report(self._info_observers())
-        _report(self.system.report())
+        if hasattr(self.system, 'report'):
+            _report(self.system.report())
+        if hasattr(self.backend, 'report'):
+            _report(self.backend.report())
 
         # Read checkpoint if we restart
         if self.restart:
