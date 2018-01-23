@@ -202,7 +202,9 @@ class Simulation(object):
         else:
             if self.output_path is not None:
                 # Fallback to backend trajectory class with high precision
-                with self.trajectory(self.output_path + '.chk', 'w') as t:
+                with self.trajectory(self.output_path + '.chk', 'w',
+                                     fields=['species', 'position',
+                                             'velocity', 'radius']) as t:
                     t.precision = 12
                     t.write(self.system, 0)
 
