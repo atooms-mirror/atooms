@@ -105,9 +105,9 @@ class Scheduler(object):
         self.seconds = seconds
 
         # Normalize non-positive intervals and n. of calls
-        if self.interval <= 0:
+        if self.interval is not None and self.interval <= 0:
             self.interval = None
-        if self.calls <= 0:
+        if self.calls is not None and self.calls <= 0:
             self.calls = None
 
     def __call__(self, sim):
