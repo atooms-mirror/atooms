@@ -22,8 +22,8 @@ class Interaction(object):
         self.potential = potential
         self.name = name
         self.forces = None
-        self.energy = 0.0
-        self.virial = 0.0
+        self.energy = None
+        self.virial = None
         self.stress = None  # this will be (ndim,ndim) numpy array
         self.hessian = None
 
