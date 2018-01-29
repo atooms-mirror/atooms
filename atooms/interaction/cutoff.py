@@ -48,8 +48,14 @@ class CutOff(object):
         """
         if self.scheme in ['cs', 'CS']:
             self.vcut = u[0]
+
         elif self.scheme in ['c', 'cut']:
             pass
+            
+        elif self.scheme in ['qs', 'QS']:
+            self.Acut =   u[1] / 2
+            self.Bcut = - u[1] * self.radius**2 / 2 - u[0]
+
         elif self.scheme in ['cspl', 'CSPL']:
             # the potential is cubic-splined between rcut1 < r < rcut 
             # cubic-splined cutoff : u(r) = A*(B-r)^3 + C for rcut1 < r < rcut=B 
@@ -78,8 +84,14 @@ class CutOff(object):
         u_new = list(u)
         if self.scheme in ['cs', 'CS']:
             u_new[0] = u[0] - self.vcut
+
         elif self.scheme in ['c', 'cut']:
             pass
+
+        elif self.scheme in ['qs', 'QS']:
+            u_new[0] = u[0] + self.Acut * rsquare + self.Bcut
+            u_new[1] = u[1] + self.Acut * 2
+
         elif self.scheme in ['cspl', 'CSPL']:
             # cubic splined between rcut1 and rcut :
             # function is overwritten when between rcut1 and rcut
@@ -90,6 +102,7 @@ class CutOff(object):
                 u_new[1] = 3 * self.Acut * dr**2 / rij
             else:
                 u_new[0] = u[0] + self.Ccut
+
         else:
             raise NotImplementedError()
         return u_new
