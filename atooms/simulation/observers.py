@@ -347,7 +347,7 @@ class Speedometer(object):
             d_delta = datetime.timedelta(seconds=eta)
             d_eta = d_now + d_delta
             # self._callback.__name__, 
-            _log.info('%2d%% estimated end: %s S/T: %.1f T/SP: %.2e',
+            _log.info('%2d%% ETA: %s S/T: %.1f T/SP: %.2e',
                       int(frac * 100),
                       d_eta.strftime('%Y-%m-%d %H.%M'),
                       1./sim.wall_time(per_step=True),
