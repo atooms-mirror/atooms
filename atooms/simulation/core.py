@@ -337,7 +337,6 @@ class Simulation(object):
             else:
                 self._notify(self._speedometers)
             _log.info('starting at step: %d', self.current_step)
-            _log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
