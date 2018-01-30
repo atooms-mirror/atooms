@@ -260,18 +260,20 @@ class System(object):
     def report(self):
         # Summary
         txt = ''
-        if self.particle:
-            txt += 'system composed by {0} particles\n'.format(len(self.particle))
-        if self.cell:
-            txt += 'enclosed in a {0.shape} box at number density rho={1:.6f}\n'.format(self.cell, self.density)
-        if self.thermostat:
-            txt += 'in contact with a thermostat at T={0.temperature}\n'.format(self.thermostat)
-        if self.barostat:
-            txt += 'in contact with a barostat at P={0.pressure}\n'.format(self.barostat)
-        if self.reservoir:
-            txt += 'in contact with a reservoir at mu={0.chemical_potential}\n'.format(self.reservoir)
-            
-        if self.interaction:
-            txt += '\n'
-            txt += self.interaction.report()
+        try:
+            if self.particle:
+                txt += 'system composed by {0} particles\n'.format(len(self.particle))
+            if self.cell:
+                txt += 'enclosed in a {0.shape} box at number density rho={1:.6f}\n'.format(self.cell, self.density)
+            if self.thermostat:
+                txt += 'in contact with a thermostat at T={0.temperature}\n'.format(self.thermostat)
+            if self.barostat:
+                txt += 'in contact with a barostat at P={0.pressure}\n'.format(self.barostat)
+            if self.reservoir:
+                txt += 'in contact with a reservoir at mu={0.chemical_potential}\n'.format(self.reservoir)
+            if self.interaction:
+                txt += '\n'
+                txt += self.interaction.report()
+        except:
+            pass
         return txt
