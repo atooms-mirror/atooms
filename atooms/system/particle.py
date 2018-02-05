@@ -295,3 +295,33 @@ def gyration_radius(particles, cell=None, weight=None, center=None,
             else:
                 rg = min(rg_new, rg)
         return rg
+
+
+def collective_overlap(particle, other, a, side, normalize=True):
+    """Compute collective overlap between two lists of particles."""
+    # These optimizations via numpy are necessary. Computing O(N^2)
+    # quantities in pure python takes forever.
+    x = numpy.array([p.position for p in particle])
+    y = numpy.array([p.position for p in other])
+    dr = numpy.ndarray(x.shape[0])
+    rij = numpy.asarray(y)
+    q = 0
+    for i in range(y.shape[0]):
+        dr = x[:, :] - y[i, :]
+        dr = dr - numpy.rint(dr / side) * side
+        dr = numpy.sum(dr**2, axis=1)
+        q += (dr < a**2).sum()
+    if normalize:
+        q /= float(len(particle))
+    return q
+
+
+def self_overlap(particle, other, a, normalize=True):
+    """Compute self overlap between two lists of unfolded particles."""
+    # This quantity is O(N) and therefore we use pure python
+    rij = [sum(p.distance(o)**2) for p, o in zip(particle, other)]
+    q = (numpy.array(rij) < a**2).sum()
+    if normalize:
+        q /= float(len(particle))
+    return q
+

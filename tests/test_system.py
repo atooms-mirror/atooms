@@ -146,5 +146,43 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(system.potential_energy(normed=True), 0.0)
         self.assertAlmostEqual(system.total_energy(), system.kinetic_energy())
 
+    def test_overlap(self):
+        from atooms.system.particle import self_overlap, collective_overlap
+        sys1 = copy.deepcopy(self.ref)
+        sys2 = copy.deepcopy(self.ref)
+        sys1.particle = sys1.particle[:len(sys1.particle) / 2]
+        sys2.particle = sys2.particle[len(sys2.particle) / 2:]
+        self.assertEqual(0, self_overlap(sys1.particle, sys2.particle, 0.001))
+        self.assertEqual(0, collective_overlap(sys1.particle, sys2.particle, 0.001, sys1.cell.side))
+        sys1.particle = sys1.particle
+        sys2.particle = sys1.particle
+        self.assertEqual(1, self_overlap(sys1.particle, sys2.particle, 0.001))
+        self.assertEqual(1, collective_overlap(sys1.particle, sys2.particle, 0.001, sys1.cell.side))
+
+    def test_overlap_random(self):
+        # This test may fail from time to time
+        from atooms.system.particle import collective_overlap
+        N = 1000
+        L = 5.0
+        sys = [System(), System()]
+        sys[0].cell = Cell([L, L, L])
+        sys[1].cell = Cell([L, L, L])
+        sys[0].particle = []
+        sys[1].particle = []
+        for _ in range(N):
+            pos = [(random.random() - 0.5) * L,
+                   (random.random() - 0.5) * L,
+                   (random.random() - 0.5) * L]
+            sys[0].particle.append(Particle(position=pos))
+        for _ in range(N):
+            pos = [(random.random() - 0.5) * L,
+                   (random.random() - 0.5) * L,
+                   (random.random() - 0.5) * L]
+            sys[1].particle.append(Particle(position=pos))
+        a = 0.3
+        q_rand = ((a**3 * 4./3*3.1415) * N / sys[0].cell.volume)
+        self.assertTrue(abs(q_rand - collective_overlap(sys[0].particle, sys[1].particle, a, sys[0].cell.side)) < 0.5)
+
+
 if __name__ == '__main__':
     unittest.main()
