@@ -153,11 +153,19 @@ class Test(unittest.TestCase):
         s.add(write_thermo, Scheduler(10))
         s.run(100)
         self.assertEqual(s.current_step, 20)
+
         s = Simulation(DryRun(), output_path=f)
         s.add(shell_stop, Scheduler(20), 'exit 0')
         s.add(write_thermo, Scheduler(10))
         s.run(100)
         self.assertEqual(s.current_step, 100)
+
+        # Test formatted string
+        s = Simulation(DryRun(), output_path=f)
+        s.add(shell_stop, Scheduler(20), '[ {sim.current_step} -eq 40 ] && exit 1 || exit 0')
+        s.run(100)
+        self.assertEqual(s.current_step, 40)
+
 
     def tearDown(self):
         rmd('/tmp/test_simulation')
