@@ -284,7 +284,8 @@ def shell_stop(sim, cmd, exit_code=1):
         # Interpolate the command string
         wrap_cmd = cmd.format(sim=sim)
         # Run the shell command
-        output = subprocess.check_output(wrap_cmd, shell=True, stderr=subprocess.STDOUT)
+        output = subprocess.check_output(wrap_cmd, shell=True,
+                                         stderr=subprocess.STDOUT, executable="/bin/bash")
         if len(output) > 0:
             _log.info('shell command "{}" returned: {}'.format(cmd, output.strip()))
 
