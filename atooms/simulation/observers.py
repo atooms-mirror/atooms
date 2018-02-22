@@ -265,17 +265,32 @@ def target_walltime(sim, value):
 
 def shell_stop(sim, cmd, exit_code=1):
     """
-    Stop the simulation if execution of shell command `cmd` returns a
-    non-zero exit value.
+    Execute the shell command `cmd` and stop the simulation if the
+    command returns an exit value equal to `exit_code`.
+
+    `cmd` is actually a format string that may contain references to
+    the passed `sim` instance. For instance, a valid command is
+
+        #!python
+        echo {sim.current_step} {sim.rmsd} >> {sim.output_path}.out
+
+    which will append the step and rmsd to {sim.output_path}.out.
     """
     import subprocess
+    # We do nothing on the first step
     if sim.current_step == 0:
         return
     try:
-        output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        # Interpolate the command string
+        wrap_cmd = cmd.format(sim=sim)
+        # Run the shell command
+        output = subprocess.check_output(wrap_cmd, shell=True,
+                                         stderr=subprocess.STDOUT, executable="/bin/bash")
         if len(output) > 0:
             _log.info('shell command "{}" returned: {}'.format(cmd, output.strip()))
+
     except subprocess.CalledProcessError as e: 
+        # We stop the simulation
         if e.returncode == exit_code:
             raise SimulationEnd('shell command "{}" returned "{}"'.format(cmd, e.output.strip()))
         else:
