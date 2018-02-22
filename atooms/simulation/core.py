@@ -357,7 +357,7 @@ class Simulation(object):
 
         except SimulationEnd as end:
             # Checkpoint configuration at last step
-            _log.info('simulation ended successfully: %s', end.message)
+            _log.info('simulation ended successfully: %s', end)
             self.write_checkpoint()
             _report(self._info_end())
 

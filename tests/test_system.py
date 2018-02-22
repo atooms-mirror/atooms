@@ -150,8 +150,8 @@ class Test(unittest.TestCase):
         from atooms.system.particle import self_overlap, collective_overlap
         sys1 = copy.deepcopy(self.ref)
         sys2 = copy.deepcopy(self.ref)
-        sys1.particle = sys1.particle[:len(sys1.particle) / 2]
-        sys2.particle = sys2.particle[len(sys2.particle) / 2:]
+        sys1.particle = sys1.particle[:int(len(sys1.particle) / 2)]
+        sys2.particle = sys2.particle[int(len(sys2.particle) / 2):]
         self.assertEqual(0, self_overlap(sys1.particle, sys2.particle, 0.001))
         self.assertEqual(0, collective_overlap(sys1.particle, sys2.particle, 0.001, sys1.cell.side))
         sys1.particle = sys1.particle
