@@ -41,9 +41,9 @@ import datetime
 import logging
 from atooms.core.utils import rmd, rmf
 
-__all__ = ['SimulationEnd', 'WallTimeLimit', 'Scheduler',
-           'write_config', 'write_thermo', 'write', 'target',
-           'target_rmsd', 'target_steps', 'target_walltime',
+__all__ = ['SimulationEnd', 'WallTimeLimit', 'SimulationKill',
+           'Scheduler', 'write_config', 'write_thermo', 'write',
+           'target', 'target_rmsd', 'target_steps', 'target_walltime',
            'user_stop', 'target_user_stop', 'Speedometer',
            'shell_stop', 'target_shell_stop']
 
@@ -70,6 +70,9 @@ class SimulationEnd(Exception):
     """Raised when an targeter reaches its target."""
     pass
 
+class SimulationKill(Exception):
+    """Raised when a simulation is terminated by SIGTERM."""
+    pass
 
 class WallTimeLimit(Exception):
     """Raised when the wall time limit is reached."""
@@ -105,9 +108,9 @@ class Scheduler(object):
         self.seconds = seconds
 
         # Normalize non-positive intervals and n. of calls
-        if self.interval <= 0:
+        if self.interval is not None and self.interval <= 0:
             self.interval = None
-        if self.calls <= 0:
+        if self.calls is not None and self.calls <= 0:
             self.calls = None
 
     def __call__(self, sim):
@@ -254,7 +257,7 @@ def target_walltime(sim, value):
     """
     wtime_limit = value
     if sim.wall_time() > wtime_limit:
-        raise WallTimeLimit('target wall time reached')
+        raise SimulationEnd('target wall time reached')
     else:
         t = sim.wall_time()
         dt = wtime_limit - t
@@ -343,10 +346,12 @@ class Speedometer(object):
             d_now = datetime.datetime.now()
             d_delta = datetime.timedelta(seconds=eta)
             d_eta = d_now + d_delta
-            _log.info('%s: %d%% estimated end: %s rate: %.2e TSP: %.2e',
-                      self._callback.__name__, int(frac * 100),
-                      d_eta.strftime('%Y-%m-%d %H:%M'),
-                      speed, sim.wall_time(per_step=True, per_particle=True))
+            # self._callback.__name__, 
+            _log.info('%2d%% ETA: %s S/T: %.1f T/SP: %.2e',
+                      int(frac * 100),
+                      d_eta.strftime('%Y-%m-%d %H.%M'),
+                      1./sim.wall_time(per_step=True),
+                      sim.wall_time(per_step=True, per_particle=True))
         except ZeroDivisionError:
             print(x_now, self.x_last)
             raise

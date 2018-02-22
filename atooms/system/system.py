@@ -116,7 +116,7 @@ class System(object):
         else:
             return ekin / len(self.particle)
 
-    def potential_energy(self, normed=False):
+    def potential_energy(self, normed=False, cache=False):
         """
         Return the total potential energy of the system.
 
@@ -124,7 +124,8 @@ class System(object):
         particle.
         """
         if self.interaction is not None:
-            self.interaction.compute('forces', self.particle, self.cell)
+            if not cache or (cache and self.interaction is None):
+                self.interaction.compute('forces', self.particle, self.cell)
             if not normed:
                 return self.interaction.energy
             else:
@@ -132,13 +133,13 @@ class System(object):
         else:
             return 0.0
 
-    def total_energy(self, normed=False):
+    def total_energy(self, normed=False, cache=False):
         """
         Return the total energy of the system.
 
         If `normed` is `True`, return the total energy per particle.
         """
-        return self.potential_energy(normed) + self.kinetic_energy(normed)
+        return self.potential_energy(normed, cache) + self.kinetic_energy(normed)
 
     def virial(self):
         """
@@ -259,18 +260,20 @@ class System(object):
     def report(self):
         # Summary
         txt = ''
-        if self.particle:
-            txt += 'system composed by {0} particles\n'.format(len(self.particle))
-        if self.cell:
-            txt += 'enclosed in a {0.shape} box at number density rho={1:.6f}\n'.format(self.cell, self.density)
-        if self.thermostat:
-            txt += 'in contact with a thermostat at T={0.temperature}\n'.format(self.thermostat)
-        if self.barostat:
-            txt += 'in contact with a barostat at P={0.pressure}\n'.format(self.barostat)
-        if self.reservoir:
-            txt += 'in contact with a reservoir at mu={0.chemical_potential}\n'.format(self.reservoir)
-            
-        if self.interaction:
-            txt += '\n'
-            txt += self.interaction.report()
+        try:
+            if self.particle:
+                txt += 'system composed by {0} particles\n'.format(len(self.particle))
+            if self.cell:
+                txt += 'enclosed in a {0.shape} box at number density rho={1:.6f}\n'.format(self.cell, self.density)
+            if self.thermostat:
+                txt += 'in contact with a thermostat at T={0.temperature}\n'.format(self.thermostat)
+            if self.barostat:
+                txt += 'in contact with a barostat at P={0.pressure}\n'.format(self.barostat)
+            if self.reservoir:
+                txt += 'in contact with a reservoir at mu={0.chemical_potential}\n'.format(self.reservoir)
+            if self.interaction:
+                txt += '\n'
+                txt += self.interaction.report()
+        except:
+            pass
         return txt

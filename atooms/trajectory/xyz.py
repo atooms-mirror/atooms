@@ -21,6 +21,10 @@ def _update_radius(particle, data, meta):
     particle.radius = float(data[0])
     return data[1:]
 
+def _update_diameter(particle, data, meta):
+    particle.radius = float(data[0]) / 2
+    return data[1:]
+
 def _update_tag(particle, data, meta):
     # Kept for backward compatibility. We should rather rely on
     # tipified properties.
@@ -78,6 +82,7 @@ class TrajectoryXYZ(TrajectoryBase):
                      'id': _update_species,  # alias
                      'tag': _update_tag,
                      'radius': _update_radius,
+                     'diameter': _update_diameter,
                      'pos': _update_position,
                      'vel': _update_velocity,
                      'position': _update_position,

@@ -27,7 +27,7 @@ import logging
 
 from atooms.core import __version__
 from atooms.core.utils import mkdir, barrier
-from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, WallTimeLimit
+from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, SimulationKill
 
 _log = logging.getLogger(__name__)
 
@@ -315,6 +315,14 @@ class Simulation(object):
         self.initial_step = self.current_step
         self._start_time = time.time()
 
+        import signal
+        import sys
+
+        def signal_term_handler(signal, frame):
+            raise SimulationKill('simulation terminated')
+
+        signal.signal(signal.SIGTERM, signal_term_handler)
+
         # Reinitialize speedometers
         for s in self._speedometers:
             s._init = False
@@ -329,7 +337,6 @@ class Simulation(object):
             else:
                 self._notify(self._speedometers)
             _log.info('starting at step: %d', self.current_step)
-            _log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
@@ -348,13 +355,17 @@ class Simulation(object):
                 if self.current_step == next_checkpoint:
                     self.write_checkpoint()
 
-        except (SimulationEnd, WallTimeLimit):
+        except SimulationEnd as end:
             # Checkpoint configuration at last step
+            _log.info('simulation ended successfully: %s', end.message)
             self.write_checkpoint()
             _report(self._info_end())
 
         except KeyboardInterrupt:
             pass
+
+        except SimulationKill:
+            _log.info('simulation terminated')
 
         except:
             _log.error('simulation failed')
