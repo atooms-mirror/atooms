@@ -192,24 +192,29 @@ class Simulation(object):
 
     def write_checkpoint(self):
         """Write checkpoint to allow restarting a simulation."""
-        if self.output_path is not None:
-            with open(self.output_path + '.chk.step', 'w') as fh:
-                fh.write('%d' % self.current_step)
+        if self.output_path is None:
+            # Try to write the checkpoint via the backend
+            self.backend.write_checkpoint()
+            return
+
+        with open(self.output_path + '.chk.step', 'w') as fh:
+            fh.write('%d' % self.current_step)
 
         if hasattr(self.backend, 'write_checkpoint'):
             # Use native backend checkpoint method
             try:
                 self.backend.write_checkpoint(self.output_path)
             except TypeError:
+                # We end up here if write_checkpoint() doesn't accept
+                # an argument, though this might catch other exceptions as well
                 self.backend.write_checkpoint()
         else:
-            if self.output_path is not None:
-                # Fallback to backend trajectory class with high precision
-                with self.trajectory(self.output_path + '.chk', 'w',
-                                     fields=['species', 'position',
-                                             'velocity', 'radius']) as t:
-                    t.precision = 12
-                    t.write(self.system, 0)
+            # Fallback to backend trajectory class with high precision
+            with self.trajectory(self.output_path + '.chk', 'w',
+                                 fields=['species', 'position',
+                                         'velocity', 'radius']) as t:
+                t.precision = 12
+                t.write(self.system, 0)
 
     def read_checkpoint(self):
         """
