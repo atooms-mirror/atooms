@@ -2,6 +2,7 @@
 
 """Convert trajectory file to a different format."""
 
+from __future__ import print_function
 import os
 import sys
 import logging
@@ -130,7 +131,6 @@ def main_paste(args):
 
     trj.py paste.py file1.xyz:radius file2.xyz.voronoi.xyz:volume
     """
-
     from atooms import trajectory as trj
 
     f1, attr1 = args.file_inp[0].split(':')
