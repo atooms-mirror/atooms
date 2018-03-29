@@ -358,8 +358,12 @@ def _update_neighbors_consume(particle, data, meta):
 
 def _update_neighbors(particle, data, meta):
     # Extract comma separated entries in the first element of data
-    particle.neighbors = numpy.array(data[0].split(','), dtype=int)
-    return data[1:]
+    if len(data) > 0 and ',' in data[0]:
+        particle.neighbors = numpy.array(data[0].split(','), dtype=int)
+        return data[1:]
+    else:
+        particle.neighbors = numpy.array(data, dtype=int)
+        return []
 
 def _add_neighbors_to_system(system, offset):
     for p in system.particle:
@@ -377,7 +381,8 @@ class TrajectoryNeighbors(TrajectoryXYZ):
                                                   alias={'time':
                                                          'step'})
         self._offset = offset
-        self.fields = ['neighbors*'] if fields is None else fields
+        self.fields = ['neighbors'] if fields is None else fields
         self.callback_read = {'neighbors': _update_neighbors,
                               'neighbors*': _update_neighbors_consume}
         self.add_callback(_add_neighbors_to_system, self._offset)
+        self._fields_float = False
