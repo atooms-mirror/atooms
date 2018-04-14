@@ -10,3 +10,7 @@ minimum, a `run()` method that performs the simulation. See the
 `DryRun` backend for the interface that a valid backend should
 implement.
 """
+
+import logging
+from atooms.core.utils import NullHandler
+logging.getLogger(__name__).addHandler(NullHandler())
