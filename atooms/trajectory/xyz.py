@@ -90,8 +90,9 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
         TrajectoryBase.__init__(self, filename, mode)
+        self._fields_default = ['id', 'pos']
+        self.fields = self._fields_default if fields is None else fields
         self.alias = {} if alias is None else alias
-        self.fields = ['id', 'pos'] if fields is None else fields
 
         # Internal variables
         self._cell = None
@@ -230,6 +231,11 @@ class TrajectoryXYZ(TrajectoryBase):
         except KeyError:
             meta['ndim'] = 3  # default
 
+        # Make sure columns is a list
+        if 'columns' in meta:
+            if not isinstance(meta['columns'], list):
+                meta['columns'] = [meta['columns']]
+
         return meta
 
     def read_init(self):
@@ -241,19 +247,74 @@ class TrajectoryXYZ(TrajectoryBase):
             self._cell = self._parse_cell()
 
     def read_sample(self, frame):
+        # Read metadata of this frame
         meta = self._read_metadata(frame)
-        # Redefine fields
-        if 'columns' in meta:
-            # Use columns as fields if they are found in the header
-            fields = meta['columns']
-            # Fix single column
-            if not isinstance(fields, list):
-                fields = [fields]
+
+        # Redefine fields.
+        # If set by the user, self.fields takes precedence on columns metadata.
+        # fields is [] and columns is present: read everything
+        # fields is [] and columns not present: error
+        # fields is default and columns is present: read everything
+        # fields is default and columns not present: error
+        # fields is set and columns is present: pad
+        # fields is set but columns not present: read from fields
+        if len(self.fields) == 0:
+            # Fields is empty, we try to read everything
+            if 'columns' in meta:
+                fields = meta['columns']
+            else:
+                raise ValueError('file %s without columns' % self.filename)
+        elif self.fields is self._fields_default:
+            # Default fields: we try to read everything, else we use default
+            if 'columns' in meta:
+                fields = meta['columns']
+            else:
+                fields = self.fields
         else:
-            # Stick to the default
-            fields = self.fields
+            # Fields set by user: pad missing fields if columns metadata are present
+            if 'columns' in meta:
+                fields = []
+                for key in meta['columns']:
+                    if key in self.fields:
+                        fields.append(key)
+                    else:
+                        fields.append(None)
+            else:
+                fields = self.fields
+
+        # Replace some column keys with more efficient ones
         fields = _optimize_fields(fields)
 
+        # Remove skippable fields
+        for key in fields[-1::-1]:
+            if key is None:
+                fields.pop()
+            else:
+                break
+
+        # Define read callbacks list before reading lines
+        callbacks_read = []
+        def _skip(p, data, meta):
+            return data[1:]
+        for key in fields:
+            # If the key is associated to a explicit callback, go
+            # for it. Otherwise we throw the field in an particle
+            # attribute named key. If the key is None it means we skip
+            # this column.
+            if key is None:
+                callbacks_read.append(_skip)
+            elif key in self.callback_read:
+                callbacks_read.append(self.callback_read[key])
+            else:
+                # Trick. We instantiate dynamically a fallback function
+                # to avoid adding `key` to the other callbacks' interface
+                exec("""
+def _fallback(p, data, meta):
+    p.__dict__['%s'] = tipify(data[0])
+    return data[1:]
+""" % key)
+                callbacks_read.append(_fallback)
+        
         # Read frame now
         self.trajectory.seek(self._index_frame[frame])
         particle = []
@@ -262,18 +323,8 @@ class TrajectoryXYZ(TrajectoryBase):
             # Note: we cannot optimize by shifting an index instead of
             # cropping lists all the time
             data = self.trajectory.readline().split()
-            for key in fields:
-                # This block below takes ~50% of the time
-                # --
-                # If the key is associated to a explicit callback, go
-                # for it. Otherwise we throw the field in an particle
-                # attribute named key.
-                if key in self.callback_read:
-                    data = self.callback_read[key](p, data, meta)
-                else:
-                    p.__dict__[key] = tipify(data[0])
-                    data = data[1:]
-                # --
+            for cbk in callbacks_read:
+                data = cbk(p, data, meta)
             particle.append(p)
 
         # Fix the masses.
@@ -378,10 +429,12 @@ class TrajectoryNeighbors(TrajectoryXYZ):
 
     def __init__(self, filename, mode='r', fields=None, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename, mode=mode,
-                                                  alias={'time':
-                                                         'step'})
+                                                  alias={'time': 'step'})
         self._offset = offset
-        self.fields = ['neighbors'] if fields is None else fields
+        if mode == 'w':
+            self.fields = ['neighbors'] if fields is None else fields
+        else:
+            self.fields = []
         self.callback_read = {'neighbors': _update_neighbors,
                               'neighbors*': _update_neighbors_consume}
         self.add_callback(_add_neighbors_to_system, self._offset)

@@ -15,11 +15,14 @@ from atooms.trajectory import SuperTrajectory
 class TrajectoryRUMD(TrajectoryXYZ):
     # TODO: allow reading unfolded configuration by parsing the box image integers
 
-    def __init__(self, filename, mode='r'):
+    def __init__(self, filename, mode='r', fields=None):
         super(TrajectoryRUMD, self).__init__(filename, mode,
                                              alias={'timeStepIndex': 'step',
                                                     'boxLengths': 'cell',
-                                                    'sim_box': 'cell'})
+                                                    'sim_box': 'cell'},
+                                             fields=fields)
+        if mode == 'r':
+            self.fields = ['type', 'x', 'y', 'z', 'vx', 'vy', 'vz'] if fields is None else fields
         # The minimum id for RUMD is 0
         self._min_id = 0
 
@@ -97,7 +100,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
             # general getting the sample back via read_sample() will
             # not preserve the species.
             isp = sp.index(p.species)
-            self.trajectory.write(("%s"+ndim*" %14.6f" + ndim*" %g " + "\n") %
+            self.trajectory.write(("%s"+ndim*" %.6f" + ndim*" %.6f " + "\n") %
                                   ((isp,) + tuple(p.position) + tuple(p.velocity)))
 
     def close(self):

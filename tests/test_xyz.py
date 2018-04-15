@@ -292,7 +292,7 @@ class TestNeighbors(unittest.TestCase):
         with open('/tmp/test_xyz/neighbors.xyz', 'w') as fh:
             fh.write("""\
 4
-step:1
+step:1 columns:neighbors*
 2 4
 1 3
 2 
@@ -348,32 +348,33 @@ class TestSimpleXYZ(TestXYZ):
         pass
 
 
-class TestRumd(TestXYZ):
+class TestRumd(unittest.TestCase):
 
     Trajectory = TrajectoryRUMD
 
     def setUp(self):
+        mkdir('/tmp/test_xyz')
         super(TestRumd, self).setUp()
         ioformat_1 = """\
 2
 ioformat=1 dt=0.005000000 boxLengths=6.000000000,6.000000000,6.000000000 numTypes=2 Nose-Hoover-Ps=-0.154678583 Barostat-Pv=0.000000000 mass=1.000000000,1.000000000 columns=type,x,y,z,imx,imy,imz,vx,vy,vz,fx,fy,fz,pe,vir
-0 2.545111895 -0.159052730 -2.589233398 0 0 1 -0.955896854 -2.176721811 0.771060944 14.875996590 -28.476327896 -15.786120415 -5.331668218 22.538120270
-1 -2.089187145 1.736116767 1.907819748 0 0 -1 -0.717318892 -0.734904408 0.904034972 -28.532371521 13.714955330 0.387423307 -7.276362737 11.813765526
+0  1.0 -1.0 0.0 0 0 1 -0.955896854 -2.176721811 0.771060944 14.875996590 -28.476327896 -15.786120415 -5.331668218 22.538120270
+1  2.9 -2.9 0.0 0 0 -1 -0.717318892 -0.734904408 0.904034972 -28.532371521 13.714955330 0.387423307 -7.276362737 11.813765526
 """
 
         with open('/tmp/test_xyz/rumd.xyz', 'w') as fh:
             fh.write(ioformat_1)
-            self.input_file = fh.name
+            self.finp = fh.name
 
     def test_read_write(self):
-        with TrajectoryRUMD(self.input_file) as th:
-            with TrajectoryRUMD(self.input_file + 'out', 'w') as th_out:
+        with TrajectoryRUMD(self.finp) as th:
+            with TrajectoryRUMD(self.finp + 'out', 'w') as th_out:
                 self.assertEqual(th.timestep, 0.005)
                 self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
                 th_out.timestep = th.timestep
                 for i, system in enumerate(th):
                     th_out.write(system, th.steps[i])
-        with TrajectoryRUMD(self.input_file + 'out') as th:
+        with TrajectoryRUMD(self.finp + 'out') as th:
             self.assertEqual(th.timestep, 0.005)
             self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
 

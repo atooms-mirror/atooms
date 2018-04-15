@@ -170,6 +170,35 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
             for i, system in enumerate(th):
                 self.assertTrue(_equal(self.system[i], system, ignore=['mass', 'species']))
 
+    def test_(self):
+        with trj.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz'), 'w') as th:
+            th.timestep = 0.001
+            th.write(self.system[0], 0)
+        with trj.TrajectoryRUMD(os.path.join(self.inpdir, '1.xyz.gz'), 'w') as th:
+            th.timestep = 0.001
+            th.write(self.system[0], 1)
+
+        # Reading
+        # This should read only type and pos
+        with trj.rumd.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz')) as th:
+            th.fields = ['type', 'x', 'y', 'z']
+            s = th[0]
+
+        # This should read only type and pos
+        with trj.rumd.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz'),
+                                          fields=['type', 'x', 'y', 'z']) as th:
+            s = th[0]
+
+        # This should fail because requested field does not exist
+        with trj.rumd.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz'),
+                                          fields=['type', 'fail']) as th:
+            s = th[0]
+
+        # This should propagate fields through supertrajectory
+        with trj.rumd.SuperTrajectoryRUMD(self.inpdir) as th:
+            th.fields = ['type', 'x', 'y', 'z']
+            s = th[0]
+            
     def test_folder(self):
         import glob
         with TrajectoryXYZ(os.path.join(self.inpdir, '10.xyz'), 'w') as th:

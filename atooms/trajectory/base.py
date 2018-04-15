@@ -49,9 +49,9 @@ class TrajectoryBase(object):
         self.callbacks = []
         self.fields = []
         """
-        A list of strings describing data to be written by #
-        write_sample(). Subclasses may use it to filter out some #
-        data from their format or can even ignore it entirely.
+        A list of strings describing data to be written by `write_sample`
+        and/or read by `read_sample`. Subclasses may use it to filter
+        out some data from their format. They can ignore it entirely.
         """
         self.precision = 6
         # These are cached properties
