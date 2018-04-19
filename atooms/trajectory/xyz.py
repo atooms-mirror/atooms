@@ -434,7 +434,10 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         if mode == 'w':
             self.fields = ['neighbors'] if fields is None else fields
         else:
-            self.fields = []
+            # By default, we assume an xyz file with space-separated
+            # integers indicating the particles indices
+            self._fields_default = ['neighbors*']
+            self.fields = self._fields_default
         self.callback_read = {'neighbors': _update_neighbors,
                               'neighbors*': _update_neighbors_consume}
         self.add_callback(_add_neighbors_to_system, self._offset)
