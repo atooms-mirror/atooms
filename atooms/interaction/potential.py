@@ -171,13 +171,13 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
         # We overshoot 2 points beyond rmax (cutoff) to avoid
         # smoothing discontinuous potentials
         drsq = (rmax**2 - rmin**2) / (npoints - 3)
-
-        rsq[0], rsq[1] = rmin**2, rmin**2 + drsq
-        u0[0], u1[0], _ = self.compute(rsq[1])
-        u0[1], u1[1], _ = self.compute(rsq[1])
-        for i in range(2, npoints):
+        for i in range(npoints):
             rsq[i] = rmin**2 + i * drsq
             u0[i], u1[i], _ = self.compute(rsq[i])
+        # For potentials that diverge at zero, we remove the singularity by hand
+        import math
+        if math.isnan(u0[0]):
+            u0[0], u1[0] = u0[1], u1[1]
         return rsq, u0, u1
 
     def compute(self, rsquare):
