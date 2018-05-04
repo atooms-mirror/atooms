@@ -45,7 +45,7 @@ __all__ = ['SimulationEnd', 'WallTimeLimit', 'SimulationKill',
            'Scheduler', 'write_config', 'write_thermo', 'write',
            'target', 'target_rmsd', 'target_steps', 'target_walltime',
            'user_stop', 'target_user_stop', 'Speedometer',
-           'shell_stop', 'target_shell_stop']
+           'shell_stop', 'target_shell_stop', 'target_python_stop']
 
 _log = logging.getLogger(__name__)
 
@@ -262,6 +262,28 @@ def target_walltime(sim, value):
         t = sim.wall_time()
         dt = wtime_limit - t
         _log.debug('elapsed time %g, reamining time %g', t, dt)
+
+
+def target_python_stop(sim, condition):
+    """
+    Stop the simulation if `condition` is True.
+
+    `condition` will interpolate attributes of the passed `sim`
+    instance. For instance, the condition
+
+        #!python
+        {current_step} > 1000 and {rmsd} > 1.0
+
+    will stop the simulation when the step is > 1000 and the rmsd > 1.
+    """
+     # We do nothing on the first step
+    if sim.current_step == 0:
+        return
+    # Interpolate the command string
+    cmd = condition.replace('{', '{0.')
+    cmd = cmd.format(sim)
+    if eval(cmd):
+        raise SimulationEnd('condition "{}" satisfied'.format(condition))
 
 def shell_stop(sim, cmd, exit_code=1):
     """
