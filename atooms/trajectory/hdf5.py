@@ -256,6 +256,12 @@ class TrajectoryHDF5(TrajectoryBase):
             if 'radius' in self.fields:
                 self.trajectory.create_group_safe('/trajectory/particle/radius')
                 self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
+            if 'species' in self.fields:
+                self.trajectory.create_group_safe('/trajectory/particle/species')
+                self.trajectory['/trajectory/particle/species' + csample] = ['%-3s' % p.species for p in system.particle]
+                from atooms.system.particle import distinct_species
+                ids = distinct_species(system.particle)
+                self.trajectory['/trajectory/particle/ids' + csample] = [1+ids.index(p.species) for p in system.particle]
 
         if system.cell is not None:
             self.trajectory.create_group_safe('/trajectory/cell')
