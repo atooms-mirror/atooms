@@ -166,6 +166,14 @@ class Test(unittest.TestCase):
         s.run(100)
         self.assertEqual(s.current_step, 40)
 
+    def test_python_stop(self):
+        from atooms.simulation import target_python_stop
+        f = '/tmp/test_simulation/python/trajectory'
+        s = Simulation(DryRun(), output_path=f)
+        s.add(target_python_stop, Scheduler(20), '{current_step} == 40')
+        s.add(write_thermo, Scheduler(10))
+        s.run(100)
+        self.assertEqual(s.current_step, 40)
 
     def tearDown(self):
         rmd('/tmp/test_simulation')
