@@ -173,7 +173,10 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
         drsq = (rmax**2 - rmin**2) / (npoints - 3)
         for i in range(npoints):
             rsq[i] = rmin**2 + i * drsq
-            u0[i], u1[i], _ = self.compute(rsq[i])
+            try:
+                u0[i], u1[i], _ = self.compute(rsq[i])
+            except ZeroDivisionError:
+                u0[i], u1[i] = float('nan'), float('nan')
         # For potentials that diverge at zero, we remove the singularity by hand
         import math
         if math.isnan(u0[0]):
