@@ -410,7 +410,10 @@ def _update_neighbors_consume(particle, data, meta):
 def _update_neighbors(particle, data, meta):
     # Extract comma separated entries in the first element of data
     if len(data) > 0 and ',' in data[0]:
-        particle.neighbors = numpy.array(data[0].split(','), dtype=int)
+        if data[0] == ',':
+            particle.neighbors = numpy.array([], dtype=int)
+        else:
+            particle.neighbors = numpy.array(data[0].split(','), dtype=int)
         return data[1:]
     else:
         particle.neighbors = numpy.array(data, dtype=int)
@@ -438,7 +441,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
             # integers indicating the particles indices
             self._fields_default = ['neighbors*']
             self.fields = self._fields_default
-        self.callback_read = {'neighbors': _update_neighbors,
-                              'neighbors*': _update_neighbors_consume}
+        self.callback_read['neighbors'] = _update_neighbors
+        self.callback_read['neighbors*'] = _update_neighbors_consume
         self.add_callback(_add_neighbors_to_system, self._offset)
         self._fields_float = False
