@@ -47,6 +47,23 @@ def _update_velocity(particle, data, meta):
     particle.velocity = numpy.array(data[0:ndim], dtype=float)
     return data[ndim:]
 
+def _update_neighbors_consume(particle, data, meta):
+    # Consume all entries in data
+    particle.neighbors = numpy.array(data, dtype=int)
+    return []
+
+def _update_neighbors(particle, data, meta):
+    # Extract comma separated entries in the first element of data
+    if len(data) > 0 and ',' in data[0]:
+        if data[0] == ',':
+            particle.neighbors = numpy.array([], dtype=int)
+        else:
+            particle.neighbors = numpy.array(data[0].split(','), dtype=int)
+        return data[1:]
+    else:
+        particle.neighbors = numpy.array(data, dtype=int)
+        return []
+
 def _optimize_fields(fields):
     if 'x' in fields:
         fields[fields.index('x')] = 'pos'
@@ -86,7 +103,9 @@ class TrajectoryXYZ(TrajectoryBase):
                      'pos': _update_position,
                      'vel': _update_velocity,
                      'position': _update_position,
-                     'velocity': _update_velocity}
+                     'velocity': _update_velocity,
+                     'neighbors': _update_neighbors,
+                     'neighbors*': _update_neighbors_consume}
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
         TrajectoryBase.__init__(self, filename, mode)
@@ -314,7 +333,7 @@ def _fallback(p, data, meta):
     return data[1:]
 """ % key)
                 callbacks_read.append(_fallback)
-        
+
         # Read frame now
         self.trajectory.seek(self._index_frame[frame])
         particle = []
@@ -401,23 +420,6 @@ def _fallback(p, data, meta):
         numpy.set_string_function(None, False)
         numpy.set_string_function(None, True)
 
-
-def _update_neighbors_consume(particle, data, meta):
-    # Consume all entries in data
-    particle.neighbors = numpy.array(data, dtype=int)
-    return []
-
-def _update_neighbors(particle, data, meta):
-    # Extract comma separated entries in the first element of data
-    if len(data) > 0 and ',' in data[0]:
-        if data[0] == ',':
-            particle.neighbors = numpy.array([], dtype=int)
-        else:
-            particle.neighbors = numpy.array(data[0].split(','), dtype=int)
-        return data[1:]
-    else:
-        particle.neighbors = numpy.array(data, dtype=int)
-        return []
 
 def _add_neighbors_to_system(system, offset):
     for p in system.particle:
