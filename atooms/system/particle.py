@@ -274,12 +274,20 @@ def gyration_radius(particles, cell=None, weight=None, center=None,
             for p in particles:
                 cluster.append(p.nearest_image(p_central, cell, copy=True))
 
+        def weighted_cm_position(particle, weight):
+            """Weighted center-of-mass of a list of particles."""
+            rcm = numpy.zeros_like(particle[0].position)
+            wtot = sum(weight)
+            for i, p in enumerate(particle):
+                rcm += p.position * weight[i]
+            return rcm / wtot
+
         # Compute gyration radius
-        rcm = cm_position(cluster)
+        rcm = weighted_cm_position(cluster, weight)
         rg = 0.0
-        for p in cluster:
+        for i, p in enumerate(cluster):
             dr = p.position - rcm
-            rg += numpy.dot(dr, dr)
+            rg += numpy.dot(dr, dr) * weight[i]
         rg /= len(cluster)
         return rg**0.5
 
