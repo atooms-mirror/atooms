@@ -53,7 +53,13 @@ class TrajectoryBase(object):
         and/or read by `read_sample`. Subclasses may use it to filter
         out some data from their format. They can ignore it entirely.
         """
-        self.precision = 6
+        self.precision = 6        
+        self.metadata = {}
+        """
+        Dictionary of metadata about the trajectory. It can be used by
+        subclasses to hold trajectory format info or even dynamically
+        on a per sample basis,
+        """
         # These are cached properties
         self._steps = None
         self._timestep = None
