@@ -390,6 +390,8 @@ def _fallback(p, data, meta):
             line += 'dt:{:g} '.format(self.timestep)
         if system.cell is not None:
             line += 'cell:{} '.format(','.join([str(x) for x in system.cell.side]))
+        for entry in self.metadata:
+            line += '{}:{} '.format(entry, self.metadata[entry])
         return line
 
     def write_sample(self, system, step):
