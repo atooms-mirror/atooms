@@ -15,7 +15,7 @@ from atooms.trajectory import TrajectoryLAMMPS
 from atooms.core.utils import rmd
 
 try:
-    _ = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT)
+    _ = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT, executable='/bin/bash')
     _version = _.decode().split('\n')[0][8:-1]
 except subprocess.CalledProcessError:
     raise ImportError('lammps not installed')
@@ -25,7 +25,8 @@ def _run_lammps_command(cmd):
     # see https://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
     p = subprocess.Popen(['lammps'], shell=True,
                          stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE)
+                         stdout=subprocess.PIPE,
+                         executable='/bin/bash')
     stdout = p.communicate(input=cmd.encode('utf8'))[0]
     code = p.returncode
     if code != 0:
@@ -73,7 +74,7 @@ run 0
             if 'Step' in line:
                 found = True
             elif found:
-                self.energy = float(line.split()[2])
+                self.energy = float(line.split()[2]) * len(particle)
                 break
 
         # Clean up

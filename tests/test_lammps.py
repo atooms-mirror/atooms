@@ -49,7 +49,7 @@ class Test(unittest.TestCase):
         """
         bck = LAMMPS(self.input_file, cmd)
         bck.system.interaction.compute("energy", bck.system.particle, bck.system.cell)
-        self.assertEqual(bck.system.interaction.energy, -4.2446836)  # crosschecked
+        self.assertEqual(bck.system.interaction.energy / len(bck.system.particle), -4.2446836)  # crosschecked
 
     def test_trajectory(self):
         import sys
