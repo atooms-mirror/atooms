@@ -33,6 +33,7 @@ class TrajectoryRam(TrajectoryBase):
     def __init__(self, fname=None, mode='w'):
         TrajectoryBase.__init__(self, fname, mode)
         self._pos = []
+        self._vel = []
         self._species = []
         self._cell = []
         self._radius = []
@@ -56,6 +57,7 @@ class TrajectoryRam(TrajectoryBase):
             self._mass[ind] = [p.mass for p in particle]
             self._species[ind] = [p.species for p in particle]
             self._pos[ind] = [p.position for p in particle]
+            self._vel[ind] = [p.velocity for p in particle]
             self._cell[ind] = copy.copy(system.cell)
             # Store optional system objects
             if system.thermostat is not None:
@@ -70,6 +72,7 @@ class TrajectoryRam(TrajectoryBase):
             self._mass.append([p.mass for p in particle])
             self._species.append([p.species for p in particle])
             self._pos.append([p.position for p in particle])
+            self._vel.append([p.velocity for p in particle])
             self._cell.append(copy.copy(system.cell))
             # Add optional system objects
             if system.thermostat is not None:
@@ -83,6 +86,7 @@ class TrajectoryRam(TrajectoryBase):
         particles = []
         for i in range(len(self._pos[frame])):
             particles.append(Particle(position=self._pos[frame][i],
+                                      velocity=self._vel[frame][i],
                                       species=self._species[frame][i],
                                       mass=self._mass[frame][i],
                                       radius=self._radius[frame][i]))
