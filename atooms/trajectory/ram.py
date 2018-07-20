@@ -14,11 +14,21 @@ class TrajectoryRamFull(TrajectoryBase):
         self.mode = mode
 
     def write_sample(self, system, step):
-        self._system.append(copy.copy(system))
+        self._system.append(copy.deepcopy(system))
         self.steps.append(step)
 
     def read_sample(self, frame):
         return self._system[frame]
+
+    def __setitem__(self, i, value):
+        try:
+            step = self.steps[i]
+        except IndexError:
+            if len(self.steps) > 0:
+                step = self.steps[-1]+1
+            else:
+                step = 0
+        self.write(value, step)
 
 
 class TrajectoryRam(TrajectoryBase):
