@@ -21,6 +21,39 @@ class Test(unittest.TestCase):
         s.run()
         self.assertEqual(len(s._non_targeters), 0)
 
+    def test_multiple_run_calls(self):
+        """
+        Multiple calls to run() with varying number of steps should add up
+        correctly. This was not the case in version <= 1.4.3.
+        """
+        from atooms.system import System
+
+        # Minimal backend
+        class Backend(object):
+
+            def __init__(self):
+                self.system = System()
+
+            def run(self, steps):
+                for i in range(steps):
+                    pass
+
+        backend = Backend()
+
+        # The run_until() method should work correctly
+        from atooms.simulation import Simulation
+        simulation = Simulation(backend)
+        simulation.run(10)
+        simulation.run_until(30)
+        self.assertEqual(simulation.current_step, 30)
+
+        # The run() method called twice should also work correctly
+        from atooms.simulation import Simulation
+        simulation = Simulation(backend)
+        simulation.run(10)
+        simulation.run(20)
+        self.assertEqual(simulation.current_step, 30)
+
     def test_target(self):
         s = Simulation(DryRun(), output_path='/tmp/test_simulation/trajectory', steps=100)
         s.run()

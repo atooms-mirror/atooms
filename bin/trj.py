@@ -132,6 +132,7 @@ def main_paste(args):
     trj.py paste.py file1.xyz:radius file2.xyz.voronoi.xyz:volume
     """
     from atooms import trajectory as trj
+    from atooms.core.utils import tipify
 
     f1, attr1 = args.file_inp[0].split(':')
     f2, attr2 = args.file_inp[1].split(':')
@@ -142,10 +143,39 @@ def main_paste(args):
     t1 = trj.Trajectory(f1, fmt=fmt1)
     t2 = trj.Trajectory(f2, fmt=fmt2)
 
-    for step, s1, s2 in trj.utils.paste(t1, t2):
+    # Define slice.
+    # We interpret --first N --last N as a request of step N
+    if args.last == args.first and args.last is not None:
+        args.last += 1
+    sl1 = fractional_slice(args.first, args.last, args.skip, len(t1))
+    sl2 = fractional_slice(args.first, args.last, args.skip, len(t2))
+
+    # Here we could you a trajectory slice t[sl] but this will load
+    # everything in ram (getitem doesnt provide a generator). This
+    # will be fixed with python 3.
+    ts1 = trajectory.Sliced(t1, sl1)
+    ts2 = trajectory.Sliced(t2, sl2)
+
+    def array_fmt(arr):
+        """Remove commas and [] from numpy array repr."""
+        # Passing a scalar will trigger an error (gotcha: even
+        # when casting numpy array to list, the elements remain of
+        # numpy type and this function gets called! (4% slowdown)
+        _fmt = '%g'
+        try:
+            return ' '.join([_fmt % x for x in arr])
+        except:
+            return _fmt % arr
+            # except:
+            #     return numpy.array2string(arr, precision=self.precision, separator=',')[1:-1]
+    import numpy
+    numpy.set_string_function(array_fmt, repr=False)
+
+    for step, s1, s2 in trj.utils.paste(ts1, ts2):
         try:
             for i in range(len(s1.particle)):
-                print(getattr(s1.particle[i], attr1), getattr(s2.particle[i], attr2))
+                print(getattr(s1.particle[i], attr1), 
+                      getattr(s2.particle[i], attr2))
         except:
             print(getattr(s1, attr1), getattr(s2, attr2))
 

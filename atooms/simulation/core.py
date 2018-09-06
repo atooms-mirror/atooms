@@ -84,8 +84,10 @@ class Simulation(object):
         self.initial_step = 0
         # We expect subclasses to keep a ref to the trajectory object
         # self.trajectory used to store configurations
-        self.trajectory = self.backend.trajectory
-
+        if hasattr(self.backend, 'trajectory'):
+            self.trajectory = self.backend.trajectory
+        else:
+            self.trajectory = None
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
         # exist. This creates the data/ folder and its parents folders.
@@ -194,7 +196,8 @@ class Simulation(object):
         """Write checkpoint to allow restarting a simulation."""
         if self.output_path is None:
             # Try to write the checkpoint via the backend
-            self.backend.write_checkpoint()
+            if hasattr(self.backend, 'write_checkpoint'):
+                self.backend.write_checkpoint()
             return
 
         with open(self.output_path + '.chk.step', 'w') as fh:
@@ -301,7 +304,7 @@ class Simulation(object):
                 self.steps = steps
 
         # Targeter for steps. This will the replace an existing one.
-        self.add(self._targeter_steps, Scheduler(self.steps),
+        self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
                  self.current_step + self.steps)
 
         # Report
