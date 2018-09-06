@@ -304,8 +304,7 @@ class Simulation(object):
                 self.steps = steps
 
         # Targeter for steps. This will the replace an existing one.
-        # TODO: bug with target_steps scheduler when changing the run length from run() to run() call
-        self.add(self._targeter_steps, Scheduler(self.steps),
+        self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
                  self.current_step + self.steps)
 
         # Report
