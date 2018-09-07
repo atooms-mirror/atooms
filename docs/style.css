@@ -1,0 +1,128 @@
+html {
+    font-family: Verdana, DejaVu Sans, Liberation Sans, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5em;
+    color: #333;
+}
+
+img {
+    display: block;
+    margin: auto;
+}
+
+/* This appears necessary on my firefox to have centered img and readable equations */
+.MathJax_Display img {
+    display: inherit !important;
+}
+
+code, .src, .example {
+    font-family: "Liberation Mono", "DejaVu Sans Mono", "Ubuntu Mono", "Courier New", "lucida console", monospace;
+    font-size: 10pt;
+    line-height: 1.4em;
+}
+
+.src {
+    color: black;
+    background: #f9f9f9;
+    overflow-x: auto;
+    padding: 9.5px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+pre {
+    padding-top: 0.5em;
+    padding-bottom: 0em;
+    box-shadow: 0px 0px 0px #eee;
+    margin: 0em;
+}
+
+pre.src {
+    padding-top: 0.5em;
+}
+
+pre.example {
+    margin-top: 0.5em;
+}
+
+video {
+    display: block;
+    margin: auto;
+}
+
+#content {
+    width: 60em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#table-of-contents h2 {
+    display: none;
+}
+
+h1.title {
+    margin-top: 20px;
+    text-align: center;
+    line-height: 1.5em;
+}
+
+.section-number-2 {
+    display: none;
+}
+
+.todo {
+	color: #c7254e;
+}
+
+.done {
+	color: green;
+}
+
+.tag {
+	color: #0086b3;
+	/* color: #00008b; */
+	text-transform: lowercase;
+	/* This will be obscured by the surrounding span tag, so blank everything. */
+	/* background: #fff; */
+	border: none;
+	font-size: 9pt;
+}
+
+.timestamp {
+	color: gray;
+}
+
+.timestamp-kwd  {
+/* keyword associated with a time stamp, like SCHEDULED */
+}
+
+.target {
+/* target for links */
+}
+
+td {
+    border: 1px solid #ccc;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+a {
+    text-decoration: none;
+    color: #57d;
+}
+
+a:hover {
+    border-bottom: 1px dotted #57d;
+}
+
+#postamble p {
+    margin: 0px;
+}
+
+table {
+    font-family: "Liberation Mono", "DejaVu Sans Mono", "Ubuntu Mono", "Courier New", "lucida console", monospace;
+    font-size: 10pt;
+    /* margin-left: auto; */
+    margin-right: auto;
+}
+
