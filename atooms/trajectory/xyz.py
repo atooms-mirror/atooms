@@ -327,12 +327,14 @@ class TrajectoryXYZ(TrajectoryBase):
             else:
                 # Trick. We instantiate dynamically a fallback function
                 # to avoid adding `key` to the other callbacks' interface
+                namespace = {}
                 exec("""
-def _fallback(p, data, meta):
+from atooms.core.utils import tipify
+def fallback(p, data, meta):
     p.__dict__['%s'] = tipify(data[0])
     return data[1:]
-""" % key)
-                callbacks_read.append(_fallback)
+""" % key, namespace)
+                callbacks_read.append(namespace['fallback'])
 
         # Read frame now
         self.trajectory.seek(self._index_frame[frame])
