@@ -9,9 +9,15 @@ from atooms.core import ndim as _ndim
 
 class Cell(object):
 
-    def __init__(self, side, origin=numpy.zeros(_ndim)):
-        self.side = numpy.asarray(side, dtype=numpy.float64)
-        self.origin = origin
+    def __init__(self, side=None, origin=None):
+        if side is None:
+            self.side = numpy.zeros(_ndim)
+        else:
+            self.side = numpy.asarray(side, dtype=numpy.float64)
+        if origin is None:
+            self.origin = numpy.zeros(_ndim)
+        else:
+            self.origin = numpy.asarray(side, dtype=numpy.float64)          
         self.shape = 'cubic'
 
     @property
