@@ -251,7 +251,7 @@ To get the system back we read the trajectory. Trajectories support iteration an
 : (10, array([ 0.,  0.,  0.]))
 : (20, array([ 0.,  0.,  0.]))
 
-* A minimial simulation backend
+* A minimal simulation backend
 
 Within atooms, *simulations* are high-level classes that encapsulate some common tasks and provide a consistent interface to the user, while *backends* are classes that actually make the system evolve. Here we implement a minimal backend to run a simulation.
 
@@ -432,7 +432,7 @@ We want to simulate a system where particles can only be located at discrete sit
 : A 1
 : A 2
 
-Everything went fine. However, we have to tweak things a bit when reading the particles back, to avoid positions being tranformed to arrays of floats instead of integers. This can be done with the help of a callback that transforms the system accordingly as we read the trajectory.
+Everything went fine. However, we have to tweak things a bit when reading the particles back, to avoid positions being transformed to arrays of floats instead of integers. This can be done with the help of a callback that transforms the system accordingly as we read the trajectory.
 #+begin_src python :exports both:results output :session
   # Read file as an xyz trajectory 
   with TrajectoryXYZ('test.xyz') as th:
