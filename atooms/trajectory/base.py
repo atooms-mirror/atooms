@@ -40,6 +40,8 @@ class TrajectoryBase(object):
 
     suffix = None
 
+    # TODO: add class callbacks
+
     def __init__(self, filename, mode='r'):
         """
         The `mode` can be 'r' (read) or 'w' (write).
