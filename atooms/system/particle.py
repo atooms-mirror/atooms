@@ -108,6 +108,7 @@ class Particle(object):
 # Utility functions
 
 def _periodic_vector(vec, box):
+    # TODO: what about particle distances precisely equal to L/2 or -L/2?
     for i in range(vec.shape[0]):
         if vec[i] > box[i] / 2:
             vec[i] += - box[i]
