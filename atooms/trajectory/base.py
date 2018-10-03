@@ -77,7 +77,13 @@ class TrajectoryBase(object):
     # Trajectory is iterable and supports with syntax
 
     def __len__(self):
-        return len(self.steps)
+        # We try first with read_len() which returns None by default
+        frames = self.read_len()
+        if frames is None:
+            # We get the steps, which might take a bit longer
+            return len(self.steps)
+        else:
+            return frames
 
     def __enter__(self):
         return self
@@ -119,7 +125,7 @@ class TrajectoryBase(object):
             self._initialized_read = True
         s = self.read_sample(index)
         # TODO: add some means to access the current frame / step in a callback? 11.09.2017
-        for cbk, args, kwargs in self.callbacks:
+        for cbk, args, kwargs in self.callbacks:            
             s = cbk(s, *args, **kwargs)
         return s
 
@@ -170,6 +176,10 @@ class TrajectoryBase(object):
 
     # To read/write timestep and block size sublcasses may implement
     # these methods. The default is dt=1 and block determined dynamically.
+
+    def read_len(self):
+        """Return the number of frames. Optional."""
+        return None
 
     def read_steps(self):
         """Return a list of steps."""

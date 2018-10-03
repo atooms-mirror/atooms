@@ -105,6 +105,9 @@ class TrajectoryHDF5(TrajectoryBase):
     def read_steps(self):
         return [d[0] for d in self.trajectory['trajectory/realtime/stepindex'].values()]
 
+    def read_len(self):
+        return len(self.trajectory['trajectory/realtime/stepindex'])
+
     def close(self):
         try:
             self.trajectory.close()
