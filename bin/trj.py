@@ -21,7 +21,10 @@ def main_info(args):
     else:
         t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
 
-    print(info(t))
+    if args.fields:
+        print(info(t, args.fields))
+    else:
+        print(info(t))
     return
 
 def main(args):
@@ -210,6 +213,7 @@ if __name__ == '__main__':
 
     parser_info = subparsers.add_parser('info')
     parser_info.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
+    parser_info.add_argument(      '--what', dest='fields', help='what info to show')
     parser_info.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
     parser_info.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
     parser_info.set_defaults(func=main_info)
