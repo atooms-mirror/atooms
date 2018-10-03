@@ -43,6 +43,11 @@ pre.src {
 
 pre.example {
     margin-top: 0.5em;
+    background: white;
+    overflow-x: auto;
+    padding: 9.5px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
 }
 
 video {
