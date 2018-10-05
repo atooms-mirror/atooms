@@ -31,6 +31,18 @@ class Test(unittest.TestCase):
                               self.forcefield_file, integrator='nvt',
                               temperature=0.80, dt=0.002)
 
+    def test_properties(self):
+        from atooms.trajectory import TrajectoryRUMD
+        t = TrajectoryRUMD(self.input_file)
+        s0 = t[-1]
+        sim = Simulation(self.backend,
+                       output_path='/tmp/test_rumd_temp/trajectory',
+                       steps=1, restart=False)
+        s1 = sim.system
+        self.assertAlmostEqual(s1.temperature, s0.temperature)
+        self.assertAlmostEqual(s1.cell.side[0], s0.cell.side[0])
+        self.assertAlmostEqual(s1.particle[0].position[0], s0.particle[0].position[0])
+
     def test_single(self):
         si = Simulation(self.backend,
                         output_path='/tmp/test_rumd_single/trajectory',

@@ -228,7 +228,7 @@ class System(object):
         ndof = self.sample.GetNumberOfDOFs()
         vel = self.sample.GetVelocities()
         mass = self.__get_mass()
-        return 2 * numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
+        return numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
 
     @property
     def cell(self):
