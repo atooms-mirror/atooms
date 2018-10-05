@@ -65,6 +65,9 @@ class RUMD(object):
                 self.rumd_simulation.AddPotential(pot)
 
         # Wrap some rumd integrators.
+        if temperature is not None:
+            integrator = 'nvt'
+
         if integrator is not None:
             if integrator in ['nvt', 'NVT']:
                 itg = rumd.IntegratorNVT(targetTemperature=temperature,
