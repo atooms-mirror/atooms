@@ -14,18 +14,17 @@ from atooms.trajectory.utils import check_block_size, info, formats
 
 
 def main_info(args):
-    """Print info on trajectory."""
-    args.file_inp = args.file_inp[0]
-    if args.folder:
-        t = trajectory.folder.Foldered(args.file_inp, cls=args.inp)
-    else:
-        t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
+    """Print info on trajectories."""
+    for file_inp in args.file_inp:
+        if args.folder:
+            th = trajectory.folder.Foldered(file_inp, cls=args.inp)
+        else:
+            th = trajectory.Trajectory(file_inp, fmt=args.inp)
 
-    if args.fields:
-        print(info(t, args.fields))
-    else:
-        print(info(t))
-    return
+        if args.fields:
+            print(info(th, args.fields))
+        else:
+            print(info(th))
 
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
@@ -215,7 +214,7 @@ if __name__ == '__main__':
     parser_info.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
     parser_info.add_argument(      '--what', dest='fields', help='what info to show')
     parser_info.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
-    parser_info.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
+    parser_info.add_argument(nargs='*', dest='file_inp', default='-', help='input file')
     parser_info.set_defaults(func=main_info)
 
     parser_paste = subparsers.add_parser('paste')

@@ -420,6 +420,5 @@ def info(trajectory, keys=None):
         fmt = '%%-%ds : %%s\n' % (max([len(key) for key in keys.split(',')]))
         for key, out in zip(keys.split(','), outs):
             txt += fmt % (key, out)
-            
-        # Remove last newline
-        return txt[:-2]
+        
+        return txt.strip('\n')
