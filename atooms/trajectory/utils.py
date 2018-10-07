@@ -4,6 +4,7 @@ import os
 import tarfile
 import numpy
 import copy
+from atooms.core.progress import progress
 
 
 def gopen(filename, mode):
@@ -84,7 +85,7 @@ def convert(inp, out, fout, force=True, fields=None,
             # In python 2, zipping t and t.steps will load everything
             # in RAM. In this case, it is better to use enumerate()
             if steps is None:
-                for i, system in enumerate(inp):
+                for i, system in progress(enumerate(inp), total=len(inp)):
                     conv.write(system, inp.steps[i])
             else:
                 # Only include requested steps (useful to prune
