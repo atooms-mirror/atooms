@@ -219,14 +219,16 @@ class TrajectoryXYZ(TrajectoryBase):
         npart = int(self.trajectory.readline())
         data = self.trajectory.readline()
 
-        # Remove spaces around : or =
-        data = re.sub(r'\W*[=:]\W*', ':', data)
+        # TODO: accept "text text" entries
+        # TODO: accept extended xyz format
+        # Remove spaces around : or = and replace = by :
+        data = re.sub(r'\s*[=:]\s*', ':', data)
 
         # Fill metadata dictionary
         meta = {}
         meta['npart'] = npart
         for e in data.split():
-            s = re.search(r'(\S+)\W*[=:]\W*(\S+)', e)
+            s = re.search(r'(\S+):(\S+)', e)            
             if s is not None:
                 tag, data = s.group(1), s.group(2)
                 # Remove dangling commas
