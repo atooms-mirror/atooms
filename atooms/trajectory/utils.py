@@ -291,18 +291,6 @@ def paste(t1, t2):
         yield step, s1, s2
 
 
-def time_when_msd_is(th, msd_target, sigma=1.0):
-    """
-    Estimate the time when the MSD reaches target_msd in units of
-    sigma^2. Bounded by the actual maximum time of trajectory tmax.
-    """
-    from .decorators import Unfolded
-    with Unfolded(th) as th_unf:
-        msd_total = th_unf[0].mean_square_displacement(th_unf[-1])
-    frac = msd_target * sigma**2 / msd_total
-    return min(1.0, frac) * th.total_time
-
-
 def is_cell_variable(trajectory, tests=1):
     """
     Simple test to check if cell changes.
