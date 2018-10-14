@@ -9,20 +9,22 @@ import logging
 import argparse
 import random
 from atooms import trajectory
-from atooms.core.utils import fractional_slice, add_first_last_skip
+from atooms.core.utils import fractional_slice, add_first_last_skip, setup_logging
 from atooms.trajectory.utils import check_block_size, info, formats
 
 
 def main_info(args):
-    """Print info on trajectory."""
-    args.file_inp = args.file_inp[0]
-    if args.folder:
-        t = trajectory.folder.Foldered(args.file_inp, cls=args.inp)
-    else:
-        t = trajectory.Trajectory(args.file_inp, fmt=args.inp)
+    """Print info on trajectories."""
+    for file_inp in args.file_inp:
+        if args.folder:
+            th = trajectory.folder.Foldered(file_inp, cls=args.inp)
+        else:
+            th = trajectory.Trajectory(file_inp, fmt=args.inp)
 
-    print(info(t))
-    return
+        if args.fields:
+            print(info(th, args.fields))
+        else:
+            print(info(th))
 
 def main(args):
     """Convert trajectory `file_inp` to `file_out`."""
@@ -37,6 +39,12 @@ def main(args):
 
     if args.file_out == '-':
         args.file_out = '/dev/stdout'
+
+    if args.verbose:
+        setup_logging('atooms', 20)
+        import atooms.core.progress
+        if args.file_out != '/dev/stdout':
+            atooms.core.progress.active = True
 
     if args.folder:
         t = trajectory.folder.Foldered(args.file_inp, cls=args.inp)
@@ -117,10 +125,11 @@ def main(args):
         from atooms.trajectory.hdf5 import add_interaction_hdf5
         add_interaction_hdf5(fout, args.ff)
     
-    if args.file_out != '/dev/stdout':
-        print('%s' % fout)
+    if args.verbose and args.file_out != '/dev/stdout':
+        print('# converted %s to %s' % (args.file_inp, fout))
 
     t.close()
+
 
 def main_paste(args):
     """
@@ -185,6 +194,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(epilog=formats(), 
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser = add_first_last_skip(parser)
+    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='verbose output')
     subparsers = parser.add_subparsers()
 
     parser_convert = subparsers.add_parser('convert')
@@ -210,8 +220,9 @@ if __name__ == '__main__':
 
     parser_info = subparsers.add_parser('info')
     parser_info.add_argument(      '--folder', dest='folder', action='store_true', help='force folder-based layout')
+    parser_info.add_argument(      '--what', dest='fields', help='what info to show')
     parser_info.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
-    parser_info.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
+    parser_info.add_argument(nargs='*', dest='file_inp', default='-', help='input file')
     parser_info.set_defaults(func=main_info)
 
     parser_paste = subparsers.add_parser('paste')
@@ -221,5 +232,6 @@ if __name__ == '__main__':
 
     # parse argument lists
     args = parser.parse_args()
+
     args.func(args)
 

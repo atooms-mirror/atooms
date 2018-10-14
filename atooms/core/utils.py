@@ -284,6 +284,11 @@ def setup_logging(name=None, level=40, filename=None, update=False):
     else:
         log.addHandler(handler)
     
+    # Activate progress bar support by default when level is 20 (but not 10)
+    if log.getEffectiveLevel() == 20:
+        import atooms.core.progress
+        atooms.core.progress.active = True
+
     return log
 
 

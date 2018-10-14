@@ -214,6 +214,19 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
             for i, system in enumerate(th):
                 self.assertTrue(_equal(self.system[i], system, ignore=['mass']))
 
+    def test_cache(self):
+        with TrajectoryXYZ(os.path.join(self.inpdir, 'cache.xyz'), 'w') as th:
+            for i in range(10):
+                th.write(self.system[0], i)
+
+        with TrajectoryXYZ(os.path.join(self.inpdir, 'cache.xyz'), 'r') as th_0:
+            s_0 = th_0[0]
+
+        with TrajectoryXYZ(os.path.join(self.inpdir, 'cache.xyz'), 'r') as th_1:
+            th_1.cache = True
+            s_1 = th_1.read(0)
+            s_1 = th_1.read(0)
+
     def tearDown(self):
         rmf(self.inpfile)
         rmd(self.inpdir)

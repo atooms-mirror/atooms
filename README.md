@@ -6,15 +6,15 @@ Atooms
 [![license](https://img.shields.io/pypi/l/atooms.svg)](https://en.wikipedia.org/wiki/GNU_General_Public_License)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1183301.svg)](https://doi.org/10.5281/zenodo.1183301)
 
-atooms is a python framework for classical simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. To achieve this, atooms relies on backends written in C, CUDA or Fortran.
+atooms is a python framework for simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. To achieve this, atooms relies on backends written in C, CUDA or Fortran.
 
 Quick start
 -----------
 
-The goal of atooms is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
-The simulation data are stored in trajectory files, whose format usually depends on the code that produced the simulation.
+The goal of atooms is to provide a coherent interface to the basic objects of particle simulations, such as [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations. 
+The simulation data are usually stored in trajectory files, which atooms makes it easy to analyze, manipulate and convert.
 
-In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format). Accessing the coordinates of the particles in a trajectory file goes like this:
+In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format) composed by multiple frames. Each frame holds the state of the system at a given instant of time during the simulation. Accessing the coordinates of the particles in a trajectory file goes like this:
 ```python
 from atooms.trajectory import Trajectory
 
@@ -22,7 +22,7 @@ with Trajectory('input.xyz') as trajectory:
     for system in trajectory:
         print('The position of particle 0 is', system.particle[0].position)
 ```
-Note that trajectories support iteration and slicing, just like lists.
+Note that trajectories support iteration and indexing, just like lists.
 
 Here we pick the last frame of the trajectory, change the density of the system to unity and write this new configuration to a trajectory format suitable for the [RUMD](http://rumd.org) simulation package:
 ```python
@@ -51,7 +51,7 @@ The forcefield file `lj_rumd.ff` (available in `data/`) defines the interaction 
 
 Documentation
 -------------
-See the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/atooms/) for full details. 
+See the [tutorial](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/atooms/) for a step-by-step introduction to atooms objects and the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/atooms/) for full details. 
 
 Installation
 ------------

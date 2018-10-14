@@ -2,12 +2,12 @@
 # Copyright 2010-2017, Daniele Coslovich
 
 import os
+import copy
 
 from .utils import get_block_size
 
 
 class TrajectoryBase(object):
-
     """
     Trajectory abstract base class.
 
@@ -36,11 +36,18 @@ class TrajectoryBase(object):
     Similarly, `write()` is a template composed of `write_init()` and
     `write_sample()`. Only the latter method must be implemented by
     subclasses.
+
+    The `cache` variable reduces acess time when reading the same
+    trajectory multiple times. We use shallow copies to cut down the
+    overhead. Cache is disabled by default as there is no control on
+    its size yet.
     """
 
     suffix = None
 
-    def __init__(self, filename, mode='r'):
+    # TODO: add class callbacks
+
+    def __init__(self, filename, mode='r', cache=False):
         """
         The `mode` can be 'r' (read) or 'w' (write).
         """
@@ -53,7 +60,7 @@ class TrajectoryBase(object):
         and/or read by `read_sample`. Subclasses may use it to filter
         out some data from their format. They can ignore it entirely.
         """
-        self.precision = 6        
+        self.precision = 6
         self.metadata = {}
         """
         Dictionary of metadata about the trajectory. It can be used by
@@ -71,11 +78,21 @@ class TrajectoryBase(object):
         # Sanity checks
         if self.mode == 'r' and not os.path.exists(self.filename):
             raise IOError('trajectory file %s does not exist' % self.filename)
+        # Cache frames to optimize reading the same trajectory multiple times
+        # We use shallow copies to cut down the overhead
+        self.cache = cache
+        self._cache = None
 
     # Trajectory is iterable and supports with syntax
 
     def __len__(self):
-        return len(self.steps)
+        # We try first with read_len() which returns None by default
+        frames = self.read_len()
+        if frames is None:
+            # We get the steps, which might take a bit longer
+            return len(self.steps)
+        else:
+            return frames
 
     def __enter__(self):
         return self
@@ -115,11 +132,22 @@ class TrajectoryBase(object):
         if not self._initialized_read:
             self.read_init()
             self._initialized_read = True
-        s = self.read_sample(index)
+
+        if self.cache and self._cache and index in self._cache:
+            # We get the system from the cache
+            system = self._cache[index]
+        else:
+            system = self.read_sample(index)
+            if self.cache:
+                # Store the system in cache
+                if self._cache is None:
+                    self._cache = {}
+                self._cache[index] = copy.copy(system)
+
         # TODO: add some means to access the current frame / step in a callback? 11.09.2017
         for cbk, args, kwargs in self.callbacks:
-            s = cbk(s, *args, **kwargs)
-        return s
+            system = cbk(system, *args, **kwargs)
+        return system
 
     def write(self, system, step):
         """Write `system` at given `step`."""
@@ -168,6 +196,10 @@ class TrajectoryBase(object):
 
     # To read/write timestep and block size sublcasses may implement
     # these methods. The default is dt=1 and block determined dynamically.
+
+    def read_len(self):
+        """Return the number of frames. Optional."""
+        return None
 
     def read_steps(self):
         """Return a list of steps."""

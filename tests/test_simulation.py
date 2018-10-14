@@ -19,7 +19,6 @@ class Test(unittest.TestCase):
         # Disable writers completely
         s = Simulation(DryRun(), output_path=None, steps=10, enable_speedometer=False)
         s.run()
-        self.assertEqual(len(s._non_targeters), 0)
 
     def test_multiple_run_calls(self):
         """
