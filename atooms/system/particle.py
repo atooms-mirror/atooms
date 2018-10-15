@@ -334,3 +334,29 @@ def self_overlap(particle, other, a, normalize=True):
         q /= float(len(particle))
     return q
 
+
+def show(particle, cell, outfile='plot.png'):
+    """
+    Make a snapshot of the `particle`s in the `cell` and save the
+    image in `outfile`. The image is returned for further
+    customization.
+    """
+    import matplotlib.pyplot as plt
+    from .particle import distinct_species
+    
+    color_db = ['b', 'r', 'g', 'y']
+    species = distinct_species(particle)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, aspect='equal')
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    ax.set_xlim((-cell.side[0]/2, cell.side[0]/2))
+    ax.set_ylim((-cell.side[1]/2, cell.side[1]/2))
+    for p in particle:
+        c = plt.Circle(p.position[: 2], p.radius,
+                       facecolor=color_db[species.index(p.species)],
+                       edgecolor='black', alpha=0.2, linewidth=3)
+        ax.add_artist(c)
+    if outfile is not None:
+        fig.savefig(outfile, bbox_inches='tight')
+    return fig
