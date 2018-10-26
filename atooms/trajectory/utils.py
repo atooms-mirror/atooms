@@ -225,7 +225,7 @@ def check_block_size(steps, block_size, prune=False):
             print('# periodicity issue at block %i out of %i' % (i, nbl))
             print('# current     :', current)
             print('# finger print:', block)
-            raise ValueError('block does not match finger print')
+            raise IndexError('block does not match finger print')
 
     return steps_local
 
