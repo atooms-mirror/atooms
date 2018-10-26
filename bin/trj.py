@@ -108,8 +108,8 @@ def main(args):
     try:
         steps = check_block_size(ts.steps, ts.block_size, prune=True)
     except IndexError:
-        print('# Warning: something wrong with periodicity check.\n')
-        print('# We will proceed, but you should check the converted trajectory.\n')
+        print('# Warning: something wrong with periodicity check.')
+        print('# We will proceed, but you should check the converted trajectory.')
         steps = ts.steps
 
     #
