@@ -335,7 +335,7 @@ def self_overlap(particle, other, a, normalize=True):
     return q
 
 
-def show(particle, cell, outfile='plot.png'):
+def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
     """
     Make a snapshot of the `particle`s in the `cell` and save the
     image in `outfile`. The image is returned for further
@@ -355,7 +355,7 @@ def show(particle, cell, outfile='plot.png'):
     for p in particle:
         c = plt.Circle(p.position[: 2], p.radius,
                        facecolor=color_db[species.index(p.species)],
-                       edgecolor='black', alpha=0.2, linewidth=3)
+                       edgecolor='black', alpha=alpha, linewidth=linewidth)
         ax.add_artist(c)
     if outfile is not None:
         fig.savefig(outfile, bbox_inches='tight')
