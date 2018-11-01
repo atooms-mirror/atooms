@@ -121,18 +121,24 @@ class Scheduler(object):
         if self.interval is not None and self.calls is None:
             # Regular interval
             return (sim.current_step // self.interval + 1) * self.interval
+
         elif self.calls is not None:
             # Fixed number of calls
             interval = sim.steps // self.calls
             return (sim.current_step // interval + 1) * interval
+
         elif self.steps is not None:
             # List of selected steps
+            if sim.current_step >= self.steps[-1]:
+                return sys.maxsize
+
             inext = self.steps[0]
-            for i, step in enumerate(self.steps[:-1]):
-                if sim.steps >= step:
-                    inext = self.steps[i+1]
+            for i, step in enumerate(self.steps):
+                if sim.current_step > step:
+                    inext = self.steps[i-1]
                     break
             return inext
+
         elif self.block is not None:
             # like steps but with % on sim.steps
             pass
