@@ -66,6 +66,9 @@ def convert(inp, out, fout, force=True, fields=None,
     else:
         out_class = out
 
+    if fields is None and len(inp.fields) > 0:
+        fields = inp.fields
+
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
         print('File exists, conversion skipped')
     else:
