@@ -2,6 +2,7 @@
 
 import os
 import unittest
+from atooms.trajectory import TrajectoryXYZ
 from atooms.simulation import Simulation, write_thermo, write_config, target
 from atooms.core.utils import setup_logging, mkdir, rmd, rmf
 try:
@@ -43,6 +44,7 @@ class Test(unittest.TestCase):
 
     def test_nvt(self):
         import sys
+        import random
         cmd = """
         pair_style      lj/cut 2.5
         pair_coeff      1 1 1.0 1.0 2.5
@@ -51,20 +53,24 @@ class Test(unittest.TestCase):
         fix             1 all nvt temp 2.0 2.0 1.0
         timestep        0.002
         """
-        T = []
         def store(sim, T):
             T.append(sim.system.temperature)
 
-        bck = LAMMPS(self.input_file, cmd)
-        sim = Simulation(bck)
-        sim.system.temperature = 1.2
-        sim.add(store, 500, T)
-        sim.run(4000)
-        ave = sum(T[3:]) / len(T[3:])
-        self.assertAlmostEqual(ave, 2.0, places=1)
+        for inp in [self.input_file, TrajectoryXYZ(self.input_file),
+                    TrajectoryXYZ(self.input_file)[-1]]:
+            T = []
+            random.seed(1)
+            bck = LAMMPS(inp, cmd)
+            sim = Simulation(bck)
+            sim.system.temperature = 1.5
+            sim.add(store, 500, T)
+            sim.run(2000)
+            ave = sum(T[3:]) / len(T[3:])
+            self.assertAlmostEqual(ave, 2.0, places=1)
 
     def test_nvt_nofix(self):
         import sys
+        import random
         from atooms.system import Thermostat
         cmd = """
         pair_style      lj/cut 2.5
@@ -73,6 +79,7 @@ class Test(unittest.TestCase):
         neigh_modify    every 20 delay 0 check no
         timestep        0.002
         """
+        random.seed(1)
         T = []
         def store(sim, T):
             T.append(sim.system.temperature)
