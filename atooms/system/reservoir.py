@@ -21,18 +21,24 @@ class Thermostat(object):
 
     """Thermostat to control the temperature during a simulation."""
 
-    def __init__(self, temperature, name='', mass=1.0, collision_period=-1):
+    def __init__(self, temperature, name='', mass=1.0,
+                 relaxation_time=1.0, collision_period=None):
         self.name = name
         self.temperature = temperature
         self.mass = mass
-        self.collision_period = collision_period
+        self.relaxation_time = relaxation_time
+        if collision_period is not None:
+            self.relaxation_time = collision_period
 
+    @property
+    def collision_period(self):
+        return self.relaxation_time
 
 class Barostat(object):
 
     """Barostat to control the pressure during a simulation."""
 
-    def __init__(self, pressure, name='', mass=1.0):
+    def __init__(self, pressure, name='', mass=1.0, relaxation_time=1.0):
         self.name = name
         self.pressure = pressure
         self.mass = mass

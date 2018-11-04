@@ -41,6 +41,50 @@ class Test(unittest.TestCase):
         x = sim.system.particle[0].position[0]
         self.assertAlmostEqual(x, 3.67598, places=5)
 
+    def test_nvt(self):
+        import sys
+        cmd = """
+        pair_style      lj/cut 2.5
+        pair_coeff      1 1 1.0 1.0 2.5
+        neighbor        0.3 bin
+        neigh_modify    every 20 delay 0 check no
+        fix             1 all nvt temp 2.0 2.0 1.0
+        timestep        0.002
+        """
+        T = []
+        def store(sim, T):
+            T.append(sim.system.temperature)
+
+        bck = LAMMPS(self.input_file, cmd)
+        sim = Simulation(bck)
+        sim.system.temperature = 1.2
+        sim.add(store, 500, T)
+        sim.run(4000)
+        ave = sum(T[3:]) / len(T[3:])
+        self.assertAlmostEqual(ave, 2.0, places=1)
+
+    def test_nvt_nofix(self):
+        import sys
+        from atooms.system import Thermostat
+        cmd = """
+        pair_style      lj/cut 2.5
+        pair_coeff      1 1 1.0 1.0 2.5
+        neighbor        0.3 bin
+        neigh_modify    every 20 delay 0 check no
+        timestep        0.002
+        """
+        T = []
+        def store(sim, T):
+            T.append(sim.system.temperature)
+        bck = LAMMPS(self.input_file, cmd)
+        sim = Simulation(bck)
+        sim.system.temperature = 1.4
+        sim.system.thermostat = Thermostat(2.0)
+        sim.add(store, 500, T)
+        sim.run(4000)
+        ave = sum(T[3:]) / len(T[3:])
+        self.assertAlmostEqual(ave, 2.0, places=1)
+
     def test_energy(self):
         import sys
         cmd = """

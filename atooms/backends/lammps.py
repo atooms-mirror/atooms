@@ -155,6 +155,14 @@ class LAMMPS(object):
         with TrajectoryLAMMPS(file_tmp, 'w') as th:
             th.write(self.system, 0)
 
+        # Set fixes from the system if we find thermostat / barostat
+        if self.system.thermostat is not None:
+            fix = 'fix 1 all nvt temp {0.temperature} {0.temperature} {0.relaxation_time}'.format(self.system.thermostat)
+        elif not 'fix' in self.commands:
+            fix = 'fix 1 all nve'
+        else:
+            fix = ''
+
         # Do things in lammps order: units, read, commands, run. A
         # better approach would be to parse commands and place
         # read_data after units then pack commands again. Even better
@@ -162,18 +170,22 @@ class LAMMPS(object):
         cmd = """\
 units		lj
 atom_style	atomic
-read_data %s
-%s
-run %s
-write_dump all custom %s id type x y z vx vy vz modify sort id
-""" % (file_inp, self.commands, steps, file_tmp)
+read_data {}
+{}
+{}
+run {}
+write_dump all custom {} id type x y z vx vy vz modify sort id
+""".format(file_inp, self.commands, fix, steps, file_tmp)
 
         stdout = _run_lammps_command(cmd)
         if self.verbose:
             print(stdout)
 
         # Update internal reference to self.system
-        self.system = System(file_tmp, self.commands)
+        # Note that the thermostat is not touched
+        new_system = TrajectoryLAMMPS(file_tmp)[-1]
+        for i in range(len(self.system.particle)):
+            self.system.particle[i] = new_system.particle[i]
 
         # Clean up
         rmd(dirout)
