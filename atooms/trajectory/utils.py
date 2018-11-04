@@ -66,6 +66,9 @@ def convert(inp, out, fout, force=True, fields=None,
     else:
         out_class = out
 
+    if fields is None and len(inp.fields) > 0:
+        fields = inp.fields
+
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
         print('File exists, conversion skipped')
     else:
@@ -225,7 +228,7 @@ def check_block_size(steps, block_size, prune=False):
             print('# periodicity issue at block %i out of %i' % (i, nbl))
             print('# current     :', current)
             print('# finger print:', block)
-            raise ValueError('block does not match finger print')
+            raise IndexError('block does not match finger print')
 
     return steps_local
 
@@ -289,18 +292,6 @@ def paste(t1, t2):
         s1 = t1[t1.steps.index(step)]
         s2 = t2[t2.steps.index(step)]
         yield step, s1, s2
-
-
-def time_when_msd_is(th, msd_target, sigma=1.0):
-    """
-    Estimate the time when the MSD reaches target_msd in units of
-    sigma^2. Bounded by the actual maximum time of trajectory tmax.
-    """
-    from .decorators import Unfolded
-    with Unfolded(th) as th_unf:
-        msd_total = th_unf[0].mean_square_displacement(th_unf[-1])
-    frac = msd_target * sigma**2 / msd_total
-    return min(1.0, frac) * th.total_time
 
 
 def is_cell_variable(trajectory, tests=1):

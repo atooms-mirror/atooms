@@ -179,9 +179,7 @@ class Test(unittest.TestCase):
         from atooms.simulation import shell_stop
         f = '/tmp/test_simulation/shell/trajectory'
         s = Simulation(DryRun(), output_path=f)
-        # TODO: why not working?
-        #s.add(shell_stop, Scheduler(steps=[20]), 'exit 0')
-        s.add(shell_stop, Scheduler(20), 'exit 1')
+        s.add(shell_stop, Scheduler(steps=[20]), 'exit 1')
         s.add(write_thermo, Scheduler(10))
         s.run(100)
         self.assertEqual(s.current_step, 20)

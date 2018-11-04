@@ -25,6 +25,7 @@ import time
 import datetime
 import logging
 
+import atooms.core
 from atooms.core import __version__
 from atooms.core.utils import mkdir, barrier
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, SimulationKill
@@ -308,14 +309,15 @@ class Simulation(object):
                  self.current_step + self.steps)
 
         # Targeter for progress bar
-        intervals = [self._cbk_params[cbk]['scheduler'].interval for cbk in self._callback]
-        intervals = [intv for intv in intervals if intv is not None]
-        min_iters = 10
-        if min(intervals) > (self.current_step + self.steps) / min_iters and\
-           (self.current_step + self.steps) / min_iters > 10 :
-            def flush(sim):
-                pass
-            self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
+        if atooms.core.progress.active:
+            intervals = [self._cbk_params[cbk]['scheduler'].interval for cbk in self._callback]
+            intervals = [intv for intv in intervals if intv is not None]
+            min_iters = 10
+            if min(intervals) > (self.current_step + self.steps) / min_iters and \
+               (self.current_step + self.steps) / min_iters > 10 :
+                def flush(sim):
+                    pass
+                self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
 
         # Report
         _report(self._info_start())

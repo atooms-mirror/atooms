@@ -105,8 +105,13 @@ def main(args):
         ts.register_callback(trajectory.decorators.change_species, args.species_layout)
 
     # We enforce regular periodicity; steps is None is trajectory is not periodic
-    steps = check_block_size(ts.steps, ts.block_size, prune=True)
-    
+    try:
+        steps = check_block_size(ts.steps, ts.block_size, prune=True)
+    except IndexError:
+        print('# Warning: something wrong with periodicity check.')
+        print('# We will proceed, but you should check the converted trajectory.')
+        steps = ts.steps
+
     #
     # ---------------------
     # Trajectory conversion

@@ -12,30 +12,7 @@ particle reservoir.
 
 import numpy
 from .particle import cm_position, cm_velocity, fix_total_momentum
-
-
-def show(particle, cell, outfile='plot.png'):
-    """
-    Make a snapshot of the `particle`s in the `cell` and save the
-    image in `outfile`.
-    """
-    import matplotlib.pyplot as plt
-    from .particle import distinct_species
-    
-    color_db = ['b', 'r', 'g', 'y']
-    species = distinct_species(particle)
-    fig = plt.figure()
-    ax = fig.add_subplot(111, aspect='equal')
-    ax.axes.get_xaxis().set_visible(False)
-    ax.axes.get_yaxis().set_visible(False)
-    ax.set_xlim((-cell.side[0]/2, cell.side[0]/2))
-    ax.set_ylim((-cell.side[1]/2, cell.side[1]/2))
-    for p in particle:
-        c = plt.Circle(p.position[: 2], p.radius,
-                       facecolor=color_db[species.index(p.species)],
-                       edgecolor='black', alpha=0.2, linewidth=3)
-        ax.add_artist(c)
-    fig.savefig(outfile, bbox_inches='tight')
+from .particle import show as _show
 
 
 class System(object):
@@ -303,4 +280,4 @@ class System(object):
         return txt
 
     def show(self):
-        show(self.particle, self.cell)
+        _show(self.particle, self.cell)
