@@ -14,8 +14,14 @@ from atooms import interaction
 from atooms.trajectory import TrajectoryLAMMPS
 from atooms.core.utils import rmd
 
+
+# Local parallel environment
+mpi_tasks = 1
+
+# Check if lammps is installed
 try:
-    _ = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT, executable='/bin/bash')
+    _ = subprocess.check_output('mpirun -n 1 lammps < /dev/null', shell=True,
+                                stderr=subprocess.STDOUT, executable='/bin/bash')
     _version = _.decode().split('\n')[0][8:-1]
 except subprocess.CalledProcessError:
     raise ImportError('lammps not installed')
@@ -23,7 +29,8 @@ except subprocess.CalledProcessError:
 
 def _run_lammps_command(cmd):
     # see https://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
-    p = subprocess.Popen(['lammps'], shell=True,
+    p = subprocess.Popen(['mpirun -n {} lammps'.format(mpi_tasks)],
+                         shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          executable='/bin/bash')
