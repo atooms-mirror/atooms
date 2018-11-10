@@ -4,7 +4,7 @@
 """Simulation cell."""
 
 import numpy
-from warnings import DeprecationWarning
+import warnings
 from atooms.core import ndim as _ndim
 
 
@@ -28,5 +28,5 @@ class Cell(object):
 
     @property
     def origin(self):
-        raise DeprecationWarning('cell origin is deprecated')
+        warnings.warn('cell origin is deprecated', DeprecationWarning)
         return numpy.zeros(_ndim)
