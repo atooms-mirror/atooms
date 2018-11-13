@@ -51,7 +51,7 @@ try:
 
         """Slightly customized tqdm progress bar"""
 
-        def __init__(self, *args, **kwargs):            
+        def __init__(self, *args, **kwargs):
             tqdm.__init__(self, disable=not active,
                           bar_format=bar_format, ncols=ncols, file=sys.stdout, *args, **kwargs)
 
