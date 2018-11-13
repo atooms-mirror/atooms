@@ -144,6 +144,8 @@ def fix_total_momentum(particles):
 
 def cm_velocity(particle):
     """Velocity of the center of mass of a list of particles."""
+    if len(particle) == 0:
+        return 0.0
     vcm = numpy.zeros_like(particle[0].velocity)
     mtot = 0.0
     for p in particle:
