@@ -38,7 +38,10 @@ class System(object):
         Number of spatial dimensions, guessed from the length of
         `particle[0].position`.
         """
-        return len(self.particle[0].position)
+        if len(self.particle) > 0:
+            return len(self.particle[0].position)
+        else:
+            return 0
 
     def distinct_species(self):
         """Sorted list of distinct chemical species in the system."""
@@ -77,15 +80,18 @@ class System(object):
     def temperature(self):
         """
         Kinetic temperature.
-
-        If given, `ndof` specifies the number of degrees of freedom to
-        correct for missing translational invariance. Otherwise,
-
-            ndof = (N-1)*dim
         """
         # TODO: determine translational invariance via some additional attribute.
-        ndof = (len(self.particle)-1) * self.number_of_dimensions
-        return 2.0 / ndof * self.kinetic_energy()
+        if len(self.particle) > 1:
+            # Number of degrees of freddom is (N-1)*ndim
+            ndof = (len(self.particle)-1) * self.number_of_dimensions
+            return 2.0 / ndof * self.kinetic_energy()
+        elif len(self.particle) == 1:
+            # Pathological case
+            return 2.0 / self.number_of_dimensions * self.kinetic_energy()
+        else:
+            # Empty particle list
+            return 0.0
 
     @temperature.setter
     def temperature(self, T):
@@ -100,9 +106,10 @@ class System(object):
         # After fixing the CM the temperature is not exactly the targeted one
         # Therefore we scale the velocities so as to get to the right T
         T_old = self.temperature
-        fac = (T/T_old)**0.5
-        for p in self.particle:
-            p.velocity *= fac
+        if T_old > 0.0:
+            fac = (T/T_old)**0.5
+            for p in self.particle:
+                p.velocity *= fac
 
     def kinetic_energy(self, normed=False):
         """
