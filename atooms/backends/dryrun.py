@@ -50,6 +50,8 @@ class System(object):
         self.particle = []
         self.cell = None
         self.thermostat = Thermostat()
+        self.barostat = None
+        self.reservoir = None
 
     def potential_energy(self, normed=False):
         return 0.
@@ -67,6 +69,9 @@ class System(object):
     @property
     def temperature(self):
         return 0.
+
+    def set_temperature(self, T):
+        pass
 
     def report(self):
         return ''
