@@ -7,6 +7,22 @@ import copy
 from .utils import get_block_size
 
 
+# Fields thesaurus: common synonims for fields, such as position -> pos
+# It can be used to match fields read by different trajectory classes.
+# The first element of each entry is the official one.
+FIELDS_DICTIONARY = [('position', 'pos'),
+                     ('velocity', 'vel'),
+                     ('species', 'spe', 'id')]
+
+def canonicalize_fields(fields):
+    for i, field in enumerate(fields):
+        for entry in FIELDS_DICTIONARY:
+            if field in entry:
+                fields[i] = entry[0]
+                break
+    return fields
+
+
 class TrajectoryBase(object):
     """
     Trajectory abstract base class.
