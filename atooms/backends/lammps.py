@@ -12,6 +12,7 @@ from atooms import trajectory
 from atooms import system
 from atooms import interaction
 from atooms.trajectory import TrajectoryLAMMPS
+from atooms.trajectory.decorators import change_species
 from atooms.core.utils import rmd
 
 
@@ -127,6 +128,8 @@ class LAMMPS(object):
             # not recognized we force lammps native (atom) format
             try:
                 with trajectory.Trajectory(inp) as t:
+                    # We enforce fortran species layout
+                    t.add_callback(change_species, 'F')
                     s = t[-1]
             except ValueError:
                 with trajectory.TrajectoryLAMMPS(inp) as t:
@@ -159,7 +162,6 @@ class LAMMPS(object):
         dirout = tempfile.mkdtemp()
         file_tmp = os.path.join(dirout, 'lammps.atom')
         file_inp = os.path.join(dirout, 'lammps.atom.inp')
-
         # Update lammps startup file using self.system
         # This will write the .inp startup file
         with TrajectoryLAMMPS(file_tmp, 'w') as th:
