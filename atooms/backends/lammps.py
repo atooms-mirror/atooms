@@ -12,10 +12,17 @@ from atooms import trajectory
 from atooms import system
 from atooms import interaction
 from atooms.trajectory import TrajectoryLAMMPS
+from atooms.trajectory.decorators import change_species
 from atooms.core.utils import rmd
 
+
+# Local parallel environment
+mpi_tasks = 1
+
+# Check if lammps is installed
 try:
-    _ = subprocess.check_output('lammps < /dev/null', shell=True, stderr=subprocess.STDOUT, executable='/bin/bash')
+    _ = subprocess.check_output('mpirun -n 1 lammps < /dev/null', shell=True,
+                                stderr=subprocess.STDOUT, executable='/bin/bash')
     _version = _.decode().split('\n')[0][8:-1]
 except subprocess.CalledProcessError:
     raise ImportError('lammps not installed')
@@ -23,7 +30,8 @@ except subprocess.CalledProcessError:
 
 def _run_lammps_command(cmd):
     # see https://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
-    p = subprocess.Popen(['lammps'], shell=True,
+    p = subprocess.Popen(['mpirun -n {} lammps'.format(mpi_tasks)],
+                         shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          executable='/bin/bash')
@@ -120,6 +128,8 @@ class LAMMPS(object):
             # not recognized we force lammps native (atom) format
             try:
                 with trajectory.Trajectory(inp) as t:
+                    # We enforce fortran species layout
+                    t.add_callback(change_species, 'F')
                     s = t[-1]
             except ValueError:
                 with trajectory.TrajectoryLAMMPS(inp) as t:
@@ -152,7 +162,6 @@ class LAMMPS(object):
         dirout = tempfile.mkdtemp()
         file_tmp = os.path.join(dirout, 'lammps.atom')
         file_inp = os.path.join(dirout, 'lammps.atom.inp')
-
         # Update lammps startup file using self.system
         # This will write the .inp startup file
         with TrajectoryLAMMPS(file_tmp, 'w') as th:

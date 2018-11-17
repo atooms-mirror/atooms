@@ -131,7 +131,7 @@ ITEM: ATOMS id type xs ys zs
 """)
         from atooms.trajectory import TrajectoryLAMMPS
         def scale(pos, side):
-            return [(x - 0.5) * L/2 for x, L in zip(pos, side)]
+            return [(x - 0.5) * L for x, L in zip(pos, side)]
         with TrajectoryLAMMPS('/tmp/test_lammps.atom') as th:
             self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
             self.assertEqual(list(th[0].particle[0].position), scale([0.20, 0.21, 0.22], [6.0, 6.0, 6.0]))
@@ -173,7 +173,7 @@ ITEM: ATOMS id type xs ys zs
 """)
         from atooms.trajectory import TrajectoryFolderLAMMPS
         def scale(pos, side):
-            return [(x - 0.5) * L/2 for x, L in zip(pos, side)]
+            return [(x - 0.5) * L for x, L in zip(pos, side)]
         with TrajectoryFolderLAMMPS('/tmp/test_lammps.d') as th:
             self.assertEqual(th.steps, [10, 20])
             self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])

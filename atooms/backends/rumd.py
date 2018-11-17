@@ -168,6 +168,8 @@ class System(object):
     def __init__(self, sample):
         self.sample = sample
         self.thermostat = Thermostat(self.sample.GetIntegrator())
+        self.barostat = None
+        self.reservoir = None
 
     def __copy__(self):
         # This is not really needed, it's just there for reference
@@ -236,6 +238,9 @@ class System(object):
         mass = self.__get_mass()
         return numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
 
+    def set_temperature(self):
+        raise NotImplementedError
+
     @property
     def cell(self):
         box = self.sample.GetSimulationBox()
@@ -262,7 +267,7 @@ class System(object):
         for pi, i in zip(p, ima):
             pi.periodic_image = i
         return p
-        
+
     def report(self):
         return ''
 

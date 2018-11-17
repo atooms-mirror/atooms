@@ -27,13 +27,13 @@ def _parse_z(data, particle, cell):
     particle.position[2] = float(data)
 
 def _parse_xs(data, particle, cell):
-    particle.position[0] = (float(data) - 0.5) * cell.side[0] * 0.5
+    particle.position[0] = (float(data) - 0.5) * cell.side[0]
 
 def _parse_ys(data, particle, cell):
-    particle.position[1] = (float(data) - 0.5) * cell.side[1] * 0.5
+    particle.position[1] = (float(data) - 0.5) * cell.side[1]
 
 def _parse_zs(data, particle, cell):
-    particle.position[2] = (float(data) - 0.5) * cell.side[2] * 0.5
+    particle.position[2] = (float(data) - 0.5) * cell.side[2]
 
 def _parse_vx(data, particle, cell):
     particle.velocity[0] = float(data)
@@ -111,11 +111,12 @@ class TrajectoryLAMMPS(TrajectoryBase):
         self._fh.seek(idx)
         self._fh.readline()
         ndim = len(data.split())  # line is ITEM: BOX BONDS pp pp pp
-        L, offset = [], []
+        L, center = [], []
         for i in range(ndim):
             data = [float(x) for x in self._fh.readline().split()]
             L.append(data[1] - data[0])
-        cell = Cell(numpy.array(L))
+            center.append((data[1] + data[0]) / 2)
+        cell = Cell(numpy.array(L), center=numpy.array(center))
 
         # Read atoms data
         idx, data = self._index_db['ATOMS'][frame]

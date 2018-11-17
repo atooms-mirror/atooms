@@ -52,6 +52,24 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(system.cm_position[1], 0.0)
         self.assertAlmostEqual(system.cm_position[2], 0.0)
 
+    def test_pbc_center(self):
+        system = copy.copy(self.ref)
+        # Move the center of the cell so that positions are within 0 and L
+        system.cell.center = system.cell.side / 2
+        for p in system.particle:
+            p.position += system.cell.side / 2
+        # Check that distances are the same
+        for i in range(len(system.particle)):
+            self.assertAlmostEqual(sum(self.ref.particle[0].distance(self.ref.particle[i], self.ref.cell)**2),
+                                   sum(system.particle[0].distance(system.particle[i], system.cell)**2))
+        # Move one particle out of the box and fold it back
+        pos = copy.copy(system.particle[0].position)
+        system.particle[0].position += system.cell.side
+        system.particle[0].fold(system.cell)
+        self.assertAlmostEqual(pos[0], system.particle[0].position[0])
+        self.assertAlmostEqual(pos[1], system.particle[0].position[1])
+        self.assertAlmostEqual(pos[2], system.particle[0].position[2])
+            
     def test_fold(self):
         system = copy.copy(self.ref)
         pos = copy.copy(system.particle[0].position)

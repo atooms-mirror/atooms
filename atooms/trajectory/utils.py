@@ -61,13 +61,16 @@ def convert(inp, out, fout, force=True, fields=None,
     Return: name of converted trajectory file
     """
     from atooms.trajectory import Trajectory
+    from atooms.trajectory.base import canonicalize_fields
     if isinstance(out, str):
         out_class = Trajectory.formats[out]
     else:
         out_class = out
 
-    if fields is None and len(inp.fields) > 0:
-        fields = inp.fields
+    if fields is None and len(inp.fields) > 0 and include is None:
+        # We automatically include all fields from the input trajectory
+        # Since the output trajectory may have extra fields, we do should not overwrite them
+        include = canonicalize_fields(inp.fields)
 
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
         print('File exists, conversion skipped')

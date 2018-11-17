@@ -1,6 +1,6 @@
 html {
     font-family: Verdana, DejaVu Sans, Liberation Sans, Helvetica, Arial, sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.5em;
     color: #333;
 }
@@ -11,9 +11,9 @@ img {
 }
 
 /* This appears necessary on my firefox to have centered img and readable equations */
-.MathJax_Display img {
-    display: inherit !important;
-}
+/* .MathJax_Display img { */
+/*     display: inherit !important; */
+/* } */
 
 code, .src, .example {
     font-family: "Liberation Mono", "DejaVu Sans Mono", "Ubuntu Mono", "Courier New", "lucida console", monospace;
@@ -56,7 +56,12 @@ video {
 }
 
 #content {
-    width: 60em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#content {
+    width: 55em;
     margin-left: auto;
     margin-right: auto;
 }

@@ -21,3 +21,4 @@ cover
 # Simulations
 rumd_timing_info.dat
 log.lammps
+.DS_Store

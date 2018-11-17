@@ -108,7 +108,7 @@ class TrajectoryRam(TrajectoryBase):
             s.thermostat = self._thermostat[frame]
         if len(self._barostat) > 0:
             s.barostat = self._barostat[frame]
-        if len(self._thermostat) > 0:
+        if len(self._reservoir) > 0:
             s.reservoir = self._reservoir[frame]
 
         return s

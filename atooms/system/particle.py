@@ -86,7 +86,13 @@ class Particle(object):
 
     def fold(self, cell):
         """Fold self into central cell."""
+
+        # Move the center to 0
+        self.position -= cell.center
         self.position = _periodic_vector_unfolded(self.position, cell.side)
+
+        # Restore the center
+        self.position += cell.center
         return self
 
     def maxwellian(self, T):
@@ -138,6 +144,8 @@ def fix_total_momentum(particles):
 
 def cm_velocity(particle):
     """Velocity of the center of mass of a list of particles."""
+    if len(particle) == 0:
+        return 0.0
     vcm = numpy.zeros_like(particle[0].velocity)
     mtot = 0.0
     for p in particle:
@@ -343,7 +351,7 @@ def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
     """
     import matplotlib.pyplot as plt
     from .particle import distinct_species
-    
+
     color_db = ['b', 'r', 'g', 'y']
     species = distinct_species(particle)
     fig = plt.figure()
