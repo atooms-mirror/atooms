@@ -17,7 +17,7 @@ class Cell(object):
             self.side = numpy.asarray(side, dtype=numpy.float64)
         # By default, the center is at the origin of the reference frame
         if center is None:
-            self.center = numpy.zeros(_ndim)
+            self.center = numpy.zeros_like(self.side)
         else:
             self.center = numpy.asarray(center, dtype=numpy.float64)
         self.shape = 'cubic'
