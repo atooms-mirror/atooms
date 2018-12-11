@@ -185,7 +185,6 @@ class Unfolded(object):
         self._last_read = 0
 
     def read_sample(self, frame):
-        #print 'read frame', frame, self._last_read
         # Return here if first frame
         if frame == 0:
             return super(Unfolded, self).read_sample(frame)
