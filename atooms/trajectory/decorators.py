@@ -173,6 +173,7 @@ class Unfolded(object):
         return object.__new__(cls)
 
     def __init__(self, component, fixed_cm=False):
+        self._component = component
         self._initialized_read = False
         self.fixed_cm = fixed_cm
 
@@ -184,6 +185,7 @@ class Unfolded(object):
         self._last_read = 0
 
     def read_sample(self, frame):
+        #print 'read frame', frame, self._last_read
         # Return here if first frame
         if frame == 0:
             return super(Unfolded, self).read_sample(frame)
