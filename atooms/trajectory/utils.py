@@ -185,7 +185,12 @@ def check_block_size(steps, block_size, prune=False):
 
     Note that in this case, len(steps) % block_size == 1, which is tolerated.
     """
+    # Linear sampling
     if block_size == 1:
+        return None
+
+    # This is a single non-linear block
+    if block_size == len(steps):
         return None
 
     steps_local = copy.copy(steps)
