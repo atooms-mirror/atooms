@@ -173,6 +173,7 @@ class Unfolded(object):
         return object.__new__(cls)
 
     def __init__(self, component, fixed_cm=False):
+        self._component = component
         self._initialized_read = False
         self.fixed_cm = fixed_cm
 

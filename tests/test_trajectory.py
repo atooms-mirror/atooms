@@ -227,6 +227,12 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
             s_1 = th_1.read(0)
             s_1 = th_1.read(0)
 
+    def test_block_size(self):
+        from atooms.trajectory.utils import check_block_size, get_block_size
+        steps = [2**i for i in range(5)]
+        block = get_block_size(steps)
+        check_block_size(steps, block)
+
     def tearDown(self):
         rmf(self.inpfile)
         rmd(self.inpdir)

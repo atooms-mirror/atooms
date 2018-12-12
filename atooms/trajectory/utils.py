@@ -185,7 +185,12 @@ def check_block_size(steps, block_size, prune=False):
 
     Note that in this case, len(steps) % block_size == 1, which is tolerated.
     """
+    # Linear sampling
     if block_size == 1:
+        return None
+
+    # This is a single non-linear block
+    if block_size == len(steps):
         return None
 
     steps_local = copy.copy(steps)
@@ -350,6 +355,7 @@ def info(trajectory, keys=None):
         txt += 'particles            = %s\n' % len(trajectory[0].particle)
         txt += 'species              = %s\n' % ', '.join(distinct_species(trajectory[0].particle))
         txt += 'composition          = %s\n' % dict(composition(trajectory[0].particle))
+        txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in trajectory[0].particle]) / numpy.mean([p.radius for p in trajectory[0].particle]))
         txt += 'density              = %s\n' % round(trajectory[0].density, 10)
         txt += 'cell side            = %s\n' % str(list(trajectory[0].cell.side))[1: -1]
         txt += 'cell volume          = %s\n' % trajectory[0].cell.volume

@@ -124,7 +124,7 @@ class Scheduler(object):
 
         elif self.calls is not None:
             # Fixed number of calls
-            interval = sim.steps // self.calls
+            interval = max(1, sim.steps // self.calls)
             return (sim.current_step // interval + 1) * interval
 
         elif self.steps is not None:

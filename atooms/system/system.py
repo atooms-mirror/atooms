@@ -66,7 +66,7 @@ class System(object):
         """Set the system density to `rho` by rescaling the coordinates."""
         if self.cell is None:
             return ValueError('cannot compute density without a cell')
-        factor = (self.density / rho)**(1./3)
+        factor = (self.density / rho)**(1./len(self.cell.side))
         for particle in self.particle:
             particle.position *= factor
         self.cell.side *= factor
