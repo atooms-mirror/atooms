@@ -459,3 +459,84 @@ Everything went fine. However, we have to tweak things a bit when reading the pa
 Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.
 
 Last modified: <2018-09-08 Sat>
+* Molecular dynamics with LAMMPS
+
+Atooms provides a simulation backend for LAMMPS, an efficient and feature-rich molecular dynamics simulation package.
+The backend accepts a string variable containing regular LAMMPS commands and a trajectory that provides the starting configuration for the simulation.
+#+begin_src python :exports both :results output :session
+  import atooms.trajectory as trj
+  from atooms.backends.lammps import LAMMPS
+
+  inp = trj.TrajectoryXYZ('../data/lj_N256_rho1.0.xyz')
+  cmd = """
+  pair_style      lj/cut 2.5
+  pair_coeff      1 1 1.0 1.0  2.5
+  neighbor        0.3 bin
+  neigh_modify    check yes
+  timestep        0.002
+  """
+  backend = LAMMPS(inp, cmd)
+#+end_src
+
+#+results:
+
+We now wrap the backend in a simulation instance. This way we can rely on atooms to write thermodynamic data and configurations to disk during the simulation: we just add the =write_config()= and =write_thermo()= functions as observers to the simulations.
+You can add your own functions as observers to perform arbitrary manipulations on the system during the simulation. Keep in mind that calling these functions causes some overhead, so avoid calling them at too short intervals.
+#+begin_src python :exports both :results output :session
+  from atooms.simulation import Simulation
+  from atooms.system import Thermostat
+  from atooms.simulation.observers import write_thermo, write_config
+
+  # We create the simulation instance and set the output path
+  sim = Simulation(backend, output_path='/tmp/lammps.xyz')
+  # Just store a reference to the trajectory class you want to use
+  sim.trajectory = trj.TrajectoryXYZ
+  # Write configurations every 500 steps in xyz format
+  sim.add(write_config, 500)
+  # Write thermodynamic properties every 500 steps
+  sim.add(write_thermo, 500)
+#+end_src
+
+#+results:
+
+We add a thermostat to keep the system temperature at T=2.0.
+Note that we use atooms objects here: the backend will take care of adding appropriate commands to the LAMMPS script.
+Finally, we run the simulations for 10000 steps.
+#+begin_src python :exports both :results output :session
+  backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=1.0)
+  sim.run(20000)
+#+end_src
+
+#+results:
+
+We can have a quick look at the temperature to make sure the thermostat is working
+#+begin_src gnuplot :file /tmp/lammps.png
+  set xl 'Steps'
+  set yl 'Temperature'
+  set border 3
+  set xtics nomirror
+  set ytics nomirror
+  plot '/tmp/lammps.xyz.thermo' u 1:2 noti w lp lc rgb 'red' pt 7, 2 noti lc rgb 'black'
+#+end_src
+
+#+results:
+[[file:/tmp/lammps.png]]
+
+We can use the =postprocessing= atooms package to compute the radial distribution function
+#+begin_src python  :exports both
+  from atooms.postprocessing import api
+  api.gr('/tmp/lammps.xyz')
+#+end_src
+
+And show the results
+#+begin_src gnuplot :file /tmp/lammps_gr.png
+  set xl 'r'
+  set yl 'g(r)'
+  set border 3
+  set xtics nomirror
+  set ytics nomirror
+  plot '/tmp/lammps.xyz.pp.gr' u 1:2 noti w lp lc rgb 'red' pt 7
+#+end_src
+
+#+results:
+[[file:/tmp/lammps_gr.png]]
