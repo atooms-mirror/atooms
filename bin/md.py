@@ -6,7 +6,7 @@ import sys
 import os
 from atooms.core import __version__, __commit__
 from atooms.simulation import Simulation, Scheduler, write_thermo, write_config
-from atooms.backends import RUMD
+from atooms.backends.rumd import RUMD
 from atooms.core.utils import setup_logging, report_parameters, report_command, mkdir, cp
 
 def main(params):
