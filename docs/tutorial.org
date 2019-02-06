@@ -28,7 +28,7 @@
 #+latex_header:     linkcolor=blue,%
 #+latex_header:     urlcolor=blue
 #+latex_header: }
-#+options: toc:1 num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
+#+options: toc:2 num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
 #+html_head: <link rel="stylesheet" type="text/css" href="style.css" />
 
 * Basics
@@ -177,16 +177,18 @@ Note that the system temperature is the kinetic one and need not coincide with t
 
 ** Read and write trajectory files
 
-To write the state of the system to a file, we use a Trajectory class. Trajectories are composed of multiple frames, each one holding the state of the system at a given step during the simulation. We use a basic xyz format and read the file back to see how it looks like.
+To write the state of the system to a file, we use a =Trajectory= class. Trajectories are composed of multiple frames, each one holding the state of the system at a given step during the simulation. We use a basic xyz format to write the state of the system and then parse the trajectory file we produced to see how it looks like.
 #+begin_src python :exports both:results output :session
   from atooms.trajectory import TrajectoryXYZ
-
+  
   system = System(particle=[Particle() for i in range(4)],
-		  cell=Cell([10.0, 10.0, 10.0]))
-
+                  cell=Cell([10.0, 10.0, 10.0]))
+  
+  # Open the trajectory in write mode and write the state of the system
+  # at step 0
   with TrajectoryXYZ('test.xyz', 'w') as th:
     th.write(system, step=0)
-
+  
   # Read the xyz file back as plain text
   with open('test.xyz') as fh:
     print fh.read()
@@ -199,7 +201,9 @@ To write the state of the system to a file, we use a Trajectory class. Trajector
 : A 1
 : A 2
 
-We can customize the output of the xyz trajectory by modifying the list of particle fields to be written.
+Note that trajectories are file-like objects: they must be opened and closed, preferably using the =with= syntax.
+
+We can customize the output of the xyz trajectory by modifying using the =field= variable. It contains a list of the particle properties to be written to the trajectory.
 #+begin_src python :exports both:results output :session
   for p in system.particle:
     p.charge = -1.0
@@ -219,7 +223,9 @@ We can customize the output of the xyz trajectory by modifying the list of parti
 : 0.000000 0.000000 0.000000 -1.0
 : 0.000000 0.000000 0.000000 -1.0
 
-Of course, we can write multiple frames by calling write() repeatedly.
+The =field= list can contain any particle property, even those defined dynamically at run time, such as the =charge= variable above.
+
+Of course, we can write multiple frames by calling =write()= repeatedly.
 #+begin_src python :exports both:results output :session
   with TrajectoryXYZ('test.xyz', 'w') as th:
     for i in range(3):
