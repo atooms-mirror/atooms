@@ -29,13 +29,40 @@ class TrajectoryBase(object):
 
     A trajectory is composed by one or several frames, each frame
     being a sample of a `System` taken at a given `step` during a
-    simulation. `Trajectory` instances are iterable and can be opened
-    and closed using the `with` syntax..
+    simulation. Trajectory instances are iterable and behave as file
+    objects: they must be opened and closed using the `with` syntax
 
         #!python
         with Trajectory(inpfile) as th:
             for system in th:
                 pass
+
+    alternatively
+
+        #!python
+        th = Trajectory(inpfile)
+        for system in th:
+            pass
+        th.close()
+
+    To write the state of a `System` to a trajectory, we must open the
+    trajectory in write mode.
+
+        #!python
+        with Trajectory(outfile, 'w') as th:
+            th.write(system, step=0)
+
+    Trajectories can use the `fields` variable to define which system
+    properties will be written to disk. Concrete classes may thus
+    provide means to write arbitrary fields to disk via particle
+    properties. Example:
+
+        #!python
+        for particle in system:
+            particle.some_custom_property = 1.0
+        with Trajectory(outfile, 'w') as th:
+            th.fields = ['position', 'some_custom_property']
+            th.write(system, step=0)
 
     To be fully functional, concrete classes must implement
     `read_sample()` and `write_sample()` methods.
@@ -53,7 +80,7 @@ class TrajectoryBase(object):
     `write_sample()`. Only the latter method must be implemented by
     subclasses.
 
-    The `cache` variable reduces acess time when reading the same
+    The `cache` variable reduces access time when reading the same
     trajectory multiple times. We use shallow copies to cut down the
     overhead. Cache is disabled by default as there is no control on
     its size yet.
@@ -167,6 +194,7 @@ class TrajectoryBase(object):
 
     def write(self, system, step):
         """Write `system` at given `step`."""
+        # TODO: make step optional
         if self.mode == 'r':
             raise IOError('trajectory file not open for writing')
         if not self._initialized_write:
