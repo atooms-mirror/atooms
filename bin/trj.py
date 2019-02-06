@@ -198,6 +198,7 @@ def scatter(args):
     Write frames in trajectory to individual files of the same file format
     """
     from atooms import trajectory as trj
+    from atooms.core.utils import mkdir
 
     for f in args.file_inp:
         fmt = args.inp
@@ -214,7 +215,9 @@ def scatter(args):
             f_out = args.file_out.format(step=t.steps[i], frame=i,
                                          base=os.path.splitext(f)[0],
                                          ext=os.path.splitext(f)[1])
+            mkdir(os.path.dirname(f_out))
             with trj.Trajectory(f_out, fmt=fmt_out, mode='w') as th_out:
+                th_out.fields.append('radius')
                 th_out.write(system, step=t.steps[i])
     
 
