@@ -70,19 +70,19 @@ def change_species(system, layout):
 
     # Convert to new layout
     import string
-    species_map = string.ascii_uppercase
     if layout == 'A':
         # We get the index of the species map:
         # - if current layout is F (min_sp=1), we subtract one.
         # - if current layout is C (min_sp=0), we do nothing
+        species_map = string.ascii_uppercase
         for p in system.particle:
             p.species = species_map[int(p.species) - min_sp]
     else:
         # Output layout is numerical (C or F)
         from atooms.system.particle import distinct_species
         offset = 1 if layout == 'F' else 0
-        nsp = len(distinct_species(system.particle))
-        species_list = [species_map[i] for i in range(nsp)]
+        # Note that distinct_species is sorted alphabetically
+        species_list = distinct_species(system.particle)
         if current_layout == 'A':
             for p in system.particle:
                 p.species = str(species_list.index(p.species) + offset)
