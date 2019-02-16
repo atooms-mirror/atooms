@@ -23,9 +23,9 @@ doc: clean
         # pdoc does play nice with namespace packages -> blank __init__.py
         # go into atooms to prevent pdoc from populating docs/ with modules from the namespace package
 	cd atooms; mv __init__.py __init__.py.bak; echo \"\"\"A framework for simulations of interacting particles.\"\"\" > __init__.py
-	cd atooms; pdoc --overwrite --html-dir ../docs --html --template-dir ~/usr/pdoc_tpl/pdoc_tpl ../atooms 
+	cd atooms; pdoc --overwrite --html-dir ../docs/api --html --template-dir ~/usr/pdoc_tpl/pdoc_tpl ../atooms 
 	cd atooms; mv __init__.py.bak __init__.py
-	rsync -uva docs zaphod:public_html
+	rsync -uva docs/api zaphod:public_html
 
 version:
 	@echo __commit__ = \'$(COMMIT_DIRTY)\' > atooms/core/_commit.py
