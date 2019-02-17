@@ -29,6 +29,7 @@
 #+latex_header:     urlcolor=blue
 #+latex_header: }
 #+options: toc:2 num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
+#+html_head: <link rel="stylesheet" type="text/css" href="style.css" />
 * Basics
 :PROPERTIES:
 :header-args: :exports both
@@ -48,7 +49,11 @@ Particles' positions are stored as numpy arrays, but we can pass a simple list w
 #+end_src
 
 #+results:
+: Python 2.7.15rc1 (default, Nov 12 2018, 14:31:15) 
+: [GCC 7.3.0] on linux2
+: Type "help", "copyright", "credits" or "license" for more information.
 : (array([ 1.,  0.,  0.]), <type 'numpy.ndarray'>)
+: python.el: native completion setup loaded
 
 Particles can live in an arbitrary number of spatial dimensions
 #+begin_src python :exports both :results output :session
@@ -449,7 +454,7 @@ The MSD as a function of time should look linear.
 
 ** Molecular dynamics with LAMMPS
 
-Atooms provides a simulation backend for [[LAMMPS]], an efficient and feature-rich molecular dynamics simulation package.
+Atooms provides a simulation backend for LAMMPS, an efficient and feature-rich molecular dynamics simulation package.
 The backend accepts a string variable containing regular LAMMPS commands and a trajectory that provides the starting configuration for the simulation.
 #+begin_src python :exports both :results output :session
   import atooms.trajectory as trj
@@ -509,7 +514,7 @@ We have a quick look at the kinetic temperature as function of time to make sure
 #+results:
 [[file:lammps.png]]
 
-We can use the [[postprocessing package]] to compute the radial distribution function
+We can use the postprocessing package to compute the radial distribution function
 #+begin_src python  :exports code
   from atooms.postprocessing import api
   api.gr('lammps.xyz')
