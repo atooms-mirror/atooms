@@ -176,7 +176,7 @@ Note that the system temperature is the kinetic one and need not coincide with t
 #+results:
 : (1.5, 1.0)
 
-** Read and write trajectory files
+** Trajectory files
 
 To write the state of the system to a file, we use a =Trajectory= class. Trajectories are composed of multiple frames, each one holding the state of the system at a given step during the simulation. We use a basic xyz format to write the state of the system and then parse the trajectory file we produced to see how it looks like.
 #+begin_src python :exports both :results output :session
@@ -204,28 +204,6 @@ To write the state of the system to a file, we use a =Trajectory= class. Traject
 : A 0.000000 0.000000 0.000000
 
 Note that trajectories are file-like objects: they must be opened and closed, preferably using the =with= syntax.
-
-We can customize the output of the xyz trajectory by modifying using the =field= variable. It contains a list of the particle properties to be written to the trajectory.
-#+begin_src python :exports both :results output :session
-  for p in system.particle:
-    p.charge = -1.0
-
-  with TrajectoryXYZ('test.xyz', 'w', fields=['position', 'charge']) as th:
-    th.write(system, step=0)
-
-  with open('test.xyz') as fh:
-    print fh.read()
-#+end_src
-
-#+results:
-: 4
-: step:0 columns:position,charge dt:1 cell:10.0,10.0,10.0 
-: 0.000000 0.000000 0.000000 -1.0
-: 0.000000 0.000000 0.000000 -1.0
-: 0.000000 0.000000 0.000000 -1.0
-: 0.000000 0.000000 0.000000 -1.0
-
-The =field= list can contain any particle property, even those defined dynamically at run time, such as the =charge= variable above.
 
 Of course, we can write multiple frames by calling =write()= repeatedly.
 #+begin_src python :exports both :results output :session
@@ -318,14 +296,15 @@ Our particles have now integer coordinates. Note that, on passing, we have set t
 
 * Simulations
 
-Within atooms, *simulations* are high-level classes that encapsulate some common tasks and provide a consistent interface to the user, while *backends* are classes that actually make the system evolve. Here we implement a minimal backend to run a simulation.
+Within atooms, *Simulation* is a high-level classe that encapsulate some common tasks and provides a consistent interface to the user, while *Backends* are classes that actually make the system evolve. Here, we implement a minimal backend to run a simulation.
 
 At a very minimum, a backend is a class that provides 
 
-- a *system* instance variable, which should (mostly) behave like atooms.system.System.
+- a *system* instance variable, which should (mostly) behave like =atooms.system.System=.
 - a *run()* method, which evolves the system for a prescribed number of steps (passed as argument)
 
-Optionally, the backend may hold a reference to a trajectory class, which can be used to checkpoint the simulation or to write configurations to a file. This is however not required in a first stage. /Note: before atooms 1.5.0, backends also had to implement a write_checkpoint() method and they were required to hold a reference to Trajectory. Since 1.5.0 this is no longer necessary./
+Optionally, the backend may hold a reference to a trajectory class, which can be used to checkpoint the simulation or to write configurations to a file. This is however not required in a first stage.
+# /Note: before atooms 1.5.0, backends also had to implement a write_checkpoint() method and they were required to hold a reference to Trajectory. Since 1.5.0 this is no longer necessary./
 
 ** A minimal simulation backend
 
@@ -470,7 +449,7 @@ The MSD as a function of time should look linear.
 
 ** Molecular dynamics with LAMMPS
 
-Atooms provides a simulation backend for LAMMPS, an efficient and feature-rich molecular dynamics simulation package.
+Atooms provides a simulation backend for [[LAMMPS]], an efficient and feature-rich molecular dynamics simulation package.
 The backend accepts a string variable containing regular LAMMPS commands and a trajectory that provides the starting configuration for the simulation.
 #+begin_src python :exports both :results output :session
   import atooms.trajectory as trj
@@ -509,17 +488,15 @@ You can add your own functions as observers to perform arbitrary manipulations o
 
 #+results:
 
-We add a thermostat to keep the system temperature at T=2.0.
-Note that we use atooms objects here: the backend will take care of adding appropriate commands to the LAMMPS script.
-Finally, we run the simulations for 10000 steps.
+We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
 #+begin_src python :exports both :results output :session
   backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=1.0)
   sim.run(10000)
 #+end_src
 
-#+results:
+Note that we use atooms =Thermostat= object here: the backend will take care of adding appropriate commands to the LAMMPS script.
 
-We can have a quick look at the temperature to make sure the thermostat is working
+We have a quick look at the kinetic temperature as function of time to make sure the thermostat is working
 #+begin_src gnuplot :file lammps.png
   set xl 'Steps'
   set yl 'Temperature'
@@ -532,8 +509,8 @@ We can have a quick look at the temperature to make sure the thermostat is worki
 #+results:
 [[file:lammps.png]]
 
-We can use the =postprocessing= atooms package to compute the radial distribution function
-#+begin_src python  :exports both
+We can use the [[postprocessing package]] to compute the radial distribution function
+#+begin_src python  :exports code
   from atooms.postprocessing import api
   api.gr('lammps.xyz')
 #+end_src
@@ -541,7 +518,6 @@ We can use the =postprocessing= atooms package to compute the radial distributio
 #+results:
 : None
 
-And show the results
 #+begin_src gnuplot :file lammps_gr.png
   set xl 'r'
   set yl 'g(r)'
@@ -553,4 +529,62 @@ And show the results
 
 #+results:
 [[file:lammps_gr.png]]
+
+* Trajectories
+** Flexible trajectory output
+We can customize the format of trajectory files using the =fields= variable. It contains a list of the particle properties to be written to the trajectory. For this simple example we use again the xyz trajectory format.
+
+We add a =charge= property to each particle and then instruct the trajectory to write it along with the position
+#+begin_src python :exports both :results output :session
+  for p in system.particle:
+    p.charge = -1.0
+
+  with TrajectoryXYZ('test.xyz', 'w', fields=['position', 'charge']) as th:
+    th.write(system, step=0)
+
+  with open('test.xyz') as fh:
+    print fh.read()
+#+end_src
+
+#+results:
+: 4
+: step:0 columns:position,charge dt:1 cell:10.0,10.0,10.0 
+: 0.000000 0.000000 0.000000 -1.0
+: 0.000000 0.000000 0.000000 -1.0
+: 0.000000 0.000000 0.000000 -1.0
+: 0.000000 0.000000 0.000000 -1.0
+
+The =fields= list can contain any particle property, even those defined dynamically at run time, such as the =charge= variable above which is not a predefined particle property!. When reading back the trajectory, the =charge= property is automatically recognized and added to the particle. 
+#+begin_src python :exports both :results output :session
+  with TrajectoryXYZ('test.xyz') as th:
+    system = th[0]
+    print(system.particle[0].charge)
+#+end_src
+
+** Conversion between trajectory formats
+
+Atooms provides means to convert between trajectory various formats. At a very basic level, this requires opening the original trajectory for reading and the new one for writing using the desired trajectory class. Here we convert an xyz trajectory in a format suitable for the LAMMPS package
+#+begin_src python :exports both :results output :session
+  with TrajectoryXYZ('test.xyz') as th_inp,\
+       TrajectoryLAMMPS('test.lammps', 'w') as th_out:
+    for i, system in enumerate(th_inp):
+      th_out.write(system, th_inp.steps[i])
+#+end_src
+
+The =convert()= function wraps the conversion in a more convenient interface
+#+begin_src python :exports both :results output :session
+  from atooms.trajectory import convert
+  convert(TrajectoryXYZ('test.xyz'), TrajectoryLAMMPS, 'test.lammps')
+#+end_src
+There are several optional parameters that allows to customize the trajectory output, see the function signature for more details.
+
+Finally, the =trj.py= script installed by atooms allows to quickly convert trajectories on the command-line, which is actually the most frequent use case
+#+begin_src sh
+  trj.py convert -i xyz -o lammps test.xyz test.lammps
+#+end_src
+
+Although the script will do its best to guess the appropriate trajectory formats, it is best to provide the input and output trajectory formats via the =-i= and =-o= flags explicitly.
+
+** Custom trajectory classes
+
 
