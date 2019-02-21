@@ -93,7 +93,7 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory = h5py.File(self.filename, mode)
             # gather general info on file
             for entry in self.trajectory['/']:
-                if type(self.trajectory[entry]) == h5py.highlevel.Dataset:
+                if type(self.trajectory[entry]) == h5py.Dataset:
                     self.general_info[entry] = self.trajectory[entry]
 
         elif self.mode == 'w' or self.mode == 'r+' or self.mode == "w-":
