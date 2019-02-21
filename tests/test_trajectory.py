@@ -62,6 +62,7 @@ class Test(unittest.TestCase):
             self.assertEqual(th.timestep, 1.0)
             for i, system in enumerate(th):
                 self.assertTrue(_equal(self.system[i], system, ignore))
+                self.assertTrue(self.system[i].__class__ is system.__class__)
 
     def _write(self, cls, path=None):
         """Write only"""
@@ -81,7 +82,7 @@ class Test(unittest.TestCase):
             th.write_timestep(1.0)
             for i, system in enumerate(self.system):
                 th.write(self.system[i], i)
-        
+
         with cls_inp(path) as th:
             from atooms.trajectory.utils import convert
             _ = convert(th, cls_out, fout)
@@ -198,7 +199,7 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
         with trj.rumd.SuperTrajectoryRUMD(self.inpdir) as th:
             th.fields = ['type', 'x', 'y', 'z']
             s = th[0]
-            
+
     def test_folder(self):
         import glob
         with TrajectoryXYZ(os.path.join(self.inpdir, '10.xyz'), 'w') as th:

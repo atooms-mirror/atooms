@@ -324,6 +324,57 @@ def is_cell_variable(trajectory, tests=1):
     return is_variable
 
 
+def is_semigrandcanonical(trajectory, tests=1):
+    """
+    Simple test to check if a trajectory is semigrandcanonical.
+    i.e. if the chemical concentrations fluctuate.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    """
+    # This is adapted from is_cell_variable()
+    is_variable = False
+    if tests > 0:
+        skip = max(1, int(len(trajectory) / float(tests)))
+    else:
+        skip = 1
+    from atooms.system.particle import composition
+    x0 = composition(trajectory[0].particle)
+    for sample in range(len(trajectory)-1, 0, -skip):
+        x1 = composition(trajectory[sample].particle)
+        is_variable = False
+        for sp in x0:
+            if x0[sp] != x1[sp]:
+                is_variable = True
+                break
+    return is_variable
+
+
+def is_grandcanonical(trajectory, tests=1):
+    """
+    Simple test to check if a trajectory is grandcanonical.
+    i.e. if the number of particles fluctuates.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    """
+    # This is adapted from is_cell_variable()
+    # and basically the same code as is_semigrandcanonical()
+    is_variable = False
+    if tests > 0:
+        skip = max(1, int(len(trajectory) / float(tests)))
+    else:
+        skip = 1
+    N0 = len(trajectory[sample].particle)
+    for sample in range(len(trajectory)-1, 0, -skip):
+        N1 = len(trajectory[sample].particle)
+        is_variable = False
+        if N0 != N1:
+            is_variable = True
+            break
+    return is_variable
+
+
 def formats():
     """Return a string with the available trajectory formats."""
     from atooms import trajectory

@@ -3,7 +3,8 @@
 
 reference
 local
-docs/atooms
+docs/api
+docs/tutorial/*png
 
 # Ignore version file in package.
 # It will be updated upon build/install

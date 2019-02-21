@@ -25,7 +25,7 @@ import time
 import datetime
 import logging
 
-import atooms.core
+import atooms.core.progress
 from atooms.core import __version__
 from atooms.core.utils import mkdir, barrier
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, SimulationKill

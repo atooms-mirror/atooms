@@ -28,9 +28,8 @@
 #+latex_header:     linkcolor=blue,%
 #+latex_header:     urlcolor=blue
 #+latex_header: }
-#+options: toc:1 num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
+#+options: toc:2 num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
 #+html_head: <link rel="stylesheet" type="text/css" href="style.css" />
-
 * Basics
 :PROPERTIES:
 :header-args: :exports both
@@ -50,10 +49,14 @@ Particles' positions are stored as numpy arrays, but we can pass a simple list w
 #+end_src
 
 #+results:
+: Python 2.7.15rc1 (default, Nov 12 2018, 14:31:15) 
+: [GCC 7.3.0] on linux2
+: Type "help", "copyright", "credits" or "license" for more information.
 : (array([ 1.,  0.,  0.]), <type 'numpy.ndarray'>)
+: python.el: native completion setup loaded
 
 Particles can live in an arbitrary number of spatial dimensions
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   particle = Particle(position=[1.0, 0.0, 0.0, 0.0, 0.0])
   print(len(particle.position))
 #+end_src
@@ -62,7 +65,7 @@ Particles can live in an arbitrary number of spatial dimensions
 : 5
 
 By default, they also have a few more properties such as velocity, chemical species, mass and radius. They can all be altered at will or even set to None.
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   import numpy
   particle = Particle(position=[1.0, 0.0, 0.0], velocity=[1.0, 0.0, 0.0])
   particle.species = 'Na'
@@ -76,15 +79,18 @@ By default, they also have a few more properties such as velocity, chemical spec
 : Particle(species=Na, mass=1.0, position=[ 1.  1.  1.], velocity=[ 2.  0.  0.], radius=None)
 
 You may want to add physical properties to particles, like charge or whatever. Of course, in python you can do it very easily
-#+begin_src python :exports both:results none :session
+#+begin_src python :exports both :results none :session
   particle.charge = -1.0
 #+end_src
+
+#+results:
+
 This won't break anything!
 
 ** Dealing with velocities
 
 You may not need velocities at all (for instance because you are working with Monte Carlo simulations), but if you do, atooms provides a few useful methods and functions. For instance, you can assign velocity from a Maxwell-Boltzmann distribution at a temperature T.
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   particle = [Particle() for i in range(1000)]
   for p in particle:
       p.maxwellian(T=1.0)
@@ -96,10 +102,10 @@ You may not need velocities at all (for instance because you are working with Mo
 #+end_src
 
 #+results:
-: 0.992631842412
+: 1.00345083328
 
 Doing so will leave a non-zero total momentum, but we can fix it (note that all masses are equal)
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   from atooms.system.particle import fix_total_momentum, cm_velocity
   print(cm_velocity(particle))
   fix_total_momentum(particle)
@@ -107,13 +113,13 @@ Doing so will leave a non-zero total momentum, but we can fix it (note that all 
 #+end_src
 
 #+results:
-: [ 0.01682721 -0.03332535  0.02844692]
-: [ -4.48530102e-17  -5.30409050e-17   1.74027459e-17]
+: [ 0.01834553  0.03018598 -0.04406148]
+: [ -3.08086889e-17  -6.55031585e-17  -3.85247390e-17]
 
-** Simulation cell
+** Boundary conditions
 
 To avoid major finite size effects, we enclose particles in a cell with periodic boundary conditions. By convention, the cell origin is in the origin of the reference frame.
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   from atooms.system.cell import Cell
   L = 2.0
   cell = Cell(side=[L, L, L])
@@ -124,7 +130,7 @@ To avoid major finite size effects, we enclose particles in a cell with periodic
 : (array([ 2.,  2.,  2.]), 8.0)
 
 Atooms provides means to fold particles back in the "central" simulation cell, i.e. the one centered at the origin at the reference frame. For simplicity, let us work with particles in 1d.
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   cell = Cell(side=1.0)
   particle = Particle(position=2.0)  # particle outside the central cell
   particle.fold(cell)
@@ -137,7 +143,7 @@ Atooms provides means to fold particles back in the "central" simulation cell, i
 The particle is now folded back at the origin.
 
 A related method returns the nearest periodic image of a given particle with respect to another particle
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   particle_1 = Particle(position=-0.45)
   particle_2 = Particle(position=+0.45)
   image = particle_1.nearest_image(particle_2, cell, copy=True)
@@ -152,7 +158,7 @@ A related method returns the nearest periodic image of a given particle with res
 Objects like particles and the simulation cell can be gathered in an instance of a god-like class called System. The system contains all the relevant physical objects of your simulation. Reservoirs like thermostats, barostats and particle reservoirs can be added as well. These objects are placeholders for thermodynamic state variables like temperature, pressure or chemical potential. Any class meant to describe the interaction between particles also belongs to the system.
 
 Let us build a system with a few particles in a cell and use the system methods to modify the system density and temperature. Note that density and temperature are python properties and thus modify the attributes of particles and cell under the hoods.
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   from atooms.system import System
   system = System(particle=[Particle() for i in range(100)],
 		  cell=Cell([10.0, 10.0, 10.0]))
@@ -162,10 +168,10 @@ Let us build a system with a few particles in a cell and use the system methods 
 #+end_src
 
 #+results:
-: (1.1999999999999997, 1.4999999999999991)
+: (1.1999999999999997, 1.4999999999999996)
 
 Note that the system temperature is the kinetic one and need not coincide with the one of the thermostat.
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   from atooms.system import Thermostat
   system.thermostat = Thermostat(temperature=1.0)
   system.temperature = 1.5  # equivalent to system.set_temperature(1.2)
@@ -175,52 +181,37 @@ Note that the system temperature is the kinetic one and need not coincide with t
 #+results:
 : (1.5, 1.0)
 
-** Read and write trajectory files
+** Trajectory files
 
-To write the state of the system to a file, we use a Trajectory class. Trajectories are composed of multiple frames, each one holding the state of the system at a given step during the simulation. We use a basic xyz format and read the file back to see how it looks like.
-#+begin_src python :exports both:results output :session
+To write the state of the system to a file, we use a =Trajectory= class. Trajectories are composed of multiple frames, each one holding the state of the system at a given step during the simulation. We use a basic xyz format to write the state of the system and then parse the trajectory file we produced to see how it looks like.
+#+begin_src python :exports both :results output :session
   from atooms.trajectory import TrajectoryXYZ
-
+  
   system = System(particle=[Particle() for i in range(4)],
-		  cell=Cell([10.0, 10.0, 10.0]))
-
+                  cell=Cell([10.0, 10.0, 10.0]))
+  
+  # Open the trajectory in write mode and write the state of the system
+  # at step 0
   with TrajectoryXYZ('test.xyz', 'w') as th:
     th.write(system, step=0)
-
+  
   # Read the xyz file back as plain text
   with open('test.xyz') as fh:
     print fh.read()
 #+end_src
 
 #+results:
-: 3
-: step:0 columns:id,pos dt:1 
-: A 0
-: A 1
-: A 2
-
-We can customize the output of the xyz trajectory by modifying the list of particle fields to be written.
-#+begin_src python :exports both:results output :session
-  for p in system.particle:
-    p.charge = -1.0
-
-  with TrajectoryXYZ('test.xyz', 'w', fields=['position', 'charge']) as th:
-    th.write(system, step=0)
-
-  with open('test.xyz') as fh:
-    print fh.read()
-#+end_src
-
-#+results:
 : 4
-: step:0 columns:position,charge dt:1 cell:10.0,10.0,10.0 
-: 0.000000 0.000000 0.000000 -1.0
-: 0.000000 0.000000 0.000000 -1.0
-: 0.000000 0.000000 0.000000 -1.0
-: 0.000000 0.000000 0.000000 -1.0
+: step:0 columns:id,pos dt:1 cell:10.0,10.0,10.0 
+: A 0.000000 0.000000 0.000000
+: A 0.000000 0.000000 0.000000
+: A 0.000000 0.000000 0.000000
+: A 0.000000 0.000000 0.000000
 
-Of course, we can write multiple frames by calling write() repeatedly.
-#+begin_src python :exports both:results output :session
+Note that trajectories are file-like objects: they must be opened and closed, preferably using the =with= syntax.
+
+Of course, we can write multiple frames by calling =write()= repeatedly.
+#+begin_src python :exports both :results output :session
   with TrajectoryXYZ('test.xyz', 'w') as th:
     for i in range(3):
       th.write(system, step=i*10)
@@ -229,7 +220,7 @@ Of course, we can write multiple frames by calling write() repeatedly.
 #+results:
 
 To get the system back we read the trajectory. Trajectories support iteration and indexing, just like lists.
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   with TrajectoryXYZ('test.xyz') as th:
     # First frame
     system = th[0]
@@ -251,19 +242,79 @@ To get the system back we read the trajectory. Trajectories support iteration an
 : (10, array([ 0.,  0.,  0.]))
 : (20, array([ 0.,  0.,  0.]))
 
-* A minimal simulation backend
+** Particles on a lattice
 
-Within atooms, *simulations* are high-level classes that encapsulate some common tasks and provide a consistent interface to the user, while *backends* are classes that actually make the system evolve. Here we implement a minimal backend to run a simulation.
+Say we want to simulate a system where particles can only be located at discrete sites, say a one-dimensional lattice or perhaps a network with a complex topology. Particle positions can be described as simple integers, holding the index of the site on which a particle is located. We create such a system and then write it to a file in xyz format
+#+begin_src python :exports both :results output :session
+  import numpy
+  from atooms.system import System, Particle
+  
+  # Build model system with integer coordinates
+  particle = [Particle() for i in range(3)]
+  particle[0].position = 0
+  particle[1].position = 1
+  particle[2].position = 2
+  system = System(particle=particle)
+  
+  # Write xyz trajectory
+  from atooms.trajectory import TrajectoryXYZ
+  with TrajectoryXYZ('test.xyz', 'w') as th:
+    th.write(system, 0)
+  
+  # Read the xyz file back as plain text
+  with open('test.xyz') as fh:
+    print(fh.read())
+#+end_src
+
+#+results:
+: 3
+: step:0 columns:id,pos dt:1 
+: A 0
+: A 1
+: A 2
+
+Everything went fine. However, we have to tweak things a bit when reading the particles back, to avoid positions being transformed to arrays of floats instead of integers. This can be done with the help of a callback that transforms the system accordingly as we read the trajectory.
+#+begin_src python :exports both :results output :session
+  # Read file as an xyz trajectory 
+  with TrajectoryXYZ('test.xyz') as th:
+
+    # We add a callback to read positions as simple integers
+    # Otherwise they are read as numpy arrays of floats.
+    def modify(system):      
+      for p in system.particle:
+	p.position = int(p.position[0])
+	p.velocity = None
+	p.radius = None
+      return system
+    th.add_callback(modify)
+
+    for p in th[0].particle:
+      print p
+#+end_src
+
+#+results:
+: Particle(species=A, mass=1.0, position=0, velocity=None, radius=None)
+: Particle(species=A, mass=1.0, position=1, velocity=None, radius=None)
+: Particle(species=A, mass=1.0, position=2, velocity=None, radius=None)
+
+Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.
+
+* Simulations
+
+Within atooms, *Simulation* is a high-level classe that encapsulate some common tasks and provides a consistent interface to the user, while *Backends* are classes that actually make the system evolve. Here, we implement a minimal backend to run a simulation.
 
 At a very minimum, a backend is a class that provides 
 
-- a *system* instance variable, which should (mostly) behave like atooms.system.System.
+- a *system* instance variable, which should (mostly) behave like =atooms.system.System=.
 - a *run()* method, which evolves the system for a prescribed number of steps (passed as argument)
 
-Optionally, the backend may hold a reference to a trajectory class, which can be used to checkpoint the simulation or to write configurations to a file. This is however not required in a first stage. /Note: before atooms 1.5.0, backends also had to implement a write_checkpoint() method and they were required to hold a reference to Trajectory. Since 1.5.0 this is no longer necessary./
+Optionally, the backend may hold a reference to a trajectory class, which can be used to checkpoint the simulation or to write configurations to a file. This is however not required in a first stage.
+# /Note: before atooms 1.5.0, backends also had to implement a write_checkpoint() method and they were required to hold a reference to Trajectory. Since 1.5.0 this is no longer necessary./
+
+** A minimal simulation backend
 
 We set up a bare-bones simulation backend building on the native System class
-#+begin_src python :exports both:results output
+#+begin_src python :exports both :results output
   from atooms.system import System
   
   class BareBonesBackend(object):
@@ -300,33 +351,34 @@ We set up a bare-bones simulation backend building on the native System class
 #+results:
 #+begin_example
 # 
-# atooms simulation via <__main__.BareBonesBackend object at 0x7f2091065a50>
+# atooms simulation via <__main__.BareBonesBackend object at 0x7fd31fe01710>
 # 
-# version: 1.5.0+1.5.0-4-g8f32a9 (2018-09-07)
-# atooms version: 1.5.0+1.5.0-4-g8f32a9 (2018-09-07)
-# simulation started on: 2018-09-07 at 10:59
+# version: 1.8.1+1.5.0-81-gdbd3fa (2019-02-13)
+# atooms version: 1.8.1+1.5.0-81-gdbd3fa (2019-02-13)
+# simulation started on: 2019-02-14 at 23:19
 # output path: None
-# backend: <__main__.BareBonesBackend object at 0x7f2091065a50>
+# backend: <__main__.BareBonesBackend object at 0x7fd31fe01710>
 # 
 # target target_steps: 10
 # 
 # 
 # starting at step: 0
+# 
 # simulation ended successfully: reached target steps 10
 # 
 # final steps: 10
 # final rmsd: 0.00
 # wall time [s]: 0.00
 # average TSP [s/step/particle]: nan
-# simulation ended on: 2018-09-07 at 10:59
+# simulation ended on: 2019-02-14 at 23:19
 #+end_example
 
-* A simple random walk
+** Simple random walk
 
 We implement a simple random walk in 3d. This requires adding code to the backend run() method to actually move the particles around.
 
 We start by building an empty system. Then we add a few particles and place them at random in a cube. Finally, we write a backend that displaces each particle randomly over a cube of prescribed side.
-#+begin_src python :exports both:results output :session
+#+begin_src python :exports both :results output :session
   import numpy
   from atooms.system import System
 
@@ -354,15 +406,14 @@ We start by building an empty system. Then we add a few particles and place them
 		  dr = numpy.array([random()-0.5, random()-0.5, random()-0.5])
 		  dr *= self.delta
 		  p.position += dr
-
 #+end_src
 
 #+results:
-  
+
 The Simulation class provides a callback mechanism to allow execution of arbitrary code during the simulation. This can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
 
 Here we measure the mean square displacement (MSD) of the particles to make sure that the system displays a regular diffusive behavior $MSD \sim t$
-#+begin_src python :exports both:session :results output
+#+begin_src python :exports both :session :results output
   from atooms.simulation import Simulation
   simulation = Simulation(RandomWalk(system))
 
@@ -396,66 +447,149 @@ Here we measure the mean square displacement (MSD) of the particles to make sure
 #+end_src
 
 #+results:
-: [0, 10, 20, 30, 40, 50] [0.0, 2.4118072191372364, 5.0184415511150373, 7.7133229219937141, 10.477592066776726, 12.853044941555266]
+: [0, 10, 20, 30, 40, 50] [0.0, 2.4943569776866177, 5.2325902471271366, 7.6552858849199135, 10.603602692677358, 12.854339346154946]
 
-Here is the MSD as a function of time. It should look linear.
-[[../msd.png]]
+The MSD as a function of time should look linear.
+[[file:msd.png]]
 
-* Particles on a lattice
+** Molecular dynamics with LAMMPS
 
-We want to simulate a system where particles can only be located at discrete sites, say a one-dimensional lattice or perhaps a network with a complex topology. Particle positions can be described as simple integers, holding the index of the site on which a particle is located. We create such a system and then write it to a file in xyz format
-#+begin_src python :exports both:results output :session
-  import numpy
-  from atooms.system import System, Particle
-  
-  # Build model system with integer coordinates
-  particle = [Particle() for i in range(3)]
-  particle[0].position = 0
-  particle[1].position = 1
-  particle[2].position = 2
-  system = System(particle=particle)
-  
-  # Write xyz trajectory
-  from atooms.trajectory import TrajectoryXYZ
-  with TrajectoryXYZ('test.xyz', 'w') as th:
-    th.write(system, 0)
-  
-  # Read the xyz file back as plain text
+Atooms provides a simulation backend for LAMMPS, an efficient and feature-rich molecular dynamics simulation package.
+The backend accepts a string variable containing regular LAMMPS commands and a trajectory that provides the starting configuration for the simulation.
+#+begin_src python :exports both :results output :session
+  import atooms.trajectory as trj
+  from atooms.backends.lammps import LAMMPS
+
+  import os
+  inp = trj.TrajectoryXYZ('../../data/lj_N1000_rho1.0.xyz')
+  cmd = """
+  pair_style      lj/cut 2.5
+  pair_coeff      1 1 1.0 1.0  2.5
+  neighbor        0.3 bin
+  neigh_modify    check yes
+  timestep        0.002
+  """
+  backend = LAMMPS(inp, cmd)
+#+end_src
+
+#+results:
+
+We now wrap the backend in a simulation instance. This way we can rely on atooms to write thermodynamic data and configurations to disk during the simulation: we just add the =write_config()= and =write_thermo()= functions as observers to the simulations.
+You can add your own functions as observers to perform arbitrary manipulations on the system during the simulation. Keep in mind that calling these functions causes some overhead, so avoid calling them at too short intervals.
+#+begin_src python :exports both :results output :session
+  from atooms.simulation import Simulation
+  from atooms.system import Thermostat
+  from atooms.simulation.observers import write_thermo, write_config
+
+  # We create the simulation instance and set the output path
+  sim = Simulation(backend, output_path='lammps.xyz')
+  # Just store a reference to the trajectory class you want to use
+  sim.trajectory = trj.TrajectoryXYZ
+  # Write configurations every 500 steps in xyz format
+  sim.add(write_config, 500)
+  # Write thermodynamic properties every 500 steps
+  sim.add(write_thermo, 500)
+#+end_src
+
+#+results:
+
+We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
+#+begin_src python :exports both :results output :session
+  backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=1.0)
+  sim.run(10000)
+#+end_src
+
+Note that we use atooms =Thermostat= object here: the backend will take care of adding appropriate commands to the LAMMPS script.
+
+We have a quick look at the kinetic temperature as function of time to make sure the thermostat is working
+#+begin_src gnuplot :file lammps.png
+  set xl 'Steps'
+  set yl 'Temperature'
+  set border 3
+  set xtics nomirror
+  set ytics nomirror
+  plot 'lammps.xyz.thermo' u 1:2 noti w lp lc rgb 'red' pt 7, 2 noti lc rgb 'black'
+#+end_src
+
+#+results:
+[[file:lammps.png]]
+
+We can use the postprocessing package to compute the radial distribution function
+#+begin_src python  :exports code
+  from atooms.postprocessing import api
+  api.gr('lammps.xyz')
+#+end_src
+
+#+results:
+: None
+
+#+begin_src gnuplot :file lammps_gr.png
+  set xl 'r'
+  set yl 'g(r)'
+  set border 3
+  set xtics nomirror
+  set ytics nomirror
+  plot 'lammps.xyz.pp.gr' u 1:2 noti w lp lc rgb 'red' pt 7
+#+end_src
+
+#+results:
+[[file:lammps_gr.png]]
+
+* Trajectories
+** Flexible trajectory output
+We can customize the format of trajectory files using the =fields= variable. It contains a list of the particle properties to be written to the trajectory. For this simple example we use again the xyz trajectory format.
+
+We add a =charge= property to each particle and then instruct the trajectory to write it along with the position
+#+begin_src python :exports both :results output :session
+  for p in system.particle:
+    p.charge = -1.0
+
+  with TrajectoryXYZ('test.xyz', 'w', fields=['position', 'charge']) as th:
+    th.write(system, step=0)
+
   with open('test.xyz') as fh:
-    print(fh.read())
+    print fh.read()
 #+end_src
 
 #+results:
-: 3
-: step:0 columns:id,pos dt:1 
-: A 0
-: A 1
-: A 2
+: 4
+: step:0 columns:position,charge dt:1 cell:10.0,10.0,10.0 
+: 0.000000 0.000000 0.000000 -1.0
+: 0.000000 0.000000 0.000000 -1.0
+: 0.000000 0.000000 0.000000 -1.0
+: 0.000000 0.000000 0.000000 -1.0
 
-Everything went fine. However, we have to tweak things a bit when reading the particles back, to avoid positions being transformed to arrays of floats instead of integers. This can be done with the help of a callback that transforms the system accordingly as we read the trajectory.
-#+begin_src python :exports both:results output :session
-  # Read file as an xyz trajectory 
+The =fields= list can contain any particle property, even those defined dynamically at run time, such as the =charge= variable above which is not a predefined particle property!. When reading back the trajectory, the =charge= property is automatically recognized and added to the particle. 
+#+begin_src python :exports both :results output :session
   with TrajectoryXYZ('test.xyz') as th:
-
-    # We add a callback to read positions as simple integers
-    # Otherwise they are read as numpy arrays of floats.
-    def modify(system):      
-      for p in system.particle:
-	p.position = int(p.position[0])
-	p.velocity = None
-	p.radius = None
-      return system
-    th.add_callback(modify)
-
-    for p in th[0].particle:
-      print p
+    system = th[0]
+    print(system.particle[0].charge)
 #+end_src
 
-#+results:
-: Particle(species=A, mass=1.0, position=0, velocity=None, radius=None)
-: Particle(species=A, mass=1.0, position=1, velocity=None, radius=None)
-: Particle(species=A, mass=1.0, position=2, velocity=None, radius=None)
+** Conversion between trajectory formats
 
-Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.
+Atooms provides means to convert between trajectory various formats. At a very basic level, this requires opening the original trajectory for reading and the new one for writing using the desired trajectory class. Here we convert an xyz trajectory in a format suitable for the LAMMPS package
+#+begin_src python :exports both :results output :session
+  with TrajectoryXYZ('test.xyz') as th_inp,\
+       TrajectoryLAMMPS('test.lammps', 'w') as th_out:
+    for i, system in enumerate(th_inp):
+      th_out.write(system, th_inp.steps[i])
+#+end_src
 
-Last modified: <2018-09-08 Sat>
+The =convert()= function wraps the conversion in a more convenient interface
+#+begin_src python :exports both :results output :session
+  from atooms.trajectory import convert
+  convert(TrajectoryXYZ('test.xyz'), TrajectoryLAMMPS, 'test.lammps')
+#+end_src
+There are several optional parameters that allows to customize the trajectory output, see the function signature for more details.
+
+Finally, the =trj.py= script installed by atooms allows to quickly convert trajectories on the command-line, which is actually the most frequent use case
+#+begin_src sh
+  trj.py convert -i xyz -o lammps test.xyz test.lammps
+#+end_src
+
+Although the script will do its best to guess the appropriate trajectory formats, it is best to provide the input and output trajectory formats via the =-i= and =-o= flags explicitly.
+
+** Custom trajectory classes
+
+

@@ -193,6 +193,34 @@ def main_paste(args):
         except:
             print(getattr(s1, attr1), getattr(s2, attr2))
 
+def scatter(args):
+    """
+    Write frames in trajectory to individual files of the same file format
+    """
+    from atooms import trajectory as trj
+    from atooms.core.utils import mkdir
+
+    for f in args.file_inp:
+        fmt = args.inp
+        t = trj.Trajectory(f, fmt=fmt)
+        fmt_out = t.suffix
+
+        # Define slice
+        # We interpret --first N --last N as a request of step N
+        if args.last == args.first and args.last is not None:
+            args.last += 1
+        sl = fractional_slice(args.first, args.last, args.skip, len(t))
+        ts = trajectory.Sliced(t, sl)
+        for i, system in enumerate(ts):
+            f_out = args.file_out.format(step=t.steps[i], frame=i,
+                                         base=os.path.splitext(f)[0],
+                                         ext=os.path.splitext(f)[1])
+            mkdir(os.path.dirname(f_out))
+            with trj.Trajectory(f_out, fmt=fmt_out, mode='w') as th_out:
+                th_out.fields.append('radius')
+                th_out.write(system, step=t.steps[i])
+    
+
 if __name__ == '__main__':
 
     # create the top-level parser
@@ -234,6 +262,12 @@ if __name__ == '__main__':
     parser_paste.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
     parser_paste.add_argument(nargs=2, dest='file_inp', help='input files')
     parser_paste.set_defaults(func=main_paste)
+
+    parser_paste = subparsers.add_parser('scatter')
+    parser_paste.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
+    parser_paste.add_argument('-o', '--output-file', dest='file_out', default='{base}_{frame}{ext}', help='output path (interpolated)')
+    parser_paste.add_argument(nargs='*', dest='file_inp', help='input file')
+    parser_paste.set_defaults(func=scatter)
 
     # parse argument lists
     args = parser.parse_args()
