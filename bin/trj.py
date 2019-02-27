@@ -217,6 +217,10 @@ def scatter(args):
                                          ext=os.path.splitext(f)[1])
             mkdir(os.path.dirname(f_out))
             with trj.Trajectory(f_out, fmt=fmt_out, mode='w') as th_out:
+                if args.fields is not None:
+                    th_out.fields = args.fields.split(',')
+                else:
+                    th_out.fields.append('radius')
                 th_out.fields.append('radius')
                 th_out.write(system, step=t.steps[i])
     
@@ -263,11 +267,12 @@ if __name__ == '__main__':
     parser_paste.add_argument(nargs=2, dest='file_inp', help='input files')
     parser_paste.set_defaults(func=main_paste)
 
-    parser_paste = subparsers.add_parser('scatter')
-    parser_paste.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
-    parser_paste.add_argument('-o', '--output-file', dest='file_out', default='{base}_{frame}{ext}', help='output path (interpolated)')
-    parser_paste.add_argument(nargs='*', dest='file_inp', help='input file')
-    parser_paste.set_defaults(func=scatter)
+    parser_scatter = subparsers.add_parser('scatter')
+    parser_scatter.add_argument(      '--fields', dest='fields', help='attributes fields')
+    parser_scatter.add_argument('-i', '--fmt-inp', dest='inp', help='input format')
+    parser_scatter.add_argument('-o', '--output-file', dest='file_out', default='{base}_{frame}{ext}', help='output path (interpolated)')
+    parser_scatter.add_argument(nargs='*', dest='file_inp', help='input file')
+    parser_scatter.set_defaults(func=scatter)
 
     # parse argument lists
     args = parser.parse_args()
