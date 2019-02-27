@@ -35,7 +35,7 @@
 :header-args: :exports both
 :END:
 
-Atooms provides a high-level interface to the main objects of particle-based simulations. It mostly focuses on classical molecular dynamics and Monte Carlo simulations, but it is not limited to that. For instance, it can be used to model lattice models such as TASEP or kinetically constrained models.
+Atooms provides a high-level interface to the main objects of particle-based simulations. It mostly focuses on classical molecular dynamics and Monte Carlo simulations, but it is not limited to that. It can be used to simulate and analyze lattice models such as TASEP or kinetically constrained models.
 
 We will start by having a look at the basic objects of particle-based simulations and how to store them on a file.
 
@@ -49,11 +49,7 @@ Particles' positions are stored as numpy arrays, but we can pass a simple list w
 #+end_src
 
 #+results:
-: Python 2.7.15rc1 (default, Nov 12 2018, 14:31:15) 
-: [GCC 7.3.0] on linux2
-: Type "help", "copyright", "credits" or "license" for more information.
 : (array([ 1.,  0.,  0.]), <type 'numpy.ndarray'>)
-: python.el: native completion setup loaded
 
 Particles can live in an arbitrary number of spatial dimensions
 #+begin_src python :exports both :results output :session
@@ -64,7 +60,7 @@ Particles can live in an arbitrary number of spatial dimensions
 #+results:
 : 5
 
-By default, they also have a few more properties such as velocity, chemical species, mass and radius. They can all be altered at will or even set to None.
+By default, particles have a few more properties such as velocity, chemical species, mass and radius. They can all be altered at will or even set to None.
 #+begin_src python :exports both :results output :session
   import numpy
   particle = Particle(position=[1.0, 0.0, 0.0], velocity=[1.0, 0.0, 0.0])
@@ -89,7 +85,7 @@ This won't break anything!
 
 ** Dealing with velocities
 
-You may not need velocities at all (for instance because you are working with Monte Carlo simulations), but if you do, atooms provides a few useful methods and functions. For instance, you can assign velocity from a Maxwell-Boltzmann distribution at a temperature T.
+You may not need velocities at all (for instance because you are working with Monte Carlo simulations) but if you do, atooms provides a few useful methods and functions. For instance, you can assign velocity from a Maxwell-Boltzmann distribution at a temperature T.
 #+begin_src python :exports both :results output :session
   particle = [Particle() for i in range(1000)]
   for p in particle:
@@ -118,7 +114,7 @@ Doing so will leave a non-zero total momentum, but we can fix it (note that all 
 
 ** Boundary conditions
 
-To avoid major finite size effects, we enclose particles in a cell with periodic boundary conditions. By convention, the cell origin is in the origin of the reference frame.
+To avoid major finite size effects, we enclose particles in a cell with periodic boundary conditions. By convention, the cell origin is at the origin of the reference frame.
 #+begin_src python :exports both :results output :session
   from atooms.system.cell import Cell
   L = 2.0
@@ -157,7 +153,7 @@ A related method returns the nearest periodic image of a given particle with res
 
 Objects like particles and the simulation cell can be gathered in an instance of a god-like class called System. The system contains all the relevant physical objects of your simulation. Reservoirs like thermostats, barostats and particle reservoirs can be added as well. These objects are placeholders for thermodynamic state variables like temperature, pressure or chemical potential. Any class meant to describe the interaction between particles also belongs to the system.
 
-Let us build a system with a few particles in a cell and use the system methods to modify the system density and temperature. Note that density and temperature are python properties and thus modify the attributes of particles and cell under the hoods.
+Let us build a system with a few particles in a cell and use the system methods to modify the system density and temperature. Note that density and temperature are python properties and thus modify the attributes of particles and cell under the hoods using the =set_density= and =set_temperature= methods respectively
 #+begin_src python :exports both :results output :session
   from atooms.system import System
   system = System(particle=[Particle() for i in range(100)],
@@ -244,7 +240,7 @@ To get the system back we read the trajectory. Trajectories support iteration an
 
 ** Particles on a lattice
 
-Say we want to simulate a system where particles can only be located at discrete sites, say a one-dimensional lattice or perhaps a network with a complex topology. Particle positions can be described as simple integers, holding the index of the site on which a particle is located. We create such a system and then write it to a file in xyz format
+Suppose we want to simulate a system where particles can only be located at discrete sites, say a one-dimensional lattice or perhaps a network with a complex topology. Particle positions can then be described as plain integers, holding the index of the site on which a particle is located. We create such a system and then write it to a file in xyz format
 #+begin_src python :exports both :results output :session
   import numpy
   from atooms.system import System, Particle
@@ -301,7 +297,7 @@ Our particles have now integer coordinates. Note that, on passing, we have set t
 
 * Simulations
 
-Within atooms, *Simulation* is a high-level classe that encapsulate some common tasks and provides a consistent interface to the user, while *Backends* are classes that actually make the system evolve. Here, we implement a minimal backend to run a simulation.
+Within atooms, *Simulation* is a high-level class that encapsulates some common tasks and provides a consistent interface to the user, while *Backends* are classes that actually make the system evolve. Here, we implement a minimal backend to run a simulation.
 
 At a very minimum, a backend is a class that provides 
 
@@ -375,7 +371,7 @@ We set up a bare-bones simulation backend building on the native System class
 
 ** Simple random walk
 
-We implement a simple random walk in 3d. This requires adding code to the backend run() method to actually move the particles around.
+We implement a simple random walk in 3d. This requires adding code to the backend =run()= method to actually move the particles around.
 
 We start by building an empty system. Then we add a few particles and place them at random in a cube. Finally, we write a backend that displaces each particle randomly over a cube of prescribed side.
 #+begin_src python :exports both :results output :session
@@ -445,9 +441,6 @@ Here we measure the mean square displacement (MSD) of the particles to make sure
   plt.ylabel("MSD")
   plt.savefig('msd.png')
 #+end_src
-
-#+results:
-: [0, 10, 20, 30, 40, 50] [0.0, 2.4943569776866177, 5.2325902471271366, 7.6552858849199135, 10.603602692677358, 12.854339346154946]
 
 The MSD as a function of time should look linear.
 [[file:msd.png]]
