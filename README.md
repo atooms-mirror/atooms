@@ -51,7 +51,7 @@ The forcefield file `lj_rumd.ff` (available in `data/`) defines the interaction 
 
 Documentation
 -------------
-See the [tutorial](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/atooms/) for a step-by-step introduction to atooms objects and the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/atooms/) for full details. 
+See the [tutorial](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/atooms/) for a step-by-step introduction to atooms objects and the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/api/atooms/) for full details. 
 
 Installation
 ------------
