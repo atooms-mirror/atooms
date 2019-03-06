@@ -394,7 +394,6 @@ class TrajectoryHDF5(TrajectoryBase):
         # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2
         for pi, r in zip(p, self._system.particle):
-            # TODO: if id changes dynamically (like in swap) we will miss it. We should update them after this loop!
             pi.mass = r.mass
             pi.species = r.species
             pi.radius = r.radius
@@ -409,6 +408,18 @@ class TrajectoryHDF5(TrajectoryBase):
         except KeyError:
             if 'radius' in self.fields:
                 self.fields.remove('radius')
+
+        # Try update species. This must be done after setting defaults.
+        # TODO: refactor
+        try:
+            spe = group['species' + csample][:]
+            for i, pi in enumerate(p):
+                pi.species = spe[i].strip()
+            if 'species' not in self.fields:
+                self.fields.append('species')
+        except KeyError:
+            if 'species' in self.fields:
+                self.fields.remove('species')
 
         # Read cell
         group = self.trajectory['/trajectory/cell']
