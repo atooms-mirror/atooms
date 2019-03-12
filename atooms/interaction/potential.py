@@ -24,7 +24,7 @@ update(__name__, _factory)
 
 
 def tabulate(potential, parameters, cutoff='c', rc=2.5, npoints=10000,
-             rmin=0.5, fmt='lammps', fileout=None):
+             rmin=0.5, fmt='lammps', metadata='', fileout=None):
 
     """Tabulate a potential."""
 
@@ -43,10 +43,10 @@ def tabulate(potential, parameters, cutoff='c', rc=2.5, npoints=10000,
     potential = PairPotential(potential, param_dict, (1, 1))
     if cutoff is not None:
         potential.cutoff = CutOff(cutoff, rc)
-    rsq, u0, u1 = potential.tabulate(npoints, rmin=rmin)
+    rsq, u0, u1, u2 = potential.tabulate(npoints, rmin=rmin)
     r = rsq**0.5
-    u1 *= r
     if fmt == 'lammps':
+        u1 *= r
         txt = """
 
 POTENTIAL
@@ -58,8 +58,14 @@ N {}
             txt += '{} {} {} {}\n'.format(i, x, y, z)
             i += 1
 
+    elif fmt == 'uwh':
+        txt = '# {} columns: r, u, w, h\n'.format(metadata)
+        for x, y, z, w in zip(r, u0, u1, u2):
+            txt += '{} {} {} {}\n'.format(x, y, z, w) 
+
     else:
-        txt = '# columns: r, u, f\n'
+        u1 *= r
+        txt = '# {} columns: r, u, f\n'.format(metadata)
         for x, y, z in zip(r, u0, u1):
             txt += '{} {} {}\n'.format(x, y, z)
     
@@ -168,20 +174,21 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
         rsq = numpy.ndarray(npoints)
         u0 = numpy.ndarray(npoints)
         u1 = numpy.ndarray(npoints)
+        u2 = numpy.ndarray(npoints)
         # We overshoot 2 points beyond rmax (cutoff) to avoid
         # smoothing discontinuous potentials
         drsq = (rmax**2 - rmin**2) / (npoints - 3)
         for i in range(npoints):
             rsq[i] = rmin**2 + i * drsq
             try:
-                u0[i], u1[i], _ = self.compute(rsq[i])
+                u0[i], u1[i], u2[i] = self.compute(rsq[i])
             except ZeroDivisionError:
-                u0[i], u1[i] = float('nan'), float('nan')
+                u0[i], u1[i], u2[i] = float('nan'), float('nan'), float('nan')
         # For potentials that diverge at zero, we remove the singularity by hand
         import math
         if math.isnan(u0[0]):
-            u0[0], u1[0] = u0[1], u1[1]
-        return rsq, u0, u1
+            u0[0], u1[0], u2[0] = u0[1], u1[1], u2[0]
+        return rsq, u0, u1, u2
 
     def compute(self, rsquare):
         """Compute the potential and its derivatives."""
