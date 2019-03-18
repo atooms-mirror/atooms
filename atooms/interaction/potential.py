@@ -24,7 +24,7 @@ update(__name__, _factory)
 
 
 def tabulate(potential, parameters, cutoff='c', rc=2.5, npoints=10000,
-             rmin=0.5, fmt='lammps', metadata='', fileout=None):
+             rmin=0.5, fmt='lammps', metadata='', fileout=None, precision=14):
 
     """Tabulate a potential."""
 
@@ -43,7 +43,7 @@ def tabulate(potential, parameters, cutoff='c', rc=2.5, npoints=10000,
     potential = PairPotential(potential, param_dict, (1, 1))
     if cutoff is not None:
         potential.cutoff = CutOff(cutoff, rc)
-    rsq, u0, u1, u2 = potential.tabulate(npoints, rmin=rmin)
+    rsq, u0, u1, u2 = potential.tabulate(npoints, rmin=rmin, what='uwh')
     r = rsq**0.5
     if fmt == 'lammps':
         u1 *= r
@@ -61,7 +61,7 @@ N {}
     elif fmt == 'uwh':
         txt = '# {} columns: r, u, w, h\n'.format(metadata)
         for x, y, z, w in zip(r, u0, u1, u2):
-            txt += '{} {} {} {}\n'.format(x, y, z, w) 
+            txt += '{:.14g} {:.14g} {:.14g} {:.14g}\n'.format(x, y, z, w) 
 
     else:
         u1 *= r
