@@ -95,7 +95,8 @@ def change_species(system, layout):
 
 def sort(system):
     """Sort particles by species id."""
-    return sorted(system.particle, key=lambda a: a.species)
+    system.particle = sorted(system.particle, key=lambda a: a.species)
+    return system
 
 def filter_species(system, species):
     """Return particles of a given `species` id."""
