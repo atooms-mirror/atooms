@@ -150,7 +150,7 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
             u = self.func(self.cutoff.radius**2, **self.params)
             self.cutoff.tailor(self.cutoff.radius**2, u)
 
-    def tabulate(self, npoints=None, rmax=None, rmin=0.0):
+    def tabulate(self, npoints=None, rmax=None, rmin=0.0, what='uw'):
         """
         Tabulate the potential from 0 to `rmax`.
 
@@ -159,6 +159,8 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
         calling code to truncate it. We slightly overshoot the
         tabulation, to avoid boundary effects at the cutoff or at
         discontinuities.
+
+        The `what` parameters can be 'u', 'uw', 'uwh'.
         """
         if not self._adjusted:
             self._adjust()
@@ -188,7 +190,10 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
         import math
         if math.isnan(u0[0]):
             u0[0], u1[0], u2[0] = u0[1], u1[1], u2[0]
-        return rsq, u0, u1, u2
+        if 'h' in what:
+            return rsq, u0, u1, u2
+        else:
+            return rsq, u0, u1
 
     def compute(self, rsquare):
         """Compute the potential and its derivatives."""
