@@ -140,8 +140,15 @@ class Scheduler(object):
             return inext
 
         elif self.block is not None:
-            # like steps but with % on sim.steps
-            pass
+            # Periodic block of steps
+            step_of_last_block = (sim.current_step // self.block[-1]) * self.block[-1]
+            inext = sys.maxsize
+            for i, step in enumerate(self.block):
+                if step > sim.current_step % self.block[-1]:
+                    inext = self.block[i] + step_of_last_block
+                    break
+            return inext
+
         elif self.seconds is not None:
             pass
         else:

@@ -137,6 +137,16 @@ class Test(unittest.TestCase):
 
         self.assertEqual(inext, [3, 3, 3, 6, 6, 6, 9, 9])
 
+    def test_block(self):
+        """Test periodic block scheduling"""
+        def store_list(s, db):
+            db.append(s.current_step)
+        db = []
+        s = Simulation(DryRun(), output_path=None, steps=18)
+        s.add(store_list, Scheduler(block=[1, 2, 4, 8]), db=db)
+        s.run()
+        self.assertEqual(db, [0, 1, 2, 4, 8, 9, 10, 12, 16, 17, 18])
+
     def test_system(self):
         """
         Test that system in Simulation tracks the one in the backend even
