@@ -103,6 +103,9 @@ def main(args):
     # Change species layout if requested
     if args.species_layout is not None:
         ts.register_callback(trajectory.decorators.change_species, args.species_layout)
+    # Sort by species id
+    if args.species_sort:
+        ts.register_callback(trajectory.decorators.sort)
 
     # We enforce regular periodicity; steps is None is trajectory is not periodic
     try:
@@ -250,6 +253,7 @@ if __name__ == '__main__':
     parser_convert.add_argument('-T', '--temperature', dest='temperature', type=float, default=None, help='new temperature')
     parser_convert.add_argument(      '--precision', dest='precision', type=int, default=None, help='write precision')
     parser_convert.add_argument(      '--species',dest='species_layout', default=None, help='modify species layout (A, C, F)')
+    parser_convert.add_argument(      '--sort-species',dest='species_sort', action='store_true', help='sort by species')
     parser_convert.add_argument(      '--seed', dest='seed', type=int, help='set seed of random number generator')
     parser_convert.add_argument(nargs=1, dest='file_inp', default='-', help='input file')
     parser_convert.add_argument(nargs='?', dest='file_out', default='-', help='output file')
