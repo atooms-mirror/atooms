@@ -178,10 +178,12 @@ class TrajectoryBase(object):
 
         if self.cache and self._cache and index in self._cache:
             # We get the system from the cache
+            #print 'retrieve', index, id(self._cache), self
             system = self._cache[index]
         else:
             system = self.read_sample(index)
             if self.cache:
+                #print 'store', index, id(self._cache), self
                 # Store the system in cache
                 if self._cache is None:
                     self._cache = {}

@@ -182,8 +182,6 @@ class Unfolded(object):
         s = super(Unfolded, self).read_init()
         # Cache the initial sample and cell
         s = super(Unfolded, self).read_sample(0)
-        if self.fixed_cm:
-            s = fix_cm(s)
         self._old = numpy.array([p.position for p in s.particle])
         self._last_read = 0
 
@@ -191,6 +189,7 @@ class Unfolded(object):
         # Return here if first frame
         if frame == 0:
             s = super(Unfolded, self).read_sample(frame)
+            #print 'frame 0', id(self._cache), self
             if self.fixed_cm:
                 s = fix_cm(s)
             return s
