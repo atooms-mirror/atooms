@@ -175,21 +175,21 @@ class Unfolded(object):
 
     def __init__(self, component, fixed_cm=False):
         self._component = component
+        self._cache = None  # reset cache
         self._initialized_read = False
         self.fixed_cm = fixed_cm
 
     def read_init(self):
         s = super(Unfolded, self).read_init()
         # Cache the initial sample and cell
-        s = super(Unfolded, self).read_sample(0)
+        s = self._component.read(0)
         self._old = numpy.array([p.position for p in s.particle])
         self._last_read = 0
 
     def read_sample(self, frame):
         # Return here if first frame
         if frame == 0:
-            s = super(Unfolded, self).read_sample(frame)
-            #print 'frame 0', id(self._cache), self
+            s = self._component.read(frame)
             if self.fixed_cm:
                 s = fix_cm(s)
             return s
@@ -204,7 +204,7 @@ class Unfolded(object):
             for i in range(delta-1):
                 self.read_sample(self._last_read+1)
 
-        s = super(Unfolded, self).read_sample(frame)
+        s = self._component.read(frame)
         self._last_read = frame
 
         # Unfold positions
@@ -219,7 +219,7 @@ class Unfolded(object):
         self._old += dif
 
         # Copy unfolded positions back to the system
-        # Here we cannot do 
+        # Here we cannot do
         #   s.particle[i].position = self._old[i][:]
         # because this a shallow view and the arrays share memory.
         # Fixing the CM later on will not work correctly.
