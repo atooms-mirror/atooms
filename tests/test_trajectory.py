@@ -234,6 +234,28 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
         block = get_block_size(steps)
         check_block_size(steps, block)
 
+    def test_decorator(self):
+        """Test that frame is accessible to callbacks"""
+        finp = os.path.join(self.inpdir, 'test.xyz')
+        with open(finp, 'w') as fh:
+            fh.write("""\
+2
+columns:id,x,y,z step:1 cell:5.0,5.0,5.0
+B 1.0 -1.0 0.0
+A 2.9 -2.9 0.0
+2
+columns:id,x,y,z step:2 cell:5.0,5.0,5.0
+C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+""")
+        def cbk(system):
+            system.frame
+            return system
+        with TrajectoryXYZ(finp) as th:
+            th.add_callback(cbk)
+            th[0]
+            th[1]
+
     def tearDown(self):
         rmf(self.inpfile)
         rmd(self.inpdir)
