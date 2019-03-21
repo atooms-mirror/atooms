@@ -178,20 +178,22 @@ class TrajectoryBase(object):
 
         if self.cache and self._cache and index in self._cache:
             # We get the system from the cache
-            #print 'retrieve', index, id(self._cache), self
             system = self._cache[index]
         else:
             system = self.read_sample(index)
             if self.cache:
-                #print 'store', index, id(self._cache), self
                 # Store the system in cache
                 if self._cache is None:
                     self._cache = {}
                 self._cache[index] = copy.copy(system)
 
-        # TODO: add some means to access the current frame / step in a callback? 11.09.2017
+        # Pass the frame index to the callback via system
+        # by storing a "temporary" frame instance variable
+        # (deleted after this loop)
+        system.frame = index
         for cbk, args, kwargs in self.callbacks:
             system = cbk(system, *args, **kwargs)
+        del(system.frame)
         return system
 
     def write(self, system, step):
