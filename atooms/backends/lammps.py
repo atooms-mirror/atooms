@@ -207,3 +207,66 @@ write_dump all custom {} id type x y z vx vy vz modify sort id
 
         # Clean up
         rmd(dirout)
+
+
+class EnergyMinimization(LAMMPS):
+
+    """LAMMPS minimization backend."""
+
+    version = _version
+
+    def __init__(self, inp, commands):
+        """
+        We initialize the backend from `inp`, which can be a `System`, a
+        `Trajectory` or path to a trajectory. LAMMPS `commands` must
+        be a string or a file and should not contain dump or minimize
+        commands.
+        """
+        LAMMPS.__init__(self, inp, commands)
+        self.tolerance = 1e-10
+        self.method = 'cg'
+        self.max_iterations = 100000
+        self.max_evaluations = 100000
+        
+    def __str__(self):
+        return 'LAMMPS energy minimization'
+
+    def run(self):
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, 'lammps.atom')
+        file_inp = os.path.join(dirout, 'lammps.atom.inp')
+
+        # Update lammps startup file using self.system
+        # This will write the .inp startup file
+        with TrajectoryLAMMPS(file_tmp, 'w') as th:
+            th.write(self.system, 0)
+
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
+        cmd = """\
+units		lj
+atom_style	atomic
+read_data {file_inp}
+{commands}
+min_style {method}
+minimize 0.0 {tolerance} {max_iterations} {max_evaluations}
+write_dump all custom {file_tmp} id type x y z modify sort id
+""".format(file_tmp=file_tmp, file_inp=file_inp,
+           commands=self.commands, method=self.method,
+           tolerance=self.tolerance,
+           max_iterations=self.max_iterations,
+           max_evaluations=self.max_evaluations)
+
+        stdout = _run_lammps_command(cmd)
+        if self.verbose:
+            print(stdout)
+
+        # Update internal reference to self.system
+        new_system = TrajectoryLAMMPS(file_tmp)[-1]
+        for i in range(len(self.system.particle)):
+            self.system.particle[i] = new_system.particle[i]
+
+        # Clean up
+        rmd(dirout)

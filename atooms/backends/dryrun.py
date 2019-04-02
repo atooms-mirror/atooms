@@ -104,3 +104,22 @@ class Trajectory(object):
 
     def close(self):
         pass
+
+
+class EnergyMinimization(object):
+
+    "An optimization backend that performs no optimization at all."
+
+    version = '0.1.0'
+
+    def __init__(self, system):
+        self.system = system
+        self.trajectory = Trajectory
+        self.output_path = None
+        self.method = 'cg'
+        self.tolerance = 1e-10
+        self.max_iterations = 100000
+
+    def run(self):
+        pass
+
