@@ -129,13 +129,10 @@ class Scheduler(object):
 
         elif self.steps is not None:
             # List of selected steps
-            if sim.current_step >= self.steps[-1]:
-                return sys.maxsize
-
-            inext = self.steps[0]
+            inext = sys.maxsize
             for i, step in enumerate(self.steps):
-                if sim.current_step > step:
-                    inext = self.steps[i-1]
+                if step > sim.current_step:
+                    inext = self.steps[i]
                     break
             return inext
 
