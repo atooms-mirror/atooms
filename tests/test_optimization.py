@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
         pair_coeff      1 1 1.0 1.0 2.5
         """
         bck = EnergyMinimization(self.input_file, cmd)
-        bck.verbose = True
+        bck.verbose = False
         opt = Optimization(bck)
         e = bck.system.potential_energy(normed=True)
         opt.run()
