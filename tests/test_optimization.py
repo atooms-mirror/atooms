@@ -25,15 +25,13 @@ class Test(unittest.TestCase):
         pair_coeff      1 1 1.0 1.0 2.5
         """
         bck = EnergyMinimization(self.input_file, cmd)
-        bck.verbose = True
+        bck.verbose = False
         opt = Optimization(bck)
         e = bck.system.potential_energy(normed=True)
-        print('Initial energy {}'.format(e))
-
+        #print('Initial energy {}'.format(e))
         opt.run()
-
         e = bck.system.potential_energy(normed=True)
-        print('Final energy {}'.format(e))
+        #print('Final energy {}'.format(e))
         #self.assertLessThan(e, 1e-10)
 
 if __name__ == '__main__':
