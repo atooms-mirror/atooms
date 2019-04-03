@@ -71,10 +71,11 @@ class Interaction(interaction.Interaction):
         cmd = """\
 units		lj
 atom_style	atomic
-read_data %s
-%s
+read_data {}
+{}
 run 0
-""" % (file_inp, self.potential)
+write_dump all custom {} fx fy fz 
+""".format(file_inp, self.potential, file_tmp)
 
         stdout = _run_lammps_command(cmd)
         found = False
@@ -84,6 +85,9 @@ run 0
             elif found:
                 self.energy = float(line.split()[2]) * len(particle)
                 break
+
+        new_system = TrajectoryLAMMPS(file_tmp)[-1]
+        self.forces = new_system.interaction.forces
 
         # Clean up
         rmd(dirout)

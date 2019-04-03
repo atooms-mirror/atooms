@@ -94,6 +94,7 @@ class Test(unittest.TestCase):
 
     def test_energy(self):
         import sys
+        import numpy
         cmd = """
         pair_style      lj/cut 2.5
         pair_coeff      1 1 1.0 1.0 2.5
@@ -101,6 +102,16 @@ class Test(unittest.TestCase):
         bck = LAMMPS(self.input_file, cmd)
         bck.system.interaction.compute("energy", bck.system.particle, bck.system.cell)
         self.assertEqual(bck.system.interaction.energy / len(bck.system.particle), -4.2446836)  # crosschecked
+
+        # Relaxed FCC 
+        bck = LAMMPS(os.path.join(os.path.dirname(__file__),
+                                  '../data/lj_fcc_N108.xyz'), cmd)
+        bck.system.interaction.compute("energy", bck.system.particle, bck.system.cell)
+        # Test norm of force per particle
+        U = bck.system.potential_energy(per_particle=True)
+        W = bck.system.force_norm(per_particle=True)
+        self.assertAlmostEqual(U, -7.7615881, places=7)
+        self.assertAlmostEqual(W, 4.2e-11, places=2)
 
     def test_trajectory(self):
         import sys

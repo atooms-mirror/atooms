@@ -27,10 +27,12 @@ class Test(unittest.TestCase):
         bck = EnergyMinimization(self.input_file, cmd)
         bck.verbose = False
         opt = Optimization(bck)
-        e = bck.system.potential_energy(normed=True)
+        e = bck.system.potential_energy(per_particle=True)
         opt.run()
-        e = bck.system.potential_energy(normed=True)
+        e = bck.system.potential_energy(per_particle=True)
+        w = bck.system.force_norm(per_particle=True)
         self.assertLess(e, -6.8)
+        self.assertLess(w, 1e-4)
 
 if __name__ == '__main__':
     unittest.main()
