@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
         if SKIP:
             self.skipTest('missing LAMMPS')
         self.input_file = os.path.join(os.path.dirname(__file__),
-                                       '../data/lj_N1000_rho1.0.xyz')
+                                       '../data/lj_N256_rho1.0.xyz')
 
     def test_min(self):
         cmd = """
@@ -25,14 +25,12 @@ class Test(unittest.TestCase):
         pair_coeff      1 1 1.0 1.0 2.5
         """
         bck = EnergyMinimization(self.input_file, cmd)
-        bck.verbose = False
+        bck.verbose = True
         opt = Optimization(bck)
         e = bck.system.potential_energy(normed=True)
-        #print('Initial energy {}'.format(e))
         opt.run()
         e = bck.system.potential_energy(normed=True)
-        #print('Final energy {}'.format(e))
-        #self.assertLessThan(e, 1e-10)
+        self.assertLess(e, -6.8)
 
 if __name__ == '__main__':
     unittest.main()
