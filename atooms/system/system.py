@@ -111,43 +111,62 @@ class System(object):
             for p in self.particle:
                 p.velocity *= fac
 
-    def kinetic_energy(self, normed=False):
+    def kinetic_energy(self, per_particle=False, normed=False):
         """
         Return the total kinetic energy of the system.
 
-        If `normed` is `True`, return the kinetic energy per
-        particle.
+        If `per_particle` or `normed` is `True`, return the kinetic
+        energy per particle.
         """
         ekin = sum([p.kinetic_energy for p in self.particle])
-        if not normed:
-            return ekin
-        else:
+        if per_particle or normed:
             return ekin / len(self.particle)
+        else:
+            return ekin
 
-    def potential_energy(self, normed=False, cache=False):
+    def potential_energy(self, per_particle=False, normed=False, cache=False):
         """
         Return the total potential energy of the system.
 
-        If `normed` is `True`, return the potential energy per
-        particle.
+        If `per_particle` or `normed` is `True`, return the potential
+        energy per particle.
         """
         if self.interaction is not None:
             if not cache or (cache and self.interaction is None):
                 self.interaction.compute('forces', self.particle, self.cell)
-            if not normed:
-                return self.interaction.energy
-            else:
+            if per_particle or normed:
                 return self.interaction.energy / len(self.particle)
+            else:
+                return self.interaction.energy
         else:
             return 0.0
 
-    def total_energy(self, normed=False, cache=False):
+    def total_energy(self, per_particle=False, normed=None, cache=False):
         """
         Return the total energy of the system.
 
-        If `normed` is `True`, return the total energy per particle.
+        If `per_particle` or `normed` is `True`, return the total
+        energy per particle.
         """
-        return self.potential_energy(normed, cache) + self.kinetic_energy(normed)
+        if normed is not None:
+            per_particle = normed
+        return self.potential_energy(per_particle, cache) + self.kinetic_energy(per_particle)
+
+    def force_norm(self, per_particle=True, cache=False):
+        """
+        Return the norm of the force vector.
+
+        If `per_particle` is `True`, return the force norm per particle.
+        """
+        if self.interaction is not None:
+            if not cache or (cache and self.interaction is None):
+                self.interaction.compute('forces', self.particle, self.cell)
+            if per_particle:
+                return numpy.sum(self.interaction.forces**2) / len(self.particle)
+            else:
+                return numpy.sum(self.interaction.forces**2)
+        else:
+            return 0.0
 
     def virial(self):
         """
