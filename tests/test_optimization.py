@@ -25,12 +25,13 @@ class Test(unittest.TestCase):
         pair_coeff      1 1 1.0 1.0 2.5
         """
         bck = EnergyMinimization(self.input_file, cmd)
+        bck.tolerance = 1e-2
         bck.verbose = False
         opt = Optimization(bck)
         e = bck.system.potential_energy(per_particle=True)
         opt.run()
         e = bck.system.potential_energy(per_particle=True)
-        w = bck.system.force_norm(per_particle=True)
+        w = bck.system.force_norm_square(per_particle=True)
         self.assertLess(e, -6.8)
         self.assertLess(w, 1e-4)
 
