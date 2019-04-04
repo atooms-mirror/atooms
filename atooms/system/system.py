@@ -162,6 +162,22 @@ class System(object):
             if not cache or (cache and self.interaction is None):
                 self.interaction.compute('forces', self.particle, self.cell)
             if per_particle:
+                return numpy.sum(self.interaction.forces**2)**0.5 / len(self.particle)
+            else:
+                return numpy.sum(self.interaction.forces**2)**0.5
+        else:
+            return 0.0
+
+    def force_norm_square(self, per_particle=True, cache=False):
+        """
+        Return the squared norm of the force vector.
+
+        If `per_particle` is `True`, return the force squared norm per particle.
+        """
+        if self.interaction is not None:
+            if not cache or (cache and self.interaction is None):
+                self.interaction.compute('forces', self.particle, self.cell)
+            if per_particle:
                 return numpy.sum(self.interaction.forces**2) / len(self.particle)
             else:
                 return numpy.sum(self.interaction.forces**2)
