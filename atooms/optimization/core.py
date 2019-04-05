@@ -2,7 +2,7 @@
 # Copyright 2010-2017, Daniele Coslovich
 
 """
-Base optimization class,
+Base optimization class.
 
 `atooms` provides a generic optimization interface that abstracts out
 most of the common parts of particle-based optimizations.
