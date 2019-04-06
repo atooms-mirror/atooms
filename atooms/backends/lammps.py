@@ -200,6 +200,7 @@ write_dump all custom {} id type x y z vx vy vz modify sort id
 """.format(file_inp, self.commands, fix, steps, file_tmp)
 
         stdout = _run_lammps_command(cmd)
+
         if self.verbose:
             print(stdout)
 
@@ -219,7 +220,7 @@ class EnergyMinimization(LAMMPS):
 
     version = _version
 
-    def __init__(self, inp, commands):
+    def __init__(self, inp, commands, method='cg', ftol=1e-10, steps=100000):
         """
         We initialize the backend from `inp`, which can be a `System`, a
         `Trajectory` or path to a trajectory. LAMMPS `commands` must
@@ -227,15 +228,21 @@ class EnergyMinimization(LAMMPS):
         commands.
         """
         LAMMPS.__init__(self, inp, commands)
-        self.tolerance = 1e-10
-        self.method = 'cg'
-        self.max_iterations = 100000
+        self.steps = steps
+        self.ftol = ftol
+        self.method = method
         self.max_evaluations = 100000
+        # Optimization backends must set a boolean reached_steps
+        # attribute. It is True at the beginning.
+        self.reached_steps = True
         
     def __str__(self):
         return 'LAMMPS energy minimization'
 
-    def run(self):
+    def run(self, steps=None):
+        if steps is not None:
+            self.steps = steps
+
         dirout = tempfile.mkdtemp()
         file_tmp = os.path.join(dirout, 'lammps.atom')
         file_inp = os.path.join(dirout, 'lammps.atom.inp')
@@ -255,17 +262,24 @@ atom_style	atomic
 read_data {file_inp}
 {commands}
 min_style {method}
-minimize 0.0 {tolerance} {max_iterations} {max_evaluations}
+minimize 0.0 {tolerance} {steps} {max_evaluations}
 write_dump all custom {file_tmp} id type x y z modify sort id
 """.format(file_tmp=file_tmp, file_inp=file_inp,
            commands=self.commands, method=self.method,
-           tolerance=self.tolerance,
-           max_iterations=self.max_iterations,
-           max_evaluations=self.max_evaluations)
+           tolerance=self.ftol,
+           steps=min(100000000, self.steps),
+           max_evaluations=min(100000000, self.max_evaluations))
 
         stdout = _run_lammps_command(cmd)
+
         if self.verbose:
             print(stdout)
+
+        # Check if we have reached the number of maximum number of steps
+        if 'Stopping criterion = max iterations' in stdout:
+            self.reached_steps = True
+        else:
+            self.reached_steps = False
 
         # Update internal reference to self.system
         new_system = TrajectoryLAMMPS(file_tmp)[-1]

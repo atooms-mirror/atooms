@@ -353,6 +353,7 @@ class Simulation(object):
             # Before entering the simulation, check if we can quit right away
             # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
             self._notify(self._targeters)
+
             # Then notify non targeters unless we are restarting
             if self.current_step == 0:
                 self._notify(self._non_targeters)
@@ -365,6 +366,7 @@ class Simulation(object):
                 all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
                 next_checkpoint = self._checkpoint_scheduler(self)
                 next_step = min(all_steps + [next_checkpoint])
+
                 self.run_until(next_step)
 
                 # Find observers indexes corresponding to minimum step
@@ -425,7 +427,7 @@ class Simulation(object):
             params = self._cbk_params[f]
             s = params['scheduler']
             if 'target' in _callable_name(f):
-                args = params['args']
+                args = params['args']                
                 txt.append('target %s: %s' % (_callable_name(f), args[0]))
             else:
                 txt.append('writer %s: interval=%s calls=%s' %

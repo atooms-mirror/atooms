@@ -194,6 +194,22 @@ ITEM: ATOMS id type xs ys zs
             self.assertEqual(list(th[1].particle[0].position), scale([0.00, 0.01, 0.02], [8.0, 8.0, 8.0]))
             self.assertEqual(list(th[1].particle[1].position), scale([0.50, 0.51, 0.52], [8.0, 8.0, 8.0]))
 
+    # def test_species(self):
+    #     import sys
+    #     import atooms.trajectory
+    #     cmd = """
+    #     pair_style      lj/cut 2.5
+    #     pair_coeff      1 1 1.0 1.0 2.5
+    #     fix             1 all nve
+    #     """
+    #     bck = LAMMPS(os.path.join(os.path.dirname(__file__),
+    #                               '../data/trajectory.xyz'), cmd)
+    #     sim = Simulation(bck)
+    #     xi = sim.system.particle[0].species
+    #     sim.run(1)
+    #     xf = sim.system.particle[0].species
+    #     print xi, xf
+
     def tearDown(self):
         rmd('/tmp/test_lammps.d')
         rmf('/tmp/test_lammps*')
