@@ -269,8 +269,11 @@ class System(object):
                 dtype_list = [None] * len(what_list)
 
         aliases = {'pos': 'particle.position',
+                   'position': 'particle.position',
                    'vel': 'particle.velocity',
-                   'spe': 'particle.species'}
+                   'velocity': 'particle.velocity',
+                   'spe': 'particle.species',
+                   'species': 'particle.species'}
 
         dump_db = {}
         for what, dtype in zip(what_list, dtype_list):
