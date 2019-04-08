@@ -42,7 +42,7 @@ class Optimization(Simulation):
     """Optimization base class."""
 
     def __init__(self, backend, output_path=None, tolerance=None,
-                 steps=sys.maxint):
+                 steps=int(1e6)):
         """
         Perform an optimization using the specified `backend` and
         optionally write output to `output_path`. This can be a file
