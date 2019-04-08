@@ -220,7 +220,7 @@ class EnergyMinimization(LAMMPS):
 
     version = _version
 
-    def __init__(self, inp, commands, method='cg', ftol=1e-10, steps=100000):
+    def __init__(self, inp, commands, method='cg', ftol=1e-4, steps=100000):
         """
         We initialize the backend from `inp`, which can be a `System`, a
         `Trajectory` or path to a trajectory. LAMMPS `commands` must
