@@ -40,7 +40,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(x, 3.64526, places=5)
         sim.run(10)
         x = sim.system.particle[0].position[0]
-        self.assertAlmostEqual(x, 3.67598, places=5)
+        self.assertAlmostEqual(x, 3.675987, places=5)
 
     def test_nvt(self):
         import sys
