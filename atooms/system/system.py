@@ -31,6 +31,8 @@ class System(object):
         self.barostat = barostat
         self.reservoir = reservoir
         self.matrix = None
+        # Internal data dictionary for array dumps
+        self._data = None
 
     @property
     def number_of_dimensions(self):
@@ -124,6 +126,13 @@ class System(object):
         else:
             return ekin
 
+    def compute_interaction(self, what):
+        """
+        Compute interaction in the system
+        """
+        if self.interaction is not None:
+            self.interaction.compute(what, self.particle, self.cell)
+
     def potential_energy(self, per_particle=False, normed=False, cache=False):
         """
         Return the total potential energy of the system.
@@ -132,8 +141,8 @@ class System(object):
         energy per particle.
         """
         if self.interaction is not None:
-            if not cache or (cache and self.interaction is None):
-                self.interaction.compute('forces', self.particle, self.cell)
+            if not cache:
+                self.compute_interaction('forces')
             if per_particle or normed:
                 return self.interaction.energy / len(self.particle)
             else:
@@ -159,8 +168,8 @@ class System(object):
         If `per_particle` is `True`, return the force norm per particle.
         """
         if self.interaction is not None:
-            if not cache or (cache and self.interaction is None):
-                self.interaction.compute('forces', self.particle, self.cell)
+            if not cache:
+                self.compute_interaction('forces')
             if per_particle:
                 return numpy.sum(self.interaction.forces**2)**0.5 / len(self.particle)
             else:
@@ -175,8 +184,8 @@ class System(object):
         If `per_particle` is `True`, return the force squared norm per particle.
         """
         if self.interaction is not None:
-            if not cache or (cache and self.interaction is None):
-                self.interaction.compute('forces', self.particle, self.cell)
+            if not cache:
+                self.compute_interaction('forces')
             if per_particle:
                 return numpy.sum(self.interaction.forces**2) / len(self.particle)
             else:
@@ -191,11 +200,11 @@ class System(object):
         If `normed` is `True`, return the virial per unit volume.
         """
         if self.interaction is not None:
-            self.interaction.compute('forces', self.particle, self.cell)
+            self.compute_interaction('forces')
             return self.interaction.virial
         else:
             return 0.0
-    
+
     @property
     def pressure(self):
         """
@@ -228,7 +237,7 @@ class System(object):
         for p in self.particle:
             p.fold(self.cell)
 
-    def dump(self, what, order='C', dtype=None):
+    def dump(self, what, order='C', dtype=None, view=False, clear=False):
         """
         Return a numpy array with system properties specified by `what`.
 
@@ -243,15 +252,25 @@ class System(object):
         If `what` is a list of strings of the form above, a dict of
         numpy arrays is returned with `what` as keys.
 
+        If `view` is `True`, the requested particle property is set as
+        a view on the corresponding portion of the dump array. This
+        allows one to modify the dump array efficiently and keep the
+        particle properties in sync. Numpy arrays must be modified
+        in-place to keep everything in sync.
+
+        If `clear` is True, a new view is created on the requested
+        particle property.
+
         Particles' coordinates are returned as (N, ndim) arrays if
         `order` is `C` or (ndim, N) arrays if `order` is `F`.
 
         Examples:
         --------
-        These two numpy arrays are element-wise identical
+        These numpy arrays are element-wise identical
 
             #!python
             pos = system.dump('particle.position')
+            pos = system.dump('position')
             pos = system.dump('pos')
 
         Return a dict with both positions and velocities
@@ -265,43 +284,63 @@ class System(object):
             dtype_list = [dtype]
         else:
             what_list = what
+            dtype_list = dtype
             if dtype is None:
                 dtype_list = [None] * len(what_list)
 
+        # Accepts some aliases
         aliases = {'pos': 'particle.position',
-                   'position': 'particle.position',
                    'vel': 'particle.velocity',
-                   'velocity': 'particle.velocity',
                    'spe': 'particle.species',
+                   'position': 'particle.position',
+                   'velocity': 'particle.velocity',
                    'species': 'particle.species'}
-
-        dump_db = {}
-        for what, dtype in zip(what_list, dtype_list):
-            # Accept some aliases
+        for i, what in enumerate(what_list):
             if what in aliases:
-                what_aliased = aliases[what]
-            else:
-                what_aliased = what
+                what_list[i] = aliases[what]
+
+        # Setup data dictionary
+        if self._data is None or clear:
+            self._data = {}
+
+        for what, dtype in zip(what_list, dtype_list):
+            # Skip if it has been dumped already
+            if what in self._data:
+                continue
+
             # Extract the requested attribute
-            attr = what_aliased.split('.')[-1]
+            attr = what.split('.')[-1]
+
             # Make array of attributes
-            if what_aliased.startswith('particle'):
+            if what.startswith('particle'):
                 data = numpy.array([getattr(p, attr) for p in self.particle], dtype=dtype)
-            elif what_aliased.startswith('cell'):
+                # We transpose the array if F order is requested
+                if order == 'F':
+                    data = numpy.transpose(data)
+
+                # If view is True, we set the particle property as a
+                # view on the dump array. Pay attention of C / F order.
+                # To check if particle properties and dump are associated:
+                # numpy.may_share_memory(p[0].position, pos[:, 0])
+                if view and order == 'C' and attr in ['position', 'velocity']:
+                    for i, p in enumerate(self.particle):
+                        setattr(p, attr, data[i, :])
+                if view and order == 'F' and attr in ['position', 'velocity']:
+                    for i, p in enumerate(self.particle):
+                        setattr(p, attr, data[:, i])
+            elif what.startswith('cell'):
                 data = numpy.array(getattr(self.cell, attr), dtype=dtype)
             else:
-                raise ValueError('Unknown attribute %s' % what_aliased)
-            # We transpose the array if F order is requested (only meaningful for 2d arrays)
-            if order == 'F':
-                data = numpy.transpose(data)
-            dump_db[what] = data
+                raise ValueError('Unknown attribute %s' % what)
+
+            self._data[what] = data
 
         # If what is a string or we only have one entry we return an
         # array, otherwise we return the whole dict
         if len(what_list) == 1:
-            return dump_db[what_list[0]]
+            return self._data[what_list[0]]
         else:
-            return dump_db
+            return self._data
 
     def report(self):
         # Summary
