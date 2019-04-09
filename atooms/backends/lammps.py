@@ -74,7 +74,7 @@ atom_style	atomic
 read_data {}
 {}
 run 0
-write_dump all custom {} fx fy fz modify format "%.15g %.15g %.15g"
+write_dump all custom {} fx fy fz modify format line "%.15g %.15g %.15g"
 """.format(file_inp, self.potential, file_tmp)
 
         stdout = _run_lammps_command(cmd)
@@ -196,7 +196,7 @@ read_data {}
 {}
 {}
 run {}
-write_dump all custom {} id type x y z vx vy vz modify sort id format "%d %d %.15g %.15g %.15g %.15g %.15g %.15g"
+write_dump all custom {} id type x y z vx vy vz modify sort id format line "%d %d %.15g %.15g %.15g %.15g %.15g %.15g"
 """.format(file_inp, self.commands, fix, steps, file_tmp)
 
         stdout = _run_lammps_command(cmd)
@@ -263,7 +263,7 @@ read_data {file_inp}
 {commands}
 min_style {method}
 minimize 0.0 {tolerance} {steps} {max_evaluations}
-write_dump all custom {file_tmp} id type x y z modify sort id format "%d %d %.15g %.15g %.15g"
+write_dump all custom {file_tmp} id type x y z modify sort id format line "%d %d %.15g %.15g %.15g"
 """.format(file_tmp=file_tmp, file_inp=file_inp,
            commands=self.commands, method=self.method,
            tolerance=self.ftol,
