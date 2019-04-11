@@ -193,15 +193,19 @@ class System(object):
         else:
             return 0.0
 
-    def virial(self):
+    def virial(self, per_particle=True, cache=False):
         """
-        Return the total virial of the system.
+        Return the virial of the system.
 
-        If `normed` is `True`, return the virial per unit volume.
+        If `per_unit_volume` is `True`, return the virial per particle.
         """
         if self.interaction is not None:
-            self.compute_interaction('forces')
-            return self.interaction.virial
+            if not cache:
+                self.compute_interaction('forces')
+            if per_particle:
+                return self.interaction.virial / len(self.particle)
+            else:
+                return self.interaction.virial
         else:
             return 0.0
 
@@ -237,7 +241,7 @@ class System(object):
         for p in self.particle:
             p.fold(self.cell)
 
-    def dump(self, what, order='C', dtype=None, view=False, clear=False):
+    def dump(self, what=None, order='C', dtype=None, view=False, clear=False, flat=False):
         """
         Return a numpy array with system properties specified by `what`.
 
@@ -261,6 +265,9 @@ class System(object):
         If `clear` is True, a new view is created on the requested
         particle property.
 
+        If `flat` is True, the resulting array is flatted following
+        `order` using numpy.flatten().
+
         Particles' coordinates are returned as (N, ndim) arrays if
         `order` is `C` or (ndim, N) arrays if `order` is `F`.
 
@@ -278,6 +285,14 @@ class System(object):
             #!python
             dump = system.dump(['pos', 'vel'])
         """
+        # Setup data dictionary
+        if self._data is None or clear:
+            self._data = {}
+
+        # Return immediately if we only want to clear the dump
+        if what is None and clear:
+            return
+
         # Listify input variables
         if type(what) is str:
             what_list = [what]
@@ -289,19 +304,19 @@ class System(object):
                 dtype_list = [None] * len(what_list)
 
         # Accepts some aliases
-        aliases = {'pos': 'particle.position',
-                   'vel': 'particle.velocity',
-                   'spe': 'particle.species',
-                   'position': 'particle.position',
-                   'velocity': 'particle.velocity',
-                   'species': 'particle.species'}
+        aliases = {
+            'box': 'cell.side',
+            'pos': 'particle.position',
+            'vel': 'particle.velocity',
+            'spe': 'particle.species',
+            'rad': 'particle.radius',
+            'radius': 'particle.radius',
+            'position': 'particle.position',
+            'velocity': 'particle.velocity',
+            'species': 'particle.species'}
         for i, what in enumerate(what_list):
             if what in aliases:
                 what_list[i] = aliases[what]
-
-        # Setup data dictionary
-        if self._data is None or clear:
-            self._data = {}
 
         for what, dtype in zip(what_list, dtype_list):
             # Skip if it has been dumped already
@@ -317,17 +332,24 @@ class System(object):
                 # We transpose the array if F order is requested
                 if order == 'F':
                     data = numpy.transpose(data)
+                if not flat:
+                    # If view is True, we set the particle property as a
+                    # view on the dump array. Pay attention of C / F order.
+                    # To check if particle properties and dump are associated:
+                    # numpy.may_share_memory(p[0].position, pos[:, 0])
+                    if view and order == 'C' and attr in ['position', 'velocity']:
+                        for i, p in enumerate(self.particle):
+                            setattr(p, attr, data[i, :])
+                    if view and order == 'F' and attr in ['position', 'velocity']:
+                        for i, p in enumerate(self.particle):
+                            setattr(p, attr, data[:, i])
+                else:
+                    data = numpy.flatten(data, order=order)
+                    if view and attr in ['position', 'velocity']:
+                        ndim = self.number_of_dimensions
+                        for i, p in enumerate(self.particle):
+                            setattr(p, attr, data[i*ndim: (i+1)*ndim])
 
-                # If view is True, we set the particle property as a
-                # view on the dump array. Pay attention of C / F order.
-                # To check if particle properties and dump are associated:
-                # numpy.may_share_memory(p[0].position, pos[:, 0])
-                if view and order == 'C' and attr in ['position', 'velocity']:
-                    for i, p in enumerate(self.particle):
-                        setattr(p, attr, data[i, :])
-                if view and order == 'F' and attr in ['position', 'velocity']:
-                    for i, p in enumerate(self.particle):
-                        setattr(p, attr, data[:, i])
             elif what.startswith('cell'):
                 data = numpy.array(getattr(self.cell, attr), dtype=dtype)
             else:
