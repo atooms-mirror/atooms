@@ -210,6 +210,27 @@ ITEM: ATOMS id type xs ys zs
     #     xf = sim.system.particle[0].species
     #     print xi, xf
 
+    def test_roundoff(self):
+        import sys
+        cmd = """
+        pair_style      lj/cut 2.5
+        pair_coeff      1 1 1.0 1.0 2.5
+        neighbor        0.3 bin
+        neigh_modify    every 20 delay 0 check no
+        fix             1 all nve
+        """
+        import numpy
+        numpy.set_printoptions(precision=15)
+        bck = LAMMPS(self.input_file, cmd)
+        bck.run(10)
+        x1 = bck.system.particle[3].position[0]
+        bck.run(0)
+        x2 = bck.system.particle[3].position[0]
+        # The difference should be of order of machine precision
+        # Unfortunately, without packing/unpacking data in binary
+        # format, we cannot maintain coehrence at machine precision
+        self.assertAlmostEqual(abs(x2-x1), 0.0, places=12)
+
     def tearDown(self):
         rmd('/tmp/test_lammps.d')
         rmf('/tmp/test_lammps*')
