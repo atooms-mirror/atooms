@@ -218,7 +218,7 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     # It can be augmented via functions parameter
     _db_func = {
         'steps': lambda x: x.current_step,
-        'potential energy per particle': lambda x: x.system.potential_energy(True, cache=True),
+        'potential energy per particle': lambda x: x.system.potential_energy(True),
         'kinetic energy per particle': lambda x: x.system.kinetic_energy(True),
         'total energy per particle': lambda x: x.system.total_energy(True, cache=True),
         'temperature': lambda x: x.system.temperature,
