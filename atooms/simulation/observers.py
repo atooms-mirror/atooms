@@ -163,7 +163,13 @@ def write_config(sim, fields=None, precision=None):
     The trajectory format is taken from the passed Simulation
     instance.
     """
-    if sim.current_step == 0:
+    # Initialize
+    if sim.current_step == 0 and hasattr(sim, '__init_write_config'):
+        del(sim.__init_write_config)
+
+    # Header
+    if not hasattr(sim, '__init_write_config'):
+        sim.__init_write_config = True
         # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
         rmd(sim.output_path)
         rmf(sim.output_path)
@@ -237,8 +243,13 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     if fmt is not None:
         _db_fmt.update(fmt)
 
+    # Initialize
+    if sim.current_step == 0 and hasattr(sim, '__init_write_thermo'):
+        del(sim.__init_write_thermo)
+
     # Header
-    if sim.current_step == 0:
+    if not hasattr(sim, '__init_write_thermo'):        
+        sim.__init_write_thermo = True
         with open(sim.output_path + '.thermo', 'w') as fh:
             txt = ', '.join(fields)
             fh.write('# columns: {}\n'.format(txt))
