@@ -12,6 +12,7 @@ particle reservoir.
 
 import numpy
 from .particle import cm_position, cm_velocity, fix_total_momentum
+from .particle import show as _show
 
 
 class System(object):
@@ -30,6 +31,8 @@ class System(object):
         self.barostat = barostat
         self.reservoir = reservoir
         self.matrix = None
+        # Internal data dictionary for array dumps
+        self._data = None
 
     @property
     def number_of_dimensions(self):
@@ -37,7 +40,10 @@ class System(object):
         Number of spatial dimensions, guessed from the length of
         `particle[0].position`.
         """
-        return len(self.particle[0].position)
+        if len(self.particle) > 0:
+            return len(self.particle[0].position)
+        else:
+            return 0
 
     def distinct_species(self):
         """Sorted list of distinct chemical species in the system."""
@@ -62,7 +68,7 @@ class System(object):
         """Set the system density to `rho` by rescaling the coordinates."""
         if self.cell is None:
             return ValueError('cannot compute density without a cell')
-        factor = (self.density / rho)**(1./3)
+        factor = (self.density / rho)**(1./len(self.cell.side))
         for particle in self.particle:
             particle.position *= factor
         self.cell.side *= factor
@@ -76,15 +82,18 @@ class System(object):
     def temperature(self):
         """
         Kinetic temperature.
-
-        If given, `ndof` specifies the number of degrees of freedom to
-        correct for missing translational invariance. Otherwise,
-
-            ndof = (N-1)*dim
         """
         # TODO: determine translational invariance via some additional attribute.
-        ndof = (len(self.particle)-1) * self.number_of_dimensions
-        return 2.0 / ndof * self.kinetic_energy()
+        if len(self.particle) > 1:
+            # Number of degrees of freddom is (N-1)*ndim
+            ndof = (len(self.particle)-1) * self.number_of_dimensions
+            return 2.0 / ndof * self.kinetic_energy()
+        elif len(self.particle) == 1:
+            # Pathological case
+            return 2.0 / self.number_of_dimensions * self.kinetic_energy()
+        else:
+            # Empty particle list
+            return 0.0
 
     @temperature.setter
     def temperature(self, T):
@@ -99,60 +108,107 @@ class System(object):
         # After fixing the CM the temperature is not exactly the targeted one
         # Therefore we scale the velocities so as to get to the right T
         T_old = self.temperature
-        fac = (T/T_old)**0.5
-        for p in self.particle:
-            p.velocity *= fac
+        if T_old > 0.0:
+            fac = (T/T_old)**0.5
+            for p in self.particle:
+                p.velocity *= fac
 
-    def kinetic_energy(self, normed=False):
+    def kinetic_energy(self, per_particle=False, normed=False):
         """
         Return the total kinetic energy of the system.
 
-        If `normed` is `True`, return the kinetic energy per
-        particle.
+        If `per_particle` or `normed` is `True`, return the kinetic
+        energy per particle.
         """
         ekin = sum([p.kinetic_energy for p in self.particle])
-        if not normed:
-            return ekin
-        else:
+        if per_particle or normed:
             return ekin / len(self.particle)
+        else:
+            return ekin
 
-    def potential_energy(self, normed=False, cache=False):
+    def compute_interaction(self, what):
+        """
+        Compute interaction in the system
+        """
+        if self.interaction is not None:
+            self.interaction.compute(what, self.particle, self.cell)
+
+    def potential_energy(self, per_particle=False, normed=False, cache=False):
         """
         Return the total potential energy of the system.
 
-        If `normed` is `True`, return the potential energy per
-        particle.
+        If `per_particle` or `normed` is `True`, return the potential
+        energy per particle.
         """
         if self.interaction is not None:
-            if not cache or (cache and self.interaction is None):
-                self.interaction.compute('forces', self.particle, self.cell)
-            if not normed:
-                return self.interaction.energy
-            else:
+            if not cache:
+                self.compute_interaction('forces')
+            if per_particle or normed:
                 return self.interaction.energy / len(self.particle)
+            else:
+                return self.interaction.energy
         else:
             return 0.0
 
-    def total_energy(self, normed=False, cache=False):
+    def total_energy(self, per_particle=False, normed=None, cache=False):
         """
         Return the total energy of the system.
 
-        If `normed` is `True`, return the total energy per particle.
+        If `per_particle` or `normed` is `True`, return the total
+        energy per particle.
         """
-        return self.potential_energy(normed, cache) + self.kinetic_energy(normed)
+        if normed is not None:
+            per_particle = normed
+        return self.potential_energy(per_particle, cache) + self.kinetic_energy(per_particle)
 
-    def virial(self):
+    def force_norm(self, per_particle=True, cache=False):
         """
-        Return the total virial of the system.
+        Return the norm of the force vector.
 
-        If `normed` is `True`, return the virial per unit volume.
+        If `per_particle` is `True`, return the force norm per particle.
         """
         if self.interaction is not None:
-            self.interaction.compute('forces', self.particle, self.cell)
-            return self.interaction.virial
+            if not cache:
+                self.compute_interaction('forces')
+            if per_particle:
+                return numpy.sum(self.interaction.forces**2)**0.5 / len(self.particle)
+            else:
+                return numpy.sum(self.interaction.forces**2)**0.5
         else:
             return 0.0
-    
+
+    def force_norm_square(self, per_particle=True, cache=False):
+        """
+        Return the squared norm of the force vector.
+
+        If `per_particle` is `True`, return the force squared norm per particle.
+        """
+        if self.interaction is not None:
+            if not cache:
+                self.compute_interaction('forces')
+            if per_particle:
+                return numpy.sum(self.interaction.forces**2) / len(self.particle)
+            else:
+                return numpy.sum(self.interaction.forces**2)
+        else:
+            return 0.0
+
+    def virial(self, per_particle=True, cache=False):
+        """
+        Return the virial of the system.
+
+        If `per_unit_volume` is `True`, return the virial per particle.
+        """
+        if self.interaction is not None:
+            if not cache:
+                self.compute_interaction('forces')
+            if per_particle:
+                return self.interaction.virial / len(self.particle)
+            else:
+                return self.interaction.virial
+        else:
+            return 0.0
+
     @property
     def pressure(self):
         """
@@ -185,7 +241,7 @@ class System(object):
         for p in self.particle:
             p.fold(self.cell)
 
-    def dump(self, what, order='C', dtype=None):
+    def dump(self, what=None, order='C', dtype=None, view=False, clear=False, flat=False):
         """
         Return a numpy array with system properties specified by `what`.
 
@@ -200,15 +256,28 @@ class System(object):
         If `what` is a list of strings of the form above, a dict of
         numpy arrays is returned with `what` as keys.
 
+        If `view` is `True`, the requested particle property is set as
+        a view on the corresponding portion of the dump array. This
+        allows one to modify the dump array efficiently and keep the
+        particle properties in sync. Numpy arrays must be modified
+        in-place to keep everything in sync.
+
+        If `clear` is True, a new view is created on the requested
+        particle property.
+
+        If `flat` is True, the resulting array is flatted following
+        `order` using numpy.flatten().
+
         Particles' coordinates are returned as (N, ndim) arrays if
         `order` is `C` or (ndim, N) arrays if `order` is `F`.
 
         Examples:
         --------
-        These two numpy arrays are element-wise identical
+        These numpy arrays are element-wise identical
 
             #!python
             pos = system.dump('particle.position')
+            pos = system.dump('position')
             pos = system.dump('pos')
 
         Return a dict with both positions and velocities
@@ -216,46 +285,84 @@ class System(object):
             #!python
             dump = system.dump(['pos', 'vel'])
         """
+        # Setup data dictionary
+        if self._data is None or clear:
+            self._data = {}
+
+        # Return immediately if we only want to clear the dump
+        if what is None and clear:
+            return
+
         # Listify input variables
         if type(what) is str:
             what_list = [what]
             dtype_list = [dtype]
         else:
             what_list = what
+            dtype_list = dtype
             if dtype is None:
                 dtype_list = [None] * len(what_list)
 
-        aliases = {'pos': 'particle.position',
-                   'vel': 'particle.velocity',
-                   'spe': 'particle.species'}
-
-        dump_db = {}
-        for what, dtype in zip(what_list, dtype_list):
-            # Accept some aliases
+        # Accepts some aliases
+        aliases = {
+            'box': 'cell.side',
+            'pos': 'particle.position',
+            'vel': 'particle.velocity',
+            'spe': 'particle.species',
+            'rad': 'particle.radius',
+            'radius': 'particle.radius',
+            'position': 'particle.position',
+            'velocity': 'particle.velocity',
+            'species': 'particle.species'}
+        for i, what in enumerate(what_list):
             if what in aliases:
-                what_aliased = aliases[what]
-            else:
-                what_aliased = what
+                what_list[i] = aliases[what]
+
+        for what, dtype in zip(what_list, dtype_list):
+            # Skip if it has been dumped already
+            if what in self._data:
+                continue
+
             # Extract the requested attribute
-            attr = what_aliased.split('.')[-1]
+            attr = what.split('.')[-1]
+
             # Make array of attributes
-            if what_aliased.startswith('particle'):
+            if what.startswith('particle'):
                 data = numpy.array([getattr(p, attr) for p in self.particle], dtype=dtype)
-            elif what_aliased.startswith('cell'):
+                # We transpose the array if F order is requested
+                if order == 'F':
+                    data = numpy.transpose(data)
+                if not flat:
+                    # If view is True, we set the particle property as a
+                    # view on the dump array. Pay attention of C / F order.
+                    # To check if particle properties and dump are associated:
+                    # numpy.may_share_memory(p[0].position, pos[:, 0])
+                    if view and order == 'C' and attr in ['position', 'velocity']:
+                        for i, p in enumerate(self.particle):
+                            setattr(p, attr, data[i, :])
+                    if view and order == 'F' and attr in ['position', 'velocity']:
+                        for i, p in enumerate(self.particle):
+                            setattr(p, attr, data[:, i])
+                else:
+                    data = numpy.flatten(data, order=order)
+                    if view and attr in ['position', 'velocity']:
+                        ndim = self.number_of_dimensions
+                        for i, p in enumerate(self.particle):
+                            setattr(p, attr, data[i*ndim: (i+1)*ndim])
+
+            elif what.startswith('cell'):
                 data = numpy.array(getattr(self.cell, attr), dtype=dtype)
             else:
-                raise ValueError('Unknown attribute %s' % what_aliased)
-            # We transpose the array if F order is requested (only meaningful for 2d arrays)
-            if order == 'F':
-                data = numpy.transpose(data)
-            dump_db[what] = data
+                raise ValueError('Unknown attribute %s' % what)
+
+            self._data[what] = data
 
         # If what is a string or we only have one entry we return an
         # array, otherwise we return the whole dict
         if len(what_list) == 1:
-            return dump_db[what_list[0]]
+            return self._data[what_list[0]]
         else:
-            return dump_db
+            return self._data
 
     def report(self):
         # Summary
@@ -277,3 +384,6 @@ class System(object):
         except:
             pass
         return txt
+
+    def show(self):
+        _show(self.particle, self.cell)

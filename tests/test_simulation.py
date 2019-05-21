@@ -19,7 +19,39 @@ class Test(unittest.TestCase):
         # Disable writers completely
         s = Simulation(DryRun(), output_path=None, steps=10, enable_speedometer=False)
         s.run()
-        self.assertEqual(len(s._non_targeters), 0)
+
+    def test_multiple_run_calls(self):
+        """
+        Multiple calls to run() with varying number of steps should add up
+        correctly. This was not the case in version <= 1.4.3.
+        """
+        from atooms.system import System
+
+        # Minimal backend
+        class Backend(object):
+
+            def __init__(self):
+                self.system = System()
+
+            def run(self, steps):
+                for i in range(steps):
+                    pass
+
+        backend = Backend()
+
+        # The run_until() method should work correctly
+        from atooms.simulation import Simulation
+        simulation = Simulation(backend)
+        simulation.run(10)
+        simulation.run_until(30)
+        self.assertEqual(simulation.current_step, 30)
+
+        # The run() method called twice should also work correctly
+        from atooms.simulation import Simulation
+        simulation = Simulation(backend)
+        simulation.run(10)
+        simulation.run(20)
+        self.assertEqual(simulation.current_step, 30)
 
     def test_target(self):
         s = Simulation(DryRun(), output_path='/tmp/test_simulation/trajectory', steps=100)
@@ -105,6 +137,26 @@ class Test(unittest.TestCase):
 
         self.assertEqual(inext, [3, 3, 3, 6, 6, 6, 9, 9])
 
+    def test_block(self):
+        """Test periodic block scheduling"""
+        def store_list(s, db):
+            db.append(s.current_step)
+        db = []
+        s = Simulation(DryRun(), output_path=None, steps=18)
+        s.add(store_list, Scheduler(block=[1, 2, 4, 8]), db=db)
+        s.run()
+        self.assertEqual(db, [0, 1, 2, 4, 8, 9, 10, 12, 16, 17, 18])
+
+    def test_steps(self):
+        """Test steps scheduling"""
+        def store_list(s, db):
+            db.append(s.current_step)
+        db = []
+        s = Simulation(DryRun(), output_path=None, steps=18)
+        s.add(store_list, Scheduler(steps=[1, 2, 4, 8]), db=db)
+        s.run()
+        self.assertEqual(db, [0, 1, 2, 4, 8])
+
     def test_system(self):
         """
         Test that system in Simulation tracks the one in the backend even
@@ -147,9 +199,7 @@ class Test(unittest.TestCase):
         from atooms.simulation import shell_stop
         f = '/tmp/test_simulation/shell/trajectory'
         s = Simulation(DryRun(), output_path=f)
-        # TODO: why not working?
-        #s.add(shell_stop, Scheduler(steps=[20]), 'exit 0')
-        s.add(shell_stop, Scheduler(20), 'exit 1')
+        s.add(shell_stop, Scheduler(steps=[20]), 'exit 1')
         s.add(write_thermo, Scheduler(10))
         s.run(100)
         self.assertEqual(s.current_step, 20)

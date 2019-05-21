@@ -18,7 +18,7 @@ from math import sqrt
 
 __all__ = ['constant', 'inverse_power', 'lennard_jones', 'harmonic_sphere', 'sum_inverse_power']
 
-def constant(rsq, epsilon):
+def constant(rsq, epsilon, *args, **kwargs):
     """Constant potential."""
     return epsilon, 0.0, 0.0
 

@@ -25,6 +25,7 @@ import time
 import datetime
 import logging
 
+import atooms.core.progress
 from atooms.core import __version__
 from atooms.core.utils import mkdir, barrier
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, SimulationKill
@@ -84,8 +85,10 @@ class Simulation(object):
         self.initial_step = 0
         # We expect subclasses to keep a ref to the trajectory object
         # self.trajectory used to store configurations
-        self.trajectory = self.backend.trajectory
-
+        if hasattr(self.backend, 'trajectory'):
+            self.trajectory = self.backend.trajectory
+        else:
+            self.trajectory = None
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
         # exist. This creates the data/ folder and its parents folders.
@@ -194,7 +197,8 @@ class Simulation(object):
         """Write checkpoint to allow restarting a simulation."""
         if self.output_path is None:
             # Try to write the checkpoint via the backend
-            self.backend.write_checkpoint()
+            if hasattr(self.backend, 'write_checkpoint'):
+                self.backend.write_checkpoint()
             return
 
         with open(self.output_path + '.chk.step', 'w') as fh:
@@ -301,8 +305,19 @@ class Simulation(object):
                 self.steps = steps
 
         # Targeter for steps. This will the replace an existing one.
-        self.add(self._targeter_steps, Scheduler(self.steps),
+        self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
                  self.current_step + self.steps)
+
+        # Targeter for progress bar
+        if atooms.core.progress.active:
+            intervals = [self._cbk_params[cbk]['scheduler'].interval for cbk in self._callback]
+            intervals = [intv for intv in intervals if intv is not None]
+            min_iters = 10
+            if min(intervals) > (self.current_step + self.steps) / min_iters and \
+               (self.current_step + self.steps) / min_iters > 10 :
+                def flush(sim):
+                    pass
+                self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
 
         # Report
         _report(self._info_start())
@@ -331,22 +346,27 @@ class Simulation(object):
         # Reinitialize speedometers
         for s in self._speedometers:
             s._init = False
+        from atooms.core.progress import progress
+        bar = progress(total=self.steps)
 
         try:
             # Before entering the simulation, check if we can quit right away
             # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
             self._notify(self._targeters)
+
             # Then notify non targeters unless we are restarting
             if self.current_step == 0:
                 self._notify(self._non_targeters)
             else:
                 self._notify(self._speedometers)
             _log.info('starting at step: %d', self.current_step)
+            _log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
                 all_steps = [self._cbk_params[c]['scheduler'](self) for c in self._callback]
                 next_checkpoint = self._checkpoint_scheduler(self)
                 next_step = min(all_steps + [next_checkpoint])
+
                 self.run_until(next_step)
 
                 # Find observers indexes corresponding to minimum step
@@ -360,8 +380,13 @@ class Simulation(object):
                 if self.current_step == next_checkpoint:
                     self.write_checkpoint()
 
+                # Update progress bar
+                bar.update(self.current_step)
+
         except SimulationEnd as end:
             # Checkpoint configuration at last step
+            bar.update(self.current_step)
+            bar.close()
             _log.info('simulation ended successfully: %s', end)
             self.write_checkpoint()
             _report(self._info_end())
@@ -402,7 +427,7 @@ class Simulation(object):
             params = self._cbk_params[f]
             s = params['scheduler']
             if 'target' in _callable_name(f):
-                args = params['args']
+                args = params['args']                
                 txt.append('target %s: %s' % (_callable_name(f), args[0]))
             else:
                 txt.append('writer %s: interval=%s calls=%s' %

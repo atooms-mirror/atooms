@@ -62,6 +62,7 @@ class Test(unittest.TestCase):
             self.assertEqual(th.timestep, 1.0)
             for i, system in enumerate(th):
                 self.assertTrue(_equal(self.system[i], system, ignore))
+                self.assertTrue(self.system[i].__class__ is system.__class__)
 
     def _write(self, cls, path=None):
         """Write only"""
@@ -81,7 +82,7 @@ class Test(unittest.TestCase):
             th.write_timestep(1.0)
             for i, system in enumerate(self.system):
                 th.write(self.system[i], i)
-        
+
         with cls_inp(path) as th:
             from atooms.trajectory.utils import convert
             _ = convert(th, cls_out, fout)
@@ -198,7 +199,7 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
         with trj.rumd.SuperTrajectoryRUMD(self.inpdir) as th:
             th.fields = ['type', 'x', 'y', 'z']
             s = th[0]
-            
+
     def test_folder(self):
         import glob
         with TrajectoryXYZ(os.path.join(self.inpdir, '10.xyz'), 'w') as th:
@@ -213,6 +214,47 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
             self.assertEqual(th.steps, [10, 20])
             for i, system in enumerate(th):
                 self.assertTrue(_equal(self.system[i], system, ignore=['mass']))
+
+    def test_cache(self):
+        with TrajectoryXYZ(os.path.join(self.inpdir, 'cache.xyz'), 'w') as th:
+            for i in range(10):
+                th.write(self.system[0], i)
+
+        with TrajectoryXYZ(os.path.join(self.inpdir, 'cache.xyz'), 'r') as th_0:
+            s_0 = th_0[0]
+
+        with TrajectoryXYZ(os.path.join(self.inpdir, 'cache.xyz'), 'r') as th_1:
+            th_1.cache = True
+            s_1 = th_1.read(0)
+            s_1 = th_1.read(0)
+
+    def test_block_size(self):
+        from atooms.trajectory.utils import check_block_size, get_block_size
+        steps = [2**i for i in range(5)]
+        block = get_block_size(steps)
+        check_block_size(steps, block)
+
+    def test_decorator(self):
+        """Test that frame is accessible to callbacks"""
+        finp = os.path.join(self.inpdir, 'test.xyz')
+        with open(finp, 'w') as fh:
+            fh.write("""\
+2
+columns:id,x,y,z step:1 cell:5.0,5.0,5.0
+B 1.0 -1.0 0.0
+A 2.9 -2.9 0.0
+2
+columns:id,x,y,z step:2 cell:5.0,5.0,5.0
+C 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+""")
+        def cbk(system):
+            system.frame
+            return system
+        with TrajectoryXYZ(finp) as th:
+            th.add_callback(cbk)
+            th[0]
+            th[1]
 
     def tearDown(self):
         rmf(self.inpfile)

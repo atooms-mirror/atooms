@@ -11,7 +11,10 @@ try:
     from pypandoc import convert
     readme = convert('README.md', 'rst')
 except (ImportError, OSError):
-    readme = open('README.md', 'r').read()
+    try:
+        readme = open('README.md', 'r').read()
+    except:
+        readme = ''
 
 with open('atooms/core/_version.py') as f:
     exec(f.read())

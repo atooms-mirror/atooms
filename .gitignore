@@ -3,7 +3,8 @@
 
 reference
 local
-docs
+docs/api
+docs/tutorial/*png
 
 # Ignore version file in package.
 # It will be updated upon build/install
@@ -21,3 +22,4 @@ cover
 # Simulations
 rumd_timing_info.dat
 log.lammps
+.DS_Store

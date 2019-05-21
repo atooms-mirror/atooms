@@ -147,6 +147,10 @@ class Timer(object):
         self.__start_wall = None
         self.cpu_time = 0.0
         self.wall_time = 0.0
+        try:
+            self._wall_time_func = MPI.Wtime
+        except:
+            self._wall_time_func = time.time
 
     def start(self):
         self.__start_cpu = self.__now_cpu()
@@ -159,13 +163,10 @@ class Timer(object):
         self.wall_time += self.__now_wall() - self.__start_wall
 
     def __now_cpu(self):
-        return time.time()
+        return time.clock()
 
     def __now_wall(self):
-        try:
-            return MPI.Wtime()
-        except:
-            return time.clock()
+        return self._wall_time_func()
 
 
 def clockit(func):

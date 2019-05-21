@@ -4,6 +4,7 @@ import os
 import tarfile
 import numpy
 import copy
+from atooms.core.progress import progress
 
 
 def gopen(filename, mode):
@@ -60,10 +61,16 @@ def convert(inp, out, fout, force=True, fields=None,
     Return: name of converted trajectory file
     """
     from atooms.trajectory import Trajectory
+    from atooms.trajectory.base import canonicalize_fields
     if isinstance(out, str):
         out_class = Trajectory.formats[out]
     else:
         out_class = out
+
+    if fields is None and len(inp.fields) > 0 and include is None:
+        # We automatically include all fields from the input trajectory
+        # Since the output trajectory may have extra fields, we do should not overwrite them
+        include = canonicalize_fields(inp.fields)
 
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
         print('File exists, conversion skipped')
@@ -84,7 +91,7 @@ def convert(inp, out, fout, force=True, fields=None,
             # In python 2, zipping t and t.steps will load everything
             # in RAM. In this case, it is better to use enumerate()
             if steps is None:
-                for i, system in enumerate(inp):
+                for i, system in progress(enumerate(inp), total=len(inp)):
                     conv.write(system, inp.steps[i])
             else:
                 # Only include requested steps (useful to prune
@@ -178,7 +185,12 @@ def check_block_size(steps, block_size, prune=False):
 
     Note that in this case, len(steps) % block_size == 1, which is tolerated.
     """
+    # Linear sampling
     if block_size == 1:
+        return None
+
+    # This is a single non-linear block
+    if block_size == len(steps):
         return None
 
     steps_local = copy.copy(steps)
@@ -224,7 +236,7 @@ def check_block_size(steps, block_size, prune=False):
             print('# periodicity issue at block %i out of %i' % (i, nbl))
             print('# current     :', current)
             print('# finger print:', block)
-            raise ValueError('block does not match finger print')
+            raise IndexError('block does not match finger print')
 
     return steps_local
 
@@ -290,18 +302,6 @@ def paste(t1, t2):
         yield step, s1, s2
 
 
-def time_when_msd_is(th, msd_target, sigma=1.0):
-    """
-    Estimate the time when the MSD reaches target_msd in units of
-    sigma^2. Bounded by the actual maximum time of trajectory tmax.
-    """
-    from .decorators import Unfolded
-    with Unfolded(th) as th_unf:
-        msd_total = th_unf[0].mean_square_displacement(th_unf[-1])
-    frac = msd_target * sigma**2 / msd_total
-    return min(1.0, frac) * th.total_time
-
-
 def is_cell_variable(trajectory, tests=1):
     """
     Simple test to check if cell changes.
@@ -324,6 +324,57 @@ def is_cell_variable(trajectory, tests=1):
     return is_variable
 
 
+def is_semigrandcanonical(trajectory, tests=1):
+    """
+    Simple test to check if a trajectory is semigrandcanonical.
+    i.e. if the chemical concentrations fluctuate.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    """
+    # This is adapted from is_cell_variable()
+    is_variable = False
+    if tests > 0:
+        skip = max(1, int(len(trajectory) / float(tests)))
+    else:
+        skip = 1
+    from atooms.system.particle import composition
+    x0 = composition(trajectory[0].particle)
+    for sample in range(len(trajectory)-1, 0, -skip):
+        x1 = composition(trajectory[sample].particle)
+        is_variable = False
+        for sp in x0:
+            if x0[sp] != x1[sp]:
+                is_variable = True
+                break
+    return is_variable
+
+
+def is_grandcanonical(trajectory, tests=1):
+    """
+    Simple test to check if a trajectory is grandcanonical.
+    i.e. if the number of particles fluctuates.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    """
+    # This is adapted from is_cell_variable()
+    # and basically the same code as is_semigrandcanonical()
+    is_variable = False
+    if tests > 0:
+        skip = max(1, int(len(trajectory) / float(tests)))
+    else:
+        skip = 1
+    N0 = len(trajectory[sample].particle)
+    for sample in range(len(trajectory)-1, 0, -skip):
+        N1 = len(trajectory[sample].particle)
+        is_variable = False
+        if N0 != N1:
+            is_variable = True
+            break
+    return is_variable
+
+
 def formats():
     """Return a string with the available trajectory formats."""
     from atooms import trajectory
@@ -341,30 +392,85 @@ def formats():
     return txt
 
 
-def info(trajectory):
+def info(trajectory, keys=None):
     """Return a string with information about a `trajectory` instance."""
     from atooms.system.particle import distinct_species, composition
-    txt = ''
-    txt += 'path                 = %s\n' % trajectory.filename
-    txt += 'format               = %s\n' % trajectory.__class__
-    txt += 'frames               = %s\n' % len(trajectory)
-    txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
-    txt += 'particles            = %s\n' % len(trajectory[0].particle)
-    txt += 'species              = %s\n' % ', '.join(distinct_species(trajectory[0].particle))
-    txt += 'composition          = %s\n' % dict(composition(trajectory[0].particle))
-    txt += 'density              = %s\n' % round(trajectory[0].density, 10)
-    txt += 'cell side            = %s\n' % str(list(trajectory[0].cell.side))[1: -1]
-    txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
-    if len(trajectory) > 1:
-        txt += 'steps                = %s\n' % trajectory.steps[-1]
-        txt += 'duration             = %s\n' % trajectory.times[-1]
-        txt += 'timestep             = %s\n' % trajectory.timestep
-        txt += 'block size           = %s\n' % trajectory.block_size
-        if trajectory.block_size == 1:
-            txt += 'steps between frames = %s\n' % (trajectory.steps[1]-trajectory.steps[0])
-            txt += 'time between frames  = %s\n' % (trajectory.times[1]-trajectory.times[0])
-        else:
-            txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_size-1]
-            txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size)])
-        txt += 'grandcanonical       = %s' % trajectory.grandcanonical
-    return txt
+
+    if keys is None:
+        # Default: full info
+        txt = ''
+        txt += 'path                 = %s\n' % trajectory.filename
+        txt += 'format               = %s\n' % trajectory.__class__
+        txt += 'frames               = %s\n' % len(trajectory)
+        txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
+        txt += 'particles            = %s\n' % len(trajectory[0].particle)
+        txt += 'species              = %s\n' % ', '.join(distinct_species(trajectory[0].particle))
+        txt += 'composition          = %s\n' % dict(composition(trajectory[0].particle))
+        txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in trajectory[0].particle]) / numpy.mean([p.radius for p in trajectory[0].particle]))
+        txt += 'density              = %s\n' % round(trajectory[0].density, 10)
+        txt += 'cell side            = %s\n' % str(list(trajectory[0].cell.side))[1: -1]
+        txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
+        if len(trajectory) > 1:
+            txt += 'steps                = %s\n' % trajectory.steps[-1]
+            txt += 'duration             = %s\n' % trajectory.times[-1]
+            txt += 'timestep             = %s\n' % trajectory.timestep
+            txt += 'block size           = %s\n' % trajectory.block_size
+            if trajectory.block_size == 1:
+                txt += 'steps between frames = %s\n' % (trajectory.steps[1]-trajectory.steps[0])
+                txt += 'time between frames  = %s\n' % (trajectory.times[1]-trajectory.times[0])
+            else:
+                txt += 'block steps          = %s\n' % trajectory.steps[trajectory.block_size-1]
+                txt += 'block                = %s\n' % ([trajectory.steps[i] for i in range(trajectory.block_size)])
+            txt += 'grandcanonical       = %s' % trajectory.grandcanonical
+        return txt
+
+    else:
+        # Selected infos.
+        # TODO: of course, it would be cleaner to have a little class for that
+        outs = []
+        for key in keys.split(','):
+            if key == 'path':
+                outs.append(trajectory.filename)
+            elif key == 'format':
+                outs.append(trajectory.__class__)
+            elif key == 'frames':
+                outs.append(len(trajectory))
+            elif key == 'megabytes':
+                outs.append(os.path.getsize(trajectory.filename) / 1e6)
+            elif key == 'particles':
+                outs.append(len(trajectory[0].particle))
+            elif key == 'species':
+                outs.append(', '.join(distinct_species(trajectory[0].particle)))
+            elif key == 'composition':
+                outs.append(dict(composition(trajectory[0].particle)))
+            elif key == 'cell density':
+                outs.append(round(trajectory[0].density, 10))
+            elif key == 'cell side':
+                outs.append(str(list(trajectory[0].cell.side))[1: -1])
+            elif key == 'cell volume':
+                outs.append(trajectory[0].cell.volume)
+            elif key == 'steps':
+                outs.append(trajectory.steps[-1])
+            elif key == 'duration':
+                outs.append(trajectory.times[-1])
+            elif key == 'timestep':
+                outs.append(trajectory.timestep)
+            elif key == 'block size':
+                outs.append(trajectory.block_size)
+            elif key == 'steps between frames':
+                outs.append(trajectory.steps[1]-trajectory.steps[0])
+            elif key == 'time between frames':
+                outs.append(trajectory.times[1]-trajectory.times[0])
+            elif key == 'block steps':
+                outs.append(trajectory.steps[trajectory.block_size-1])
+            elif key == 'block':
+                outs.append([trajectory.steps[i] for i in range(trajectory.block_size)])
+            elif key == 'grandcanonical':
+                outs.append(trajectory.grandcanonical)
+
+        txt = ''
+        fmt = '%%-%ds : %%s\n' % (max([len(key) for key in keys.split(',')]))
+        for key, out in zip(keys.split(','), outs):
+            txt += fmt % (key, out)
+        
+        return txt.strip('\n')

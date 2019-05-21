@@ -86,7 +86,13 @@ class Particle(object):
 
     def fold(self, cell):
         """Fold self into central cell."""
+
+        # Move the center to 0
+        self.position -= cell.center
         self.position = _periodic_vector_unfolded(self.position, cell.side)
+
+        # Restore the center
+        self.position += cell.center
         return self
 
     def maxwellian(self, T):
@@ -108,6 +114,7 @@ class Particle(object):
 # Utility functions
 
 def _periodic_vector(vec, box):
+    # TODO: what about particle distances precisely equal to L/2 or -L/2?
     for i in range(vec.shape[0]):
         if vec[i] > box[i] / 2:
             vec[i] += - box[i]
@@ -137,6 +144,8 @@ def fix_total_momentum(particles):
 
 def cm_velocity(particle):
     """Velocity of the center of mass of a list of particles."""
+    if len(particle) == 0:
+        return 0.0
     vcm = numpy.zeros_like(particle[0].velocity)
     mtot = 0.0
     for p in particle:
@@ -333,3 +342,29 @@ def self_overlap(particle, other, a, normalize=True):
         q /= float(len(particle))
     return q
 
+
+def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
+    """
+    Make a snapshot of the `particle`s in the `cell` and save the
+    image in `outfile`. The image is returned for further
+    customization.
+    """
+    import matplotlib.pyplot as plt
+    from .particle import distinct_species
+
+    color_db = ['b', 'r', 'g', 'y']
+    species = distinct_species(particle)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, aspect='equal')
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+    ax.set_xlim((-cell.side[0]/2, cell.side[0]/2))
+    ax.set_ylim((-cell.side[1]/2, cell.side[1]/2))
+    for p in particle:
+        c = plt.Circle(p.position[: 2], p.radius,
+                       facecolor=color_db[species.index(p.species)],
+                       edgecolor='black', alpha=alpha, linewidth=linewidth)
+        ax.add_artist(c)
+    if outfile is not None:
+        fig.savefig(outfile, bbox_inches='tight')
+    return fig

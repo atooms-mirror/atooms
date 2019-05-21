@@ -2,24 +2,67 @@
 # Copyright 2010-2017, Daniele Coslovich
 
 import os
+import copy
 
 from .utils import get_block_size
 
 
-class TrajectoryBase(object):
+# Fields thesaurus: common synonims for fields, such as position -> pos
+# It can be used to match fields read by different trajectory classes.
+# The first element of each entry is the official one.
+FIELDS_DICTIONARY = [('position', 'pos'),
+                     ('velocity', 'vel'),
+                     ('species', 'spe', 'id')]
 
+def canonicalize_fields(fields):
+    for i, field in enumerate(fields):
+        for entry in FIELDS_DICTIONARY:
+            if field in entry:
+                fields[i] = entry[0]
+                break
+    return fields
+
+
+class TrajectoryBase(object):
     """
     Trajectory abstract base class.
 
     A trajectory is composed by one or several frames, each frame
     being a sample of a `System` taken at a given `step` during a
-    simulation. `Trajectory` instances are iterable and can be opened
-    and closed using the `with` syntax..
+    simulation. Trajectory instances are iterable and behave as file
+    objects: they must be opened and closed using the `with` syntax
 
         #!python
         with Trajectory(inpfile) as th:
             for system in th:
                 pass
+
+    alternatively
+
+        #!python
+        th = Trajectory(inpfile)
+        for system in th:
+            pass
+        th.close()
+
+    To write the state of a `System` to a trajectory, we must open the
+    trajectory in write mode.
+
+        #!python
+        with Trajectory(outfile, 'w') as th:
+            th.write(system, step=0)
+
+    Trajectories can use the `fields` variable to define which system
+    properties will be written to disk. Concrete classes may thus
+    provide means to write arbitrary fields to disk via particle
+    properties. Example:
+
+        #!python
+        for particle in system:
+            particle.some_custom_property = 1.0
+        with Trajectory(outfile, 'w') as th:
+            th.fields = ['position', 'some_custom_property']
+            th.write(system, step=0)
 
     To be fully functional, concrete classes must implement
     `read_sample()` and `write_sample()` methods.
@@ -36,11 +79,18 @@ class TrajectoryBase(object):
     Similarly, `write()` is a template composed of `write_init()` and
     `write_sample()`. Only the latter method must be implemented by
     subclasses.
+
+    The `cache` variable reduces access time when reading the same
+    trajectory multiple times. We use shallow copies to cut down the
+    overhead. Cache is disabled by default as there is no control on
+    its size yet.
     """
 
     suffix = None
 
-    def __init__(self, filename, mode='r'):
+    # TODO: add class callbacks
+
+    def __init__(self, filename, mode='r', cache=False):
         """
         The `mode` can be 'r' (read) or 'w' (write).
         """
@@ -53,7 +103,7 @@ class TrajectoryBase(object):
         and/or read by `read_sample`. Subclasses may use it to filter
         out some data from their format. They can ignore it entirely.
         """
-        self.precision = 6        
+        self.precision = 6
         self.metadata = {}
         """
         Dictionary of metadata about the trajectory. It can be used by
@@ -71,11 +121,21 @@ class TrajectoryBase(object):
         # Sanity checks
         if self.mode == 'r' and not os.path.exists(self.filename):
             raise IOError('trajectory file %s does not exist' % self.filename)
+        # Cache frames to optimize reading the same trajectory multiple times
+        # We use shallow copies to cut down the overhead
+        self.cache = cache
+        self._cache = None
 
     # Trajectory is iterable and supports with syntax
 
     def __len__(self):
-        return len(self.steps)
+        # We try first with read_len() which returns None by default
+        frames = self.read_len()
+        if frames is None:
+            # We get the steps, which might take a bit longer
+            return len(self.steps)
+        else:
+            return frames
 
     def __enter__(self):
         return self
@@ -115,14 +175,30 @@ class TrajectoryBase(object):
         if not self._initialized_read:
             self.read_init()
             self._initialized_read = True
-        s = self.read_sample(index)
-        # TODO: add some means to access the current frame / step in a callback? 11.09.2017
+
+        if self.cache and self._cache and index in self._cache:
+            # We get the system from the cache
+            system = self._cache[index]
+        else:
+            system = self.read_sample(index)
+            if self.cache:
+                # Store the system in cache
+                if self._cache is None:
+                    self._cache = {}
+                self._cache[index] = copy.copy(system)
+
+        # Pass the frame index to the callback via system
+        # by storing a "temporary" frame instance variable
+        # (deleted after this loop)
+        system.frame = index
         for cbk, args, kwargs in self.callbacks:
-            s = cbk(s, *args, **kwargs)
-        return s
+            system = cbk(system, *args, **kwargs)
+        del(system.frame)
+        return system
 
     def write(self, system, step):
         """Write `system` at given `step`."""
+        # TODO: make step optional
         if self.mode == 'r':
             raise IOError('trajectory file not open for writing')
         if not self._initialized_write:
@@ -168,6 +244,10 @@ class TrajectoryBase(object):
 
     # To read/write timestep and block size sublcasses may implement
     # these methods. The default is dt=1 and block determined dynamically.
+
+    def read_len(self):
+        """Return the number of frames. Optional."""
+        return None
 
     def read_steps(self):
         """Return a list of steps."""

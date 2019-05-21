@@ -70,19 +70,19 @@ def change_species(system, layout):
 
     # Convert to new layout
     import string
-    species_map = string.ascii_uppercase
     if layout == 'A':
         # We get the index of the species map:
         # - if current layout is F (min_sp=1), we subtract one.
         # - if current layout is C (min_sp=0), we do nothing
+        species_map = string.ascii_uppercase
         for p in system.particle:
             p.species = species_map[int(p.species) - min_sp]
     else:
         # Output layout is numerical (C or F)
         from atooms.system.particle import distinct_species
         offset = 1 if layout == 'F' else 0
-        nsp = len(distinct_species(system.particle))
-        species_list = [species_map[i] for i in range(nsp)]
+        # Note that distinct_species is sorted alphabetically
+        species_list = distinct_species(system.particle)
         if current_layout == 'A':
             for p in system.particle:
                 p.species = str(species_list.index(p.species) + offset)
@@ -95,7 +95,8 @@ def change_species(system, layout):
 
 def sort(system):
     """Sort particles by species id."""
-    return sorted(system.particle, key=lambda a: a.species)
+    system.particle = sorted(system.particle, key=lambda a: a.species)
+    return system
 
 def filter_species(system, species):
     """Return particles of a given `species` id."""
@@ -173,20 +174,25 @@ class Unfolded(object):
         return object.__new__(cls)
 
     def __init__(self, component, fixed_cm=False):
+        self._component = component
+        self._cache = None  # reset cache
         self._initialized_read = False
         self.fixed_cm = fixed_cm
 
     def read_init(self):
         s = super(Unfolded, self).read_init()
         # Cache the initial sample and cell
-        s = super(Unfolded, self).read_sample(0)
+        s = self._component.read(0)
         self._old = numpy.array([p.position for p in s.particle])
         self._last_read = 0
 
     def read_sample(self, frame):
         # Return here if first frame
         if frame == 0:
-            return super(Unfolded, self).read_sample(frame)
+            s = self._component.read(frame)
+            if self.fixed_cm:
+                s = fix_cm(s)
+            return s
 
         # Compare requested frame with last read
         delta = frame - self._last_read
@@ -198,7 +204,7 @@ class Unfolded(object):
             for i in range(delta-1):
                 self.read_sample(self._last_read+1)
 
-        s = super(Unfolded, self).read_sample(frame)
+        s = self._component.read(frame)
         self._last_read = frame
 
         # Unfold positions
@@ -213,7 +219,7 @@ class Unfolded(object):
         self._old += dif
 
         # Copy unfolded positions back to the system
-        # Here we cannot do 
+        # Here we cannot do
         #   s.particle[i].position = self._old[i][:]
         # because this a shallow view and the arrays share memory.
         # Fixing the CM later on will not work correctly.

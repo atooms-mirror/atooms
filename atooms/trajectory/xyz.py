@@ -132,6 +132,8 @@ class TrajectoryXYZ(TrajectoryBase):
         self.trajectory = gopen(self.filename, self.mode)
 
         # Internal index of lines via seek and tell.
+        # Note: there is little gain in using the read_len() method to just
+        # go through the file instead of setting up the index. So we stick to it.
         if self.mode == 'r':
             self._setup_index()
 
@@ -175,6 +177,7 @@ class TrajectoryXYZ(TrajectoryBase):
             # The first line contains the number of particles
             # If something went wrong, this could be the last line
             # with the cell side (Lx,Ly,Lz) and we parse it some other way
+            # TODO: drop compatibility with xyz files having cell as last line.
             try:
                 npart = int(data)
                 self._index_header.append(line)
@@ -216,14 +219,16 @@ class TrajectoryXYZ(TrajectoryBase):
         npart = int(self.trajectory.readline())
         data = self.trajectory.readline()
 
-        # Remove spaces around : or =
-        data = re.sub(r'\W*[=:]\W*', ':', data)
+        # TODO: accept "text text" entries
+        # TODO: accept extended xyz format
+        # Remove spaces around : or = and replace = by :
+        data = re.sub(r'\s*[=:]\s*', ':', data)
 
         # Fill metadata dictionary
         meta = {}
         meta['npart'] = npart
         for e in data.split():
-            s = re.search(r'(\S+)\W*[=:]\W*(\S+)', e)
+            s = re.search(r'(\S+):(\S+)', e)            
             if s is not None:
                 tag, data = s.group(1), s.group(2)
                 # Remove dangling commas
@@ -247,6 +252,8 @@ class TrajectoryXYZ(TrajectoryBase):
         try:
             if 'ndim' not in meta:
                 meta['ndim'] = len(meta['cell'])
+        except TypeError:
+            meta['ndim'] = 1  # it is a scalar
         except KeyError:
             meta['ndim'] = 3  # default
 
@@ -327,12 +334,14 @@ class TrajectoryXYZ(TrajectoryBase):
             else:
                 # Trick. We instantiate dynamically a fallback function
                 # to avoid adding `key` to the other callbacks' interface
+                namespace = {}
                 exec("""
-def _fallback(p, data, meta):
+from atooms.core.utils import tipify
+def fallback(p, data, meta):
     p.__dict__['%s'] = tipify(data[0])
     return data[1:]
-""" % key)
-                callbacks_read.append(_fallback)
+""" % key, namespace)
+                callbacks_read.append(namespace['fallback'])
 
         # Read frame now
         self.trajectory.seek(self._index_frame[frame])

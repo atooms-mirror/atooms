@@ -50,14 +50,16 @@ class System(object):
         self.particle = []
         self.cell = None
         self.thermostat = Thermostat()
+        self.barostat = None
+        self.reservoir = None
 
-    def potential_energy(self, normed=False):
+    def potential_energy(self, per_particle=False, normed=False, cache=False):
         return 0.
 
-    def kinetic_energy(self, normed=False):
+    def kinetic_energy(self, per_particle=False, normed=False):
         return 0.
 
-    def total_energy(self, normed=False):
+    def total_energy(self, per_particle=False, normed=False, cache=False):
         return 0.
 
     @property
@@ -67,6 +69,9 @@ class System(object):
     @property
     def temperature(self):
         return 0.
+
+    def set_temperature(self, T):
+        pass
 
     def report(self):
         return ''
@@ -99,3 +104,22 @@ class Trajectory(object):
 
     def close(self):
         pass
+
+
+class EnergyMinimization(object):
+
+    "An optimization backend that performs no optimization at all."
+
+    version = '0.1.0'
+
+    def __init__(self, system):
+        self.system = system
+        self.trajectory = Trajectory
+        self.output_path = None
+        self.method = 'cg'
+        self.tolerance = 1e-10
+        self.max_iterations = 100000
+
+    def run(self):
+        pass
+

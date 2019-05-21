@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import unittest
-import numpy
 
 from atooms.core.utils import mkdir
 from atooms.trajectory import Unfolded
@@ -77,6 +76,19 @@ B 2.9 -2.9 0.0 2.0
             meta = t._read_metadata(2)
             self.assertEqual(meta['ndim'], 3)
             self.assertEqual(len(t[2].particle[0].position), 3)
+
+    def test_xyz_field(self):
+        # Test fields
+        finp = '/tmp/test_xyz/field.xyz'
+        with open(finp, 'w') as fh:
+            fh.write("""\
+1
+columns:field step:1
+1.0
+""")
+        with self.Trajectory(finp) as t:
+            x = t[0].particle[0].field
+            self.assertEqual(x, 1.0)
 
     def test_xyz_meta(self):
         with self.Trajectory(self.finp_meta) as t:
@@ -331,6 +343,9 @@ step:1 columns:neighbors timestep:0.001
 class TestSimpleXYZ(TestXYZ):
 
     Trajectory = TrajectorySimpleXYZ
+
+    def test_xyz_field(self):
+        pass
 
     def test_xyz_4d(self):
         pass

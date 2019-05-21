@@ -41,6 +41,7 @@ class TrajectoryRam(TrajectoryBase):
     """
 
     def __init__(self, fname=None, mode='w'):
+        # TODO: refactor via dict of particle properties to write/read
         TrajectoryBase.__init__(self, fname, mode)
         self._pos = []
         self._vel = []
@@ -51,6 +52,8 @@ class TrajectoryRam(TrajectoryBase):
         self._thermostat = []
         self._barostat = []
         self._reservoir = []
+        self._particle_cls = None
+        self._system_cls = None
         self.mode = mode
 
     def write_sample(self, system, step):
@@ -59,6 +62,11 @@ class TrajectoryRam(TrajectoryBase):
             ind = self.steps.index(step)
         except:
             ind = None
+
+        if self._particle_cls is None:
+            self._particle_cls = system.particle[0].__class__
+        if self._system_cls is None:
+            self._system_cls = system.__class__
 
         particle = copy.copy(system.particle)
         if ind is not None:
@@ -95,20 +103,20 @@ class TrajectoryRam(TrajectoryBase):
     def read_sample(self, frame):
         particles = []
         for i in range(len(self._pos[frame])):
-            particles.append(Particle(position=self._pos[frame][i],
-                                      velocity=self._vel[frame][i],
-                                      species=self._species[frame][i],
-                                      mass=self._mass[frame][i],
-                                      radius=self._radius[frame][i]))
+            particles.append(self._particle_cls(position=self._pos[frame][i],
+                                                velocity=self._vel[frame][i],
+                                                species=self._species[frame][i],
+                                                mass=self._mass[frame][i],
+                                                radius=self._radius[frame][i]))
         cell = self._cell[frame]
-        s = System(particles, cell)
+        s = self._system_cls(particles, cell)
 
         # Add optional system objects
         if len(self._thermostat) > 0:
             s.thermostat = self._thermostat[frame]
         if len(self._barostat) > 0:
             s.barostat = self._barostat[frame]
-        if len(self._thermostat) > 0:
+        if len(self._reservoir) > 0:
             s.reservoir = self._reservoir[frame]
 
         return s

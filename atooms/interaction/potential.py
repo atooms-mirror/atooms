@@ -5,26 +5,12 @@
 
 import numpy
 
-from .library import *
-
-
-# Potentials factory
-
-_factory = {}
-
-def update(module, factory):
-    import sys
-    import inspect
-    for name, func in inspect.getmembers(sys.modules[module],
-                                         inspect.isfunction):
-        if name is not 'update':
-            factory[name] = func
-
-update(__name__, _factory)
+from atooms.interaction import library
+from atooms.interaction import decorators
 
 
 def tabulate(potential, parameters, cutoff='c', rc=2.5, npoints=10000,
-             rmin=0.5, fmt='lammps', fileout=None):
+             rmin=0.5, fmt='lammps', metadata='', fileout=None, precision=14):
 
     """Tabulate a potential."""
 
@@ -43,10 +29,10 @@ def tabulate(potential, parameters, cutoff='c', rc=2.5, npoints=10000,
     potential = PairPotential(potential, param_dict, (1, 1))
     if cutoff is not None:
         potential.cutoff = CutOff(cutoff, rc)
-    rsq, u0, u1 = potential.tabulate(npoints, rmin=rmin)
+    rsq, u0, u1, u2 = potential.tabulate(npoints, rmin=rmin, what='uwh')
     r = rsq**0.5
-    u1 *= r
     if fmt == 'lammps':
+        u1 *= r
         txt = """
 
 POTENTIAL
@@ -58,8 +44,14 @@ N {}
             txt += '{} {} {} {}\n'.format(i, x, y, z)
             i += 1
 
+    elif fmt == 'uwh':
+        txt = '# {} columns: r, u, w, h\n'.format(metadata)
+        for x, y, z, w in zip(r, u0, u1, u2):
+            txt += '{:.14g} {:.14g} {:.14g} {:.14g}\n'.format(x, y, z, w) 
+
     else:
-        txt = '# columns: r, u, f\n'
+        u1 *= r
+        txt = '# {} columns: r, u, f\n'.format(metadata)
         for x, y, z in zip(r, u0, u1):
             txt += '{} {} {}\n'.format(x, y, z)
     
@@ -115,9 +107,13 @@ class PairPotential(object):
 
         if not hasattr(self.func, '__call__'):
             # If func is not callable, look up the potential in the
-            # factory
-            if self.func in _factory:
-                self.func = _factory[func]
+            # potential library
+            if self.func in library.__all__:
+                self.func = getattr(library, self.func)
+            elif self.func in decorators.__all__:
+                # Decorate the potential
+                # Used to implement hard potentials
+                getattr(decorators, self.func)(self)
             else:
                 raise ValueError('unknown potential %s' % self.func)
 
@@ -144,7 +140,7 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
             u = self.func(self.cutoff.radius**2, **self.params)
             self.cutoff.tailor(self.cutoff.radius**2, u)
 
-    def tabulate(self, npoints=None, rmax=None, rmin=0.0):
+    def tabulate(self, npoints=None, rmax=None, rmin=0.0, what='uw'):
         """
         Tabulate the potential from 0 to `rmax`.
 
@@ -153,6 +149,8 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
         calling code to truncate it. We slightly overshoot the
         tabulation, to avoid boundary effects at the cutoff or at
         discontinuities.
+
+        The `what` parameters can be 'u', 'uw', 'uwh'.
         """
         if not self._adjusted:
             self._adjust()
@@ -168,20 +166,24 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
         rsq = numpy.ndarray(npoints)
         u0 = numpy.ndarray(npoints)
         u1 = numpy.ndarray(npoints)
+        u2 = numpy.ndarray(npoints)
         # We overshoot 2 points beyond rmax (cutoff) to avoid
         # smoothing discontinuous potentials
         drsq = (rmax**2 - rmin**2) / (npoints - 3)
         for i in range(npoints):
             rsq[i] = rmin**2 + i * drsq
             try:
-                u0[i], u1[i], _ = self.compute(rsq[i])
+                u0[i], u1[i], u2[i] = self.compute(rsq[i])
             except ZeroDivisionError:
-                u0[i], u1[i] = float('nan'), float('nan')
+                u0[i], u1[i], u2[i] = float('nan'), float('nan'), float('nan')
         # For potentials that diverge at zero, we remove the singularity by hand
         import math
         if math.isnan(u0[0]):
-            u0[0], u1[0] = u0[1], u1[1]
-        return rsq, u0, u1
+            u0[0], u1[0], u2[0] = u0[1], u1[1], u2[0]
+        if 'h' in what:
+            return rsq, u0, u1, u2
+        else:
+            return rsq, u0, u1
 
     def compute(self, rsquare):
         """Compute the potential and its derivatives."""

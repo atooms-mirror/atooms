@@ -28,50 +28,59 @@ class RUMD(object):
 
     version = _version
 
-    def __init__(self, input_file, forcefield_file=None,
+    def __init__(self, input_file_or_sim, forcefield_file=None,
                  integrator=None, temperature=None, dt=0.001,
                  output_path=None, fixcm_interval=0):
         self.output_path = output_path
         # Keep a reference of the Trajectory backend class
         self.trajectory = Trajectory
 
-        # Setup internal rumd simulation instance.
-        # It is exposed as RUMD.rumd_simulation.
-        self.rumd_simulation = rumdSimulation(input_file, verbose=False)
-        self.rumd_simulation.SetVerbose(False)
-        self.rumd_simulation.sample.SetVerbose(False)
-        self.rumd_simulation.sample.EnableBackup(False)
-        self.rumd_simulation.SetMomentumResetInterval(fixcm_interval)
-        self.rumd_simulation.SetBlockSize(sys.maxsize)
-        self.rumd_simulation.write_timing_info = False
+        # Store internal rumd simulation instance.
+        # It is exposed as self.rumd_simulation for further customization
+        if isinstance(input_file_or_sim, rumdSimulation):
+            self.rumd_simulation = input_file_or_sim
+            self._suppress_all_output = False
+            self._initialize_output = True
 
-        # By default we mute RUMD output.
-        if self.output_path is not None:
-            mkdir(self.output_path)
-            self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
-        self.rumd_simulation.SetOutputScheduling("energies", "none")
-        self.rumd_simulation.SetOutputScheduling("trajectory", "none")
-        self._suppress_all_output = True
-        self._initialize_output = False
+        else:
+            self.rumd_simulation = rumdSimulation(input_file_or_sim, verbose=False)
+            self.rumd_simulation.SetVerbose(False)
+            self.rumd_simulation.sample.SetVerbose(False)
+            self.rumd_simulation.sample.EnableBackup(False)
+            self.rumd_simulation.SetMomentumResetInterval(fixcm_interval)
+            self.rumd_simulation.SetBlockSize(sys.maxsize)
+            self.rumd_simulation.write_timing_info = False
 
-        # We parse the forcefield file.
-        # It should provide a list of potentials named forcefield
-        if forcefield_file is not None:
-            with open(forcefield_file) as fh:
-                exec(fh.read())
-            if 'potential' not in locals():
-                raise ValueError('forcefield file should contain a list of potentials named potential')
-            for pot in potential:
-                self.rumd_simulation.AddPotential(pot)
+            # By default we mute RUMD output.
+            if self.output_path is not None:
+                mkdir(self.output_path)
+                self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
+            self.rumd_simulation.SetOutputScheduling("energies", "none")
+            self.rumd_simulation.SetOutputScheduling("trajectory", "none")
+            self._suppress_all_output = True
+            self._initialize_output = False
 
-        # Wrap some rumd integrators.
-        if integrator is not None:
-            if integrator in ['nvt', 'NVT']:
-                itg = rumd.IntegratorNVT(targetTemperature=temperature,
-                                         timeStep=dt)
-            elif integrator in ['nve', 'NVE']:
-                itg = rumd.IntegratorNVE(timeStep=dt)
-            self.rumd_simulation.SetIntegrator(itg)
+            # We parse the forcefield file.
+            # It should provide a list of potentials named potential
+            if forcefield_file is not None:
+                with open(forcefield_file) as fh:
+                    exec(fh.read())
+                if 'potential' not in locals():
+                    raise ValueError('forcefield file should contain a list of potentials named potential')
+                for pot in potential:
+                    self.rumd_simulation.AddPotential(pot)
+
+            # Add a rumd integrator
+            if temperature is not None:
+                integrator = 'nvt'
+
+            if integrator is not None:
+                if integrator in ['nvt', 'NVT']:
+                    itg = rumd.IntegratorNVT(targetTemperature=temperature,
+                                             timeStep=dt)
+                elif integrator in ['nve', 'NVE']:
+                    itg = rumd.IntegratorNVE(timeStep=dt)
+                self.rumd_simulation.SetIntegrator(itg)
 
         # Copy of initial state
         self._initial_sample = self.rumd_simulation.sample.Copy()
@@ -159,6 +168,8 @@ class System(object):
     def __init__(self, sample):
         self.sample = sample
         self.thermostat = Thermostat(self.sample.GetIntegrator())
+        self.barostat = None
+        self.reservoir = None
 
     def __copy__(self):
         # This is not really needed, it's just there for reference
@@ -182,23 +193,24 @@ class System(object):
         #     setattr(result, k, deepcopy(v, memo))
         return result
 
-    def potential_energy(self, normed=False):
+    def potential_energy(self, per_particle=False, normed=False, cache=False):
         self.sample.CalcF()
-        if normed:
+        if normed or per_particle:
             return self.sample.GetPotentialEnergy() / len(self.particle)
         else:
             return self.sample.GetPotentialEnergy()
 
-    def kinetic_energy(self, normed=False):
+    def kinetic_energy(self,per_particle=False, normed=False):
         # TODO: use double IntegratorNVT::GetKineticEnergy(bool copy) const{
         ekin = sum([p.kinetic_energy for p in self.particle])
-        if normed:
+        if normed or per_particle:
             return ekin / len(self.particle)
         else:
             return ekin
 
-    def total_energy(self, normed=False):
-        return self.potential_energy(normed) + self.kinetic_energy(normed)
+    def total_energy(self, per_particle=False, normed=False, cache=False):
+        return self.potential_energy(per_particle=per_particle, normed=normed, cache=cache) +\
+            self.kinetic_energy(per_particle=per_particle, normed=normed)
 
     def __get_mass(self):
         # TODO: cache it (but what if masses change?)
@@ -225,7 +237,10 @@ class System(object):
         ndof = self.sample.GetNumberOfDOFs()
         vel = self.sample.GetVelocities()
         mass = self.__get_mass()
-        return 2 * numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
+        return numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
+
+    def set_temperature(self):
+        raise NotImplementedError
 
     @property
     def cell(self):
@@ -253,7 +268,7 @@ class System(object):
         for pi, i in zip(p, ima):
             pi.periodic_image = i
         return p
-        
+
     def report(self):
         return ''
 

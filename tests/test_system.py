@@ -52,6 +52,24 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(system.cm_position[1], 0.0)
         self.assertAlmostEqual(system.cm_position[2], 0.0)
 
+    def test_pbc_center(self):
+        system = copy.copy(self.ref)
+        # Move the center of the cell so that positions are within 0 and L
+        system.cell.center = system.cell.side / 2
+        for p in system.particle:
+            p.position += system.cell.side / 2
+        # Check that distances are the same
+        for i in range(len(system.particle)):
+            self.assertAlmostEqual(sum(self.ref.particle[0].distance(self.ref.particle[i], self.ref.cell)**2),
+                                   sum(system.particle[0].distance(system.particle[i], system.cell)**2))
+        # Move one particle out of the box and fold it back
+        pos = copy.copy(system.particle[0].position)
+        system.particle[0].position += system.cell.side
+        system.particle[0].fold(system.cell)
+        self.assertAlmostEqual(pos[0], system.particle[0].position[0])
+        self.assertAlmostEqual(pos[1], system.particle[0].position[1])
+        self.assertAlmostEqual(pos[2], system.particle[0].position[2])
+
     def test_fold(self):
         system = copy.copy(self.ref)
         pos = copy.copy(system.particle[0].position)
@@ -182,6 +200,58 @@ class Test(unittest.TestCase):
         a = 0.3
         q_rand = ((a**3 * 4./3*3.1415) * N / sys[0].cell.volume)
         self.assertTrue(abs(q_rand - collective_overlap(sys[0].particle, sys[1].particle, a, sys[0].cell.side)) < 0.5)
+
+
+    def test_view(self):
+        import numpy
+        from atooms.system import Particle, System
+
+        p = [Particle(), Particle()]
+        s = System(p)
+        pos = s.dump("pos", order='F', view=True)
+
+        # Modify the dumped array in place preserves the view
+        pos[:, 0] += 1.0
+        self.assertTrue((p[0].position == pos[:, 0]).all())
+        self.assertTrue(numpy.may_share_memory(p[0].position, pos[:, 0]))
+        # Modify the position array in place preserves the view
+        p[0].position *= 2
+        self.assertTrue((p[0].position == pos[:, 0]).all())
+        self.assertTrue(numpy.may_share_memory(p[0].position, pos[:, 0]))
+        # Modify the position array in place preserves the view
+        p[0].position[:] = p[0].position[:] + 4
+        self.assertTrue((p[0].position == pos[:, 0]).all())
+        self.assertTrue(numpy.may_share_memory(p[0].position, pos[:, 0]))
+        pos[:, 0] = pos[:, 0] + 1.0
+        self.assertTrue((p[0].position == pos[:, 0]).all())
+        self.assertTrue(numpy.may_share_memory(p[0].position, pos[:, 0]))
+        # Reassining the position will of course destroy the view
+        p[0].position = p[0].position * 2
+        self.assertFalse((p[0].position == pos[:, 0]).all())
+        self.assertFalse(numpy.may_share_memory(p[0].position, pos[:, 0]))
+
+    def test_view_clear(self):
+        import numpy
+        from atooms.system import Particle, System
+
+        p = [Particle(), Particle()]
+        s = System(p)
+
+        # We check that particle positions are views on dump array
+        pos = s.dump("pos", order='F', view=True)
+        self.assertTrue((p[0].position == pos[:, 0]).all())
+        self.assertTrue(numpy.may_share_memory(p[0].position, pos[:, 0]))
+
+        # We should get the same dump array
+        pos = s.dump("pos", order='F', view=True)
+        self.assertTrue((p[0].position == pos[:, 0]).all())
+        self.assertTrue(numpy.may_share_memory(p[0].position, pos[:, 0]))
+
+        # We clear the dump array
+        pos1 = s.dump("pos", order='F', view=True, clear=True)
+        pos1 += 1
+        self.assertFalse((p[0].position == pos[:, 0]).all())
+        self.assertFalse(numpy.may_share_memory(p[0].position, pos[:, 0]))
 
 
 if __name__ == '__main__':

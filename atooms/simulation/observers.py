@@ -121,21 +121,31 @@ class Scheduler(object):
         if self.interval is not None and self.calls is None:
             # Regular interval
             return (sim.current_step // self.interval + 1) * self.interval
+
         elif self.calls is not None:
             # Fixed number of calls
-            interval = sim.steps // self.calls
+            interval = max(1, sim.steps // self.calls)
             return (sim.current_step // interval + 1) * interval
+
         elif self.steps is not None:
             # List of selected steps
-            inext = self.steps[0]
-            for i, step in enumerate(self.steps[:-1]):
-                if sim.steps >= step:
-                    inext = self.steps[i+1]
+            inext = sys.maxsize
+            for i, step in enumerate(self.steps):
+                if step > sim.current_step:
+                    inext = self.steps[i]
                     break
             return inext
+
         elif self.block is not None:
-            # like steps but with % on sim.steps
-            pass
+            # Periodic block of steps
+            step_of_last_block = (sim.current_step // self.block[-1]) * self.block[-1]
+            inext = sys.maxsize
+            for i, step in enumerate(self.block):
+                if step > sim.current_step % self.block[-1]:
+                    inext = self.block[i] + step_of_last_block
+                    break
+            return inext
+
         elif self.seconds is not None:
             pass
         else:
@@ -153,7 +163,13 @@ def write_config(sim, fields=None, precision=None):
     The trajectory format is taken from the passed Simulation
     instance.
     """
-    if sim.current_step == 0:
+    # Initialize
+    if sim.current_step == 0 and hasattr(sim, '__init_write_config'):
+        del(sim.__init_write_config)
+
+    # Header
+    if not hasattr(sim, '__init_write_config'):
+        sim.__init_write_config = True
         # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
         rmd(sim.output_path)
         rmf(sim.output_path)
@@ -165,24 +181,85 @@ def write_config(sim, fields=None, precision=None):
             t.fields = fields
         t.write(sim.system, sim.current_step)
 
-def write_thermo(sim):
-    """Write basic thermodynamic data."""
-    f = sim.output_path + '.thermo'
-    if sim.current_step == 0:
-        with open(f, 'w') as fh:
-            fh.write('# columns:' + ', '.join(['steps',
-                                               'temperature',
-                                               'potential energy',
-                                               'kinetic energy',
-                                               'total energy',
-                                               'rmsd']) + '\n')
-    with open(f, 'a') as fh:
-        fh.write('%d %g %g %g %g %g\n' % (sim.current_step,
-                                          sim.system.temperature,
-                                          sim.system.potential_energy(normed=True),
-                                          sim.system.kinetic_energy(normed=True),
-                                          sim.system.total_energy(normed=True),
-                                          sim.rmsd))
+
+def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
+    """
+    Write thermodynamic properties to a file.
+
+    By default, available fields are:
+    - steps
+    - temperature
+    - potential energy per particle
+    - kinetic energy per particle
+    - total energy
+    - pressure
+    - rmsd
+    
+    The set of available `fields` can be augmented by passing an extra
+    `functions` dictionary.
+
+    The `fmt` dictionary can be used to provide custom formatting
+    options for fields.
+
+    The `precision` parameter controls the default precision of
+    floating point fields.
+    """
+
+    # By default write minimal info
+    if fields is None:
+        fields = ['steps',
+                  'temperature',
+                  'potential energy per particle',
+                  'kinetic energy per particle',
+                  'total energy per particle',
+                  'rmsd']
+
+    # Internal function database.
+    # It can be augmented via functions parameter
+    _db_func = {
+        'steps': lambda x: x.current_step,
+        'potential energy per particle': lambda x: x.system.potential_energy(True),
+        'kinetic energy per particle': lambda x: x.system.kinetic_energy(True),
+        'total energy per particle': lambda x: x.system.total_energy(True, cache=True),
+        'temperature': lambda x: x.system.temperature,
+        'density': lambda x: x.system.density,
+        'pressure': lambda x: x.system.pressure,
+        'rmsd': lambda x: x.rmsd,
+    }
+
+    # Update db with extra functions
+    if functions is not None:
+        _db_func.update(functions)
+
+    # Internal database for formats
+    _db_fmt = {}
+    for key in _db_func:
+        # Default to float formatting
+        _db_fmt[key] = '{{:.{precision}{form}}}'.format(precision=precision, form='g')
+    # Steps are integer
+    _db_fmt['steps'] = '{:d}'
+
+    # Update db with extra formats
+    if fmt is not None:
+        _db_fmt.update(fmt)
+
+    # Initialize
+    if sim.current_step == 0 and hasattr(sim, '__init_write_thermo'):
+        del(sim.__init_write_thermo)
+
+    # Header
+    if not hasattr(sim, '__init_write_thermo'):        
+        sim.__init_write_thermo = True
+        with open(sim.output_path + '.thermo', 'w') as fh:
+            txt = ', '.join(fields)
+            fh.write('# columns: {}\n'.format(txt))
+
+    # Line
+    with open(sim.output_path + '.thermo', 'a') as fh:
+        values = [_db_func[field](sim) for field in fields]
+        result = ' '.join([_db_fmt[field].format(value) for value, field in zip(values, fields)])
+        fh.write('{}\n'.format(result))
+
 
 def write(sim, name, attributes):
     """

@@ -51,6 +51,19 @@ class PairPotentialTest(unittest.TestCase):
         i = t.read_interaction()
         t.close()
 
+    def test_hard_sphere(self):
+        p = PairPotential('hard_sphere', {'sigma': 1.0}, [1, 1])
+        self.assertEqual(p.hard_core, 1.0)
+        self.assertEqual(p.cutoff.radius, 0.0)
+
+    def test_square_well(self):
+        p = PairPotential('square_well', {'epsilon': -1.0, 'delta': 0.1, 'sigma': 1.0}, [1, 1])
+        self.assertEqual(p.params['epsilon'], -1.0)
+        self.assertEqual(p.hard_core, 1.0)
+        self.assertEqual(p.cutoff.radius, 1.1)
+        self.assertEqual(p.compute(1.05)[0], -1.0)
+        self.assertTrue(p.is_zero(1.2**2))
+
     def tearDown(self):
         rmf('/tmp/test_potential.h5')
 
