@@ -235,7 +235,7 @@ class EnergyMinimization(LAMMPS):
         # Optimization backends must set a boolean reached_steps
         # attribute. It is True at the beginning.
         self.reached_steps = True
-        
+
     def __str__(self):
         return 'LAMMPS energy minimization'
 
