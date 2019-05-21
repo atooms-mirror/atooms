@@ -30,10 +30,9 @@
 #+latex_header: }
 #+options: toc:2 num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
 #+html_head: <link rel="stylesheet" type="text/css" href="style.css" />
+#+property: header-args:python :exports both
+#+property: header-args:gnuplot :exports results
 * Basics
-:PROPERTIES:
-:header-args: :exports both
-:END:
 
 Atooms provides a high-level interface to the main objects of particle-based simulations. It mostly focuses on classical molecular dynamics and Monte Carlo simulations, but it is not limited to that. It can be used to simulate and analyze lattice models such as TASEP or kinetically constrained models.
 
@@ -181,7 +180,7 @@ Note that the system temperature is the kinetic one and need not coincide with t
 
 Classical particles interact with each other via a potential $u(\{r_i\})$, where $\{r_i\}$ is the set of particles' coordinates. Atooms relies on third-party efficient *backends* written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see [[Molecular dynamics with LAMMPS]] for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see https://lammps.sandia.gov/doc/pair_style.html, and stores a reference to the system object of which we want to compute the energy.
 
-As a simple test, we compute the interaction energy between two Lennard-Jones particles
+As proof of principle, we compute the interaction energy between two Lennard-Jones particles
 #+begin_src python :exports both :results output :tangle /tmp/test_energy.py
   from atooms.system import System, Particle, Cell
   from atooms.backends.lammps import LAMMPS
@@ -200,20 +199,12 @@ As a simple test, we compute the interaction energy between two Lennard-Jones pa
   # Compute and get the potential energy
   # The cache option allows to get the potential energy without recalculating it
   print(system.potential_energy(), system.potential_energy(cache=True))
-  # The par_particle option normalizes the energy by the number of particles
-  print(system.potential_energy(cache=True, per_particle=True))
-  # Compute energy and forces.
-  # We access energy and forces stored in the interaction object
-  system.compute_interaction("forces")
-  print(system.interaction.energy)
-  print(system.interaction.forces[0], system.interaction.forces[1])
 #+end_src
 
 #+results:
 : -0.99999388 -0.99999388
-: -0.49999694
-: -0.99999388
-: [-0.02651882  0.          0.        ] [ 0.02651882  0.          0.        ]
+
+The energy and forces are stored in =system.interaction.energy= and =system.interaction.forces=.
 
 ** Trajectory files
 
@@ -534,7 +525,7 @@ You can add your own functions as observers to perform arbitrary manipulations o
 
 We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
 #+begin_src python :exports both :results output :session
-  backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=1.0)
+  backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=0.1)
   sim.run(10000)
 #+end_src
 
@@ -549,7 +540,7 @@ We have a quick look at the kinetic temperature as function of time to make sure
   set border 3
   set xtics nomirror
   set ytics nomirror
-  plot 'lammps.xyz.thermo' u 1:3 noti w lp lc rgb 'red' pt 7, 2 noti lc rgb 'black'
+  plot 'lammps.xyz.thermo' u 1:2 noti w lp lc rgb 'red' pt 7, 2 noti lc rgb 'black'
 #+end_src
 
 #+results:
