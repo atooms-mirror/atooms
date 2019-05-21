@@ -15,22 +15,28 @@ from atooms.trajectory import TrajectoryLAMMPS
 from atooms.trajectory.decorators import change_species
 from atooms.core.utils import rmd
 
+# Lammps command
+lammps_command = 'lammps'
 
-# Local parallel environment
-mpi_tasks = 1
+# LAMMPS parallel environment
+lammps_mpi_tasks = 1
 
-# Check if lammps is installed
-try:
-    _ = subprocess.check_output('mpirun -n 1 lammps < /dev/null', shell=True,
-                                stderr=subprocess.STDOUT, executable='/bin/bash')
-    _version = _.decode().split('\n')[0][8:-1]
-except subprocess.CalledProcessError:
-    raise ImportError('lammps not installed')
 
+def _get_lammps_version():
+    """Return lammps version and raise an exception if lammps is not installed"""
+    try:
+        cmd = 'mpirun -n 1 {} < /dev/null'.format(lammps_command)
+        _ = subprocess.check_output(cmd, shell=True,
+                                    stderr=subprocess.STDOUT, executable='/bin/bash')
+        version = _.decode().split('\n')[0][8:-1]
+    except subprocess.CalledProcessError:
+        raise ImportError('lammps not installed (command is {})'.format(lammps_command))
+    return version
 
 def _run_lammps_command(cmd):
+    """Run a lammps script from the command line"""
     # see https://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
-    p = subprocess.Popen(['mpirun -n {} lammps'.format(mpi_tasks)],
+    p = subprocess.Popen(['mpirun -n {} {}'.format(lammps_mpi_tasks, lammps_command)],
                          shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
@@ -43,7 +49,6 @@ def _run_lammps_command(cmd):
 
 
 class Interaction(interaction.Interaction):
-
     """
     Interaction wrapper for LAMMPS.
 
@@ -51,7 +56,6 @@ class Interaction(interaction.Interaction):
     containing appropriate lammps commands that define the
     interaction.
     """
-
     # TODO: assign interaction to system based on pair_style entries in cmd
 
     def compute(self, observable, particle, cell):
@@ -101,8 +105,6 @@ class LAMMPS(object):
 
     """LAMMPS simulation backend."""
 
-    version = _version
-
     def __init__(self, inp, commands):
         """
         We initialize the backend from `inp`, which can be a `System`, a
@@ -110,6 +112,7 @@ class LAMMPS(object):
         be a string or a file and should not contain dump or run
         commands.
         """
+        self.version = _get_lammps_version()
         self.verbose = False
 
         # Initialize commands
@@ -175,9 +178,11 @@ class LAMMPS(object):
         if self.system.thermostat is not None and self.system.barostat is not None:
             # NPT ensemble
             fix = 'fix 1 all npt temp {0.temperature} {0.temperature} {0.relaxation_time} iso {1.pressure} {1.pressure} {1.relaxation_time}'.format(self.system.thermostat, self.system.barostat)
+
         if self.system.thermostat is not None:
             # NVT ensemble
             fix = 'fix 1 all nvt temp {0.temperature} {0.temperature} {0.relaxation_time}'.format(self.system.thermostat)
+
         elif not 'fix' in self.commands:
             # NVE ensemble
             fix = 'fix 1 all nve'
@@ -199,6 +204,7 @@ run {}
 write_dump all custom {} id type x y z vx vy vz modify sort id format line "%d %d %.15g %.15g %.15g %.15g %.15g %.15g"
 """.format(file_inp, self.commands, fix, steps, file_tmp)
 
+        # Execute LAMMPS command
         stdout = _run_lammps_command(cmd)
 
         if self.verbose:
@@ -217,8 +223,6 @@ write_dump all custom {} id type x y z vx vy vz modify sort id format line "%d %
 class EnergyMinimization(LAMMPS):
 
     """LAMMPS minimization backend."""
-
-    version = _version
 
     def __init__(self, inp, commands, method='cg', ftol=1e-4, steps=100000):
         """
