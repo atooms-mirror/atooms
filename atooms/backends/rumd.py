@@ -193,23 +193,24 @@ class System(object):
         #     setattr(result, k, deepcopy(v, memo))
         return result
 
-    def potential_energy(self, normed=False):
+    def potential_energy(self, per_particle=False, normed=False, cache=False):
         self.sample.CalcF()
-        if normed:
+        if normed or per_particle:
             return self.sample.GetPotentialEnergy() / len(self.particle)
         else:
             return self.sample.GetPotentialEnergy()
 
-    def kinetic_energy(self, normed=False):
+    def kinetic_energy(self,per_particle=False, normed=False):
         # TODO: use double IntegratorNVT::GetKineticEnergy(bool copy) const{
         ekin = sum([p.kinetic_energy for p in self.particle])
-        if normed:
+        if normed or per_particle:
             return ekin / len(self.particle)
         else:
             return ekin
 
-    def total_energy(self, normed=False):
-        return self.potential_energy(normed) + self.kinetic_energy(normed)
+    def total_energy(self, per_particle=False, normed=False, cache=False):
+        return self.potential_energy(per_particle=per_particle, normed=normed, cache=cache) +\
+            self.kinetic_energy(per_particle=per_particle, normed=normed)
 
     def __get_mass(self):
         # TODO: cache it (but what if masses change?)

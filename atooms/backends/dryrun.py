@@ -53,13 +53,13 @@ class System(object):
         self.barostat = None
         self.reservoir = None
 
-    def potential_energy(self, normed=False):
+    def potential_energy(self, per_particle=False, normed=False, cache=False):
         return 0.
 
-    def kinetic_energy(self, normed=False):
+    def kinetic_energy(self, per_particle=False, normed=False):
         return 0.
 
-    def total_energy(self, normed=False):
+    def total_energy(self, per_particle=False, normed=False, cache=False):
         return 0.
 
     @property
