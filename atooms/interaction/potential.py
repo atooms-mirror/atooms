@@ -5,22 +5,8 @@
 
 import numpy
 
-from .library import *
-
-
-# Potentials factory
-
-_factory = {}
-
-def update(module, factory):
-    import sys
-    import inspect
-    for name, func in inspect.getmembers(sys.modules[module],
-                                         inspect.isfunction):
-        if name is not 'update':
-            factory[name] = func
-
-update(__name__, _factory)
+from atooms.interaction import library
+from atooms.interaction import decorators
 
 
 def tabulate(potential, parameters, cutoff='c', rc=2.5, npoints=10000,
@@ -121,9 +107,13 @@ class PairPotential(object):
 
         if not hasattr(self.func, '__call__'):
             # If func is not callable, look up the potential in the
-            # factory
-            if self.func in _factory:
-                self.func = _factory[func]
+            # potential library
+            if self.func in library.__all__:
+                self.func = getattr(library, self.func)
+            elif self.func in decorators.__all__:
+                # Decorate the potential
+                # Used to implement hard potentials
+                getattr(decorators, self.func)(self)
             else:
                 raise ValueError('unknown potential %s' % self.func)
 
