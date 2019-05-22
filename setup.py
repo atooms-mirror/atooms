@@ -30,6 +30,7 @@ setup(name='atooms',
                 'atooms/plugins', 'atooms/simulation', 'atooms/system', 
                 'atooms/trajectory'],
       scripts=['bin/trj.py'],
+      long_description_content_type="text/markdown",
       install_requires=['numpy'],
       license='GPLv3',
       classifiers=[

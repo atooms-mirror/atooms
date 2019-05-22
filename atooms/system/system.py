@@ -34,6 +34,14 @@ class System(object):
         # Internal data dictionary for array dumps
         self._data = None
 
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        # Note: when making a shallow copy the _data cache
+        # may need to be cleared. We might set self._data to None here.
+        return result
+
     @property
     def number_of_dimensions(self):
         """
@@ -285,6 +293,12 @@ class System(object):
             #!python
             dump = system.dump(['pos', 'vel'])
         """
+        # Unless a view is requested the default behavior is to always
+        # create a new dump. This allows changes in the particles'
+        # properties or particle number to be reflected in the dump.
+        if not view:
+            clear = True
+
         # Setup data dictionary
         if self._data is None or clear:
             self._data = {}
