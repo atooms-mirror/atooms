@@ -87,7 +87,11 @@ write_dump all custom {} fx fy fz modify format line "%.15g %.15g %.15g"
             if 'Step' in line:
                 found = True
             elif found:
-                self.energy = float(line.split()[2]) * len(particle)
+                _, T, U, _, _, P = [float(x) for x in line.split()]
+                rho = len(particle) / cell.volume
+                ndim = len(cell.side)
+                self.energy = U * len(particle)
+                self.virial = (P - rho*T) * ndim * cell.volume
                 break
 
         new_system = TrajectoryLAMMPS(file_tmp)[-1]
