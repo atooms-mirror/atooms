@@ -18,14 +18,21 @@ from atooms.core.utils import rmd
 # Lammps command
 lammps_command = 'lammps'
 
-# LAMMPS parallel environment
-lammps_mpi_tasks = 1
-
+# MPI environment
+try:
+    lammps_mpi_tasks = 1
+    lammps_mpi = 'mpirun'
+    cmd = '{} --version'.format(lammps_mpi)
+    _ = subprocess.check_output(cmd, shell=True,
+                                stderr=subprocess.STDOUT, executable='/bin/bash')
+except subprocess.CalledProcessError:
+    lammps_mpi_tasks = 1
+    lammps_mpi = ''
 
 def _get_lammps_version():
     """Return lammps version and raise an exception if lammps is not installed"""
     try:
-        cmd = 'mpirun -n 1 {} < /dev/null'.format(lammps_command)
+        cmd = '{} {} < /dev/null'.format(lammps_mpi, lammps_command)
         _ = subprocess.check_output(cmd, shell=True,
                                     stderr=subprocess.STDOUT, executable='/bin/bash')
         version = _.decode().split('\n')[0][8:-1]
@@ -36,7 +43,8 @@ def _get_lammps_version():
 def _run_lammps_command(cmd):
     """Run a lammps script from the command line"""
     # see https://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
-    p = subprocess.Popen(['mpirun -n {} {}'.format(lammps_mpi_tasks, lammps_command)],
+    opt = '-n {}'.format(lammps_mpi_tasks) if lammps_mpi else ''
+    p = subprocess.Popen(['{} {} {}'.format(lammps_mpi, opt, lammps_command)],
                          shell=True,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
@@ -87,7 +95,11 @@ write_dump all custom {} fx fy fz modify format line "%.15g %.15g %.15g"
             if 'Step' in line:
                 found = True
             elif found:
-                self.energy = float(line.split()[2]) * len(particle)
+                _, T, U, _, _, P = [float(x) for x in line.split()]
+                rho = len(particle) / cell.volume
+                ndim = len(cell.side)
+                self.energy = U * len(particle)
+                self.virial = (P - rho*T) * ndim * cell.volume
                 break
 
         new_system = TrajectoryLAMMPS(file_tmp)[-1]

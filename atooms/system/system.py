@@ -334,14 +334,21 @@ class System(object):
 
         for what, dtype in zip(what_list, dtype_list):
             # Skip if it has been dumped already
+            # and the number of particles has not changed
+            # Note: if particles are reassigned the dump will
+            # not be updated. It can be fixed by keeping a list of ids
+            # although testing it would bring a overhead.
             if what in self._data:
-                continue
+                if 'npart' in self._data and \
+                   self._data['npart'] == len(self.particle):
+                    continue
 
             # Extract the requested attribute
             attr = what.split('.')[-1]
 
             # Make array of attributes
             if what.startswith('particle'):
+                self._data['npart'] = len(self.particle)
                 data = numpy.array([getattr(p, attr) for p in self.particle], dtype=dtype)
                 # We transpose the array if F order is requested
                 if order == 'F':
@@ -351,12 +358,12 @@ class System(object):
                     # view on the dump array. Pay attention of C / F order.
                     # To check if particle properties and dump are associated:
                     # numpy.may_share_memory(p[0].position, pos[:, 0])
-                    if view and order == 'C' and attr in ['position', 'velocity']:
+                    if view and order == 'C':
                         for i, p in enumerate(self.particle):
-                            setattr(p, attr, data[i, :])
-                    if view and order == 'F' and attr in ['position', 'velocity']:
+                            setattr(p, attr, data[i, ...])
+                    if view and order == 'F':
                         for i, p in enumerate(self.particle):
-                            setattr(p, attr, data[:, i])
+                            setattr(p, attr, data[..., i])
                 else:
                     data = numpy.flatten(data, order=order)
                     if view and attr in ['position', 'velocity']:
@@ -366,6 +373,8 @@ class System(object):
 
             elif what.startswith('cell'):
                 data = numpy.array(getattr(self.cell, attr), dtype=dtype)
+                if view:
+                    setattr(self.cell, attr, data)
             else:
                 raise ValueError('Unknown attribute %s' % what)
 
