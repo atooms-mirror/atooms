@@ -90,7 +90,7 @@ class CutOff(object):
 
         elif self.scheme in ['qs', 'QS']:
             u_new[0] = u[0] + self.Acut * rsquare + self.Bcut
-            u_new[1] = u[1] + self.Acut * 2
+            u_new[1] = u[1] - self.Acut * 2
 
         elif self.scheme in ['cspl', 'CSPL']:
             # cubic splined between rcut1 and rcut :
