@@ -365,7 +365,7 @@ class System(object):
                         for i, p in enumerate(self.particle):
                             setattr(p, attr, data[..., i])
                 else:
-                    data = numpy.flatten(data, order=order)
+                    data = data.flatten(order=order)
                     if view and attr in ['position', 'velocity']:
                         ndim = self.number_of_dimensions
                         for i, p in enumerate(self.particle):
