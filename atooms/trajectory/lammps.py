@@ -97,6 +97,10 @@ class TrajectoryLAMMPS(TrajectoryBase):
                         entry = data[7+len(block):]
                         self._index_db[block].append((line, entry))
                         break
+                # Avoid reading after ATOOMS block has been found
+                # We assume it is the last block in the file
+                if block == 'ATOMS':
+                    break
         self._fh.seek(0)
 
     def read_steps(self):
