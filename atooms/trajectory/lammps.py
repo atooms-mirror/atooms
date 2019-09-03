@@ -222,8 +222,15 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
         TrajectoryFolder.__init__(self, filename, mode=mode,
                                   file_pattern=file_pattern,
                                   step_pattern=step_pattern)
-        # We force reading steps from lammps file
+        # Small trick to force reading steps from lammps file
         self._steps = None
+        # Sort frames according to step read in lammps file
+        sorted_steps = sorted(self.steps)
+        files_with_steps = zip(self.files, self.steps)
+        files_with_steps.sort(key=lambda x: sorted_steps.index(x[1]))
+        files = [_[0] for _ in files_with_steps]
+        self.files = files
+        self._steps = sorted_steps
 
     def read_steps(self):
         steps = []
