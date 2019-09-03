@@ -395,21 +395,22 @@ def formats():
 def info(trajectory, keys=None):
     """Return a string with information about a `trajectory` instance."""
     from atooms.system.particle import distinct_species, composition
-
+    system = trajectory[0]
     if keys is None:
+        
         # Default: full info
         txt = ''
         txt += 'path                 = %s\n' % trajectory.filename
         txt += 'format               = %s\n' % trajectory.__class__
         txt += 'frames               = %s\n' % len(trajectory)
         txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
-        txt += 'particles            = %s\n' % len(trajectory[0].particle)
-        txt += 'species              = %s\n' % ', '.join(distinct_species(trajectory[0].particle))
-        txt += 'composition          = %s\n' % dict(composition(trajectory[0].particle))
-        txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in trajectory[0].particle]) / numpy.mean([p.radius for p in trajectory[0].particle]))
-        txt += 'density              = %s\n' % round(trajectory[0].density, 10)
-        txt += 'cell side            = %s\n' % str(list(trajectory[0].cell.side))[1: -1]
-        txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
+        txt += 'particles            = %s\n' % len(system.particle)
+        txt += 'species              = %s\n' % ', '.join(distinct_species(system.particle))
+        txt += 'composition          = %s\n' % dict(composition(system.particle))
+        txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in system.particle]) / numpy.mean([p.radius for p in system.particle]))
+        txt += 'density              = %s\n' % round(system.density, 10)
+        txt += 'cell side            = %s\n' % str(list(system.cell.side))[1: -1]
+        txt += 'cell volume          = %s\n' % system.cell.volume
         if len(trajectory) > 1:
             txt += 'steps                = %s\n' % trajectory.steps[-1]
             txt += 'duration             = %s\n' % trajectory.times[-1]
@@ -438,17 +439,17 @@ def info(trajectory, keys=None):
             elif key == 'megabytes':
                 outs.append(os.path.getsize(trajectory.filename) / 1e6)
             elif key == 'particles':
-                outs.append(len(trajectory[0].particle))
+                outs.append(len(system.particle))
             elif key == 'species':
-                outs.append(', '.join(distinct_species(trajectory[0].particle)))
+                outs.append(', '.join(distinct_species(system.particle)))
             elif key == 'composition':
-                outs.append(dict(composition(trajectory[0].particle)))
+                outs.append(dict(composition(system.particle)))
             elif key == 'cell density':
-                outs.append(round(trajectory[0].density, 10))
+                outs.append(round(system.density, 10))
             elif key == 'cell side':
-                outs.append(str(list(trajectory[0].cell.side))[1: -1])
+                outs.append(str(list(system.cell.side))[1: -1])
             elif key == 'cell volume':
-                outs.append(trajectory[0].cell.volume)
+                outs.append(system.cell.volume)
             elif key == 'steps':
                 outs.append(trajectory.steps[-1])
             elif key == 'duration':
