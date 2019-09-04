@@ -71,9 +71,10 @@ class TrajectoryLAMMPS(TrajectoryBase):
             'fx': _parse_fx, 'fy': _parse_fy, 'fz': _parse_fz,
             'type': _parse_type}
 
-    def __init__(self, filename, mode='r'):
+    def __init__(self, filename, mode='r', single_frame=False):
         TrajectoryBase.__init__(self, filename, mode)
         self.precision = 14  # default to double precision
+        self.single_frame = single_frame
         self._fh = open(self.filename, self.mode)
         if mode == 'r':
             self._setup_index()
@@ -97,9 +98,11 @@ class TrajectoryLAMMPS(TrajectoryBase):
                         entry = data[7+len(block):]
                         self._index_db[block].append((line, entry))
                         break
-                # Avoid reading after ATOOMS block has been found
-                # We assume it is the last block in the file
-                if block == 'ATOMS':
+                # Avoid reading after ATOOMS block has been found.
+                # We assume it is the last block in the file.
+                # The single_frame variable is a hint that there are
+                # no more frames in the file
+                if block == 'ATOMS' and self.single_frame:
                     break
         self._fh.seek(0)
 
@@ -239,7 +242,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
     def read_steps(self):
         steps = []
         for filename in self.files:
-            with TrajectoryLAMMPS(filename, 'r') as th:
+            with TrajectoryLAMMPS(filename, 'r', single_frame=True) as th:
                 steps.append(th.steps[0])
         return steps
 
