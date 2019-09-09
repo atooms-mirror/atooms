@@ -71,10 +71,13 @@ class TrajectoryLAMMPS(TrajectoryBase):
             'fx': _parse_fx, 'fy': _parse_fy, 'fz': _parse_fz,
             'type': _parse_type}
 
-    def __init__(self, filename, mode='r', single_frame=False):
+    def __init__(self, filename, mode='r', single_frame=False,
+                 first_particle=-1, last_particle=-1):
         TrajectoryBase.__init__(self, filename, mode)
         self.precision = 14  # default to double precision
         self.single_frame = single_frame
+        self.first_particle = first_particle
+        self.last_particle = last_particle
         self._fh = open(self.filename, self.mode)
         if mode == 'r':
             self._setup_index()
@@ -126,8 +129,14 @@ class TrajectoryLAMMPS(TrajectoryBase):
 
         # Build the system
         system = System()
-        system.particle = [Particle() for i in range(npart)]
-
+        system.particle = []
+        for i in xrange(npart):
+            if self.first_particle > 0 and i < self.first_particle:
+                continue
+            if self.last_particle > 0 and i >= self.last_particle:
+                break
+            system.particle.append(Particle())
+            
         # Add cell
         idx, data = self._index_db['BOX BOUNDS'][frame]
         self._fh.seek(idx)
@@ -148,19 +157,25 @@ class TrajectoryLAMMPS(TrajectoryBase):
         # Add interaction if forces are present
         # In atooms, forces belong to the interaction, not to particles
         if 'fx' in fields or 'fy' in fields or 'fz' in fields:
+            # TODO: this won't work with first and last particles
             system.interaction = Interaction([])  # empty list of potentials
             system.interaction.forces = numpy.ndarray((npart, ndim))
         else:
             interaction = None
 
-        for i in range(npart):
+        for i in xrange(npart):
+            # Limit reading the ATOMS section if requested
+            if self.first_particle > 0 and i < self.first_particle:
+                continue
+            if self.last_particle > 0 and i >= self.last_particle:
+                break
             data = self._fh.readline().split()
             # Accept unsorted particles by parsing their id
             if 'id' in fields:
                 idx = int(data[0]) - 1
             else:
                 idx = i
-            # Read fields
+            # Populate particle's attributes by reading fields
             for j, field in enumerate(fields):
                 if field in self._cbk:
                     self._cbk[field](data[j], idx, system)
@@ -225,10 +240,13 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 
     suffix = '.tgz'
 
-    def __init__(self, filename, mode='r', file_pattern='*', step_pattern=r'[a-zA-Z\.]*(\d*)'):
+    def __init__(self, filename, mode='r', file_pattern='*',
+                 step_pattern=r'[a-zA-Z\.]*(\d*)', first_particle=-1, last_particle=-1):
         TrajectoryFolder.__init__(self, filename, mode=mode,
                                   file_pattern=file_pattern,
                                   step_pattern=step_pattern)
+        self.first_particle = first_particle
+        self.last_particle = last_particle
         # Small trick to force reading steps from lammps file
         self._steps = None
         # Sort frames according to step read in lammps file
@@ -242,12 +260,16 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
     def read_steps(self):
         steps = []
         for filename in self.files:
-            with TrajectoryLAMMPS(filename, 'r', single_frame=True) as th:
+            with TrajectoryLAMMPS(filename, 'r', single_frame=True,
+                                  first_particle=self.first_particle,
+                                  last_particle=self.last_particle) as th:
                 steps.append(th.steps[0])
         return steps
 
     def read_sample(self, frame):
-        with TrajectoryLAMMPS(self.files[frame], 'r') as th:
+        with TrajectoryLAMMPS(self.files[frame], 'r', single_frame=True,
+                              first_particle=self.first_particle,
+                              last_particle=self.last_particle) as th:
             return th[0]
 
     def write_sample(self, system, step):
