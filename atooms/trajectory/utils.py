@@ -200,7 +200,8 @@ def check_block_size(steps, block_size, prune=False):
     ibl, jbl = 0, 0
     prune_me = []
     for i, step in enumerate(steps_local):
-        step_expected = ibl * steps_local[block_size] + block[jbl]
+        offset = block[0] if ibl > 0 else 0
+        step_expected = ibl * (steps_local[block_size] - offset) + block[jbl]
         if step == step_expected:
             if jbl == block_size-1:
                 # We are done with this block, we start over
@@ -214,7 +215,7 @@ def check_block_size(steps, block_size, prune=False):
 
     # Remove samples that do not conform with first block
     if prune and len(prune_me) > 0:
-        print('#', len(prune_me), 'samples should be pruned')
+        #print('#', len(prune_me), 'samples should be pruned')
         for step in prune_me:
             _ = steps_local.pop(steps_local.index(step))
 
@@ -224,20 +225,21 @@ def check_block_size(steps, block_size, prune=False):
     if rest > 1:
         steps_local = steps_local[:-rest]
         print('# block was truncated')
-
+        
     # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
     nbl = len(steps_local) // block_size
     for i in range(nbl):
-        i0 = steps_local[i * block_size]
-        current = steps_local[i * block_size: (i + 1) * block_size]
-        current = [ii - i0 for ii in current]
-        if not current == block:
-            print('# periodicity issue at block %i out of %i' % (i, nbl))
-            print('# current     :', current)
-            print('# finger print:', block)
-            raise IndexError('block does not match finger print')
-
+        # We test that the difference between the finger print and the
+        # first sample in the block is constant
+        diff_last = None
+        for j in range(len(block)):
+            diff = steps_local[i*block_size + j] - block[j]
+            if diff_last is None:
+                diff_last = diff
+            if diff_last != diff:
+                print('# finger print:', block)
+                raise IndexError('block does not match finger print')
     return steps_local
 
 
