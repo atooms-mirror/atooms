@@ -484,14 +484,20 @@ The MSD as a function of time should look linear.
 
 ** Molecular dynamics with LAMMPS
 
-Atooms provides a simulation backend for LAMMPS, an efficient and feature-rich molecular dynamics simulation package.
-The backend accepts a string variable containing regular LAMMPS commands and a trajectory that provides the starting configuration for the simulation.
+Atooms provides a simulation backend for =LAMMPS=, an efficient and feature-rich molecular dynamics simulation package.
+The backend accepts a string variable containing regular LAMMPS commands and initial configuration to start the simulation. The latter can be provided in any of the following forms:
+- a System object
+- a Trajectory object
+- the path to an xyz trajectory
+In the last two cases, the last configuration will be used to start the simulation. 
+
+Here we we use the first configuration of an existing trajectory for a Lennard-Jones fluid
 #+begin_src python :exports both :results output :session
   import atooms.trajectory as trj
   from atooms.backends.lammps import LAMMPS
 
   import os
-  inp = trj.TrajectoryXYZ('../../data/lj_N1000_rho1.0.xyz')
+  system = trj.TrajectoryXYZ('../../data/lj_N1000_rho1.0.xyz')[0]
   cmd = """
   pair_style      lj/cut 2.5
   pair_coeff      1 1 1.0 1.0  2.5
@@ -499,7 +505,7 @@ The backend accepts a string variable containing regular LAMMPS commands and a t
   neigh_modify    check yes
   timestep        0.002
   """
-  backend = LAMMPS(inp, cmd)
+  backend = LAMMPS(inp, system)
 #+end_src
 
 #+results:
@@ -563,6 +569,39 @@ We can use the [[https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/][
 
 #+results:
 [[file:lammps_gr.png]]
+
+** Energy minimization with LAMMPS
+It is possible to minimize the energy of a system to determine its so-called inherent structure using LAMMPS as a backend. To achieve this, atooms defines an =Optimization= class, which behaves mostly as =Simulation= except that it stops when the mean square total force
+$$
+W=\frac{1}{N}\sum_i |f_i|^2
+$$
+is lower than a given =tolerance=.
+#+begin_src python :results output
+  from atooms.trajectory import TrajectoryXYZ
+  from atooms.optimization import Optimization
+  from atooms.backends.lammps import EnergyMinimization
+  cmd = """
+  pair_style      lj/cut 2.5
+  pair_modify     shift yes
+  pair_coeff      1 1 1.0 1.0 2.5
+  """
+  system = TrajectoryXYZ('../../data/lj_N256_rho1.0.xyz')[0]
+  bck = EnergyMinimization(system, cmd)
+  opt = Optimization(bck, tolerance=1e-10)
+  opt.run()
+#+end_src
+
+#+results:
+
+We check that $W$ is lower than the requested tolerance
+#+begin_src python :results output
+  e_final = system.potential_energy(per_particle=True)
+  w_final = system.force_norm_square(per_particle=True)
+  print('Energy={}, mean square force={:.2g}'.format(e_final, w_final))
+#+end_src
+
+#+results:
+: Energy=-6.8030584, mean square force=3.6e-11
 
 * Trajectories
 ** Flexible trajectory output

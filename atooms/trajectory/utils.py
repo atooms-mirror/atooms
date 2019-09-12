@@ -200,7 +200,8 @@ def check_block_size(steps, block_size, prune=False):
     ibl, jbl = 0, 0
     prune_me = []
     for i, step in enumerate(steps_local):
-        step_expected = ibl * steps_local[block_size] + block[jbl]
+        offset = block[0] if ibl > 0 else 0
+        step_expected = ibl * (steps_local[block_size] - offset) + block[jbl]
         if step == step_expected:
             if jbl == block_size-1:
                 # We are done with this block, we start over
@@ -214,7 +215,7 @@ def check_block_size(steps, block_size, prune=False):
 
     # Remove samples that do not conform with first block
     if prune and len(prune_me) > 0:
-        print('#', len(prune_me), 'samples should be pruned')
+        #print('#', len(prune_me), 'samples should be pruned')
         for step in prune_me:
             _ = steps_local.pop(steps_local.index(step))
 
@@ -224,20 +225,21 @@ def check_block_size(steps, block_size, prune=False):
     if rest > 1:
         steps_local = steps_local[:-rest]
         print('# block was truncated')
-
+        
     # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
     nbl = len(steps_local) // block_size
     for i in range(nbl):
-        i0 = steps_local[i * block_size]
-        current = steps_local[i * block_size: (i + 1) * block_size]
-        current = [ii - i0 for ii in current]
-        if not current == block:
-            print('# periodicity issue at block %i out of %i' % (i, nbl))
-            print('# current     :', current)
-            print('# finger print:', block)
-            raise IndexError('block does not match finger print')
-
+        # We test that the difference between the finger print and the
+        # first sample in the block is constant
+        diff_last = None
+        for j in range(len(block)):
+            diff = steps_local[i*block_size + j] - block[j]
+            if diff_last is None:
+                diff_last = diff
+            if diff_last != diff:
+                print('# finger print:', block)
+                raise IndexError('block does not match finger print')
     return steps_local
 
 
@@ -395,21 +397,22 @@ def formats():
 def info(trajectory, keys=None):
     """Return a string with information about a `trajectory` instance."""
     from atooms.system.particle import distinct_species, composition
-
+    system = trajectory[0]
     if keys is None:
+        
         # Default: full info
         txt = ''
         txt += 'path                 = %s\n' % trajectory.filename
         txt += 'format               = %s\n' % trajectory.__class__
         txt += 'frames               = %s\n' % len(trajectory)
         txt += 'megabytes            = %s\n' % (os.path.getsize(trajectory.filename) / 1e6)
-        txt += 'particles            = %s\n' % len(trajectory[0].particle)
-        txt += 'species              = %s\n' % ', '.join(distinct_species(trajectory[0].particle))
-        txt += 'composition          = %s\n' % dict(composition(trajectory[0].particle))
-        txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in trajectory[0].particle]) / numpy.mean([p.radius for p in trajectory[0].particle]))
-        txt += 'density              = %s\n' % round(trajectory[0].density, 10)
-        txt += 'cell side            = %s\n' % str(list(trajectory[0].cell.side))[1: -1]
-        txt += 'cell volume          = %s\n' % trajectory[0].cell.volume
+        txt += 'particles            = %s\n' % len(system.particle)
+        txt += 'species              = %s\n' % ', '.join(distinct_species(system.particle))
+        txt += 'composition          = %s\n' % dict(composition(system.particle))
+        txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in system.particle]) / numpy.mean([p.radius for p in system.particle]))
+        txt += 'density              = %s\n' % round(system.density, 10)
+        txt += 'cell side            = %s\n' % str(list(system.cell.side))[1: -1]
+        txt += 'cell volume          = %s\n' % system.cell.volume
         if len(trajectory) > 1:
             txt += 'steps                = %s\n' % trajectory.steps[-1]
             txt += 'duration             = %s\n' % trajectory.times[-1]
@@ -438,17 +441,17 @@ def info(trajectory, keys=None):
             elif key == 'megabytes':
                 outs.append(os.path.getsize(trajectory.filename) / 1e6)
             elif key == 'particles':
-                outs.append(len(trajectory[0].particle))
+                outs.append(len(system.particle))
             elif key == 'species':
-                outs.append(', '.join(distinct_species(trajectory[0].particle)))
+                outs.append(', '.join(distinct_species(system.particle)))
             elif key == 'composition':
-                outs.append(dict(composition(trajectory[0].particle)))
+                outs.append(dict(composition(system.particle)))
             elif key == 'cell density':
-                outs.append(round(trajectory[0].density, 10))
+                outs.append(round(system.density, 10))
             elif key == 'cell side':
-                outs.append(str(list(trajectory[0].cell.side))[1: -1])
+                outs.append(str(list(system.cell.side))[1: -1])
             elif key == 'cell volume':
-                outs.append(trajectory[0].cell.volume)
+                outs.append(system.cell.volume)
             elif key == 'steps':
                 outs.append(trajectory.steps[-1])
             elif key == 'duration':

@@ -57,7 +57,7 @@ def lennard_jones(rsq, epsilon, sigma):
     sigsq = sigma**2
     u = 4 * epsilon * ((sigsq/rsq)**6 - (sigsq/rsq)**3)
     w = 24 * epsilon * (2*(sigsq/rsq)**6 - (sigsq/rsq)**3) / rsq
-    h = 0.0
+    h = 96 * epsilon * (7*(sigsq/rsq)**6 - 2*(sigsq/rsq)**3) / rsq**2
     return u, w, h
 
 def harmonic_sphere(rsq, epsilon, sigma):

@@ -168,7 +168,12 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
         u1 = numpy.ndarray(npoints)
         u2 = numpy.ndarray(npoints)
         # We overshoot 2 points beyond rmax (cutoff) to avoid
-        # smoothing discontinuous potentials
+        # smoothing discontinuous potentials.
+        # This is necessary also for the Allen Tildesley lookup table,
+        # which for any distance within the cutoff will look up two
+        # points forward in the table.
+        # Note that the cutoff is applied to the function only to smooth it
+        # not to cut it.
         drsq = (rmax**2 - rmin**2) / (npoints - 3)
         for i in range(npoints):
             rsq[i] = rmin**2 + i * drsq

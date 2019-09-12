@@ -67,9 +67,9 @@ class CutOff(object):
             u2 = u[2]*self.radius_mid**2 - u[1]  # second order derivative
             u1 = - u[1] * self.radius_mid  # first order derivative
             u0 = u[0]
-            self.Acut = - u2**2 / (12*u1)
-            self.Ccut = - u0 + (2*u1**2) / (3*u2)
-            self.radius = self.radius_mid - (2*u1/u2)
+            self.Acut = - u2**2 / (12.0*u1)
+            self.Ccut = - u0 + (2.0*u1**2) / (3.0*u2)
+            self.radius = self.radius_mid - (2.0*u1/u2)
             self.radius_sq = self.radius**2 
         else:
             raise NotImplementedError()
@@ -90,7 +90,7 @@ class CutOff(object):
 
         elif self.scheme in ['qs', 'QS']:
             u_new[0] = u[0] + self.Acut * rsquare + self.Bcut
-            u_new[1] = u[1] + self.Acut * 2
+            u_new[1] = u[1] - self.Acut * 2
 
         elif self.scheme in ['cspl', 'CSPL']:
             # cubic splined between rcut1 and rcut :

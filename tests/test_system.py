@@ -253,6 +253,53 @@ class Test(unittest.TestCase):
         self.assertFalse((p[0].position == pos[:, 0]).all())
         self.assertFalse(numpy.may_share_memory(p[0].position, pos[:, 0]))
 
+    def test_dump_cbk(self):
+        """
+        Make sure that applying callbacks or changing the particle array
+        size creates a new dump.
+        """
+        import numpy
+        from atooms.system import Particle, System
 
+        for view in [False, True]:
+            p = [Particle(), Particle()]
+            s = System(p)
+            pos1 = s.dump("pos", view=view)
+            def cbk(system):
+                s = copy.copy(system)
+                s.particle = [system.particle[0]]
+                return s
+            s = cbk(s)
+            pos2 = s.dump('pos', view=view)
+            self.assertEqual(pos1.shape, (2, 3))
+            self.assertEqual(pos2.shape, (1, 3))
+            # Grandcanonical
+            s.particle.append(Particle())
+            self.assertEqual(s.dump('pos', view=view).shape, (2, 3))
+            # Reassign particle
+            # Expected failure with view = True
+            if not view:
+                s.particle[0] = Particle(position=[1.0, 1.0, 1.0])
+                self.assertEqual(s.dump('pos', view=view)[0][0], 1.0)
+
+    def test_dump_species(self):
+        """
+        Make sure that changing species in the dump is reflected in the
+        particle species and viceversa.
+        """
+        import numpy
+        from atooms.system import Particle, System
+
+        view = True
+        p = [Particle(), Particle()]
+        s = System(p)
+        spe = s.dump("particle.species", view=True)
+        spe[0] = 'B'        
+        self.assertEqual(spe[0], s.particle[0].species)
+        # With this syntax, the numpy scalar preserves the view!
+        # We should upgrade species to property and hide this inside
+        s.particle[0].species[()] = 'C'
+        self.assertEqual(spe[0], s.particle[0].species)
+        
 if __name__ == '__main__':
     unittest.main()

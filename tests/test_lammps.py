@@ -103,15 +103,17 @@ class Test(unittest.TestCase):
         bck.system.interaction.compute("energy", bck.system.particle, bck.system.cell)
         self.assertEqual(bck.system.interaction.energy / len(bck.system.particle), -4.2446836)  # crosschecked
 
-        # Relaxed FCC 
+        # Relaxed FCC
         bck = LAMMPS(os.path.join(os.path.dirname(__file__),
                                   '../data/lj_fcc_N108.xyz'), cmd)
-        bck.system.interaction.compute("energy", bck.system.particle, bck.system.cell)
+        bck.system.interaction.compute("forces", bck.system.particle, bck.system.cell)
         # Test norm of force per particle
         U = bck.system.potential_energy(per_particle=True)
         W = bck.system.force_norm(per_particle=True)
+        P = bck.system.pressure
         self.assertAlmostEqual(U, -7.7615881, places=7)
         self.assertAlmostEqual(W, 4.2e-11, places=2)
+        self.assertAlmostEqual(P, -3.3935748, places=7)
 
     def test_trajectory(self):
         import sys
