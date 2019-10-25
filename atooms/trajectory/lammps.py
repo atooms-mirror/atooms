@@ -11,6 +11,11 @@ from atooms.system import System, Particle, Cell
 from atooms.system.particle import distinct_species
 from atooms.interaction import Interaction
 
+import sys
+
+# Redefine range for python
+if sys.version_info[0] == 2:
+    range = xrange
 
 # Formatting callbacks
 
@@ -130,7 +135,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         # Build the system
         system = System()
         system.particle = []
-        for i in xrange(npart):
+        for i in range(npart):
             if self.first_particle > 0 and i < self.first_particle:
                 continue
             if self.last_particle > 0 and i >= self.last_particle:
@@ -163,7 +168,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         else:
             interaction = None
 
-        for i in xrange(npart):
+        for i in range(npart):
             # Limit reading the ATOMS section if requested
             if self.first_particle > 0 and i < self.first_particle:
                 continue
