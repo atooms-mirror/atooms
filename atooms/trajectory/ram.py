@@ -63,7 +63,7 @@ class TrajectoryRam(TrajectoryBase):
         except:
             ind = None
 
-        if self._particle_cls is None:
+        if self._particle_cls is None and len(system.particle) > 0:
             self._particle_cls = system.particle[0].__class__
         if self._system_cls is None:
             self._system_cls = system.__class__
