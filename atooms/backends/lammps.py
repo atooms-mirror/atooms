@@ -49,6 +49,7 @@ def _run_lammps_command(cmd):
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          executable='/bin/bash')
+    #print(cmd.encode('utf8'))
     stdout = p.communicate(input=cmd.encode('utf8'))[0]
     code = p.returncode
     if code != 0:
@@ -102,8 +103,9 @@ write_dump all custom {} fx fy fz modify format line "%.15g %.15g %.15g"
                 self.virial = (P - rho*T) * ndim * cell.volume
                 break
 
-        new_system = TrajectoryLAMMPS(file_tmp)[-1]
-        self.forces = new_system.interaction.forces
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+            self.forces = new_system.interaction.forces
 
         # Clean up
         rmd(dirout)
@@ -224,9 +226,10 @@ write_dump all custom {} id type x y z vx vy vz modify sort id format line "%d %
 
         # Update internal reference to self.system
         # Note that the thermostat and barostat are not touched
-        new_system = TrajectoryLAMMPS(file_tmp)[-1]
-        for i in range(len(self.system.particle)):
-            self.system.particle[i] = new_system.particle[i]
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+            for i in range(len(self.system.particle)):
+                self.system.particle[i] = new_system.particle[i]
 
         # Clean up
         rmd(dirout)
