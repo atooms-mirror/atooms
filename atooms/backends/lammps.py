@@ -32,7 +32,7 @@ except subprocess.CalledProcessError:
 def _get_lammps_version():
     """Return lammps version and raise an exception if lammps is not installed"""
     try:
-        cmd = '{} {} < /dev/null'.format(lammps_mpi, lammps_command)
+        cmd = 'echo | {} {}'.format(lammps_mpi, lammps_command)
         _ = subprocess.check_output(cmd, shell=True,
                                     stderr=subprocess.STDOUT, executable='/bin/bash')
         version = _.decode().split('\n')[0][8:-1]
