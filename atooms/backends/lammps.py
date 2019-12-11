@@ -42,18 +42,17 @@ def _get_lammps_version():
 
 def _run_lammps_command(cmd):
     """Run a lammps script from the command line"""
-    # see https://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
+    dirout = tempfile.mkdtemp()
+    file_tmp = os.path.join(dirout, 'cmd.lammps')
+    with open(file_tmp, 'w') as fh:
+        fh.write(cmd)
     opt = '-n {}'.format(lammps_mpi_tasks) if lammps_mpi else ''
-    p = subprocess.Popen(['{} {} {}'.format(lammps_mpi, opt, lammps_command)],
-                         shell=True,
-                         stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE,
-                         executable='/bin/bash')
-    #print(cmd.encode('utf8'))
-    stdout = p.communicate(input=cmd.encode('utf8'))[0]
-    code = p.returncode
-    if code != 0:
-        raise RuntimeError(stdout)
+    shell_cmd = '{} {} {} -in {}'.format(lammps_mpi, opt, lammps_command, file_tmp)
+    stdout = subprocess.check_output(shell_cmd, shell=True,
+                                     stderr=subprocess.STDOUT,
+                                     executable='/bin/bash')
+    # Clean up
+    rmd(dirout)
     return stdout.decode()
 
 
