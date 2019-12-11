@@ -46,8 +46,9 @@ class System(object):
     `atooms.system.System` required for a valid simulation backend.
     """
 
-    def __init__(self):
-        self.particle = []
+    def __init__(self, particle=None, cell=None, thermostat=None,
+                 barostat=None, reservoir=None):
+        self.particle = particle if particle is not None else []
         self.cell = None
         self.thermostat = Thermostat()
         self.barostat = None
