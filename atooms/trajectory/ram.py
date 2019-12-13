@@ -18,7 +18,7 @@ class TrajectoryRamFull(TrajectoryBase):
             # Overwrite
             ind = self.steps.index(step)
             self._system[ind] = copy.deepcopy(system)
-        except IndexError:
+        except ValueError:
             self._system.append(copy.deepcopy(system))
             self.steps.append(step)
 
@@ -65,7 +65,7 @@ class TrajectoryRam(TrajectoryBase):
         try:
             # Overwrite
             ind = self.steps.index(step)
-        except IndexError:
+        except ValueError:
             ind = None
 
         if self._particle_cls is None and len(system.particle) > 0:
