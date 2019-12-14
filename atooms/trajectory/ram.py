@@ -41,12 +41,12 @@ class TrajectoryRam(TrajectoryBase):
     """
     Store trajectory in RAM.
 
-    Somewhat lighter in terms of memory than TrajectoryRamFull. We do
-    not store velocities.
+    We make explicit copies of system variables.
     """
 
     def __init__(self, fname=None, mode='w'):
         # TODO: refactor via dict of particle properties to write/read
+        # TODO: delegate to custom copy method in System?
         TrajectoryBase.__init__(self, fname, mode)
         self._pos = []
         self._vel = []

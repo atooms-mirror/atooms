@@ -120,6 +120,17 @@ class Test(unittest.TestCase):
         si.add(target, 1000, 'rmsd', 1.0)
         si.run()
 
+    def test_system_copy(self):
+        """Make sure rumd systems can be deepcopied"""
+        import copy
+        si = Simulation(self.backend,
+                        output_path='/tmp/test_rumd_single/trajectory',
+                        steps=2000, checkpoint_interval=100,
+                        restart=False)
+        s0 = copy.copy(si.system)
+        s1 = copy.deepcopy(si.system)
+        self.assertEqual(si.system.particle[0].position[-1], s1.particle[0].position[-1])
+        
     def tearDown(self):
         os.system('rm -rf /tmp/test_rumd_*')
 
