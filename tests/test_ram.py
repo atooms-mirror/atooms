@@ -11,7 +11,6 @@ class Test(unittest.TestCase):
     def setUp(self):
         pass
 
-    @unittest.expectedFailure
     def test_ram_inplace(self):
         particle = [Particle([0.0, 0.0, 0.0])]
         system = System(particle)
@@ -41,11 +40,11 @@ class Test(unittest.TestCase):
     def test_ram_lammps(self):
         import os
         import numpy
+        import sys
         from atooms.backends.lammps import LAMMPS
         from atooms.simulation import Simulation
-        self.input_file = os.path.join(os.path.dirname(__file__),
-                                       '../data/lj_N1000_rho1.0.xyz')
-        import sys
+        input_file = os.path.join(os.path.dirname(__file__),
+                                  '../data/lj_N1000_rho1.0.xyz')
         cmd = """
         pair_style      lj/cut 2.5
         pair_coeff      1 1 1.0 1.0 2.5
@@ -53,7 +52,7 @@ class Test(unittest.TestCase):
         neigh_modify    every 20 delay 0 check no
         fix             1 all nve
         """
-        bck = LAMMPS(self.input_file, cmd)
+        bck = LAMMPS(input_file, cmd)
         sim = Simulation(bck)
         sim.system.particle[0].position = numpy.zeros(3)
 
@@ -65,39 +64,67 @@ class Test(unittest.TestCase):
     def test_ram_unfolded(self):
         import os
         import numpy
+        import random
         from atooms.backends.lammps import LAMMPS
         from atooms.trajectory import TrajectoryXYZ, Unfolded
-        input_file = os.path.join(os.path.dirname(__file__),
-                                  '../data/lj_N1000_rho1.0.xyz')
-        tinp = TrajectoryXYZ(input_file)
+        from atooms.simulation import Simulation
+        from atooms.system import Thermostat
+        
+        def store(sim, ram):
+            ram.write(sim.system, step=sim.current_step)            
+
         tf = TrajectoryRamFull()
         t = TrajectoryRam()
+        tinp = TrajectoryXYZ(os.path.join(os.path.dirname(__file__),
+                                          '../data/ka_N150_rho1.200.xyz'))
         for i, s in enumerate(tinp):
             tf[i] = s
             t[i] = s
-        self.assertTrue((tf[-1].particle[-1].position == tinp[-1].particle[-1].position).all())
-        self.assertTrue((t[-1].particle[-1].position == tinp[-1].particle[-1].position).all())
+        # input_file = os.path.join(os.path.dirname(__file__),
+        #                           '../data/lj_fcc_N108.xyz')
+        # cmd = """
+        # pair_style      lj/cut 2.5
+        # pair_coeff      1 1 1.0 1.0 2.5
+        # neighbor        0.3 bin
+        # neigh_modify    every 20 delay 0 check no
+        # timestep        0.003
+        # """
+        # random.seed(1)
+        # bck = LAMMPS(input_file, cmd)
+        # sim = Simulation(bck)
+        # sim.system.thermostat = Thermostat(4.0, relaxation_time=10.0)
+        # sim.system.temperature = 4.0
+        # sim.add(store, 100, tf)
+        # sim.run(10000)
+        tuf = Unfolded(tf, fixed_cm=True)
 
-        tu = Unfolded(t, fixed_cm=False)
-        for s in tu:
-            pass
-        self.assertTrue((t[-1].particle[-1].position == tinp[-1].particle[-1].position).all())
-
-        tu = Unfolded(tf, fixed_cm=False)
-        for s in tu:
-            pass
-        self.assertTrue((tf[-1].particle[-1].position == tinp[-1].particle[-1].position).all())
-
+        # random.seed(1)
+        # bck = LAMMPS(input_file, cmd)
+        # sim = Simulation(bck)
+        # sim.system.thermostat = Thermostat(4.0, relaxation_time=10.0)
+        # sim.system.temperature = 4.0
+        # sim.add(store, 100, t)
+        # sim.run(10000)
         tu = Unfolded(t, fixed_cm=True)
-        for s in tu:
-            pass
-        self.assertTrue((t[-1].particle[-1].position == tinp[-1].particle[-1].position).all())
+        # print tu[0].particle[0].position
+        # print tu[-1].particle[0].position
+        for s, sf in zip(tu, tuf):
+            for p, pf in zip(s.particle, sf.particle):
+                self.assertTrue((p.position == pf.position).all())
 
-        tu = Unfolded(tf, fixed_cm=True)
-        for s in tu:
-            pass
-        self.assertTrue((tf[-1].particle[-1].position == tinp[-1].particle[-1].position).all())
+        def mobility(t):
+            import numpy as np
+            side = t[0].cell.side
+            K = 0
+            unfoldedtj = Unfolded(t, fixed_cm=True)
+            pos_0 = unfoldedtj[0].dump('pos')
+            for j in range(1, len(t)):
+                pos_1 = unfoldedtj[j].dump('pos')
+                K += np.sum((pos_1 - pos_0)**2)
+                pos_0 = pos_1
+            return K
 
+        #print mobility(t), mobility(tf)
 
 if __name__ == '__main__':
     unittest.main()
