@@ -73,7 +73,10 @@ class TrajectoryRam(TrajectoryBase):
         if self._system_cls is None:
             self._system_cls = system.__class__
 
-        particle = copy.copy(system.particle)
+        # We deepcopy to avoid inplace modification to positions and
+        # velocities to the underlying object to propagate to the
+        # systems in TrajectoryRam
+        particle = copy.deepcopy(system.particle)
         if ind is not None:
             # Overwrite
             self._radius[ind] = [p.radius for p in particle]
