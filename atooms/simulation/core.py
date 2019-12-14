@@ -304,7 +304,8 @@ class Simulation(object):
             if not self.restart or self.current_step == 0:
                 self.steps = steps
 
-        # Targeter for steps. This will the replace an existing one.
+        # Targeter for steps. We first replace the existing one
+        self.remove(self._targeter_steps)
         self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
                  self.current_step + self.steps)
 
