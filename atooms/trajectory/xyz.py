@@ -185,11 +185,19 @@ class TrajectoryXYZ(TrajectoryBase):
                 self._index_cell = line
                 break
 
-            # Skip npart+1 lines
+            # Skip npart+1 lines, making sure we have read precisely
+            # that number of lines
             _ = self.trajectory.readline()
-            self._index_frame.append(self.trajectory.tell())
+            line = self.trajectory.tell()
             for i in range(npart):
                 _ = self.trajectory.readline()
+            # Store first line /after/ we have read the frame
+            # making sure the last we read was not emtpy
+            # Note that readline() returns an empty string on EOF
+            if len(_) > 0:
+                self._index_frame.append(line)
+            else:
+                raise IOError('malformed xyz file [%s]', self.filename)
 
     def read_steps(self):
         """Find steps list."""
