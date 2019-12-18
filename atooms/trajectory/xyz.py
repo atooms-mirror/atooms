@@ -218,27 +218,36 @@ class TrajectoryXYZ(TrajectoryBase):
         self.trajectory.seek(self._index_header[frame])
         npart = int(self.trajectory.readline())
         data = self.trajectory.readline()
-
-        # TODO: accept "text text" entries
-        # TODO: accept extended xyz format
-        # Remove spaces around : or = and replace = by :
-        data = re.sub(r'\s*[=:]\s*', ':', data)
-
-        # Fill metadata dictionary
         meta = {}
         meta['npart'] = npart
-        for e in data.split():
-            s = re.search(r'(\S+):(\S+)', e)            
-            if s is not None:
-                tag, data = s.group(1), s.group(2)
-                # Remove dangling commas
-                data = data.strip(',')
-                # If there are commas, this is a list, else a scalar.
-                # We convert the string to appropriate types
-                if ',' in data:
-                    meta[tag] = [tipify(_) for _ in data.split(',')]
-                else:
-                    meta[tag] = tipify(data)
+
+        # Read metadata line
+        if not ('=' in data or ':' in data):
+            # The comment line contains a list of unspecified fields
+            # We add them to the dict using a sequential integer key
+            for i, value in enumerate(data.split()):
+                meta[i] = tipify(value)
+
+        else:
+            # The comment line contains self descriptive fields
+            # TODO: accept "text text" entries
+            # TODO: accept extended xyz format
+            # Remove spaces around : or = and replace = by :
+            data = re.sub(r'\s*[=:]\s*', ':', data)
+
+            # Fill metadata dictionary
+            for e in data.split():
+                s = re.search(r'(\S+):(\S+)', e)            
+                if s is not None:
+                    tag, data = s.group(1), s.group(2)
+                    # Remove dangling commas
+                    data = data.strip(',')
+                    # If there are commas, this is a list, else a scalar.
+                    # We convert the string to appropriate types
+                    if ',' in data:
+                        meta[tag] = [tipify(_) for _ in data.split(',')]
+                    else:
+                        meta[tag] = tipify(data)
 
         # Apply an alias dict to tags, e.g. to add step if Cfg was found instead
         for alias, tag in self.alias.items():
