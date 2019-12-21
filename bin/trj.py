@@ -95,6 +95,13 @@ def main(args):
     # will be fixed with python 3.
     ts = trajectory.Sliced(tu, sl)
 
+    # Change number of particles
+    if args.N > 0:
+        def decimate_system(system, N):
+            from atooms.system.particle import decimate
+            system.particle = decimate(system.particle, N)
+            return system
+        ts.register_callback(decimate_system, args.N)
     # Change density and temperature
     if args.rho is not None:
         ts.register_callback(trajectory.decorators.set_density, args.rho)
@@ -251,6 +258,7 @@ if __name__ == '__main__':
     parser_convert.add_argument(      '--side', dest='side', type=float, default=None, help='set cell side')
     parser_convert.add_argument(      '--density', dest='rho', type=float, default=None, help='new density')
     parser_convert.add_argument('-T', '--temperature', dest='temperature', type=float, default=None, help='new temperature')
+    parser_convert.add_argument('-N', '--number-of-particles', dest='N', type=int, default=-1, help='new number of particles')
     parser_convert.add_argument(      '--precision', dest='precision', type=int, default=None, help='write precision')
     parser_convert.add_argument(      '--species',dest='species_layout', default=None, help='modify species layout (A, C, F)')
     parser_convert.add_argument(      '--sort-species',dest='species_sort', action='store_true', help='sort by species')

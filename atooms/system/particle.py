@@ -369,3 +369,38 @@ def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
     if outfile is not None:
         fig.savefig(outfile, bbox_inches='tight')
     return fig
+
+
+def decimate(particle, N):
+    """
+    Return a decimated list of N particles keep the same chemical
+    composition as in the input list `particle`.
+    """
+    import random
+    if N > len(particle):
+        raise ValueError('cannot increase number of particles')
+    x = composition(particle)
+    scale = float(N) / len(particle)
+    idx = {}
+    for species in x:
+        idx[species] = random.sample(range(x[species]), int(x[species] * scale))
+
+    # if sum([len(idx[species]) for species in x]) != N:
+    #     print sum([len(idx[species]) for species in x]), N,  [len(idx[species]) for species in x], x
+    #     raise ValueError('cannot preserve composition')
+
+    # Go through the particles once and map sequential indices to the subset of indices of a given species
+    from collections import defaultdict
+    idx_species = defaultdict(list)
+    for i, p in enumerate(particle):
+        idx_species[p.species].append(i)
+
+    # Collect selected particles
+    pnew = []
+    for species in sorted(x):
+        for i in idx[species]:
+            ii = idx_species[species][i]
+            pnew.append(particle[ii])
+    
+    return pnew
+
