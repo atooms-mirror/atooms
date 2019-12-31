@@ -44,10 +44,12 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(s1.particle[0].position[0], s0.particle[0].position[0])
 
     def test_single(self):
+        from atooms.backends.rumd import System
         si = Simulation(self.backend,
                         output_path='/tmp/test_rumd_single/trajectory',
                         steps=2000, checkpoint_interval=100,
                         restart=False)
+        s = System(self.backend.rumd_simulation.sample, self.backend.rumd_simulation.potentialList)
         si.add(write_thermo, 100)
         si.add(write_config, 100)
         si.run()
@@ -130,6 +132,22 @@ class Test(unittest.TestCase):
         s0 = copy.copy(si.system)
         s1 = copy.deepcopy(si.system)
         self.assertEqual(si.system.particle[0].position[-1], s1.particle[0].position[-1])
+
+    def test_potential(self):
+        import copy
+        si = Simulation(self.backend,
+                        output_path='/tmp/test_rumd_single/trajectory',
+                        steps=2000, checkpoint_interval=100,
+                        restart=False)
+        pos0 = si.system.particle[0].position[0]
+        s = copy.deepcopy(si.system)
+        si.run(1)
+        pos1 = si.system.particle[0].position[0]
+        si.system = s
+        si.run(1)
+        pos2 = si.system.particle[0].position[0]
+        self.assertTrue(abs(pos1 - pos0)>1e-3)
+        self.assertTrue(abs(pos1 - pos2)<1e-6)
         
     def tearDown(self):
         os.system('rm -rf /tmp/test_rumd_*')

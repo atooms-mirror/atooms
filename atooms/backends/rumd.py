@@ -29,8 +29,8 @@ class RUMD(object):
     version = _version
 
     def __init__(self, input_file_or_sim, forcefield_file=None,
-                 integrator=None, temperature=None, dt=0.001,
-                 output_path=None, fixcm_interval=0):
+                 forcefield=None, integrator=None, temperature=None,
+                 dt=0.001, output_path=None, fixcm_interval=0):
         self.output_path = output_path
         # Keep a reference of the Trajectory backend class
         self.trajectory = Trajectory
@@ -60,7 +60,12 @@ class RUMD(object):
             self._suppress_all_output = True
             self._initialize_output = False
 
-            # We parse the forcefield file.
+            # Set the forcefield
+            if forcefield is not None:
+                # We are provided a list of rumd potentials
+                for potential in forcefield:
+                    self.rumd_simulation.AddPotential(potential)
+            # We parse the forcefield file
             # It should provide a list of potentials named potential
             if forcefield_file is not None:
                 with open(forcefield_file) as fh:
@@ -69,7 +74,7 @@ class RUMD(object):
                     raise ValueError('forcefield file should contain a list of potentials named potential')
                 for pot in potential:
                     self.rumd_simulation.AddPotential(pot)
-
+                
             # Add a rumd integrator
             if temperature is not None:
                 integrator = 'nvt'
@@ -85,12 +90,34 @@ class RUMD(object):
         # Copy of initial state
         self._initial_sample = self.rumd_simulation.sample.Copy()
 
+        # Hold a reference to the system
+        # self.system = System(self.rumd_simulation.sample, self.rumd_simulation.potentialList)
+        
+    # Wrapping system is needed because rumd holds a reference to the
+    # potentials in rumd_simulation and they are needed to create a
+    # working sample from scratch
     def _get_system(self):
-        return System(self.rumd_simulation.sample)
+        forcefield = self.rumd_simulation.potentialList
+        return System(self.rumd_simulation.sample, forcefield)
 
     def _set_system(self, value):
-        self.rumd_simulation.sample = value.sample
-
+        # Setting sample this way is useless.
+        #   self.rumd_simulation.sample = value.sample
+        # Rumd actually sets samples via a file, there seems to be no other way.
+        # TODO: to retain modifications to system, use atooms trajectory but at the moment we would loose info on thermostat
+        import tempfile
+        from atooms.core.utils import rmd
+        # Why should we set the output dir? It should not change
+        #tmp = value.sample.GetOutputDirectory()
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, 'sample.xyz.gz')
+        value.sample.WriteConf(file_tmp)
+        self.rumd_simulation.sample.ReadConf(file_tmp)
+        # Why should we set the output dir? It should not change
+        # value.sample.SetOutputDirectory(tmp)
+        # Clean up
+        rmd(dirout)
+        
     system = property(_get_system, _set_system, 'System')
 
     def __str__(self):
@@ -165,8 +192,9 @@ class System(object):
 
     """System wrapper for RUMD."""
 
-    def __init__(self, sample):
+    def __init__(self, sample, forcefield=None):
         self.sample = sample
+        self.forcefield = forcefield
         self.thermostat = Thermostat(self.sample.GetIntegrator())
         self.barostat = None
         self.reservoir = None
@@ -177,20 +205,24 @@ class System(object):
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
         result.sample = self.sample.Copy()
+        if self.forcefield is not None:
+            for potential in self.forcefield:
+                result.sample.SetPotential(potential)
+        else:
+            print 'cannot copy potentials'
         return result
 
     def __deepcopy__(self, memo):
-        # TODO: @nick ask to implement
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
         result.__dict__.update(self.__dict__)
-        # Use Copy() method of sample,
         result.sample = self.sample.Copy()
-        # We do not copy recursively, deepcopy fails when wrapping SWIG classes
-        # from copy import deepcopy
-        # for k, v in self.__dict__.items():
-        #     setattr(result, k, deepcopy(v, memo))
+        if self.forcefield is not None:
+            for potential in self.forcefield:
+                result.sample.SetPotential(potential)
+        else:
+            print 'cannot copy potentials' 
         return result
 
     def potential_energy(self, per_particle=False, normed=False, cache=False):
@@ -239,8 +271,13 @@ class System(object):
         mass = self.__get_mass()
         return numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
 
-    def set_temperature(self):
-        raise NotImplementedError
+    def set_temperature(self, T):
+        # Scale velocities from temperature Told to T
+        # TODO: use maxwellian
+        # TODO: remove CM velocity
+        Told = self.temperature
+        velocity_factor = (T/Told)**0.5
+        self.sample.ScaleVelocities(velocity_factor)
 
     @property
     def cell(self):
@@ -250,6 +287,9 @@ class System(object):
 
     @property
     def particle(self):
+        # Warning: this is read only. If you change the particles, the
+        # modification won't be propoagated to the RUMD objects.
+        # One would have to create a new system.
         npart = self.sample.GetNumberOfParticles()
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
@@ -269,6 +309,11 @@ class System(object):
             pi.periodic_image = i
         return p
 
+    def dump(self, what):
+        import atooms.system
+        system = atooms.system.System(self.particle, self.cell)
+        return system.dump(what)
+    
     def report(self):
         return ''
 
