@@ -14,11 +14,10 @@ class TrajectoryRamFull(TrajectoryBase):
         self.mode = mode
 
     def write_sample(self, system, step):
-        try:
-            # Overwrite
+        if step in self.steps:
             ind = self.steps.index(step)
             self._system[ind] = copy.deepcopy(system)
-        except ValueError:
+        else:
             self._system.append(copy.deepcopy(system))
             self.steps.append(step)
 
