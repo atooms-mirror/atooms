@@ -49,7 +49,7 @@ class Test(unittest.TestCase):
                         output_path='/tmp/test_rumd_single/trajectory',
                         steps=2000, checkpoint_interval=100,
                         restart=False)
-        s = System(self.backend.rumd_simulation.sample, self.backend.rumd_simulation.potentialList)
+        s = System(self.backend.rumd_simulation.sample)
         si.add(write_thermo, 100)
         si.add(write_config, 100)
         si.run()
@@ -141,13 +141,52 @@ class Test(unittest.TestCase):
                         restart=False)
         pos0 = si.system.particle[0].position[0]
         s = copy.deepcopy(si.system)
-        si.run(1)
+        si.run(100)
         pos1 = si.system.particle[0].position[0]
         si.system = s
-        si.run(1)
+        si.run(100)
         pos2 = si.system.particle[0].position[0]
-        self.assertTrue(abs(pos1 - pos0)>1e-3)
-        self.assertTrue(abs(pos1 - pos2)<1e-6)
+        self.assertTrue(abs(pos1 - pos0)>1e-2)
+        self.assertTrue(abs(pos1 - pos2)<1e-4)
+
+    def test_copy_and_run(self):
+        self.skipTest('skipped test')
+        import copy
+        import atooms.trajectory.ram
+        from atooms.backends.rumd import RUMD
+        import rumd
+        potential = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
+        potential.SetVerbose(False)
+        potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
+        potential.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+        potential.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+        potential.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
+        input_file = os.path.join(os.path.dirname(__file__),
+                                  '../data/ka_N256_rho1.185_rumd.xyz.gz')
+        backend = RUMD(input_file, integrator='nvt', temperature=0.8, dt=0.002, forcefield=[potential])
+        sim = Simulation(backend,
+                        output_path='/tmp/test_rumd_single/trajectory',
+                        steps=100, restart=False)
+
+        # First set if runs
+        print sim.system.particle[0].position[0]
+        tr = atooms.trajectory.ram.TrajectoryRamFull()
+        th = atooms.trajectory.ram.TrajectoryRamFull()
+        tr[0] = sim.system
+        print tr[0].particle[0].position[0]
+        sim.run(1000)  # sometimes is nan, depending on steps
+
+        # Ram does not work with rumd because of change in System init
+        th[0] = sim.system
+        print sim.system.particle[0].position, sim.system.potential_energy(per_particle=True)
+
+        sim.run(100)        
+        print sim.system.particle[0].position[0]
+        # this assignment leads to trouble, BUT ONLY IF WE STORE THE SAMPLES IN tr TRAJECTORY
+        # assigning tr[0] above also leads to a different trajectory...!!
+        sim.system = th[0]
+        #sim.system = tr[0]
+        print sim.system.particle[0].position, sim.system.potential_energy(per_particle=True)
         
     def tearDown(self):
         os.system('rm -rf /tmp/test_rumd_*')

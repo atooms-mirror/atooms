@@ -96,27 +96,34 @@ class RUMD(object):
     # Wrapping system is needed because rumd holds a reference to the
     # potentials in rumd_simulation and they are needed to create a
     # working sample from scratch
+    #
+    # It appears mostly necessary because we must operate on the underlying sample.
+    #
     def _get_system(self):
-        forcefield = self.rumd_simulation.potentialList
-        return System(self.rumd_simulation.sample, forcefield)
-
+        system = System(self.rumd_simulation.sample)
+        #system.__itg_infoStr_start = self.rumd_simulation.itg.GetInfoString(8)
+        return system
+        
     def _set_system(self, value):
+        self.rumd_simulation.sample.Assign(value.sample)
+        # TODO: improve copying over of thermostat
+        #self.rumd_simulation.itg.InitializeFromInfoString(value._itg_infoStr_start)
         # Setting sample this way is useless.
         #   self.rumd_simulation.sample = value.sample
         # Rumd actually sets samples via a file, there seems to be no other way.
         # TODO: to retain modifications to system, use atooms trajectory but at the moment we would loose info on thermostat
-        import tempfile
-        from atooms.core.utils import rmd
-        # Why should we set the output dir? It should not change
-        #tmp = value.sample.GetOutputDirectory()
-        dirout = tempfile.mkdtemp()
-        file_tmp = os.path.join(dirout, 'sample.xyz.gz')
-        value.sample.WriteConf(file_tmp)
-        self.rumd_simulation.sample.ReadConf(file_tmp)
-        # Why should we set the output dir? It should not change
-        # value.sample.SetOutputDirectory(tmp)
-        # Clean up
-        rmd(dirout)
+        # import tempfile
+        # from atooms.core.utils import rmd
+        # # Why should we set the output dir? It should not change
+        # #tmp = value.sample.GetOutputDirectory()
+        # dirout = tempfile.mkdtemp()
+        # file_tmp = os.path.join(dirout, 'sample.xyz.gz')
+        # value.sample.WriteConf(file_tmp)
+        # self.rumd_simulation.sample.ReadConf(file_tmp, init_itg=False)
+        # # Why should we set the output dir? It should not change
+        # # value.sample.SetOutputDirectory(tmp)
+        # # Clean up
+        # rmd(dirout)
         
     system = property(_get_system, _set_system, 'System')
 
@@ -192,9 +199,8 @@ class System(object):
 
     """System wrapper for RUMD."""
 
-    def __init__(self, sample, forcefield=None):
+    def __init__(self, sample):
         self.sample = sample
-        self.forcefield = forcefield
         self.thermostat = Thermostat(self.sample.GetIntegrator())
         self.barostat = None
         self.reservoir = None
@@ -205,24 +211,16 @@ class System(object):
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
         result.sample = self.sample.Copy()
-        if self.forcefield is not None:
-            for potential in self.forcefield:
-                result.sample.SetPotential(potential)
-        else:
-            print 'cannot copy potentials'
         return result
 
     def __deepcopy__(self, memo):
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
-        result.__dict__.update(self.__dict__)
+        #result.__dict__.update(self.__dict__)  #these are refs...
         result.sample = self.sample.Copy()
-        if self.forcefield is not None:
-            for potential in self.forcefield:
-                result.sample.SetPotential(potential)
-        else:
-            print 'cannot copy potentials' 
+        #result._itg_infoStr_start = self.thermostat._integrator.GetInfoString(18)
+        result.thermostat = Thermostat(self.sample.GetIntegrator())
         return result
 
     def potential_energy(self, per_particle=False, normed=False, cache=False):
