@@ -193,7 +193,8 @@ class TrajectoryBase(object):
         system.frame = index
         for cbk, args, kwargs in self.callbacks:
             system = cbk(system, *args, **kwargs)
-        del(system.frame)
+        if hasattr(system, 'frame'):
+            del(system.frame)
         return system
 
     def write(self, system, step):
