@@ -22,6 +22,32 @@ _log = logging.getLogger(__name__)
 _version = rumd.GetVersion()
 
 
+def unfold(system):
+    # s = system
+    # particle = system.particle
+    # for i, p in enumerate(particle):
+    #     p.position += p.periodic_image * s.cell.side
+    # system.particle = particle
+    # return s
+    from atooms.system import System
+    npart = system.sample.GetNumberOfParticles()
+    pos = system.sample.GetPositions()
+    nsp = system.sample.GetNumberOfTypes()
+    ima = system.sample.GetImages()
+    spe = numpy.ndarray(npart, dtype=int)
+    ii = 0
+    for i in range(nsp):
+        ni = system.sample.GetNumberThisType(i)
+        spe[ii: ii + ni] = i
+        ii += ni
+    particle = [Particle(species=spe_i, position=pos_i) for spe_i, pos_i in
+                zip(spe, pos)]
+    for p, i in zip(particle, ima):
+        p.position += i * system.cell.side
+
+    return System(particle=particle, cell=system.cell)
+
+
 class RUMD(object):
 
     """RUMD simulation backend."""
