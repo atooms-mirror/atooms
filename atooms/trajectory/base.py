@@ -166,6 +166,9 @@ class TrajectoryBase(object):
         else:
             raise TypeError("Invalid argument type [%s]" % type(key))
 
+    def append(self, system):
+        self.write(system)
+        
     def close(self):
         pass
 
