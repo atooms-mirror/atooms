@@ -126,6 +126,30 @@ class Test(unittest.TestCase):
 
         #print mobility(t), mobility(tf)
 
+    def test_ram_lammps_write(self):
+        import os
+        import numpy
+        import sys
+        from atooms.backends.lammps import LAMMPS
+        from atooms.simulation import Simulation
+        from atooms.simulation.observers import write_to_ram
+
+        input_file = os.path.join(os.path.dirname(__file__),
+                                  '../data/lj_N1000_rho1.0.xyz')
+        cmd = """
+        pair_style      lj/cut 2.5
+        pair_coeff      1 1 1.0 1.0 2.5
+        neighbor        0.3 bin
+        neigh_modify    every 20 delay 0 check no
+        fix             1 all nve
+        """
+        bck = LAMMPS(input_file, cmd)
+        ram = TrajectoryRamFull()
+        sim = Simulation(bck)
+        sim.add(write_to_ram, 10, ram)
+        sim.run(100)
+        self.assertEqual(len(ram.steps), 11)
+        
 if __name__ == '__main__':
     unittest.main()
 

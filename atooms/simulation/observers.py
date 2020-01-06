@@ -156,6 +156,13 @@ class Scheduler(object):
 # Callbacks as pure function to distinguish their role we adopt a naming convention:
 # if the callback contains write (target) in its __name__ then it is a writer (targeter).
 
+def write_to_ram(sim, trajectory_ram):
+    """
+    Write configurations to a trajectory in ram.
+    """
+    trajectory_ram.write(sim.system, sim.current_step)
+
+
 def write_config(sim, fields=None, precision=None):
     """
     Write configurations to a trajectory file.

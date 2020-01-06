@@ -230,7 +230,6 @@ class TrajectoryBase(object):
         # Write the sample.
         self.write_sample(system, current_step)
         # Step is added last, frame index starts from 0 by default.
-        # If step is already there we overwrite (do not append)
         if step is None:
             self.steps.append(current_step)
         else:
