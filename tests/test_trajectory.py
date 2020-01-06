@@ -73,6 +73,18 @@ class Test(unittest.TestCase):
             for i, system in enumerate(self.system):
                 th.write(self.system[i], i)
 
+    def _append(self, cls, path=None, ignore=None):
+        """Read and write"""
+        if path is None:
+            path = self.inpfile
+        with cls(path, 'w') as th:
+            for system in self.system:
+                th.append(system)
+        with cls(path) as th:
+            for i, system in enumerate(th):
+                self.assertTrue(_equal(self.system[i], system, ignore))
+                self.assertTrue(self.system[i].__class__ is system.__class__)
+
     def _convert(self, cls_inp, cls_out, path=None, ignore=None):
         """Write then convert"""
         if path is None:
@@ -103,10 +115,14 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectorySimpleXYZ, ignore=['mass'])
         self._convert(trj.TrajectoryXYZ, trj.TrajectoryXYZ, ignore=['mass'])
         self._convert(trj.TrajectoryXYZ, 'xyz', ignore=['mass'])
+        self._append(trj.TrajectoryXYZ, ignore=['mass'])
+        self._append(trj.TrajectorySimpleXYZ, ignore=['mass'])
 
     def test_ram(self):
         self._read_write(trj.TrajectoryRam)
         self._read_write(trj.ram.TrajectoryRamFull)
+        self._append(trj.TrajectoryRam)
+        self._append(trj.ram.TrajectoryRamFull)
 
     def test_hdf5(self):
         try:
