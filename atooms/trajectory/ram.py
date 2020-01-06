@@ -12,6 +12,7 @@ class TrajectoryRamFull(TrajectoryBase):
         TrajectoryBase.__init__(self, fname, mode)
         self._system = []
         self.mode = mode
+        self._overwrite = True
 
     def write_sample(self, system, step):
         if step in self.steps:
@@ -47,6 +48,8 @@ class TrajectoryRam(TrajectoryBase):
         # TODO: refactor via dict of particle properties to write/read
         # TODO: delegate to custom copy method in System?
         TrajectoryBase.__init__(self, fname, mode)
+        self.mode = mode
+        self._overwrite = True
         self._pos = []
         self._vel = []
         self._species = []
@@ -58,7 +61,6 @@ class TrajectoryRam(TrajectoryBase):
         self._reservoir = []
         self._particle_cls = None
         self._system_cls = None
-        self.mode = mode
 
     def write_sample(self, system, step):
         try:
