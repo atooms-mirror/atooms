@@ -4,10 +4,10 @@
 """
 The physical system at hand.
 
-The systems of interest in classical atomistic simulations are made of
-interacting point particles, usually enclosed in a simulation
-cell. The system may be in contact with a thermostat, a barostat or a
-particle reservoir.
+The system of interest in a classical atomistic simulations is
+composed of interacting point particles, usually enclosed in a
+simulation cell. The system may be in contact with a thermostat, a
+barostat or a particle reservoir.
 """
 
 import numpy
