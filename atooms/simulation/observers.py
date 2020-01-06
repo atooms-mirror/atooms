@@ -448,9 +448,6 @@ class Speedometer(object):
                     kwargs = sim._cbk_params[c]['kwargs']
                     self.x_last = c(sim, *args, **kwargs)
                     self.t_last = time.time()
-                    # # TODO: this assumes that targeters all get their target as attributes of simulation.
-                    # # We should fail or ask the targeter a cached value
-                    # self.x_last = c(sim._cbk_params[c])
                     self._init = True
                     return
 
