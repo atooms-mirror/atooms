@@ -73,6 +73,21 @@ class Test(unittest.TestCase):
             for i, system in enumerate(self.system):
                 th.write(self.system[i], i)
 
+    def _slice(self, cls, path=None):
+        """Write only"""
+        if path is None:
+            path = self.inpfile
+        with cls(path, 'w') as th:
+            for i, system in enumerate(self.system):
+                th.write(system, i)
+            from atooms.trajectory.decorators import Sliced
+            ts = Sliced(th, slice(None, None, 2))
+            self.assertEqual(len(th), 2)
+            self.assertEqual(len(ts), 1)
+            # This will fail, we cannot slice twice yet
+            # ts = Sliced(ts, slice(None, None, 1))
+            # print len(ts)
+                
     def _append(self, cls, path=None, ignore=None):
         """Read and write"""
         if path is None:
@@ -118,6 +133,8 @@ class Test(unittest.TestCase):
         self._append(trj.TrajectoryXYZ, ignore=['mass'])
         self._append(trj.TrajectorySimpleXYZ, ignore=['mass'])
 
+        self._slice(trj.TrajectoryXYZ)
+        
     def test_ram(self):
         self._read_write(trj.TrajectoryRam)
         self._read_write(trj.ram.TrajectoryRamFull)
