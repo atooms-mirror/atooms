@@ -228,20 +228,20 @@ class TrajectoryBase(object):
                 raise ValueError('cannot add step {} when overwrite is False'.format(current_step))
         
         # Write the sample.
+        self.write_sample(system, current_step)
         # Step is added last, frame index starts from 0 by default.
         # If step is already there we overwrite (do not append)
-        self.write_sample(system, step)
         if step is None:
-            self.steps.append(step)
+            self.steps.append(current_step)
         else:
             # If overwriting is allowed, we append the step only if it
             # not already there. This enables a small optimization by
             # avoiding this check if overwriting is off.
             if not self._overwrite:
-                self.steps.append(step)
+                self.steps.append(current_step)
             else:
                 if current_step not in self.steps:
-                    self.steps.append(step)
+                    self.steps.append(current_step)
 
     def read_init(self):
         """
