@@ -10,6 +10,7 @@ cell. The system may be in contact with a thermostat, a barostat or a
 particle reservoir.
 """
 
+import copy
 import numpy
 from .particle import cm_position, cm_velocity, fix_total_momentum
 from .particle import show as _show
@@ -42,6 +43,22 @@ class System(object):
         # may need to be cleared. We might set self._data to None here.
         return result
 
+    def update(self, other):
+        """
+        Update current system attributes in-place using the `other` System
+        as source.
+        
+        The expected behavior is to make deep copies of all the
+        `other` system attributes. This will overwrite attributes set
+        in `self` but not in `other`.
+        
+        Can be used by subclasses to deal with performace or memory
+        dellocation issues.
+        """
+        self.__dict__ = copy.deepcopy(other.__dict__)
+        # Internal data dictionary for array dumps
+        self._data = None
+        
     @property
     def number_of_dimensions(self):
         """

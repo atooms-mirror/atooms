@@ -16,7 +16,7 @@ class TrajectoryRamFull(TrajectoryBase):
     def write_sample(self, system, step):
         if step in self.steps:
             ind = self.steps.index(step)
-            self._system[ind] = copy.deepcopy(system)
+            self._system[ind].update(system)
         else:
             self._system.append(copy.deepcopy(system))
             self.steps.append(step)

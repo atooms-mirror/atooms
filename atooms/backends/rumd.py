@@ -249,6 +249,10 @@ class System(object):
         result.thermostat = Thermostat(self.sample.GetIntegrator())
         return result
 
+    def update(self, other):
+        self.sample.Assign(other.sample)
+        self.thermostat = Thermostat(self.sample.GetIntegrator())
+    
     def potential_energy(self, per_particle=False, normed=False, cache=False):
         self.sample.CalcF()
         if normed or per_particle:
