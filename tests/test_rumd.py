@@ -199,9 +199,10 @@ class Test(unittest.TestCase):
         si.run()        
 
     def test_leakage(self):
-        self.skipTest('skipped test')
+        #self.skipTest('skipped test')
         from atooms.backends.rumd import System
         from atooms.trajectory.ram import TrajectoryRamFull
+        from atooms.backends.rumd import unfold
         si = Simulation(self.backend,
                         output_path='/tmp/test_rumd_single/trajectory',
                         steps=2000, checkpoint_interval=100,
@@ -210,18 +211,41 @@ class Test(unittest.TestCase):
         #del self.backend.rumd_simulation.sample
 
         # This does not leak memory
-        # trj = TrajectoryRamFull()
-        # trj[0] = si.system
-        # for i in range(1000):
-        #     si.system = trj[0]
-        #     si.run()
+        trj = TrajectoryRamFull()
+        trj[0] = si.system
+        for i in range(5):
+            si.system = trj[0]
+            si.run()
+            print unfold(si.system).particle[0].position[0], unfold(trj[0]).particle[0].position[0]
 
         # This does not leak memory anymore because we use System.update()
         # trj = TrajectoryRamFull()
-        # for i in range(1000):
+        # for i in range(5):
         #     trj[0] = si.system
         #     si.run()
-            
+        #     #print si.system.particle[0].position[0], trj[0].particle[0].position[0]
+        #     print unfold(si.system).particle[0].position[0], unfold(trj[0]).particle[0].position[0]
+
+    def test_update(self):
+        #self.skipTest('skipped test')
+        from atooms.backends.rumd import System
+        from atooms.trajectory.ram import TrajectoryRamFull
+        si = Simulation(self.backend,
+                        output_path='/tmp/test_rumd_single/trajectory',
+                        steps=2000, checkpoint_interval=100,
+                        restart=False)
+        itg = si.system.sample.GetIntegrator()
+        trj = TrajectoryRamFull()
+        trj[0] = si.system
+        si.system.thermostat.temperature = 10.0
+        # Objects are different but underlying information is shared...
+        #print trj[0].sample.GetIntegrator().GetInfoString(18), itg.GetInfoString(18)
+        self.assertNotEqual(trj[0].sample.GetIntegrator(), itg)
+        self.assertEqual(trj[0].sample.GetIntegrator().GetInfoString(18), itg.GetInfoString(18))
+        trj[0] = si.system  # This uses update
+        #print trj[0].sample.GetIntegrator().GetInfoString(18), itg.GetInfoString(18)
+        self.assertNotEqual(trj[0].sample.GetIntegrator(), itg)
+        
     def tearDown(self):
         os.system('rm -rf /tmp/test_rumd_*')
 
