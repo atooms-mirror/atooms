@@ -312,6 +312,9 @@ class System(object):
         velocity_factor = (T/Told)**0.5
         self.sample.ScaleVelocities(velocity_factor)
 
+    def scale_velocities(self, factor):
+        self.sample.ScaleVelocities(factor)
+        
     @property
     def cell(self):
         box = self.sample.GetSimulationBox()
