@@ -247,7 +247,7 @@ class System(object):
         # Copy() does not copy the integrator
         result.sample = self.sample.Copy()
         # This way we set the integrator. Note that it is always the same object...
-        result.sample.SetIntegrator(self.sample.GetIntegrator())
+        #result.sample.SetIntegrator(self.sample.GetIntegrator())
         #result._itg_infoStr_start = self.thermostat._integrator.GetInfoString(18)
         # TODO: thermostat should be a property this way we would not need to update this
         result.thermostat = Thermostat(self.sample.GetIntegrator())
@@ -255,7 +255,7 @@ class System(object):
 
     def update(self, other):
         self.sample.Assign(other.sample)
-        self.sample.SetIntegrator(other.sample.GetIntegrator())  # maybe not necessary
+        #self.sample.SetIntegrator(other.sample.GetIntegrator())  # maybe not necessary
         self.thermostat = Thermostat(self.sample.GetIntegrator())
     
     def potential_energy(self, per_particle=False, normed=False, cache=False):
