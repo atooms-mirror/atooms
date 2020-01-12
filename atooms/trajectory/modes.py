@@ -45,5 +45,5 @@ if __name__ == '__main__':
     with TrajectoryModes(sys.argv[1]) as inm:
         for i in range(len(inm.steps)):
             w = inm[i].eigenfreq[1]
-            print w, inm[i].particle[0].position, inm[i].eigenvectors[w][0] # dict, what if we have two identical eigenvalues? or list of arrays but we need the list of w
+            print(w, inm[i].particle[0].position, inm[i].eigenvectors[w][0]) # dict, what if we have two identical eigenvalues? or list of arrays but we need the list of w
     
