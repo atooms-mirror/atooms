@@ -238,7 +238,6 @@ class TrajectoryXYZ(TrajectoryBase):
 
         else:
             # The comment line contains self descriptive fields
-            # TODO: accept "text text" entries
             # TODO: accept extended xyz format
             # Remove spaces around : or = and replace = by :
             data = re.sub(r'\s*[=:]\s*', ':', data)

@@ -156,6 +156,13 @@ class Scheduler(object):
 # Callbacks as pure function to distinguish their role we adopt a naming convention:
 # if the callback contains write (target) in its __name__ then it is a writer (targeter).
 
+def write_to_ram(sim, trajectory_ram):
+    """
+    Write configurations to a trajectory in ram.
+    """
+    trajectory_ram.write(sim.system, sim.current_step)
+
+
 def write_config(sim, fields=None, precision=None):
     """
     Write configurations to a trajectory file.
@@ -441,9 +448,6 @@ class Speedometer(object):
                     kwargs = sim._cbk_params[c]['kwargs']
                     self.x_last = c(sim, *args, **kwargs)
                     self.t_last = time.time()
-                    # # TODO: this assumes that targeters all get their target as attributes of simulation.
-                    # # We should fail or ask the targeter a cached value
-                    # self.x_last = c(sim._cbk_params[c])
                     self._init = True
                     return
 

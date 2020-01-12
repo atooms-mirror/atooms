@@ -30,7 +30,7 @@ class TrajectoryBase(object):
     A trajectory is composed by one or several frames, each frame
     being a sample of a `System` taken at a given `step` during a
     simulation. Trajectory instances are iterable and behave as file
-    objects: they must be opened and closed using the `with` syntax
+    objects: they should be opened and closed using the `with` syntax
 
         #!python
         with Trajectory(inpfile) as th:
@@ -110,6 +110,7 @@ class TrajectoryBase(object):
         subclasses to hold trajectory format info or even dynamically
         on a per sample basis,
         """
+        self._overwrite = False
         # These are cached properties
         self._steps = None
         self._timestep = None
@@ -125,8 +126,6 @@ class TrajectoryBase(object):
         # We use shallow copies to cut down the overhead
         self.cache = cache
         self._cache = None
-
-    # Trajectory is iterable and supports with syntax
 
     def __len__(self):
         # We try first with read_len() which returns None by default
@@ -167,6 +166,9 @@ class TrajectoryBase(object):
         else:
             raise TypeError("Invalid argument type [%s]" % type(key))
 
+    def append(self, system):
+        self.write(system)
+        
     def close(self):
         pass
 
@@ -197,20 +199,49 @@ class TrajectoryBase(object):
             del(system.frame)
         return system
 
-    def write(self, system, step):
-        """Write `system` at given `step`."""
-        # TODO: make step optional
+    def write(self, system, step=None):
+        """
+        Write `system` at a given integer `step`.
+
+        If `step` is not provided, it is defined internally by
+        incrementing by one the last added step, staring from zero.
+        """
         if self.mode == 'r':
             raise IOError('trajectory file not open for writing')
         if not self._initialized_write:
             self.write_init(system)
             self._initialized_write = True
-        self.write_sample(system, step)
-        # Step is added last, frame index starts from 0 by default
-        # If step is already there we overwrite (do not append)
-        # TODO: just check last step
-        if step not in self.steps:
-            self.steps.append(step)
+
+        # If we do not provide a step, we incrementally add 1 to the
+        # last step, starting from 0.
+        if step is not None:
+            current_step = step
+        else:
+            if len(self.steps) == 0:
+                current_step = 0
+            else:
+                current_step = self.steps[-1] + 1
+
+        # If overwriting is not allowed (default), we check that we
+        # are adding a step larger than the last added step.
+        if not self._overwrite:
+            if len(self.steps) > 0 and current_step <= self.steps[-1]:
+                raise ValueError('cannot add step {} when overwrite is False'.format(current_step))
+        
+        # Write the sample.
+        self.write_sample(system, current_step)
+        # Step is added last, frame index starts from 0 by default.
+        if step is None:
+            self.steps.append(current_step)
+        else:
+            # If overwriting is allowed, we append the step only if it
+            # not already there. This enables a small optimization by
+            # avoiding this check if overwriting is off.
+            if not self._overwrite:
+                self.steps.append(current_step)
+            else:
+                if current_step not in self.steps:
+                    self.steps.append(current_step)
 
     def read_init(self):
         """

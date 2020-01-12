@@ -125,11 +125,20 @@ def _periodic_vector(vec, box):
     return vec
 
 
-# TODO: add method that returns delta to enable in-place modification of folded particle
 def _periodic_vector_unfolded(vec, box):
     return vec - numpy.rint(vec / box) * box
     # Optimized version
     # return vec - numpy.rint(vec * invbox) * box
+
+
+def _periodic_vector_delta_unfolded(vec, box):
+    """
+    Return periodic vector delta to enable in-place modification of
+    folded particles.
+    """
+    # Optimized version
+    # return numpy.rint(vec * invbox) * box
+    return numpy.rint(vec / box) * box
 
 
 def fix_total_momentum(particles):

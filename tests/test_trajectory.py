@@ -73,6 +73,33 @@ class Test(unittest.TestCase):
             for i, system in enumerate(self.system):
                 th.write(self.system[i], i)
 
+    def _slice(self, cls, path=None):
+        """Write only"""
+        if path is None:
+            path = self.inpfile
+        with cls(path, 'w') as th:
+            for i, system in enumerate(self.system):
+                th.write(system, i)
+            from atooms.trajectory.decorators import Sliced
+            ts = Sliced(th, slice(None, None, 2))
+            self.assertEqual(len(th), 2)
+            self.assertEqual(len(ts), 1)
+            # This will fail, we cannot slice twice yet
+            # ts = Sliced(ts, slice(None, None, 1))
+            # print len(ts)
+                
+    def _append(self, cls, path=None, ignore=None):
+        """Read and write"""
+        if path is None:
+            path = self.inpfile
+        with cls(path, 'w') as th:
+            for system in self.system:
+                th.append(system)
+        with cls(path) as th:
+            for i, system in enumerate(th):
+                self.assertTrue(_equal(self.system[i], system, ignore))
+                self.assertTrue(self.system[i].__class__ is system.__class__)
+
     def _convert(self, cls_inp, cls_out, path=None, ignore=None):
         """Write then convert"""
         if path is None:
@@ -103,10 +130,16 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectorySimpleXYZ, ignore=['mass'])
         self._convert(trj.TrajectoryXYZ, trj.TrajectoryXYZ, ignore=['mass'])
         self._convert(trj.TrajectoryXYZ, 'xyz', ignore=['mass'])
+        self._append(trj.TrajectoryXYZ, ignore=['mass'])
+        self._append(trj.TrajectorySimpleXYZ, ignore=['mass'])
 
+        self._slice(trj.TrajectoryXYZ)
+        
     def test_ram(self):
         self._read_write(trj.TrajectoryRam)
         self._read_write(trj.ram.TrajectoryRamFull)
+        self._append(trj.TrajectoryRam)
+        self._append(trj.ram.TrajectoryRamFull)
 
     def test_hdf5(self):
         try:
