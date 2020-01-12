@@ -126,6 +126,38 @@ class Test(unittest.TestCase):
 
         #print mobility(t), mobility(tf)
 
+    def test_ram_copy(self):
+        particle = [Particle([0.0, 0.0, 0.0])]
+        system = System(particle)
+        t = TrajectoryRam()
+        t[0] = system
+        t[0].particle[0].position = numpy.array([1.0, 1.0, 1.0])
+        print system.particle[0].position, t[0].particle[0].position
+        print id(t[0].particle[0])
+        print id(t[0].particle[0])
+
+        particle = [Particle([0.0, 0.0, 0.0])]
+        system = System(particle)
+        s = System(particle)
+        t = TrajectoryRamFull()
+        t[0] = system
+        s.update(t[0])
+        s.particle[0].position = numpy.array([1.0, 1.0, 1.0])
+        print system.particle[0].position, t[0].particle[0].position, s.particle[0].position
+        print id(t[0].particle[0])
+        print id(t[0].particle[0])
+
+        particle = [Particle([0.0, 0.0, 0.0])]
+        system = System(particle)
+        t = TrajectoryRamFull()
+        t[0] = system
+        system.particle[0].position = numpy.array([1.0, 1.0, 1.0])
+        print system.particle[0].position, t[0].particle[0].position
+        print id(t[0].particle[0])
+        print id(system.particle[0])
+        
+        #self.assertFalse((t[0].particle[0].position == particle[0].position).all())
+        
 if __name__ == '__main__':
     unittest.main()
 
