@@ -138,6 +138,11 @@ class System(object):
             for p in self.particle:
                 p.velocity *= fac
 
+    def scale_velocities(self, factor):
+        """Scale particles' velocities by `factor`."""
+        for p in self.particle:
+            p.velocity *= factor
+
     def kinetic_energy(self, per_particle=False, normed=False):
         """
         Return the total kinetic energy of the system.
