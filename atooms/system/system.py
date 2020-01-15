@@ -48,12 +48,19 @@ class System(object):
         Update current system attributes in-place using the `other` System
         as source.
         
-        The expected behavior is to make deep copies of all the
-        `other` system attributes. This will overwrite attributes set
-        in `self` but not in `other`.
-        
-        Can be used by subclasses to deal with performace or memory
-        dellocation issues.
+        The default behavior is to make deep copies only of all the
+        `other` system attributes that are not None, i.e. which are
+        set.
+
+        To overwrite all attributes, even those set in `self` but not
+        in `other`, use `full=True`.
+
+        The lists `exclude` and `only` can be used to avoid updating
+        some system attributes or to update only some system
+        attributes, respectively.
+
+        This method can be used by subclasses to deal with performace
+        or memory dellocation issues.
         """
         for key in other.__dict__:
             if exclude is not None or only is not None:
