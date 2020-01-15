@@ -70,7 +70,6 @@ class System(object):
             else:
                 if full or other.__dict__[key] is not None:
                     self.__dict__[key] = copy.deepcopy(other.__dict__[key])
-                    print 'copy', key, exclude, key in exclude
 
         # Internal data dictionary for array dumps
         self._data = None
