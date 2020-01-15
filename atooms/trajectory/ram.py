@@ -8,10 +8,11 @@ from .base import TrajectoryBase
 
 class TrajectoryRamFull(TrajectoryBase):
 
-    def __init__(self, fname=None, mode='w'):
+    def __init__(self, fname=None, mode='v'):
         TrajectoryBase.__init__(self, fname, mode)
         self._system = []
         self.mode = mode
+        self.view = True
         self._overwrite = True
 
     def write_sample(self, system, step):
@@ -23,8 +24,11 @@ class TrajectoryRamFull(TrajectoryBase):
             self.steps.append(step)
 
     def read_sample(self, frame):
-        return self._system[frame]
-
+        if self.mode in ['v', 'view']:
+            return self._system[frame]
+        else:
+            return copy.deepcopy(self._system[frame])
+        
     def __setitem__(self, i, value):
         try:
             step = self.steps[i]
