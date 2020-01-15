@@ -43,7 +43,7 @@ class System(object):
         # may need to be cleared. We might set self._data to None here.
         return result
 
-    def update(self, other):
+    def update(self, other, full=False, exclude=None, only=None):
         """
         Update current system attributes in-place using the `other` System
         as source.
@@ -55,10 +55,19 @@ class System(object):
         Can be used by subclasses to deal with performace or memory
         dellocation issues.
         """
-        self.__dict__ = copy.deepcopy(other.__dict__)
+        for key in other.__dict__:
+            if exclude is not None or only is not None:
+                if (exclude is not None and key not in exclude) or \
+                   (only is not None and key in only):
+                    self.__dict__[key] = copy.deepcopy(other.__dict__[key])
+            else:
+                if full or other.__dict__[key] is not None:
+                    self.__dict__[key] = copy.deepcopy(other.__dict__[key])
+                    print 'copy', key, exclude, key in exclude
+
         # Internal data dictionary for array dumps
         self._data = None
-        
+
     @property
     def number_of_dimensions(self):
         """
