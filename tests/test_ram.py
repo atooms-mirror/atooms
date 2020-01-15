@@ -12,7 +12,7 @@ class Test(unittest.TestCase):
         pass
 
     def test_ram_inplace(self):
-        particle = [Particle([0.0, 0.0, 0.0])]
+        particle = [Particle(position=[0.0, 0.0, 0.0])]
         system = System(particle)
         t = TrajectoryRam()
         t[0] = system
@@ -20,7 +20,7 @@ class Test(unittest.TestCase):
         self.assertFalse((t[0].particle[0].position == particle[0].position).all())
 
     def test_ram(self):
-        particle = [Particle([0.0, 0.0, 0.0])]
+        particle = [Particle(position=[0.0, 0.0, 0.0])]
         system = System(particle)
         t = TrajectoryRam()
         t[0] = system
@@ -28,7 +28,7 @@ class Test(unittest.TestCase):
         self.assertFalse((t[0].particle[0].position == particle[0].position).all())
 
     def test_ram_full(self):
-        particle = [Particle([0.0, 0.0, 0.0])]
+        particle = [Particle(position=[0.0, 0.0, 0.0])]
         system = System(particle)
         t = TrajectoryRamFull()
         t[0] = system
@@ -127,7 +127,7 @@ class Test(unittest.TestCase):
         #print mobility(t), mobility(tf)
 
     def test_ram_copy(self):
-        particle = [Particle([0.0, 0.0, 0.0])]
+        particle = [Particle(position=[0.0, 0.0, 0.0])]
         system = System(particle)
         t = TrajectoryRam()
         t[0] = system
@@ -136,7 +136,7 @@ class Test(unittest.TestCase):
         # print id(t[0].particle[0])
         # print id(t[0].particle[0])
 
-        particle = [Particle([0.0, 0.0, 0.0])]
+        particle = [Particle(position=[0.0, 0.0, 0.0])]
         system = System(particle)
         s = System(particle)
         t = TrajectoryRamFull()
@@ -147,7 +147,7 @@ class Test(unittest.TestCase):
         # print id(t[0].particle[0])
         # print id(t[0].particle[0])
 
-        particle = [Particle([0.0, 0.0, 0.0])]
+        particle = [Particle(position=[0.0, 0.0, 0.0])]
         system = System(particle)
         t = TrajectoryRamFull()
         t[0] = system
@@ -181,6 +181,20 @@ class Test(unittest.TestCase):
         sim.add(write_to_ram, 10, ram)
         sim.run(100)
         self.assertEqual(len(ram.steps), 11)
+
+    def test_callback_copy(self):
+        import copy
+        from atooms.trajectory.decorators import filter_species
+        particle = [Particle(species='A'), Particle(species='B')]
+        system = System(particle)
+        t = TrajectoryRamFull()
+        t[0] = system
+        t.add_callback(copy.deepcopy)
+        t.add_callback(filter_species, 'A')
+        self.assertEqual(t[0].distinct_species(), ['A'])
+        t.callbacks.pop()
+        t.callbacks.pop()
+        self.assertEqual(t[0].distinct_species(), ['A', 'B'])
         
 if __name__ == '__main__':
     unittest.main()
