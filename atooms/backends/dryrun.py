@@ -74,6 +74,16 @@ class System(object):
     def set_temperature(self, T):
         pass
 
+    def update(self, other, full=False, exclude=None, only=None):
+        for key in other.__dict__:
+            if exclude is not None or only is not None:
+                if (exclude is not None and key not in exclude) or \
+                   (only is not None and key in only):
+                    self.__dict__[key] = copy.deepcopy(other.__dict__[key])
+            else:
+                if full or other.__dict__[key] is not None:
+                    self.__dict__[key] = copy.deepcopy(other.__dict__[key])
+    
     def report(self):
         return ''
 
