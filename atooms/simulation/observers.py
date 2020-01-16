@@ -201,7 +201,7 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     - total energy
     - pressure
     - rmsd
-    
+
     The set of available `fields` can be augmented by passing an extra
     `functions` dictionary.
 
