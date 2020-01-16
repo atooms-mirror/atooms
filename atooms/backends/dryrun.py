@@ -7,6 +7,8 @@ Dry run backend.
 It just exposes a minimal backend interface.
 """
 
+import copy
+
 
 class DryRun(object):
 
@@ -74,6 +76,10 @@ class System(object):
     def set_temperature(self, T):
         pass
 
+    def scale_velocities(self, factor):
+        for p in self.particle:
+            p.velocity *= -1.0
+    
     def update(self, other, full=False, exclude=None, only=None):
         for key in other.__dict__:
             if exclude is not None or only is not None:
