@@ -73,4 +73,3 @@ class Optimization(Simulation):
             self.add(_target_backend_tolerance, self._check_interval, 0.0)
             self.add(_target_force_norm_square, self._check_interval, self.tolerance)
         Simulation.run(self, steps)
-        

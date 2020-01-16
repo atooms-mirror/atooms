@@ -100,7 +100,7 @@ class RUMD(object):
                     raise ValueError('forcefield file should contain a list of potentials named potential')
                 for pot in potential:
                     self.rumd_simulation.AddPotential(pot)
-                
+
             # Add a rumd integrator
             if temperature is not None:
                 integrator = 'nvt'
@@ -118,7 +118,7 @@ class RUMD(object):
 
         # Hold a reference to the system
         # self.system = System(self.rumd_simulation.sample, self.rumd_simulation.potentialList)
-        
+
     # Wrapping system is needed because rumd holds a reference to the
     # potentials in rumd_simulation and they are needed to create a
     # working sample from scratch
@@ -129,11 +129,11 @@ class RUMD(object):
         system = System(self.rumd_simulation.sample)
         #system.__itg_infoStr_start = self.rumd_simulation.itg.GetInfoString(8)
         return system
-        
+
     def _set_system(self, value):
         self.rumd_simulation.sample.Assign(value.sample)
         # TODO: improve copying over of thermostat
-        #self.rumd_simulation.itg.InitializeFromInfoString(value._itg_infoStr_start)
+        # self.rumd_simulation.itg.InitializeFromInfoString(value._itg_infoStr_start)
         # Setting sample this way is useless.
         #   self.rumd_simulation.sample = value.sample
         # Rumd actually sets samples via a file, there seems to be no other way.
@@ -150,7 +150,7 @@ class RUMD(object):
         # # value.sample.SetOutputDirectory(tmp)
         # # Clean up
         # rmd(dirout)
-        
+
     system = property(_get_system, _set_system, 'System')
 
     def __str__(self):
@@ -243,11 +243,11 @@ class System(object):
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
-        #result.__dict__.update(self.__dict__)  #these are refs...
+        # result.__dict__.update(self.__dict__)  #these are refs...
         # Copy() does not copy the integrator
         result.sample = self.sample.Copy()
         # This way we set the integrator. Note that it is always the same object...
-        #result.sample.SetIntegrator(self.sample.GetIntegrator())
+        # result.sample.SetIntegrator(self.sample.GetIntegrator())
         #result._itg_infoStr_start = self.thermostat._integrator.GetInfoString(18)
         # TODO: thermostat should be a property this way we would not need to update this
         result.thermostat = Thermostat(self.sample.GetIntegrator())
@@ -255,9 +255,9 @@ class System(object):
 
     def update(self, other):
         self.sample.Assign(other.sample)
-        #self.sample.SetIntegrator(other.sample.GetIntegrator())  # maybe not necessary
+        # self.sample.SetIntegrator(other.sample.GetIntegrator())  # maybe not necessary
         self.thermostat = Thermostat(self.sample.GetIntegrator())
-    
+
     def potential_energy(self, per_particle=False, normed=False, cache=False):
         self.sample.CalcF()
         if normed or per_particle:
@@ -314,7 +314,7 @@ class System(object):
 
     def scale_velocities(self, factor):
         self.sample.ScaleVelocities(factor)
-        
+
     @property
     def cell(self):
         box = self.sample.GetSimulationBox()
@@ -349,7 +349,7 @@ class System(object):
         import atooms.system
         system = atooms.system.System(self.particle, self.cell)
         return system.dump(what)
-    
+
     def report(self):
         return ''
 

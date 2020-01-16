@@ -169,34 +169,34 @@ class Test(unittest.TestCase):
                         steps=100, restart=False)
 
         # First set if runs
-        #print sim.system.particle[0].position[0]
+        # print sim.system.particle[0].position[0]
         tr = atooms.trajectory.ram.TrajectoryRamFull()
         th = atooms.trajectory.ram.TrajectoryRamFull()
         tr[0] = sim.system
-        #print tr[0].particle[0].position[0]
+        # print tr[0].particle[0].position[0]
         sim.run(1000)  # sometimes is nan, depending on steps
 
         # Ram does not work with rumd because of change in System init
         th[0] = sim.system
-        #print sim.system.particle[0].position, sim.system.potential_energy(per_particle=True)
+        # print sim.system.particle[0].position, sim.system.potential_energy(per_particle=True)
 
-        sim.run(100)        
-        #print sim.system.particle[0].position[0]
+        sim.run(100)
+        # print sim.system.particle[0].position[0]
         # this assignment leads to trouble, BUT ONLY IF WE STORE THE SAMPLES IN tr TRAJECTORY
         # assigning tr[0] above also leads to a different trajectory...!!
         sim.system = th[0]
         #sim.system = tr[0]
-        #print sim.system.particle[0].position, sim.system.potential_energy(per_particle=True)
+        # print sim.system.particle[0].position, sim.system.potential_energy(per_particle=True)
 
     def test_unfold(self):
         from atooms.backends.rumd import unfold
-        def unf(sim):            
+        def unf(sim):
             print unfold(sim.system).particle[0].position
         si = Simulation(self.backend,
                         output_path='/tmp/test_rumd_single/trajectory',
                         steps=2000, restart=False)
         si.add(unf, 100)
-        si.run()        
+        si.run()
 
     def test_leakage(self):
         #self.skipTest('skipped test')
@@ -207,7 +207,7 @@ class Test(unittest.TestCase):
                         output_path='/tmp/test_rumd_single/trajectory',
                         steps=2000, checkpoint_interval=100,
                         restart=False)
-        #self.backend.rumd_simulation.sample.__swig_destroy__(self.backend.rumd_simulation.sample)
+        # self.backend.rumd_simulation.sample.__swig_destroy__(self.backend.rumd_simulation.sample)
         #del self.backend.rumd_simulation.sample
 
         # This does not leak memory
@@ -239,13 +239,13 @@ class Test(unittest.TestCase):
         trj[0] = si.system
         si.system.thermostat.temperature = 10.0
         # Objects are different but underlying information is shared...
-        #print trj[0].sample.GetIntegrator().GetInfoString(18), itg.GetInfoString(18)
+        # print trj[0].sample.GetIntegrator().GetInfoString(18), itg.GetInfoString(18)
         self.assertNotEqual(trj[0].sample.GetIntegrator(), itg)
         #self.assertEqual(trj[0].sample.GetIntegrator().GetInfoString(18), itg.GetInfoString(18))
         trj[0] = si.system  # This uses update
-        #print trj[0].sample.GetIntegrator().GetInfoString(18), itg.GetInfoString(18)
+        # print trj[0].sample.GetIntegrator().GetInfoString(18), itg.GetInfoString(18)
         self.assertNotEqual(trj[0].sample.GetIntegrator(), itg)
-        
+
     def tearDown(self):
         os.system('rm -rf /tmp/test_rumd_*')
 

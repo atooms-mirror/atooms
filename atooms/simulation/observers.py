@@ -255,7 +255,7 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
         del(sim.__init_write_thermo)
 
     # Header
-    if not hasattr(sim, '__init_write_thermo'):        
+    if not hasattr(sim, '__init_write_thermo'):
         sim.__init_write_thermo = True
         with open(sim.output_path + '.thermo', 'w') as fh:
             txt = ', '.join(fields)
@@ -395,7 +395,7 @@ def shell_stop(sim, cmd, exit_code=1):
         if len(output) > 0:
             _log.info('shell command "{}" returned: {}'.format(cmd, output.strip()))
 
-    except subprocess.CalledProcessError as e: 
+    except subprocess.CalledProcessError as e:
         # We stop the simulation
         if e.returncode == exit_code:
             raise SimulationEnd('shell command "{}" returned "{}"'.format(cmd, e.output.strip()))
@@ -464,7 +464,7 @@ class Speedometer(object):
             d_now = datetime.datetime.now()
             d_delta = datetime.timedelta(seconds=eta)
             d_eta = d_now + d_delta
-            # self._callback.__name__, 
+            # self._callback.__name__,
             _log.info('%2d%% ETA: %s S/T: %.1f T/SP: %.2e',
                       int(frac * 100),
                       d_eta.strftime('%Y-%m-%d %H.%M'),

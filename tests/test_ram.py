@@ -36,7 +36,7 @@ class Test(unittest.TestCase):
         t[0] = system
         particle[0].position += 1.0
         self.assertFalse((t[0].particle[0].position == particle[0].position).all())
-        
+
     def test_ram_lammps(self):
         import os
         import numpy
@@ -69,9 +69,9 @@ class Test(unittest.TestCase):
         from atooms.trajectory import TrajectoryXYZ, Unfolded
         from atooms.simulation import Simulation
         from atooms.system import Thermostat
-        
+
         def store(sim, ram):
-            ram.write(sim.system, step=sim.current_step)            
+            ram.write(sim.system, step=sim.current_step)
 
         tf = TrajectoryRamFull()
         t = TrajectoryRam()
@@ -124,7 +124,7 @@ class Test(unittest.TestCase):
                 pos_0 = pos_1
             return K
 
-        #print mobility(t), mobility(tf)
+        # print mobility(t), mobility(tf)
 
     def test_ram_copy(self):
         particle = [Particle(position=[0.0, 0.0, 0.0])]
@@ -155,7 +155,7 @@ class Test(unittest.TestCase):
         # print system.particle[0].position, t[0].particle[0].position
         # print id(t[0].particle[0])
         # print id(system.particle[0])
-        
+
         #self.assertFalse((t[0].particle[0].position == particle[0].position).all())
 
     def test_ram_lammps_write(self):
@@ -195,8 +195,6 @@ class Test(unittest.TestCase):
         t.callbacks.pop()
         t.callbacks.pop()
         self.assertEqual(t[0].distinct_species(), ['A', 'B'])
-        
+
 if __name__ == '__main__':
     unittest.main()
-
-

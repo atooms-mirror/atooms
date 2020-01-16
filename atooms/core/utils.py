@@ -284,7 +284,7 @@ def setup_logging(name=None, level=40, filename=None, update=False):
         log.handlers(handler)
     else:
         log.addHandler(handler)
-    
+
     return log
 
 

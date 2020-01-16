@@ -410,6 +410,5 @@ def decimate(particle, N):
         for i in idx[species]:
             ii = idx_species[species][i]
             pnew.append(particle[ii])
-    
-    return pnew
 
+    return pnew

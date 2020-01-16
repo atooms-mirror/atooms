@@ -79,7 +79,7 @@ class System(object):
     def scale_velocities(self, factor):
         for p in self.particle:
             p.velocity *= -1.0
-    
+
     def update(self, other, full=False, exclude=None, only=None):
         for key in other.__dict__:
             if exclude is not None or only is not None:
@@ -89,7 +89,7 @@ class System(object):
             else:
                 if full or other.__dict__[key] is not None:
                     self.__dict__[key] = copy.deepcopy(other.__dict__[key])
-    
+
     def report(self):
         return ''
 
@@ -139,4 +139,3 @@ class EnergyMinimization(object):
 
     def run(self):
         pass
-

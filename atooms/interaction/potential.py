@@ -47,14 +47,14 @@ N {}
     elif fmt == 'uwh':
         txt = '# {} columns: r, u, w, h\n'.format(metadata)
         for x, y, z, w in zip(r, u0, u1, u2):
-            txt += '{:.14g} {:.14g} {:.14g} {:.14g}\n'.format(x, y, z, w) 
+            txt += '{:.14g} {:.14g} {:.14g} {:.14g}\n'.format(x, y, z, w)
 
     else:
         u1 *= r
         txt = '# {} columns: r, u, f\n'.format(metadata)
         for x, y, z in zip(r, u0, u1):
             txt += '{} {} {}\n'.format(x, y, z)
-    
+
     if fileout is None:
         return txt
     else:

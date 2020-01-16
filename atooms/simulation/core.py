@@ -255,7 +255,7 @@ class Simulation(object):
             self.system.interaction = interaction
             self.system.barostat = barostat
             self.system.thermostat = thermostat
-            
+
     @property
     def rmsd(self):
         if hasattr(self.backend, 'rmsd'):
@@ -430,7 +430,7 @@ class Simulation(object):
             params = self._cbk_params[f]
             s = params['scheduler']
             if 'target' in _callable_name(f):
-                args = params['args']                
+                args = params['args']
                 txt.append('target %s: %s' % (_callable_name(f), args[0]))
             else:
                 txt.append('writer %s: interval=%s calls=%s' %

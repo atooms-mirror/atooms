@@ -20,7 +20,7 @@ def quadratic_umbrella_len(sim, k, x_0):
 class Umbrella(object):
 
     """Callable class that represents a generic biasing potential"""
-    
+
     def __init__(self, func, *args, **kwargs):
         self.func = func
         self.args = args

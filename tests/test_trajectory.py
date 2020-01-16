@@ -87,7 +87,7 @@ class Test(unittest.TestCase):
             # This will fail, we cannot slice twice yet
             # ts = Sliced(ts, slice(None, None, 1))
             # print len(ts)
-                
+
     def _append(self, cls, path=None, ignore=None):
         """Read and write"""
         if path is None:
@@ -134,7 +134,7 @@ class Test(unittest.TestCase):
         self._append(trj.TrajectorySimpleXYZ, ignore=['mass'])
 
         self._slice(trj.TrajectoryXYZ)
-        
+
     def test_ram(self):
         self._read_write(trj.TrajectoryRam)
         self._read_write(trj.ram.TrajectoryRamFull)

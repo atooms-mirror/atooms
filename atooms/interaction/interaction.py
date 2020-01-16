@@ -63,4 +63,3 @@ class Interaction(object):
             except AttributeError:
                 pass
         return txt
-

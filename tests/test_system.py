@@ -294,7 +294,7 @@ class Test(unittest.TestCase):
         p = [Particle(), Particle()]
         s = System(p)
         spe = s.dump("particle.species", view=True)
-        spe[0] = 'B'        
+        spe[0] = 'B'
         self.assertEqual(spe[0], s.particle[0].species)
         # With this syntax, the numpy scalar preserves the view!
         # We should upgrade species to property and hide this inside
@@ -309,6 +309,6 @@ class Test(unittest.TestCase):
         x = composition(pnew)
         self.assertEqual(x['A'], 8)
         self.assertEqual(x['B'], 4)
-        
+
 if __name__ == '__main__':
     unittest.main()
