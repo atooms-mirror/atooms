@@ -236,11 +236,13 @@ class Simulation(object):
 
         if hasattr(self.backend, 'read_checkpoint'):
             # Use native backend checkpoint method
+            # TODO: always provide the output_path
             try:
                 self.backend.read_checkpoint(self.output_path)
             except TypeError:
                 self.backend.read_checkpoint()
         else:
+            # TODO: use update here
             # Fallback to backend trajectory class with high precision
             # Trajectory will not store the interaction, thermostat, barostat
             # and we must preserve it
