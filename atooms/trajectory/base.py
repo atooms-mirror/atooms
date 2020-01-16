@@ -168,7 +168,7 @@ class TrajectoryBase(object):
 
     def append(self, system):
         self.write(system)
-        
+
     def close(self):
         pass
 
@@ -227,7 +227,7 @@ class TrajectoryBase(object):
         if not self._overwrite:
             if len(self.steps) > 0 and current_step <= self.steps[-1]:
                 raise ValueError('cannot add step {} when overwrite is False'.format(current_step))
-        
+
         # Write the sample.
         self.write_sample(system, current_step)
         # Step is added last, frame index starts from 0 by default.

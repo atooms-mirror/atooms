@@ -244,7 +244,7 @@ class TrajectoryXYZ(TrajectoryBase):
 
             # Fill metadata dictionary
             for e in data.split():
-                s = re.search(r'(\S+):(\S+)', e)            
+                s = re.search(r'(\S+):(\S+)', e)
                 if s is not None:
                     tag, data = s.group(1), s.group(2)
                     # Remove dangling commas

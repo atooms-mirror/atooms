@@ -28,7 +28,7 @@ class TrajectoryRamFull(TrajectoryBase):
             return self._system[frame]
         else:
             return copy.deepcopy(self._system[frame])
-        
+
     def __setitem__(self, i, value):
         try:
             step = self.steps[i]

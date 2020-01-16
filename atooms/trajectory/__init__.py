@@ -41,7 +41,7 @@ Trajectory.update(__name__)
 import atooms.plugins
 for _, _mod_name, _ in pkgutil.iter_modules(atooms.plugins.__path__, prefix='atooms.plugins.'):
     m = __import__(_mod_name)
-    Trajectory.update(_mod_name)
+    Trajectory.update(_mod_name, overwrite=False)
 
 # Additional plugins can be put in the atooms_plugins module
 try:
@@ -53,7 +53,7 @@ else:
                                                 prefix='atooms_plugins.'):
         try:
             m = __import__(_mod_name)
-            Trajectory.update(_mod_name)
+            Trajectory.update(_mod_name, overwrite=False)
         except ImportError:
             # Could not import this trajectory
             pass

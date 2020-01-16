@@ -141,7 +141,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
             if self.last_particle > 0 and i >= self.last_particle:
                 break
             system.particle.append(Particle())
-            
+
         # Add cell
         idx, data = self._index_db['BOX BOUNDS'][frame]
         self._fh.seek(idx)
