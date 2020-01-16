@@ -11,6 +11,7 @@ docs/tutorial/*png
 atooms/core/_commit.py
 atooms/plugins/[a-zA-Z]*
 
+env
 dist
 build
 MANIFEST
