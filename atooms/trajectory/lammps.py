@@ -243,7 +243,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
     In write mode, an additional .inp file is used as startup file.
     """
 
-    suffix = '.tgz'
+    suffix = 'tgz'
 
     def __init__(self, filename, mode='r', file_pattern='*',
                  step_pattern=r'[a-zA-Z\.]*(\d*)', first_particle=-1, last_particle=-1):
