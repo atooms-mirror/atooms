@@ -39,4 +39,4 @@ pep8:
 	pep8 --ignore=E127,E226,E302,E402,E501 --count $(PROJECT)
 
 clean:
-	rm -f atooms/*pyc atooms/*/*pyc tests/*pyc atooms/*/*pyo
+	rm -rf atooms/*pyc atooms/*/*pyc tests/*pyc atooms/*/*pyo atooms/*/__pycache__
