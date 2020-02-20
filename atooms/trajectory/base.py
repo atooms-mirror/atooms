@@ -200,7 +200,7 @@ class TrajectoryBase(object):
         # by storing a "temporary" frame instance variable
         # (deleted after this loop)
         system.frame = index
-        callbacks = self.callbacks
+        callbacks = copy(self.callbacks)
         if self.class_callbacks is not None:
             callbacks += self.class_callbacks
         for cbk, args, kwargs in callbacks:
@@ -283,8 +283,8 @@ class TrajectoryBase(object):
         The callback must receive a `System` instance as input an
         return the modified `System` instance as output.
         """
-        if cbk not in self.callbacks:
-            self.callbacks.append([cbk, args, kwargs])
+        if (cbk, args, kwargs) not in self.callbacks:
+            self.callbacks.append((cbk, args, kwargs))
 
     def add_callback(self, cbk, *args, **kwargs):
         """Same as `register_callback()`."""
@@ -302,8 +302,8 @@ class TrajectoryBase(object):
         """
         if cls.class_callbacks is None:
             cls.class_callbacks = []
-        if cbk not in cls.class_callbacks:
-            cls.class_callbacks.append([cbk, args, kwargs])
+        if (cbk, args, kwargs) not in cls.class_callbacks:
+            cls.class_callbacks.append((cbk, args, kwargs))
             
     @classmethod
     def add_class_callback(self, cbk, *args, **kwargs):
