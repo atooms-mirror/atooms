@@ -87,7 +87,12 @@ class TrajectoryBase(object):
     """
 
     suffix = None
-    # TODO: mutable class variables are shared by subclasses https://stackoverflow.com/a/13404513
+
+    # Mutable class variables are shared by subclasses https://stackoverflow.com/a/13404513
+
+    # To avoid that subclasses modify the parent class variable, we
+    # use the trick to define class_callbacks as None, then assign it
+    # to a list in the class method
     class_callbacks = None
     
     def __init__(self, filename, mode='r', cache=False):
