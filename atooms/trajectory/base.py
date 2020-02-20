@@ -200,7 +200,7 @@ class TrajectoryBase(object):
         # by storing a "temporary" frame instance variable
         # (deleted after this loop)
         system.frame = index
-        callbacks = copy(self.callbacks)
+        callbacks = copy.copy(self.callbacks)
         if self.class_callbacks is not None:
             callbacks += self.class_callbacks
         for cbk, args, kwargs in callbacks:
