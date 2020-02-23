@@ -83,12 +83,12 @@ class Simulation(object):
         self._restart = restart
         self.current_step = 0
         self.initial_step = 0
-        # We expect subclasses to keep a ref to the trajectory object
-        # self.trajectory used to store configurations
-        if hasattr(self.backend, 'trajectory'):
-            self.trajectory = self.backend.trajectory
+        # We expect subclasses to keep a ref to the trajectory class
+        # used to store configurations
+        if hasattr(self.backend, 'trajectory_class'):
+            self.trajectory_class = self.backend.trajectory_format
         else:
-            self.trajectory = None
+            self.trajectory_class = None
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
         # exist. This creates the data/ folder and its parents folders.
@@ -214,9 +214,9 @@ class Simulation(object):
                 self.backend.write_checkpoint()
         else:
             # Fallback to backend trajectory class with high precision
-            with self.trajectory(self.output_path + '.chk', 'w',
-                                 fields=['species', 'position',
-                                         'velocity', 'radius']) as t:
+            with self.trajectory_class(self.output_path + '.chk', 'w',
+                                        fields=['species', 'position',
+                                                'velocity', 'radius']) as t:
                 t.precision = 12
                 t.write(self.system, 0)
 
@@ -250,7 +250,7 @@ class Simulation(object):
             barostat = self.system.barostat
             thermostat = self.system.thermostat
             if os.path.exists(self.output_path + '.chk'):
-                with self.trajectory(self.output_path + '.chk') as t:
+                with self.trajectory_class(self.output_path + '.chk') as t:
                     self.system = t[0]
             self.system.interaction = interaction
             self.system.barostat = barostat

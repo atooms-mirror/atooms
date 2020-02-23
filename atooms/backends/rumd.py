@@ -59,7 +59,7 @@ class RUMD(object):
                  dt=0.001, output_path=None, fixcm_interval=0):
         self.output_path = output_path
         # Keep a reference of the Trajectory backend class
-        self.trajectory = Trajectory
+        self.trajectory_class = Trajectory
 
         # Store internal rumd simulation instance.
         # It is exposed as self.rumd_simulation for further customization

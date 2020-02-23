@@ -86,7 +86,7 @@ class Test(unittest.TestCase):
         # Test generic writer and write_config
         setup_logging(level=40, update=True)
         s = Simulation(DryRun(), output_path=f, enable_speedometer=True, steps=100)
-        s.trajectory = TrajectoryXYZ
+        s.trajectory_class = TrajectoryXYZ
         s.add(write_config, Scheduler(20))
         s.add(write, Scheduler(20), 'output', ['current_step',
                                                'system.cell'])

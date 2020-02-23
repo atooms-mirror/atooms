@@ -160,7 +160,7 @@ class LAMMPS(object):
             raise ValueError('could not initialize system from {}'.format(inp))
 
         # Default trajectory format
-        self.trajectory = TrajectoryLAMMPS
+        self.trajectory_class = TrajectoryLAMMPS
 
         # Assign commands as potentials, they should be stripped
         self.system.interaction = Interaction(commands)

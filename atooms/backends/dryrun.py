@@ -20,7 +20,7 @@ class DryRun(object):
         self.system = system
         if self.system is None:
             self.system = System()
-        self.trajectory = Trajectory
+        self.trajectory_class = Trajectory
         self.output_path = None
         self.steps = 0
 
