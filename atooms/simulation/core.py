@@ -86,7 +86,7 @@ class Simulation(object):
         # We expect subclasses to keep a ref to the trajectory class
         # used to store configurations
         if hasattr(self.backend, 'trajectory_class'):
-            self.trajectory_class = self.backend.trajectory_format
+            self.trajectory_class = self.backend.trajectory_class
         else:
             self.trajectory_class = None
         # Make sure the dirname of output_path exists. For instance,
@@ -132,6 +132,9 @@ class Simulation(object):
     def base_path(self):
         return os.path.splitext(self.output_path)[0]
 
+    def add_callback(self, callback, scheduler, *args, **kwargs):
+        self.add(self, callback, scheduler, *args, **kwargs)
+        
     def add(self, callback, scheduler, *args, **kwargs):
         """
         Add an observer `callback` to be called along with a `scheduler`.
@@ -144,12 +147,6 @@ class Simulation(object):
         scheduler with fixed interval is generated internally and the
         observer is notified every `scheduler` steps.
         """
-        # If the callback is already there we replace it
-        # This allows to update targets / schedules on the way
-        # TODO: this way we cannot the same observer with different schedules
-        if callback in self._callback:
-            self._callback.remove(callback)
-
         # Accept an integer interval
         if type(scheduler) is int:
             scheduler = Scheduler(scheduler)
@@ -165,6 +162,9 @@ class Simulation(object):
             self._callback.insert(0, callback)
         else:
             self._callback.append(callback)
+
+    def remove_callback(self, callback):
+        self.remove(self, callback)
 
     def remove(self, callback):
         """Remove the observer `callback`."""
@@ -320,6 +320,7 @@ class Simulation(object):
                (self.current_step + self.steps) / min_iters > 10 :
                 def flush(sim):
                     pass
+                self.remove(flush)
                 self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
 
         # Report
