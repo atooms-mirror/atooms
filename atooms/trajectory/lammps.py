@@ -256,7 +256,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
         self._steps = None
         # Sort frames according to step read in lammps file
         sorted_steps = sorted(self.steps)
-        files_with_steps = zip(self.files, self.steps)
+        files_with_steps = [(x, y) for x, y in zip(self.files, self.steps)]
         files_with_steps.sort(key=lambda x: sorted_steps.index(x[1]))
         files = [_[0] for _ in files_with_steps]
         self.files = files

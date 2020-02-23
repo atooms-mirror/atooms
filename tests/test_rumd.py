@@ -191,7 +191,7 @@ class Test(unittest.TestCase):
     def test_unfold(self):
         from atooms.backends.rumd import unfold
         def unf(sim):
-            print unfold(sim.system).particle[0].position
+            unfold(sim.system).particle[0].position
         si = Simulation(self.backend,
                         output_path='/tmp/test_rumd_single/trajectory',
                         steps=2000, restart=False)
@@ -216,7 +216,7 @@ class Test(unittest.TestCase):
         for i in range(5):
             si.system = trj[0]
             si.run()
-            print unfold(si.system).particle[0].position[0], unfold(trj[0]).particle[0].position[0]
+            unfold(si.system).particle[0].position[0], unfold(trj[0]).particle[0].position[0]
 
         # This does not leak memory anymore because we use System.update()
         # trj = TrajectoryRamFull()

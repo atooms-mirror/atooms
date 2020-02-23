@@ -137,6 +137,9 @@ class TrajectoryXYZ(TrajectoryBase):
         if self.mode == 'r':
             self._setup_index()
 
+            # Read metadata
+            self.metadata = self._read_comment(0)
+            
     def _setup_format(self):
         if not self._done_format_setup:
             self._done_format_setup = True
@@ -203,7 +206,7 @@ class TrajectoryXYZ(TrajectoryBase):
         """Find steps list."""
         steps = []
         for frame in range(len(self._index_frame)):
-            meta = self._read_metadata(frame)
+            meta = self._read_comment(frame)
             try:
                 steps.append(meta['step'])
             except KeyError:
@@ -211,7 +214,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 steps.append(frame+1)
         return steps
 
-    def _read_metadata(self, frame):
+    def _read_comment(self, frame):
         """
         Internal xyz method to get header metadata from comment line of
         given `frame`.
@@ -280,17 +283,9 @@ class TrajectoryXYZ(TrajectoryBase):
 
         return meta
 
-    def read_init(self):
-        # Grab cell from the end of file if it is there
-        try:
-            side = self._read_metadata(0)['cell']
-            self._cell = Cell(side)
-        except KeyError:
-            self._cell = self._parse_cell()
-
     def read_sample(self, frame):
         # Read metadata of this frame
-        meta = self._read_metadata(frame)
+        meta = self._read_comment(frame)
 
         # Redefine fields.
         # If set by the user, self.fields takes precedence on columns metadata.
@@ -390,24 +385,23 @@ def fallback(p, data, meta):
                 for p in particle:
                     p.mass = float(meta['mass'])
 
-        # Check if we have a cell
-        try:
+        # Add cell info
+        if 'cell' in meta:
             cell = Cell(meta['cell'])
-        except KeyError:
-            cell = self._cell
+        else:
+            cell = None
 
         return System(particle, cell)
 
     def read_timestep(self):
-        meta = self._read_metadata(0)
-        if 'dt' in meta:
-            return meta['dt']
-        elif 'timestep' in meta:
-            return meta['timestep']
+        if 'dt' in self.metadata:
+            return self.metadata['dt']
+        elif 'timestep' in self.metadata:
+            return self.metadata['timestep']
         else:
             return 1.0
 
-    def _comment_header(self, step, system):
+    def _comment(self, step, system):
         # Concatenate metadata in comment line
         line = 'step:{} '.format(step)
         line += 'columns:{} '.format(','.join(self.fields))
@@ -423,7 +417,7 @@ def fallback(p, data, meta):
         # Make sure fields are expanded
         self._setup_format()
         self.trajectory.write('%d\n' % len(system.particle))
-        self.trajectory.write(self._comment_header(step, system) + '\n')
+        self.trajectory.write(self._comment(step, system) + '\n')
         # Expand shortcut fields now (the comment header keeps the shortcuts)
         fields = _expand_fields(self.fields, self._shortcuts)
         fmt = ' '.join(['{0.' + field + '}' for field in fields]) + '\n'
@@ -431,15 +425,6 @@ def fallback(p, data, meta):
             p._index = i
             p._step = step
             self.trajectory.write(fmt.format(p))
-
-    def _parse_cell(self):
-        """Internal xyz method to grab the cell. Can be overwritten in subclasses."""
-        cell = None
-        if self._index_cell:
-            self.trajectory.seek(self._index_cell)
-            side = numpy.fromstring(self.trajectory.readline(), sep=' ')
-            cell = Cell(side)
-        return cell
 
     def close(self):
         self.trajectory.close()
