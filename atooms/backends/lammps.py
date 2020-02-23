@@ -172,10 +172,10 @@ class LAMMPS(object):
     def rmsd(self):
         return 0.0
 
-    def read_checkpoint(self):
+    def read_checkpoint(self, output_path):
         pass
 
-    def write_checkpoint(self):
+    def write_checkpoint(self, output_path):
         pass
 
     def run(self, steps):

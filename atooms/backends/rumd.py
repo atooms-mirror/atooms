@@ -56,8 +56,8 @@ class RUMD(object):
 
     def __init__(self, input_file_or_sim, forcefield_file=None,
                  forcefield=None, integrator=None, temperature=None,
-                 dt=0.001, output_path=None, fixcm_interval=0):
-        self.output_path = output_path
+                 dt=0.001, fixcm_interval=0):
+
         # Keep a reference of the Trajectory backend class
         self.trajectory_class = Trajectory
 
@@ -78,9 +78,6 @@ class RUMD(object):
             self.rumd_simulation.write_timing_info = False
 
             # By default we mute RUMD output.
-            if self.output_path is not None:
-                mkdir(self.output_path)
-                self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
             self.rumd_simulation.SetOutputScheduling("energies", "none")
             self.rumd_simulation.SetOutputScheduling("trajectory", "none")
             self._suppress_all_output = True
@@ -172,16 +169,13 @@ class RUMD(object):
         unf = self.rumd_simulation.sample.GetPositions() + self.rumd_simulation.sample.GetImages() * L
         return (sum(sum((unf - ref)**2)) / N)**0.5
 
-    def write_checkpoint(self):
-        if self.output_path is None:
-            _log.warn('output_path is not set so we cannot write checkpoint')
-        else:
-            with Trajectory(self.output_path + '.chk', 'w') as t:
-                t.write(self.system, None)
+    def write_checkpoint(self, output_path):
+        with Trajectory(self.output_path + '.chk', 'w') as t:
+            t.write(self.system, None)
 
-    def read_checkpoint(self):
-        if os.path.exists(self.output_path + '.chk'):
-            self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
+    def read_checkpoint(self, output_path):
+        if os.path.exists(output_path + '.chk'):
+            self.rumd_simulation.sample.ReadConf(output_path + '.chk')
         else:
             _log.debug('could not find checkpoint')
 

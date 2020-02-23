@@ -196,23 +196,17 @@ class Simulation(object):
     def write_checkpoint(self):
         """Write checkpoint to allow restarting a simulation."""
         if self.output_path is None:
-            # Try to write the checkpoint via the backend
-            if hasattr(self.backend, 'write_checkpoint'):
-                self.backend.write_checkpoint()
             return
 
+        # Checkpoint number of steps
         with open(self.output_path + '.chk.step', 'w') as fh:
             fh.write('%d' % self.current_step)
-
+            
         if hasattr(self.backend, 'write_checkpoint'):
             # Use native backend checkpoint method
-            try:
-                self.backend.write_checkpoint(self.output_path)
-            except TypeError:
-                # We end up here if write_checkpoint() doesn't accept
-                # an argument, though this might catch other exceptions as well
-                self.backend.write_checkpoint()
+            self.backend.write_checkpoint(self.output_path)
         else:
+            # TODO: use pickle.dump
             # Fallback to backend trajectory class with high precision
             with self.trajectory_class(self.output_path + '.chk', 'w',
                                         fields=['species', 'position',
@@ -227,34 +221,26 @@ class Simulation(object):
         If the checkpoint file is not found, this method exits
         gracefully.
         """
-        if self.output_path is not None:
-            if os.path.exists(self.output_path + '.chk.step'):
-                with open(self.output_path + '.chk.step') as fh:
-                    self.current_step = int(fh.read())
-            else:
-                _log.debug('could not find checkpoint')
+        if self.output_path is None:
+            return
+        
+        if os.path.exists(self.output_path + '.chk.step'):
+            with open(self.output_path + '.chk.step') as fh:
+                self.current_step = int(fh.read())
+        else:
+            _log.debug('could not find steps checkpoint')
 
         if hasattr(self.backend, 'read_checkpoint'):
             # Use native backend checkpoint method
-            # TODO: always provide the output_path
-            try:
-                self.backend.read_checkpoint(self.output_path)
-            except TypeError:
-                self.backend.read_checkpoint()
+            self.backend.read_checkpoint(self.output_path)
         else:
-            # TODO: use update here
             # Fallback to backend trajectory class with high precision
-            # Trajectory will not store the interaction, thermostat, barostat
-            # and we must preserve it
-            interaction = self.system.interaction
-            barostat = self.system.barostat
-            thermostat = self.system.thermostat
+            # TODO: use pickle.load
             if os.path.exists(self.output_path + '.chk'):
                 with self.trajectory_class(self.output_path + '.chk') as t:
-                    self.system = t[0]
-            self.system.interaction = interaction
-            self.system.barostat = barostat
-            self.system.thermostat = thermostat
+                    # Trajectory will not store the interaction,
+                    # thermostat, barostat, so we must preserve it
+                    self.system.update(t[0])
 
     @property
     def rmsd(self):
