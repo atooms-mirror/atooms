@@ -55,6 +55,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
     def _read_metadata(self, frame):
         meta = super(TrajectoryRUMD, self)._read_metadata(frame)
+
         # RUMD specific stuff that can't be handled as aliases.
         if 'integrator' in meta:
             meta['dt'] = meta['integrator'][1]
@@ -62,18 +63,10 @@ class TrajectoryRUMD(TrajectoryXYZ):
             # After sim_box there is a keyword for the box type which we ignore
             meta['cell'] = meta['sim_box'][1:]
             meta['ndim'] = len(meta['cell'])
+
         return meta
 
-    def read_timestep(self):
-        if self.mode != 'r':
-            raise ValueError('time step not set, cannot read it in write mode')
-        meta = self._read_metadata(0)
-        if 'dt' in meta:
-            return meta['dt']
-        else:
-            return 1.0
-
-    def _comment_header(self, step, system):
+    def _comment(self, step, system):
 
         def first_of_species(system, species):
             for i, p in enumerate(system.particle):
@@ -92,7 +85,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
     def write_sample(self, system, step):
         sp = distinct_species(system.particle)
         self.trajectory.write("%d\n" % len(system.particle))
-        self.trajectory.write(self._comment_header(step, system))
+        self.trajectory.write(self._comment(step, system))
         ndim = len(system.particle[0].position)
         for p in system.particle:
             # We get the integer index corresponding to species Ex.:
@@ -102,10 +95,6 @@ class TrajectoryRUMD(TrajectoryXYZ):
             isp = sp.index(p.species)
             self.trajectory.write(("%s"+ndim*" %.6f" + ndim*" %.6f " + "\n") %
                                   ((isp,) + tuple(p.position) + tuple(p.velocity)))
-
-    def close(self):
-        # We do not write the cell here in this format
-        self.trajectory.close()
 
 
 class SuperTrajectoryRUMD(SuperTrajectory):

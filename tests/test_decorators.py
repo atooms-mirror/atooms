@@ -26,22 +26,21 @@ class TestDecorators(unittest.TestCase):
         with open(self.finp, 'w') as fh:
             fh.write("""\
 2
-step:1
+step:1 cell:6.0,6.0,6.0
 A 1.0 -1.0 0.0
 A 2.9 -2.9 0.0
 2
-step:2
+step:2 cell:6.0,6.0,6.0
 A 1.1 -1.1 0.0
 A -2.9 -2.9 0.0
 2
-step:3
+step:3 cell:6.0,6.0,6.0
 A 1.2 -1.2 0.0
 A -2.9 2.9 0.0
 2
-step:4
+step:4 cell:6.0,6.0,6.0
 A 1.2 -1.2 0.0
 A -2.9 2.9 0.0
-6.0 6.0 6.0
 """)
 
     def test_unfolded_jump(self):

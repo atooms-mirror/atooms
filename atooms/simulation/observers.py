@@ -184,7 +184,7 @@ def write_config(sim, fields=None, precision=None):
         rmd(sim.output_path)
         rmf(sim.output_path)
 
-    with sim.trajectory(sim.output_path, 'a') as t:
+    with sim.trajectory_class(sim.output_path, 'a') as t:
         if precision is not None:
             t.precision = precision
         if fields is not None:

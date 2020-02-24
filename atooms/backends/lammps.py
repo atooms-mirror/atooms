@@ -160,7 +160,7 @@ class LAMMPS(object):
             raise ValueError('could not initialize system from {}'.format(inp))
 
         # Default trajectory format
-        self.trajectory = TrajectoryLAMMPS
+        self.trajectory_class = TrajectoryLAMMPS
 
         # Assign commands as potentials, they should be stripped
         self.system.interaction = Interaction(commands)
@@ -172,10 +172,10 @@ class LAMMPS(object):
     def rmsd(self):
         return 0.0
 
-    def read_checkpoint(self):
+    def read_checkpoint(self, output_path):
         pass
 
-    def write_checkpoint(self):
+    def write_checkpoint(self, output_path):
         pass
 
     def run(self, steps):

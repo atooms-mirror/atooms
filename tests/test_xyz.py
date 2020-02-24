@@ -17,22 +17,21 @@ class TestXYZ(unittest.TestCase):
         with open(self.finp, 'w') as fh:
             fh.write("""\
 2
-1
+cell:6.0,6.0,6.0
 A 1.0 -1.0 0.0
 A 2.9 -2.9 0.0
 2
-2
+cell:6.0,6.0,6.0
 A 1.1 -1.1 0.0
 A -2.9 -2.9 0.0
 2
-3
+cell:6.0,6.0,6.0
 A 1.2 -1.2 0.0
 A -2.9 2.9 0.0
 2
-4
+cell:6.0,6.0,6.0
 A 1.3 -1.3 0.0
 A -2.8 2.8 0.0
-6.0 6.0 6.0
 """)
         # Test metadata recognition
         self.finp_meta = '/tmp/test_xyz/meta.xyz'
@@ -63,17 +62,17 @@ B 2.9 -2.9 0.0 2.0
 
     def test_xyz_4d(self):
         with self.Trajectory(self.finp_4d) as t:
-            meta = t._read_metadata(0)
+            meta = t._read_comment(0)
             self.assertEqual(meta['ndim'], 4)
             self.assertEqual(len(t[0].particle[0].position), 4)
             self.assertEqual(t[0].particle[1].position[3], 2.0)
             # Test to check we grab ndim from the n. of cell coordinates
-            meta = t._read_metadata(1)
+            meta = t._read_comment(1)
             self.assertEqual(meta['ndim'], 4)
             self.assertEqual(len(t[1].particle[0].position), 4)
             self.assertEqual(t[1].particle[1].position[3], 2.0)
             # This last test shows that when cell has 3 coords, we are back to ndim=3
-            meta = t._read_metadata(2)
+            meta = t._read_comment(2)
             self.assertEqual(meta['ndim'], 3)
             self.assertEqual(len(t[2].particle[0].position), 3)
 
@@ -92,7 +91,7 @@ columns:field step:1
 
     def test_xyz_meta(self):
         with self.Trajectory(self.finp_meta) as t:
-            meta = t._read_metadata(0)
+            meta = t._read_comment(0)
             self.assertEqual(t.steps, [1])
             self.assertEqual(meta['mass'], [1, 2])
             self.assertEqual(t[0].particle[0].mass, 1.0)
@@ -262,7 +261,7 @@ columns:name,pos,vel step:1
 A 1.0 -1.0 0.0 1.0 2.0 3.0
 """)
         with self.Trajectory(finp) as th:
-            self.assertEqual(th._read_metadata(0)['columns'], ['name', 'pos', 'vel'])
+            self.assertEqual(th._read_comment(0)['columns'], ['name', 'pos', 'vel'])
             self.assertEqual(list(th[0].particle[0].velocity), [1.0, 2.0, 3.0])
 
     def test_xyz_cell(self):

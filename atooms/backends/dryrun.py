@@ -20,17 +20,16 @@ class DryRun(object):
         self.system = system
         if self.system is None:
             self.system = System()
-        self.trajectory = Trajectory
-        self.output_path = None
+        self.trajectory_class = Trajectory
         self.steps = 0
 
     def __str__(self):
         return 'dryrun'
 
-    def write_checkpoint(self):
+    def write_checkpoint(self, output_path):
         pass
 
-    def read_checkpoint(self):
+    def read_checkpoint(self, output_path):
         pass
 
     @property

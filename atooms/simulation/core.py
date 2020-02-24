@@ -83,12 +83,12 @@ class Simulation(object):
         self._restart = restart
         self.current_step = 0
         self.initial_step = 0
-        # We expect subclasses to keep a ref to the trajectory object
-        # self.trajectory used to store configurations
-        if hasattr(self.backend, 'trajectory'):
-            self.trajectory = self.backend.trajectory
+        # We expect subclasses to keep a ref to the trajectory class
+        # used to store configurations
+        if hasattr(self.backend, 'trajectory_class'):
+            self.trajectory_class = self.backend.trajectory_class
         else:
-            self.trajectory = None
+            self.trajectory_class = None
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
         # exist. This creates the data/ folder and its parents folders.
@@ -132,6 +132,9 @@ class Simulation(object):
     def base_path(self):
         return os.path.splitext(self.output_path)[0]
 
+    def add_callback(self, callback, scheduler, *args, **kwargs):
+        self.add(self, callback, scheduler, *args, **kwargs)
+        
     def add(self, callback, scheduler, *args, **kwargs):
         """
         Add an observer `callback` to be called along with a `scheduler`.
@@ -144,12 +147,6 @@ class Simulation(object):
         scheduler with fixed interval is generated internally and the
         observer is notified every `scheduler` steps.
         """
-        # If the callback is already there we replace it
-        # This allows to update targets / schedules on the way
-        # TODO: this way we cannot the same observer with different schedules
-        if callback in self._callback:
-            self._callback.remove(callback)
-
         # Accept an integer interval
         if type(scheduler) is int:
             scheduler = Scheduler(scheduler)
@@ -165,6 +162,9 @@ class Simulation(object):
             self._callback.insert(0, callback)
         else:
             self._callback.append(callback)
+
+    def remove_callback(self, callback):
+        self.remove(self, callback)
 
     def remove(self, callback):
         """Remove the observer `callback`."""
@@ -196,27 +196,21 @@ class Simulation(object):
     def write_checkpoint(self):
         """Write checkpoint to allow restarting a simulation."""
         if self.output_path is None:
-            # Try to write the checkpoint via the backend
-            if hasattr(self.backend, 'write_checkpoint'):
-                self.backend.write_checkpoint()
             return
 
+        # Checkpoint number of steps
         with open(self.output_path + '.chk.step', 'w') as fh:
             fh.write('%d' % self.current_step)
-
+            
         if hasattr(self.backend, 'write_checkpoint'):
             # Use native backend checkpoint method
-            try:
-                self.backend.write_checkpoint(self.output_path)
-            except TypeError:
-                # We end up here if write_checkpoint() doesn't accept
-                # an argument, though this might catch other exceptions as well
-                self.backend.write_checkpoint()
+            self.backend.write_checkpoint(self.output_path)
         else:
+            # TODO: use pickle.dump
             # Fallback to backend trajectory class with high precision
-            with self.trajectory(self.output_path + '.chk', 'w',
-                                 fields=['species', 'position',
-                                         'velocity', 'radius']) as t:
+            with self.trajectory_class(self.output_path + '.chk', 'w',
+                                        fields=['species', 'position',
+                                                'velocity', 'radius']) as t:
                 t.precision = 12
                 t.write(self.system, 0)
 
@@ -227,34 +221,26 @@ class Simulation(object):
         If the checkpoint file is not found, this method exits
         gracefully.
         """
-        if self.output_path is not None:
-            if os.path.exists(self.output_path + '.chk.step'):
-                with open(self.output_path + '.chk.step') as fh:
-                    self.current_step = int(fh.read())
-            else:
-                _log.debug('could not find checkpoint')
+        if self.output_path is None:
+            return
+        
+        if os.path.exists(self.output_path + '.chk.step'):
+            with open(self.output_path + '.chk.step') as fh:
+                self.current_step = int(fh.read())
+        else:
+            _log.debug('could not find steps checkpoint')
 
         if hasattr(self.backend, 'read_checkpoint'):
             # Use native backend checkpoint method
-            # TODO: always provide the output_path
-            try:
-                self.backend.read_checkpoint(self.output_path)
-            except TypeError:
-                self.backend.read_checkpoint()
+            self.backend.read_checkpoint(self.output_path)
         else:
-            # TODO: use update here
             # Fallback to backend trajectory class with high precision
-            # Trajectory will not store the interaction, thermostat, barostat
-            # and we must preserve it
-            interaction = self.system.interaction
-            barostat = self.system.barostat
-            thermostat = self.system.thermostat
+            # TODO: use pickle.load
             if os.path.exists(self.output_path + '.chk'):
-                with self.trajectory(self.output_path + '.chk') as t:
-                    self.system = t[0]
-            self.system.interaction = interaction
-            self.system.barostat = barostat
-            self.system.thermostat = thermostat
+                with self.trajectory_class(self.output_path + '.chk') as t:
+                    # Trajectory will not store the interaction,
+                    # thermostat, barostat, so we must preserve it
+                    self.system.update(t[0])
 
     @property
     def rmsd(self):
@@ -320,6 +306,7 @@ class Simulation(object):
                (self.current_step + self.steps) / min_iters > 10 :
                 def flush(sim):
                     pass
+                self.remove(flush)
                 self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
 
         # Report
