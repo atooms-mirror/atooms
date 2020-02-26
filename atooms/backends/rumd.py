@@ -170,7 +170,7 @@ class RUMD(object):
         return (sum(sum((unf - ref)**2)) / N)**0.5
 
     def write_checkpoint(self, output_path):
-        with Trajectory(self.output_path + '.chk', 'w') as t:
+        with Trajectory(output_path + '.chk', 'w') as t:
             t.write(self.system, None)
 
     def read_checkpoint(self, output_path):

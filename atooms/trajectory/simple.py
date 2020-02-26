@@ -33,7 +33,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def read_steps(self):
         steps = []
         for frame in range(len(self._index_frame)):
-            meta = self._read_metadata(frame)
+            meta = self._read_comment(frame)
             try:
                 steps.append(meta['step'])
             except KeyError:
@@ -71,7 +71,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             for i in range(npart):
                 _ = self.trajectory.readline()
 
-    def _read_metadata(self, frame):
+    def _read_comment(self, frame):
         """Internal xyz method to get header metadata from comment line of given `frame`.
 
         We assume metadata format is a space-separated sequence of
@@ -105,7 +105,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def read_init(self):
         # Grab cell from the end of file if it is there
         try:
-            side = self._read_metadata(0)['cell']
+            side = self._read_comment(0)['cell']
             self._cell = Cell(side)
         except KeyError:
             self._cell = self._parse_cell()
@@ -120,7 +120,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         return cell
 
     def read_sample(self, frame):
-        meta = self._read_metadata(frame)
+        meta = self._read_comment(frame)
         self.trajectory.seek(self._index_frame[frame])
 
         # Read particles

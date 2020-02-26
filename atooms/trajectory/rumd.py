@@ -53,8 +53,8 @@ class TrajectoryRUMD(TrajectoryXYZ):
             steps = [int(basename)]
         return steps
 
-    def _read_metadata(self, frame):
-        meta = super(TrajectoryRUMD, self)._read_metadata(frame)
+    def _read_comment(self, frame):
+        meta = super(TrajectoryRUMD, self)._read_comment(frame)
 
         # RUMD specific stuff that can't be handled as aliases.
         if 'integrator' in meta:
