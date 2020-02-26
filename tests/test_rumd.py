@@ -10,6 +10,7 @@ except ImportError:
     SKIP = True
 from atooms.simulation import Simulation, write_thermo, write_config, target
 from atooms.core.utils import setup_logging
+from atooms.trajectory import TrajectoryRUMD
 
 setup_logging(level=40)
 
@@ -32,7 +33,6 @@ class Test(unittest.TestCase):
                               temperature=0.80, dt=0.002)
 
     def test_properties(self):
-        from atooms.trajectory import TrajectoryRUMD
         t = TrajectoryRUMD(self.input_file)
         s0 = t[-1]
         sim = Simulation(self.backend,
@@ -246,6 +246,14 @@ class Test(unittest.TestCase):
         # print trj[0].sample.GetIntegrator().GetInfoString(18), itg.GetInfoString(18)
         self.assertNotEqual(trj[0].sample.GetIntegrator(), itg)
 
+    def test_new_format(self):
+        input_file = os.path.join(os.path.dirname(__file__),
+                                  '../data/ka_rumd_N1200.xyz.gz')
+        with TrajectoryRUMD(input_file) as th:
+            self.assertAlmostEqual(th[0].cell.side[0], 10.03)
+            self.assertAlmostEqual(th[0].cell.side[1], 10.03)
+            self.assertAlmostEqual(th[0].cell.side[2], 10.03)
+        
     def tearDown(self):
         os.system('rm -rf /tmp/test_rumd_*')
 
