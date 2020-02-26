@@ -308,7 +308,7 @@ B 2.9 -2.9 0.0
             s = th[0]
             self.assertTrue(hasattr(s, '_signal'))
 
-        TrajectoryXYZCustom.class_callbacks.remove([f, (), {}])
+        TrajectoryXYZCustom.class_callbacks.remove((f, (), {}))
         with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'r') as th:
             s = th[0]
             self.assertFalse(hasattr(s, '_signal'))      
