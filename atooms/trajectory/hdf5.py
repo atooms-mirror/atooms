@@ -365,9 +365,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
-        # TODO: are keys cached?
-        csample = '/' + self.trajectory['/trajectory/realtime/stepindex'].keys()[frame]
-
+        keys = list(self.trajectory['/trajectory/realtime/stepindex'].keys())
+        csample = '/' + keys[frame]
         # read particles
         group = self.trajectory['/trajectory/particle']
         if unfolded:
