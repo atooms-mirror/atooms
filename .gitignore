@@ -12,6 +12,7 @@ atooms/core/_commit.py
 atooms/plugins/[a-zA-Z]*
 
 env
+env3
 dist
 build
 MANIFEST
