@@ -75,39 +75,13 @@ class Test(unittest.TestCase):
 
         tf = TrajectoryRamFull()
         t = TrajectoryRam()
-        tinp = TrajectoryXYZ(os.path.join(os.path.dirname(__file__),
-                                          '../data/ka_N150_rho1.200.xyz'))
-        for i, s in enumerate(tinp):
-            tf[i] = s
-            t[i] = s
-        # input_file = os.path.join(os.path.dirname(__file__),
-        #                           '../data/lj_fcc_N108.xyz')
-        # cmd = """
-        # pair_style      lj/cut 2.5
-        # pair_coeff      1 1 1.0 1.0 2.5
-        # neighbor        0.3 bin
-        # neigh_modify    every 20 delay 0 check no
-        # timestep        0.003
-        # """
-        # random.seed(1)
-        # bck = LAMMPS(input_file, cmd)
-        # sim = Simulation(bck)
-        # sim.system.thermostat = Thermostat(4.0, relaxation_time=10.0)
-        # sim.system.temperature = 4.0
-        # sim.add(store, 100, tf)
-        # sim.run(10000)
+        with TrajectoryXYZ(os.path.join(os.path.dirname(__file__),
+                                        '../data/ka_N150_rho1.200.xyz')) as tinp:
+            for i, s in enumerate(tinp):
+                tf[i] = s
+                t[i] = s
         tuf = Unfolded(tf, fixed_cm=True)
-
-        # random.seed(1)
-        # bck = LAMMPS(input_file, cmd)
-        # sim = Simulation(bck)
-        # sim.system.thermostat = Thermostat(4.0, relaxation_time=10.0)
-        # sim.system.temperature = 4.0
-        # sim.add(store, 100, t)
-        # sim.run(10000)
         tu = Unfolded(t, fixed_cm=True)
-        # print tu[0].particle[0].position
-        # print tu[-1].particle[0].position
         for s, sf in zip(tu, tuf):
             for p, pf in zip(s.particle, sf.particle):
                 self.assertTrue((p.position == pf.position).all())

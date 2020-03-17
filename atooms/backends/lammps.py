@@ -300,7 +300,8 @@ write_dump all custom {file_tmp} id type x y z modify sort id format line "%d %d
             self.reached_steps = False
 
         # Update internal reference to self.system
-        new_system = TrajectoryLAMMPS(file_tmp)[-1]
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
         for i in range(len(self.system.particle)):
             self.system.particle[i] = new_system.particle[i]
 
