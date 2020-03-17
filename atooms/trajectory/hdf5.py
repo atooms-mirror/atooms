@@ -275,7 +275,7 @@ class TrajectoryHDF5(TrajectoryBase):
     def read_init(self):
         # read particles
         group = self.trajectory['/initialstate/particle']
-        n = self.trajectory['/initialstate/particle/number_of_particles'].value[0]
+        n = self.trajectory['/initialstate/particle/number_of_particles'][0]
         rad = None
         for entry in group:
             # TODO: refactor this
