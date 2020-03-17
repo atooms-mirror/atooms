@@ -142,9 +142,9 @@ class TrajectoryHDF5(TrajectoryBase):
         from atooms.system.particle import distinct_species
         self.trajectory.create_group_safe('/initialstate')
         self.trajectory['DIMENSIONS'] = [3]
-        self.trajectory['NAME_SYS'] = ['Unknown']
-        self.trajectory['VERSION_TRJ'] = ['1.2']
-        self.trajectory['VERSION_MD'] = ['X.X.X']
+        self.trajectory['NAME_SYS'] = [b'Unknown']
+        self.trajectory['VERSION_TRJ'] = [b'1.2']
+        self.trajectory['VERSION_MD'] = [b'X.X.X']
 
         # Particles
         group = '/initialstate/particle/'
@@ -155,7 +155,7 @@ class TrajectoryHDF5(TrajectoryBase):
             particle_h5 = {'number_of_species': [len(species)],
                            'number_of_particles': [len(particle)],
                            'identity': [species.index(p.species)+1 for p in particle],
-                           'element': ['%3s' % p.species for p in particle],
+                           'element': [p.species.encode() for p in particle],
                            'mass': [p.mass for p in particle],
                            'radius': [p.radius for p in particle],
                            'position': [p.position for p in particle],
@@ -169,12 +169,12 @@ class TrajectoryHDF5(TrajectoryBase):
             self.trajectory.create_group_safe(group)
             matrix = system.matrix
             species = distinct_species(matrix)
-            matrix_h5 = {'type': [''],
+            matrix_h5 = {'type': [b''],
                          'id': [0],
                          'number_of_species': [len(species)],
                          'number_of_particles': [len(matrix)],
                          'identity': [species.index(p.species)+1 for p in matrix],
-                         'element': ['%3s' % p.species for p in matrix],
+                         'element': [p.species.encode() for p in matrix],
                          'mass': [p.mass for p in matrix],
                          'position': [p.position for p in matrix],
                          }
@@ -217,18 +217,18 @@ class TrajectoryHDF5(TrajectoryBase):
             igr = rgr + '/interaction_%d/' % (i+1)
             # Numbering is fortran style for backward compatibility
             self.trajectory.create_group_safe(igr)
-            self.trajectory[igr + 'interaction_type'] = [term.name]
+            self.trajectory[igr + 'interaction_type'] = [term.name.encode()]
             self.trajectory[igr + 'number_of_potentials'] = [len(term.potential)]
             for j, phi in enumerate(term.potential):
                 pgr = igr + '/potential_%d/' % (j+1)
                 self.trajectory.create_group_safe(pgr)
-                self.trajectory[pgr + 'potential'] = [str(phi)]
+                self.trajectory[pgr + 'potential'] = [str(phi).encode()]
                 self.trajectory[pgr + 'interacting_bodies'] = [phi.interacting_bodies]
                 self.trajectory[pgr + 'interacting_species'] = phi.species
                 self.trajectory[pgr + 'parameters_number'] = [len(phi.params)]
-                self.trajectory[pgr + 'parameters_name'] = sorted(phi.params.keys())
+                self.trajectory[pgr + 'parameters_name'] = [_.encode() for _ in sorted(phi.params.keys())]
                 self.trajectory[pgr + 'parameters'] = [phi.params[k] for k in sorted(phi.params.keys())]
-                self.trajectory[pgr + 'cutoff_scheme'] = [phi.cutoff.scheme]
+                self.trajectory[pgr + 'cutoff_scheme'] = [phi.cutoff.scheme.encode()]
                 self.trajectory[pgr + 'cutoff_radius'] = [phi.cutoff.radius]
                 self.trajectory[pgr + 'lookup_points'] = [phi.npoints]
 
@@ -290,11 +290,11 @@ class TrajectoryHDF5(TrajectoryBase):
             if entry == 'radius':
                 rad = group[entry][:]
         if rad is not None:
-            particle = [Particle(species=spe[i].strip(), mass=mas[i],
+            particle = [Particle(species=spe[i].decode().strip(), mass=mas[i],
                                  position=pos[i, :], velocity=vel[i, :],
                                  radius=rad[i]) for i in range(n)]
         else:
-            particle = [Particle(species=spe[i].strip(), mass=mas[i],
+            particle = [Particle(species=spe[i].decode().strip(), mass=mas[i],
                                  position=pos[i, :], velocity=vel[i, :])
                         for i in range(n)]
 
@@ -324,7 +324,7 @@ class TrajectoryHDF5(TrajectoryBase):
                     mas = group[entry][:]
                 if entry == 'position':
                     pos = group[entry][:]
-            matrix = [Particle(species=spe[i].strip(), mass=mas[i],
+            matrix = [Particle(species=spe[i].decode().strip(), mass=mas[i],
                                position=pos[i, :])
                       for i in range(len(spe))]
             self._system.matrix = copy.deepcopy(matrix)
@@ -341,7 +341,7 @@ class TrajectoryHDF5(TrajectoryBase):
         for i in range(n):
             g = '/initialstate/interaction/interaction_%d/' % (i+1)
             np = self.trajectory[g + 'number_of_potentials'][0]
-            name = self.trajectory[g + 'interaction_type'][0]
+            name = self.trajectory[g + 'interaction_type'][0].decode()
             potentials = []
             for j in range(np):
                 sg = self.trajectory[g + 'potential_%d/' % (j+1)]
@@ -349,9 +349,11 @@ class TrajectoryHDF5(TrajectoryBase):
                 # make it compatible with 2.6
                 params = {}
                 for k, v in zip(sg['parameters_name'][:], sg['parameters'][:]):
-                    params[k] = v
-                p = PairPotential(sg['potential'][0], params, sg['interacting_species'][:],
-                                  CutOff(sg['cutoff_scheme'][0], sg['cutoff_radius'][0]),
+                    params[k.decode()] = v
+                p = PairPotential(sg['potential'][0].decode(), params,
+                                  sg['interacting_species'][:],
+                                  CutOff(sg['cutoff_scheme'][0].decode(),
+                                         sg['cutoff_radius'][0]),
                                   sg['lookup_points'][0])
 
                 potentials.append(p)
@@ -414,7 +416,7 @@ class TrajectoryHDF5(TrajectoryBase):
         try:
             spe = group['species' + csample][:]
             for i, pi in enumerate(p):
-                pi.species = spe[i].strip()
+                pi.species = spe[i].decode().strip()
             if 'species' not in self.fields:
                 self.fields.append('species')
         except KeyError:
