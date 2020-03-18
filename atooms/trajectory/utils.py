@@ -367,7 +367,7 @@ def is_grandcanonical(trajectory, tests=1):
         skip = max(1, int(len(trajectory) / float(tests)))
     else:
         skip = 1
-    N0 = len(trajectory[sample].particle)
+    N0 = len(trajectory[0].particle)
     for sample in range(len(trajectory)-1, 0, -skip):
         N1 = len(trajectory[sample].particle)
         is_variable = False
