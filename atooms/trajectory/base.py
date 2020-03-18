@@ -125,7 +125,8 @@ class TrajectoryBase(object):
         self._initialized_write = False
         self._initialized_read = False
         # Sanity checks
-        if self.mode == 'r' and not os.path.exists(self.filename):
+        if self.mode == 'r' and self.filename is not None and \
+           not os.path.exists(self.filename):
             raise IOError('trajectory file %s does not exist' % self.filename)
         # Cache frames to optimize reading the same trajectory multiple times
         # We use shallow copies to cut down the overhead
