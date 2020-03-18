@@ -125,7 +125,9 @@ class TrajectoryBase(object):
         self._initialized_write = False
         self._initialized_read = False
         # Sanity checks
-        if self.mode == 'r' and self.filename is not None and \
+        # Subclasses may define mode variants, such as r+, therefore the
+        # autoritative mode is the first letter
+        if self.mode[0] 'r' and self.filename is not None and \
            not os.path.exists(self.filename):
             raise IOError('trajectory file %s does not exist' % self.filename)
         # Cache frames to optimize reading the same trajectory multiple times
@@ -217,7 +219,7 @@ class TrajectoryBase(object):
         If `step` is not provided, it is defined internally by
         incrementing by one the last added step, staring from zero.
         """
-        if self.mode == 'r':
+        if self.mode[0] == 'r':
             raise IOError('trajectory file not open for writing')
         if not self._initialized_write:
             self.write_init(system)
@@ -337,7 +339,7 @@ class TrajectoryBase(object):
     @property
     def steps(self):
         if self._steps is None:
-            if 'r' in self.mode:
+            if self.mode[0] == 'r':
                 self._steps = self.read_steps()
             else:
                 self._steps = []
@@ -350,7 +352,7 @@ class TrajectoryBase(object):
     @property
     def timestep(self):
         if self._timestep is None:
-            if self.mode == 'r':
+            if self.mode[0] == 'r':
                 self._timestep = self.read_timestep()
             else:
                 self._timestep = 1.0
