@@ -1,4 +1,4 @@
-"""Store trajectory in memory (can be huge)."""
+"""Store trajectory in memory (it can be huge)."""
 
 import copy
 from atooms.system.system import System
@@ -6,13 +6,19 @@ from atooms.system.particle import Particle
 from .base import TrajectoryBase
 
 
-class TrajectoryRamFull(TrajectoryBase):
+class TrajectoryRam(TrajectoryBase):
 
-    def __init__(self, fname=None, mode='v'):
-        TrajectoryBase.__init__(self, fname, mode)
+    """
+    Store trajectory in RAM
+
+    The read_sample method of this class conforms with the normal
+    Trajectory behavior, i.e. a copy of the system is returned when
+    requesting the same frame multiple times.
+    """
+
+    def __init__(self, filename=None, mode='w'):
+        TrajectoryBase.__init__(self, filename, mode)
         self._system = []
-        self.mode = mode
-        self.view = True
         self._overwrite = True
 
     def write_sample(self, system, step):
@@ -24,10 +30,7 @@ class TrajectoryRamFull(TrajectoryBase):
             self.steps.append(step)
 
     def read_sample(self, frame):
-        if self.mode in ['v', 'view']:
-            return self._system[frame]
-        else:
-            return copy.deepcopy(self._system[frame])
+        return copy.deepcopy(self._system[frame])
 
     def __setitem__(self, i, value):
         try:
@@ -40,106 +43,17 @@ class TrajectoryRamFull(TrajectoryBase):
         self.write(value, step)
 
 
-class TrajectoryRam(TrajectoryBase):
+class TrajectoryRamView(TrajectoryRam):
 
     """
-    Store trajectory in RAM.
-
-    We make explicit copies of system variables.
+    This class deviates from the normal Trajectory behavior in that it
+    returns views on the System when calling read_sample(), and not
+    copies. Thus modifications to the read system object will be
+    propagated to the trajectory.
     """
-
-    def __init__(self, fname=None, mode='w'):
-        # TODO: refactor via dict of particle properties to write/read
-        # TODO: delegate to custom copy method in System?
-        TrajectoryBase.__init__(self, fname, mode)
-        self.mode = mode
-        self._overwrite = True
-        self._pos = []
-        self._vel = []
-        self._species = []
-        self._cell = []
-        self._radius = []
-        self._mass = []
-        self._thermostat = []
-        self._barostat = []
-        self._reservoir = []
-        self._particle_cls = None
-        self._system_cls = None
-
-    def write_sample(self, system, step):
-        try:
-            # Overwrite
-            ind = self.steps.index(step)
-        except ValueError:
-            ind = None
-
-        if self._particle_cls is None and len(system.particle) > 0:
-            self._particle_cls = system.particle[0].__class__
-        if self._system_cls is None:
-            self._system_cls = system.__class__
-
-        # We deepcopy to avoid inplace modification to positions and
-        # velocities to the underlying object to propagate to the
-        # systems in TrajectoryRam
-        particle = copy.deepcopy(system.particle)
-        if ind is not None:
-            # Overwrite
-            self._radius[ind] = [p.radius for p in particle]
-            self._mass[ind] = [p.mass for p in particle]
-            self._species[ind] = [p.species for p in particle]
-            self._pos[ind] = [p.position for p in particle]
-            self._vel[ind] = [p.velocity for p in particle]
-            self._cell[ind] = copy.copy(system.cell)
-            # Store optional system objects
-            if system.thermostat is not None:
-                self._thermostat[ind] = copy.copy(system.thermostat)
-            if system.barostat is not None:
-                self._barostat[ind] = copy.copy(system.barostat)
-            if system.reservoir is not None:
-                self._reservoir[ind] = copy.copy(system.reservoir)
-        else:
-            # Append a new frame
-            self._radius.append([p.radius for p in particle])
-            self._mass.append([p.mass for p in particle])
-            self._species.append([p.species for p in particle])
-            self._pos.append([p.position for p in particle])
-            self._vel.append([p.velocity for p in particle])
-            self._cell.append(copy.copy(system.cell))
-            # Add optional system objects
-            if system.thermostat is not None:
-                self._thermostat.append(copy.copy(system.thermostat))
-            if system.barostat is not None:
-                self._barostat.append(copy.copy(system.barostat))
-            if system.reservoir is not None:
-                self._reservoir.append(copy.copy(system.reservoir))
 
     def read_sample(self, frame):
-        particles = []
-        for i in range(len(self._pos[frame])):
-            particles.append(self._particle_cls(position=self._pos[frame][i],
-                                                velocity=self._vel[frame][i],
-                                                species=self._species[frame][i],
-                                                mass=self._mass[frame][i],
-                                                radius=self._radius[frame][i]))
-        cell = self._cell[frame]
-        s = self._system_cls(particles, cell)
+        return self._system[frame]
 
-        # Add optional system objects
-        if len(self._thermostat) > 0:
-            s.thermostat = self._thermostat[frame]
-        if len(self._barostat) > 0:
-            s.barostat = self._barostat[frame]
-        if len(self._reservoir) > 0:
-            s.reservoir = self._reservoir[frame]
-
-        return s
-
-    def __setitem__(self, i, value):
-        try:
-            step = self.steps[i]
-        except IndexError:
-            if len(self.steps) > 0:
-                step = self.steps[-1]+1
-            else:
-                step = 0
-        self.write(value, step)
+# This is maintanined for backward compatibility
+TrajectoryRamFull = TrajectoryRamView
