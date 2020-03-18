@@ -127,7 +127,7 @@ class TrajectoryBase(object):
         # Sanity checks
         # Subclasses may define mode variants, such as r+, therefore the
         # autoritative mode is the first letter
-        if self.mode[0] 'r' and self.filename is not None and \
+        if self.mode[0] == 'r' and self.filename is not None and \
            not os.path.exists(self.filename):
             raise IOError('trajectory file %s does not exist' % self.filename)
         # Cache frames to optimize reading the same trajectory multiple times
