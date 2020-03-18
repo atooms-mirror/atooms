@@ -139,6 +139,9 @@ def fold(s):
 
 # Class decorators
 
+# Some of these decorators raise pylint errors because of the
+# lack of visibility on parent methods() or attributes
+
 # To properly implement decorators in python see
 # http://stackoverflow.com/questions/3118929/implementing-the-decorator-pattern-in-python
 # asnwer by Alec Thomas. if we don't subclass at runtime we won't be able to use the decorated
