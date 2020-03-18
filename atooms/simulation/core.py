@@ -134,7 +134,7 @@ class Simulation(object):
 
     def add_callback(self, callback, scheduler, *args, **kwargs):
         self.add(self, callback, scheduler, *args, **kwargs)
-        
+
     def add(self, callback, scheduler, *args, **kwargs):
         """
         Add an observer `callback` to be called along with a `scheduler`.
@@ -201,7 +201,7 @@ class Simulation(object):
         # Checkpoint number of steps
         with open(self.output_path + '.chk.step', 'w') as fh:
             fh.write('%d' % self.current_step)
-            
+
         if hasattr(self.backend, 'write_checkpoint'):
             # Use native backend checkpoint method
             self.backend.write_checkpoint(self.output_path)
@@ -223,7 +223,7 @@ class Simulation(object):
         """
         if self.output_path is None:
             return
-        
+
         if os.path.exists(self.output_path + '.chk.step'):
             with open(self.output_path + '.chk.step') as fh:
                 self.current_step = int(fh.read())

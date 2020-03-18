@@ -37,15 +37,15 @@ class Test(unittest.TestCase):
         with TrajectoryHDF5('/tmp/test_hdf5.h5', 'w') as t:
             modify_fields(t, exclude=['velocity'], include=['position'])
 
-    @unittest.skipIf(not HAS_HDF5, 'no h5py module')    
+    @unittest.skipIf(not HAS_HDF5, 'no h5py module')
     def test_strings(self):
         import numpy
         with h5py.File('/tmp/test_hdf5.h5', 'w') as fh:
-            #fh['test'] = ['hello']  # this will fail with python3
+            # fh['test'] = ['hello']  # this will fail with python3
             fh['test'] = [b'hello']
         with h5py.File('/tmp/test_hdf5.h5', 'r') as fh:
             self.assertEqual(fh['test'][0].decode(), 'hello')
-                    
+
     def tearDown(self):
         os.remove('/tmp/test_hdf5.h5')
 

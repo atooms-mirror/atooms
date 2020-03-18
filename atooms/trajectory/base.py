@@ -94,7 +94,7 @@ class TrajectoryBase(object):
     # use the trick to define class_callbacks as None, then assign it
     # to a list in the class method
     class_callbacks = None
-    
+
     def __init__(self, filename, mode='r', cache=False):
         """
         The `mode` can be 'r' (read) or 'w' (write).
@@ -292,7 +292,7 @@ class TrajectoryBase(object):
     def add_callback(self, cbk, *args, **kwargs):
         """Same as `register_callback()`."""
         self.register_callback(cbk, *args, **kwargs)
-        
+
     @classmethod
     def register_class_callback(cls, cbk, *args, **kwargs):
         """
@@ -307,12 +307,12 @@ class TrajectoryBase(object):
             cls.class_callbacks = []
         if (cbk, args, kwargs) not in cls.class_callbacks:
             cls.class_callbacks.append((cbk, args, kwargs))
-            
+
     @classmethod
     def add_class_callback(self, cbk, *args, **kwargs):
         """Same as `register_class_callback()`."""
         self.register_class_callback(cbk, *args, **kwargs)
-        
+
     # To read/write timestep and block size sublcasses may implement
     # these methods. The default is dt=1 and block determined dynamically.
 

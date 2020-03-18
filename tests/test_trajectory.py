@@ -299,9 +299,9 @@ B 2.9 -2.9 0.0
             pass
         TrajectoryXYZCustom.add_class_callback(f)
         Trajectory.add(TrajectoryXYZCustom)
-        
+
         self.assertFalse(TrajectoryXYZCustom.class_callbacks is TrajectoryXYZ.class_callbacks)
-        
+
         with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'w') as th:
             th.write(self.system[0])
         with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'r') as th:
@@ -311,8 +311,8 @@ B 2.9 -2.9 0.0
         TrajectoryXYZCustom.class_callbacks.remove((f, (), {}))
         with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'r') as th:
             s = th[0]
-            self.assertFalse(hasattr(s, '_signal'))      
-            
+            self.assertFalse(hasattr(s, '_signal'))
+
     def _copy_inplace(self, trajectory, expect=False):
         """
         Test that trajectory returns a copy of the system and that
@@ -343,7 +343,7 @@ B 2.9 -2.9 0.0
             self.assertEqual(system.particle[1].position[0], new_system.particle[1].position[0])
         else:
             self.assertNotEqual(system.particle[1].position[0], new_system.particle[1].position[0])
-        
+
     def test_copy_ram_view(self):
         with trj.ram.TrajectoryRamView() as th:
             th[0] = self.system[0]
@@ -353,13 +353,13 @@ B 2.9 -2.9 0.0
         with trj.ram.TrajectoryRam() as th:
             th[0] = self.system[0]
             self._copy_inplace(th)
-            
+
     def test_copy_xyz(self):
         with trj.TrajectoryXYZ(self.inpfile, 'w') as th:
             th.write(self.system[0])
         with trj.TrajectoryXYZ(self.inpfile, 'r') as th:
             self._copy_inplace(th)
-        
+
 
     def tearDown(self):
         rmf(self.inpfile)

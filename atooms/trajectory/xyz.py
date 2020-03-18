@@ -139,7 +139,7 @@ class TrajectoryXYZ(TrajectoryBase):
 
             # Read metadata
             self.metadata = self._read_comment(0)
-            
+
     def _setup_format(self):
         if not self._done_format_setup:
             self._done_format_setup = True

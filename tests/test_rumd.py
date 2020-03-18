@@ -253,7 +253,7 @@ class Test(unittest.TestCase):
             self.assertAlmostEqual(th[0].cell.side[0], 10.03)
             self.assertAlmostEqual(th[0].cell.side[1], 10.03)
             self.assertAlmostEqual(th[0].cell.side[2], 10.03)
-        
+
     def tearDown(self):
         os.system('rm -rf /tmp/test_rumd_*')
 

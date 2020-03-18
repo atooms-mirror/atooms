@@ -58,7 +58,7 @@ class Test(unittest.TestCase):
 
         with TrajectoryXYZ(self.input_file) as th:
             system = th[-1]
-            
+
         for inp in [self.input_file, TrajectoryXYZ(self.input_file),
                     system]:
             T = []
