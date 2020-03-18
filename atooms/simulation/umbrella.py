@@ -5,7 +5,7 @@ Generic Umbrella class for umbrella sampling and biased simulations
 # Default umbrella functions
 
 def bias(sim, observable, s):
-    x = obs(sim)
+    x = observable(sim)
     return - s * x
 
 def quadratic_umbrella(sim, observable, k, x_0):
