@@ -163,9 +163,6 @@ class Simulation(object):
         else:
             self._callback.append(callback)
 
-    def remove_callback(self, callback):
-        self.remove(self, callback)
-
     def remove(self, callback):
         """Remove the observer `callback`."""
         if callback in self._callback:
@@ -173,6 +170,9 @@ class Simulation(object):
             self._cbk_params.pop(callback)
         else:
             _log.debug('attempt to remove inexistent callback %s (dont worry)', callback)
+
+    def remove_callback(self, callback):
+        self.remove(callback)
 
     def _notify(self, observers):
         for observer in observers:
