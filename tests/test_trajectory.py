@@ -313,6 +313,54 @@ B 2.9 -2.9 0.0
             s = th[0]
             self.assertFalse(hasattr(s, '_signal'))      
             
+    def _copy_inplace(self, trajectory, expect=False):
+        """
+        Test that trajectory returns a copy of the system and that
+        modifications are not propagated to the underlying trajectory.
+
+        Test in-place modification
+        """
+        system = trajectory[0]
+        original = system.particle[1].position.copy()
+        system.particle[1].position *= 2
+        new_system = trajectory[0]
+        if expect:
+            self.assertEqual(system.particle[1].position[0], new_system.particle[1].position[0])
+        else:
+            self.assertNotEqual(system.particle[1].position[0], new_system.particle[1].position[0])
+
+    def _copy_reassign(self, trajectory, expect=False):
+        """
+        Test that trajectory returns a copy of the system and that
+        modifications are not propagated to the underlying trajectory.
+
+        Test assignement
+        """
+        system = trajectory[0]
+        original = system.particle[1].position.copy()
+        system.particle[1].position[0] = 100000000000000.0
+        if expect:
+            self.assertEqual(system.particle[1].position[0], new_system.particle[1].position[0])
+        else:
+            self.assertNotEqual(system.particle[1].position[0], new_system.particle[1].position[0])
+        
+    def test_copy_ram_view(self):
+        with trj.ram.TrajectoryRamView() as th:
+            th[0] = self.system[0]
+            self._copy_inplace(th, expect=True)
+
+    def test_copy_ram(self):
+        with trj.ram.TrajectoryRam() as th:
+            th[0] = self.system[0]
+            self._copy_inplace(th)
+            
+    def test_copy_xyz(self):
+        with trj.TrajectoryXYZ(self.inpfile, 'w') as th:
+            th.write(self.system[0])
+        with trj.TrajectoryXYZ(self.inpfile, 'r') as th:
+            self._copy_inplace(th)
+        
+
     def tearDown(self):
         rmf(self.inpfile)
         rmd(self.inpdir)
