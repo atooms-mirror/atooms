@@ -294,12 +294,21 @@ class Test(unittest.TestCase):
         p = [Particle(), Particle()]
         s = System(p)
         spe = s.dump("particle.species", view=True)
-        spe[0] = 'B'        
+        spe[0] = 'B'
         self.assertEqual(spe[0], s.particle[0].species)
         # With this syntax, the numpy scalar preserves the view!
         # We should upgrade species to property and hide this inside
         s.particle[0].species[()] = 'C'
         self.assertEqual(spe[0], s.particle[0].species)
-        
+
+    def test_decimate(self):
+        from atooms.system import Particle, System
+        from atooms.system.particle import composition, decimate
+        p = [Particle(species='A')]*20 + [Particle(species='B')]*10
+        pnew = decimate(p, 12)
+        x = composition(pnew)
+        self.assertEqual(x['A'], 8)
+        self.assertEqual(x['B'], 4)
+
 if __name__ == '__main__':
     unittest.main()

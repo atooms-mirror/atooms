@@ -125,11 +125,20 @@ def _periodic_vector(vec, box):
     return vec
 
 
-# TODO: add method that returns delta to enable in-place modification of folded particle
 def _periodic_vector_unfolded(vec, box):
     return vec - numpy.rint(vec / box) * box
     # Optimized version
     # return vec - numpy.rint(vec * invbox) * box
+
+
+def _periodic_vector_delta_unfolded(vec, box):
+    """
+    Return periodic vector delta to enable in-place modification of
+    folded particles.
+    """
+    # Optimized version
+    # return numpy.rint(vec * invbox) * box
+    return numpy.rint(vec / box) * box
 
 
 def fix_total_momentum(particles):
@@ -369,3 +378,37 @@ def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
     if outfile is not None:
         fig.savefig(outfile, bbox_inches='tight')
     return fig
+
+
+def decimate(particle, N):
+    """
+    Return a decimated list of N particles keep the same chemical
+    composition as in the input list `particle`.
+    """
+    import random
+    if N > len(particle):
+        raise ValueError('cannot increase number of particles')
+    x = composition(particle)
+    scale = float(N) / len(particle)
+    idx = {}
+    for species in x:
+        idx[species] = random.sample(range(x[species]), int(x[species] * scale))
+
+    # if sum([len(idx[species]) for species in x]) != N:
+    #     print sum([len(idx[species]) for species in x]), N,  [len(idx[species]) for species in x], x
+    #     raise ValueError('cannot preserve composition')
+
+    # Go through the particles once and map sequential indices to the subset of indices of a given species
+    from collections import defaultdict
+    idx_species = defaultdict(list)
+    for i, p in enumerate(particle):
+        idx_species[p.species].append(i)
+
+    # Collect selected particles
+    pnew = []
+    for species in sorted(x):
+        for i in idx[species]:
+            ii = idx_species[species][i]
+            pnew.append(particle[ii])
+
+    return pnew

@@ -51,15 +51,15 @@ class CutOff(object):
 
         elif self.scheme in ['c', 'cut']:
             pass
-            
+
         elif self.scheme in ['qs', 'QS']:
             self.Acut =   u[1] / 2
             self.Bcut = - u[1] * self.radius**2 / 2 - u[0]
 
         elif self.scheme in ['cspl', 'CSPL']:
-            # the potential is cubic-splined between rcut1 < r < rcut 
-            # cubic-splined cutoff : u(r) = A*(B-r)^3 + C for rcut1 < r < rcut=B 
-            # where 
+            # the potential is cubic-splined between rcut1 < r < rcut
+            # cubic-splined cutoff : u(r) = A*(B-r)^3 + C for rcut1 < r < rcut=B
+            # where
             #   A = - u2^2/(12*u1)
             #   B = rcut1 - 2*(u1/u2) = rcut
             #   C = u0 + (2*u1^2)/(3*u2)
@@ -70,7 +70,7 @@ class CutOff(object):
             self.Acut = - u2**2 / (12.0*u1)
             self.Ccut = - u0 + (2.0*u1**2) / (3.0*u2)
             self.radius = self.radius_mid - (2.0*u1/u2)
-            self.radius_sq = self.radius**2 
+            self.radius_sq = self.radius**2
         else:
             raise NotImplementedError()
 
@@ -98,7 +98,7 @@ class CutOff(object):
             if rsquare > self.radius_mid_sq:
                 rij = rsquare**0.5
                 dr  = self.radius - rij
-                u_new[0] = self.Acut * dr**3 
+                u_new[0] = self.Acut * dr**3
                 u_new[1] = 3 * self.Acut * dr**2 / rij
             else:
                 u_new[0] = u[0] + self.Ccut

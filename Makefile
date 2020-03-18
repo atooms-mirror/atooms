@@ -31,8 +31,12 @@ version:
 	@echo __commit__ = \'$(COMMIT_DIRTY)\' > atooms/core/_commit.py
 	@echo __date__ = \'$(DATE)\' >> atooms/core/_commit.py
 
+autopep8:
+	autopep8 -r -i atooms
+	autopep8 -r -i tests
+
 pep8:
 	pep8 --ignore=E127,E226,E302,E402,E501 --count $(PROJECT)
 
 clean:
-	rm -f atooms/*pyc atooms/*/*pyc tests/*pyc atooms/*/*pyo
+	rm -rf atooms/*pyc atooms/*/*pyc tests/*pyc atooms/*/*pyo atooms/*/__pycache__

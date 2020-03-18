@@ -56,8 +56,11 @@ class Test(unittest.TestCase):
         def store(sim, T):
             T.append(sim.system.temperature)
 
+        with TrajectoryXYZ(self.input_file) as th:
+            system = th[-1]
+
         for inp in [self.input_file, TrajectoryXYZ(self.input_file),
-                    TrajectoryXYZ(self.input_file)[-1]]:
+                    system]:
             T = []
             random.seed(1)
             bck = LAMMPS(inp, cmd)
@@ -67,6 +70,8 @@ class Test(unittest.TestCase):
             sim.run(2000)
             ave = sum(T[3:]) / len(T[3:])
             self.assertAlmostEqual(ave, 2.0, places=1)
+            if isinstance(inp, TrajectoryXYZ):
+                inp.close()
 
     def test_nvt_nofix(self):
         import sys

@@ -7,6 +7,8 @@ Dry run backend.
 It just exposes a minimal backend interface.
 """
 
+import copy
+
 
 class DryRun(object):
 
@@ -18,17 +20,16 @@ class DryRun(object):
         self.system = system
         if self.system is None:
             self.system = System()
-        self.trajectory = Trajectory
-        self.output_path = None
+        self.trajectory_class = Trajectory
         self.steps = 0
 
     def __str__(self):
         return 'dryrun'
 
-    def write_checkpoint(self):
+    def write_checkpoint(self, output_path):
         pass
 
-    def read_checkpoint(self):
+    def read_checkpoint(self, output_path):
         pass
 
     @property
@@ -46,8 +47,9 @@ class System(object):
     `atooms.system.System` required for a valid simulation backend.
     """
 
-    def __init__(self):
-        self.particle = []
+    def __init__(self, particle=None, cell=None, thermostat=None,
+                 barostat=None, reservoir=None):
+        self.particle = particle if particle is not None else []
         self.cell = None
         self.thermostat = Thermostat()
         self.barostat = None
@@ -72,6 +74,20 @@ class System(object):
 
     def set_temperature(self, T):
         pass
+
+    def scale_velocities(self, factor):
+        for p in self.particle:
+            p.velocity *= -1.0
+
+    def update(self, other, full=False, exclude=None, only=None):
+        for key in other.__dict__:
+            if exclude is not None or only is not None:
+                if (exclude is not None and key not in exclude) or \
+                   (only is not None and key in only):
+                    self.__dict__[key] = copy.deepcopy(other.__dict__[key])
+            else:
+                if full or other.__dict__[key] is not None:
+                    self.__dict__[key] = copy.deepcopy(other.__dict__[key])
 
     def report(self):
         return ''
@@ -122,4 +138,3 @@ class EnergyMinimization(object):
 
     def run(self):
         pass
-

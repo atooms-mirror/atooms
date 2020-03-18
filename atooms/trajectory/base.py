@@ -30,7 +30,7 @@ class TrajectoryBase(object):
     A trajectory is composed by one or several frames, each frame
     being a sample of a `System` taken at a given `step` during a
     simulation. Trajectory instances are iterable and behave as file
-    objects: they must be opened and closed using the `with` syntax
+    objects: they should be opened and closed using the `with` syntax
 
         #!python
         with Trajectory(inpfile) as th:
@@ -88,7 +88,12 @@ class TrajectoryBase(object):
 
     suffix = None
 
-    # TODO: add class callbacks
+    # Mutable class variables are shared by subclasses https://stackoverflow.com/a/13404513
+
+    # To avoid that subclasses modify the parent class variable, we
+    # use the trick to define class_callbacks as None, then assign it
+    # to a list in the class method
+    class_callbacks = None
 
     def __init__(self, filename, mode='r', cache=False):
         """
@@ -110,6 +115,7 @@ class TrajectoryBase(object):
         subclasses to hold trajectory format info or even dynamically
         on a per sample basis,
         """
+        self._overwrite = False
         # These are cached properties
         self._steps = None
         self._timestep = None
@@ -119,14 +125,15 @@ class TrajectoryBase(object):
         self._initialized_write = False
         self._initialized_read = False
         # Sanity checks
-        if self.mode == 'r' and not os.path.exists(self.filename):
+        # Subclasses may define mode variants, such as r+, therefore the
+        # autoritative mode is the first letter
+        if self.mode[0] == 'r' and self.filename is not None and \
+           not os.path.exists(self.filename):
             raise IOError('trajectory file %s does not exist' % self.filename)
         # Cache frames to optimize reading the same trajectory multiple times
         # We use shallow copies to cut down the overhead
         self.cache = cache
         self._cache = None
-
-    # Trajectory is iterable and supports with syntax
 
     def __len__(self):
         # We try first with read_len() which returns None by default
@@ -167,6 +174,9 @@ class TrajectoryBase(object):
         else:
             raise TypeError("Invalid argument type [%s]" % type(key))
 
+    def append(self, system):
+        self.write(system)
+
     def close(self):
         pass
 
@@ -187,29 +197,64 @@ class TrajectoryBase(object):
                     self._cache = {}
                 self._cache[index] = copy.copy(system)
 
+        # Apply callbacks, class level and instance level
+        #
         # Pass the frame index to the callback via system
         # by storing a "temporary" frame instance variable
         # (deleted after this loop)
         system.frame = index
-        for cbk, args, kwargs in self.callbacks:
+        callbacks = copy.copy(self.callbacks)
+        if self.class_callbacks is not None:
+            callbacks += self.class_callbacks
+        for cbk, args, kwargs in callbacks:
             system = cbk(system, *args, **kwargs)
-        del(system.frame)
+        if hasattr(system, 'frame'):
+            del(system.frame)
         return system
 
-    def write(self, system, step):
-        """Write `system` at given `step`."""
-        # TODO: make step optional
-        if self.mode == 'r':
+    def write(self, system, step=None):
+        """
+        Write `system` at a given integer `step`.
+
+        If `step` is not provided, it is defined internally by
+        incrementing by one the last added step, staring from zero.
+        """
+        if self.mode[0] == 'r':
             raise IOError('trajectory file not open for writing')
         if not self._initialized_write:
             self.write_init(system)
             self._initialized_write = True
-        self.write_sample(system, step)
-        # Step is added last, frame index starts from 0 by default
-        # If step is already there we overwrite (do not append)
-        # TODO: just check last step
-        if step not in self.steps:
-            self.steps.append(step)
+
+        # If we do not provide a step, we incrementally add 1 to the
+        # last step, starting from 0.
+        if step is not None:
+            current_step = step
+        else:
+            if len(self.steps) == 0:
+                current_step = 0
+            else:
+                current_step = self.steps[-1] + 1
+
+        # If overwriting is not allowed (default), we check that we
+        # are adding a step larger than the last added step.
+        if not self._overwrite:
+            if len(self.steps) > 0 and current_step <= self.steps[-1]:
+                raise ValueError('cannot add step {} when overwrite is False'.format(current_step))
+
+        # Write the sample.
+        self.write_sample(system, current_step)
+        # Step is added last, frame index starts from 0 by default.
+        if step is None:
+            self.steps.append(current_step)
+        else:
+            # If overwriting is allowed, we append the step only if it
+            # not already there. This enables a small optimization by
+            # avoiding this check if overwriting is off.
+            if not self._overwrite:
+                self.steps.append(current_step)
+            else:
+                if current_step not in self.steps:
+                    self.steps.append(current_step)
 
     def read_init(self):
         """
@@ -235,12 +280,38 @@ class TrajectoryBase(object):
     # Callbacks will be applied to the output of read_sample()
 
     def register_callback(self, cbk, *args, **kwargs):
-        if cbk not in self.callbacks:
-            self.callbacks.append([cbk, args, kwargs])
+        """
+        Register a callback `cbk` to be applied when reading a frame.
+
+        The callback must receive a `System` instance as input an
+        return the modified `System` instance as output.
+        """
+        if (cbk, args, kwargs) not in self.callbacks:
+            self.callbacks.append((cbk, args, kwargs))
 
     def add_callback(self, cbk, *args, **kwargs):
-        """Same as register_callback."""
+        """Same as `register_callback()`."""
         self.register_callback(cbk, *args, **kwargs)
+
+    @classmethod
+    def register_class_callback(cls, cbk, *args, **kwargs):
+        """
+        Register a class level callback `cbk` to be applied when reading a frame.
+
+        The callback must receive a `System` instance as input an
+        return the modified `System` instance as output.
+
+        Class level callbacks are applied to all instances of a class.
+        """
+        if cls.class_callbacks is None:
+            cls.class_callbacks = []
+        if (cbk, args, kwargs) not in cls.class_callbacks:
+            cls.class_callbacks.append((cbk, args, kwargs))
+
+    @classmethod
+    def add_class_callback(self, cbk, *args, **kwargs):
+        """Same as `register_class_callback()`."""
+        self.register_class_callback(cbk, *args, **kwargs)
 
     # To read/write timestep and block size sublcasses may implement
     # these methods. The default is dt=1 and block determined dynamically.
@@ -268,7 +339,7 @@ class TrajectoryBase(object):
     @property
     def steps(self):
         if self._steps is None:
-            if 'r' in self.mode:
+            if self.mode[0] == 'r':
                 self._steps = self.read_steps()
             else:
                 self._steps = []
@@ -281,7 +352,7 @@ class TrajectoryBase(object):
     @property
     def timestep(self):
         if self._timestep is None:
-            if self.mode == 'r':
+            if self.mode[0] == 'r':
                 self._timestep = self.read_timestep()
             else:
                 self._timestep = 1.0

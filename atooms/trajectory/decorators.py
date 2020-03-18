@@ -139,6 +139,9 @@ def fold(s):
 
 # Class decorators
 
+# Some of these decorators raise pylint errors because of the
+# lack of visibility on parent methods() or attributes
+
 # To properly implement decorators in python see
 # http://stackoverflow.com/questions/3118929/implementing-the-decorator-pattern-in-python
 # asnwer by Alec Thomas. if we don't subclass at runtime we won't be able to use the decorated
@@ -182,14 +185,15 @@ class Unfolded(object):
     def read_init(self):
         s = super(Unfolded, self).read_init()
         # Cache the initial sample and cell
-        s = self._component.read(0)
+        s = copy.deepcopy(self._component.read(0))
         self._old = numpy.array([p.position for p in s.particle])
         self._last_read = 0
 
     def read_sample(self, frame):
         # Return here if first frame
         if frame == 0:
-            s = self._component.read(frame)
+            # Deepcopy needed, see below
+            s = copy.deepcopy(self._component.read(frame))
             if self.fixed_cm:
                 s = fix_cm(s)
             return s
@@ -204,7 +208,11 @@ class Unfolded(object):
             for i in range(delta-1):
                 self.read_sample(self._last_read+1)
 
-        s = self._component.read(frame)
+        # With deepcopy we make sure that Unfolded() returns copies of
+        # the system read by the component trajectory and does not
+        # modify the underlying system, which is important in case the
+        # latter is stored in memory (TrajectoryRam) and with caching
+        s = copy.deepcopy(self._component.read(frame))
         self._last_read = frame
 
         # Unfold positions

@@ -215,7 +215,7 @@ def check_block_size(steps, block_size, prune=False):
 
     # Remove samples that do not conform with first block
     if prune and len(prune_me) > 0:
-        #print('#', len(prune_me), 'samples should be pruned')
+        # print('#', len(prune_me), 'samples should be pruned')
         for step in prune_me:
             _ = steps_local.pop(steps_local.index(step))
 
@@ -225,7 +225,7 @@ def check_block_size(steps, block_size, prune=False):
     if rest > 1:
         steps_local = steps_local[:-rest]
         print('# block was truncated')
-        
+
     # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
     nbl = len(steps_local) // block_size
@@ -367,7 +367,7 @@ def is_grandcanonical(trajectory, tests=1):
         skip = max(1, int(len(trajectory) / float(tests)))
     else:
         skip = 1
-    N0 = len(trajectory[sample].particle)
+    N0 = len(trajectory[0].particle)
     for sample in range(len(trajectory)-1, 0, -skip):
         N1 = len(trajectory[sample].particle)
         is_variable = False
@@ -399,7 +399,7 @@ def info(trajectory, keys=None):
     from atooms.system.particle import distinct_species, composition
     system = trajectory[0]
     if keys is None:
-        
+
         # Default: full info
         txt = ''
         txt += 'path                 = %s\n' % trajectory.filename
@@ -475,5 +475,5 @@ def info(trajectory, keys=None):
         fmt = '%%-%ds : %%s\n' % (max([len(key) for key in keys.split(',')]))
         for key, out in zip(keys.split(','), outs):
             txt += fmt % (key, out)
-        
+
         return txt.strip('\n')

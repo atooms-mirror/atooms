@@ -7,7 +7,8 @@ import numpy
 from atooms.core.utils import rmd, rmf
 from atooms.system import System, Particle, Cell
 from atooms.trajectory import Unfolded
-from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD
+from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD, Trajectory
+from atooms.trajectory.base import TrajectoryBase
 import atooms.trajectory as trj
 
 
@@ -73,6 +74,33 @@ class Test(unittest.TestCase):
             for i, system in enumerate(self.system):
                 th.write(self.system[i], i)
 
+    def _slice(self, cls, path=None):
+        """Write only"""
+        if path is None:
+            path = self.inpfile
+        with cls(path, 'w') as th:
+            for i, system in enumerate(self.system):
+                th.write(system, i)
+            from atooms.trajectory.decorators import Sliced
+            ts = Sliced(th, slice(None, None, 2))
+            self.assertEqual(len(th), 2)
+            self.assertEqual(len(ts), 1)
+            # This will fail, we cannot slice twice yet
+            # ts = Sliced(ts, slice(None, None, 1))
+            # print len(ts)
+
+    def _append(self, cls, path=None, ignore=None):
+        """Read and write"""
+        if path is None:
+            path = self.inpfile
+        with cls(path, 'w') as th:
+            for system in self.system:
+                th.append(system)
+        with cls(path) as th:
+            for i, system in enumerate(th):
+                self.assertTrue(_equal(self.system[i], system, ignore))
+                self.assertTrue(self.system[i].__class__ is system.__class__)
+
     def _convert(self, cls_inp, cls_out, path=None, ignore=None):
         """Write then convert"""
         if path is None:
@@ -103,10 +131,16 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectorySimpleXYZ, ignore=['mass'])
         self._convert(trj.TrajectoryXYZ, trj.TrajectoryXYZ, ignore=['mass'])
         self._convert(trj.TrajectoryXYZ, 'xyz', ignore=['mass'])
+        self._append(trj.TrajectoryXYZ, ignore=['mass'])
+        self._append(trj.TrajectorySimpleXYZ, ignore=['mass'])
+
+        self._slice(trj.TrajectoryXYZ)
 
     def test_ram(self):
         self._read_write(trj.TrajectoryRam)
         self._read_write(trj.ram.TrajectoryRamFull)
+        self._append(trj.TrajectoryRam)
+        self._append(trj.ram.TrajectoryRamFull)
 
     def test_hdf5(self):
         try:
@@ -255,6 +289,77 @@ B 2.9 -2.9 0.0
             th.add_callback(cbk)
             th[0]
             th[1]
+
+    def test_class_callback(self):
+        def f(s):
+            s._signal = True
+            return s
+
+        class TrajectoryXYZCustom(TrajectoryXYZ):
+            pass
+        TrajectoryXYZCustom.add_class_callback(f)
+        Trajectory.add(TrajectoryXYZCustom)
+
+        self.assertFalse(TrajectoryXYZCustom.class_callbacks is TrajectoryXYZ.class_callbacks)
+
+        with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'w') as th:
+            th.write(self.system[0])
+        with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'r') as th:
+            s = th[0]
+            self.assertTrue(hasattr(s, '_signal'))
+
+        TrajectoryXYZCustom.class_callbacks.remove((f, (), {}))
+        with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'r') as th:
+            s = th[0]
+            self.assertFalse(hasattr(s, '_signal'))
+
+    def _copy_inplace(self, trajectory, expect=False):
+        """
+        Test that trajectory returns a copy of the system and that
+        modifications are not propagated to the underlying trajectory.
+
+        Test in-place modification
+        """
+        system = trajectory[0]
+        original = system.particle[1].position.copy()
+        system.particle[1].position *= 2
+        new_system = trajectory[0]
+        if expect:
+            self.assertEqual(system.particle[1].position[0], new_system.particle[1].position[0])
+        else:
+            self.assertNotEqual(system.particle[1].position[0], new_system.particle[1].position[0])
+
+    def _copy_reassign(self, trajectory, expect=False):
+        """
+        Test that trajectory returns a copy of the system and that
+        modifications are not propagated to the underlying trajectory.
+
+        Test assignement
+        """
+        system = trajectory[0]
+        original = system.particle[1].position.copy()
+        system.particle[1].position[0] = 100000000000000.0
+        if expect:
+            self.assertEqual(system.particle[1].position[0], new_system.particle[1].position[0])
+        else:
+            self.assertNotEqual(system.particle[1].position[0], new_system.particle[1].position[0])
+
+    def test_copy_ram_view(self):
+        with trj.ram.TrajectoryRamView() as th:
+            th[0] = self.system[0]
+            self._copy_inplace(th, expect=True)
+
+    def test_copy_ram(self):
+        with trj.ram.TrajectoryRam() as th:
+            th[0] = self.system[0]
+            self._copy_inplace(th)
+
+    def test_copy_xyz(self):
+        with trj.TrajectoryXYZ(self.inpfile, 'w') as th:
+            th.write(self.system[0])
+        with trj.TrajectoryXYZ(self.inpfile, 'r') as th:
+            self._copy_inplace(th)
+
 
     def tearDown(self):
         rmf(self.inpfile)

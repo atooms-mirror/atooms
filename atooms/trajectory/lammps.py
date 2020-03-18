@@ -141,7 +141,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
             if self.last_particle > 0 and i >= self.last_particle:
                 break
             system.particle.append(Particle())
-            
+
         # Add cell
         idx, data = self._index_db['BOX BOUNDS'][frame]
         self._fh.seek(idx)
@@ -243,7 +243,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
     In write mode, an additional .inp file is used as startup file.
     """
 
-    suffix = '.tgz'
+    suffix = 'tgz'
 
     def __init__(self, filename, mode='r', file_pattern='*',
                  step_pattern=r'[a-zA-Z\.]*(\d*)', first_particle=-1, last_particle=-1):
@@ -256,7 +256,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
         self._steps = None
         # Sort frames according to step read in lammps file
         sorted_steps = sorted(self.steps)
-        files_with_steps = zip(self.files, self.steps)
+        files_with_steps = [(x, y) for x, y in zip(self.files, self.steps)]
         files_with_steps.sort(key=lambda x: sorted_steps.index(x[1]))
         files = [_[0] for _ in files_with_steps]
         self.files = files

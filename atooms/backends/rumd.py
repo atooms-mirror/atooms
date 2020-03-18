@@ -22,6 +22,32 @@ _log = logging.getLogger(__name__)
 _version = rumd.GetVersion()
 
 
+def unfold(system):
+    # s = system
+    # particle = system.particle
+    # for i, p in enumerate(particle):
+    #     p.position += p.periodic_image * s.cell.side
+    # system.particle = particle
+    # return s
+    from atooms.system import System
+    npart = system.sample.GetNumberOfParticles()
+    pos = system.sample.GetPositions()
+    nsp = system.sample.GetNumberOfTypes()
+    ima = system.sample.GetImages()
+    spe = numpy.ndarray(npart, dtype=int)
+    ii = 0
+    for i in range(nsp):
+        ni = system.sample.GetNumberThisType(i)
+        spe[ii: ii + ni] = i
+        ii += ni
+    particle = [Particle(species=spe_i, position=pos_i) for spe_i, pos_i in
+                zip(spe, pos)]
+    for p, i in zip(particle, ima):
+        p.position += i * system.cell.side
+
+    return System(particle=particle, cell=system.cell)
+
+
 class RUMD(object):
 
     """RUMD simulation backend."""
@@ -29,11 +55,11 @@ class RUMD(object):
     version = _version
 
     def __init__(self, input_file_or_sim, forcefield_file=None,
-                 integrator=None, temperature=None, dt=0.001,
-                 output_path=None, fixcm_interval=0):
-        self.output_path = output_path
+                 forcefield=None, integrator=None, temperature=None,
+                 dt=0.001, fixcm_interval=0):
+
         # Keep a reference of the Trajectory backend class
-        self.trajectory = Trajectory
+        self.trajectory_class = Trajectory
 
         # Store internal rumd simulation instance.
         # It is exposed as self.rumd_simulation for further customization
@@ -52,15 +78,17 @@ class RUMD(object):
             self.rumd_simulation.write_timing_info = False
 
             # By default we mute RUMD output.
-            if self.output_path is not None:
-                mkdir(self.output_path)
-                self.rumd_simulation.sample.SetOutputDirectory(self.output_path + '/rumd')
             self.rumd_simulation.SetOutputScheduling("energies", "none")
             self.rumd_simulation.SetOutputScheduling("trajectory", "none")
             self._suppress_all_output = True
             self._initialize_output = False
 
-            # We parse the forcefield file.
+            # Set the forcefield
+            if forcefield is not None:
+                # We are provided a list of rumd potentials
+                for potential in forcefield:
+                    self.rumd_simulation.AddPotential(potential)
+            # We parse the forcefield file
             # It should provide a list of potentials named potential
             if forcefield_file is not None:
                 with open(forcefield_file) as fh:
@@ -85,11 +113,40 @@ class RUMD(object):
         # Copy of initial state
         self._initial_sample = self.rumd_simulation.sample.Copy()
 
+        # Hold a reference to the system
+        # self.system = System(self.rumd_simulation.sample, self.rumd_simulation.potentialList)
+
+    # Wrapping system is needed because rumd holds a reference to the
+    # potentials in rumd_simulation and they are needed to create a
+    # working sample from scratch
+    #
+    # It appears mostly necessary because we must operate on the underlying sample.
+    #
     def _get_system(self):
-        return System(self.rumd_simulation.sample)
+        system = System(self.rumd_simulation.sample)
+        #system.__itg_infoStr_start = self.rumd_simulation.itg.GetInfoString(8)
+        return system
 
     def _set_system(self, value):
-        self.rumd_simulation.sample = value.sample
+        self.rumd_simulation.sample.Assign(value.sample)
+        # TODO: improve copying over of thermostat
+        # self.rumd_simulation.itg.InitializeFromInfoString(value._itg_infoStr_start)
+        # Setting sample this way is useless.
+        #   self.rumd_simulation.sample = value.sample
+        # Rumd actually sets samples via a file, there seems to be no other way.
+        # TODO: to retain modifications to system, use atooms trajectory but at the moment we would loose info on thermostat
+        # import tempfile
+        # from atooms.core.utils import rmd
+        # # Why should we set the output dir? It should not change
+        # #tmp = value.sample.GetOutputDirectory()
+        # dirout = tempfile.mkdtemp()
+        # file_tmp = os.path.join(dirout, 'sample.xyz.gz')
+        # value.sample.WriteConf(file_tmp)
+        # self.rumd_simulation.sample.ReadConf(file_tmp, init_itg=False)
+        # # Why should we set the output dir? It should not change
+        # # value.sample.SetOutputDirectory(tmp)
+        # # Clean up
+        # rmd(dirout)
 
     system = property(_get_system, _set_system, 'System')
 
@@ -112,16 +169,13 @@ class RUMD(object):
         unf = self.rumd_simulation.sample.GetPositions() + self.rumd_simulation.sample.GetImages() * L
         return (sum(sum((unf - ref)**2)) / N)**0.5
 
-    def write_checkpoint(self):
-        if self.output_path is None:
-            _log.warn('output_path is not set so we cannot write checkpoint')
-        else:
-            with Trajectory(self.output_path + '.chk', 'w') as t:
-                t.write(self.system, None)
+    def write_checkpoint(self, output_path):
+        with Trajectory(output_path + '.chk', 'w') as t:
+            t.write(self.system, None)
 
-    def read_checkpoint(self):
-        if os.path.exists(self.output_path + '.chk'):
-            self.rumd_simulation.sample.ReadConf(self.output_path + '.chk')
+    def read_checkpoint(self, output_path):
+        if os.path.exists(output_path + '.chk'):
+            self.rumd_simulation.sample.ReadConf(output_path + '.chk')
         else:
             _log.debug('could not find checkpoint')
 
@@ -180,18 +234,23 @@ class System(object):
         return result
 
     def __deepcopy__(self, memo):
-        # TODO: @nick ask to implement
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
-        result.__dict__.update(self.__dict__)
-        # Use Copy() method of sample,
+        # result.__dict__.update(self.__dict__)  #these are refs...
+        # Copy() does not copy the integrator
         result.sample = self.sample.Copy()
-        # We do not copy recursively, deepcopy fails when wrapping SWIG classes
-        # from copy import deepcopy
-        # for k, v in self.__dict__.items():
-        #     setattr(result, k, deepcopy(v, memo))
+        # This way we set the integrator. Note that it is always the same object...
+        # result.sample.SetIntegrator(self.sample.GetIntegrator())
+        #result._itg_infoStr_start = self.thermostat._integrator.GetInfoString(18)
+        # TODO: thermostat should be a property this way we would not need to update this
+        result.thermostat = Thermostat(self.sample.GetIntegrator())
         return result
+
+    def update(self, other):
+        self.sample.Assign(other.sample)
+        # self.sample.SetIntegrator(other.sample.GetIntegrator())  # maybe not necessary
+        self.thermostat = Thermostat(self.sample.GetIntegrator())
 
     def potential_energy(self, per_particle=False, normed=False, cache=False):
         self.sample.CalcF()
@@ -239,8 +298,16 @@ class System(object):
         mass = self.__get_mass()
         return numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
 
-    def set_temperature(self):
-        raise NotImplementedError
+    def set_temperature(self, T):
+        # Scale velocities from temperature Told to T
+        # TODO: use maxwellian
+        # TODO: remove CM velocity
+        Told = self.temperature
+        velocity_factor = (T/Told)**0.5
+        self.sample.ScaleVelocities(velocity_factor)
+
+    def scale_velocities(self, factor):
+        self.sample.ScaleVelocities(factor)
 
     @property
     def cell(self):
@@ -250,6 +317,9 @@ class System(object):
 
     @property
     def particle(self):
+        # Warning: this is read only. If you change the particles, the
+        # modification won't be propoagated to the RUMD objects.
+        # One would have to create a new system.
         npart = self.sample.GetNumberOfParticles()
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
@@ -268,6 +338,11 @@ class System(object):
         for pi, i in zip(p, ima):
             pi.periodic_image = i
         return p
+
+    def dump(self, what):
+        import atooms.system
+        system = atooms.system.System(self.particle, self.cell)
+        return system.dump(what)
 
     def report(self):
         return ''

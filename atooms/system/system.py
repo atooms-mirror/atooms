@@ -4,12 +4,13 @@
 """
 The physical system at hand.
 
-The systems of interest in classical atomistic simulations are made of
-interacting point particles, usually enclosed in a simulation
-cell. The system may be in contact with a thermostat, a barostat or a
-particle reservoir.
+The system of interest in a classical atomistic simulations is
+composed of interacting point particles, usually enclosed in a
+simulation cell. The system may be in contact with a thermostat, a
+barostat or a particle reservoir.
 """
 
+import copy
 import numpy
 from .particle import cm_position, cm_velocity, fix_total_momentum
 from .particle import show as _show
@@ -41,6 +42,37 @@ class System(object):
         # Note: when making a shallow copy the _data cache
         # may need to be cleared. We might set self._data to None here.
         return result
+
+    def update(self, other, full=False, exclude=None, only=None):
+        """
+        Update current system attributes in-place using the `other` System
+        as source.
+        
+        The default behavior is to make deep copies only of all the
+        `other` system attributes that are not None, i.e. which are
+        set.
+
+        To overwrite all attributes, even those set in `self` but not
+        in `other`, use `full=True`.
+
+        The lists `exclude` and `only` can be used to avoid updating
+        some system attributes or to update only some system
+        attributes, respectively.
+
+        This method can be used by subclasses to deal with performace
+        or memory dellocation issues.
+        """
+        for key in other.__dict__:
+            if exclude is not None or only is not None:
+                if (exclude is not None and key not in exclude) or \
+                   (only is not None and key in only):
+                    self.__dict__[key] = copy.deepcopy(other.__dict__[key])
+            else:
+                if full or other.__dict__[key] is not None:
+                    self.__dict__[key] = copy.deepcopy(other.__dict__[key])
+
+        # Internal data dictionary for array dumps
+        self._data = None
 
     @property
     def number_of_dimensions(self):
@@ -120,6 +152,11 @@ class System(object):
             fac = (T/T_old)**0.5
             for p in self.particle:
                 p.velocity *= fac
+
+    def scale_velocities(self, factor):
+        """Scale particles' velocities by `factor`."""
+        for p in self.particle:
+            p.velocity *= factor
 
     def kinetic_energy(self, per_particle=False, normed=False):
         """

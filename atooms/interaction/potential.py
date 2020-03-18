@@ -3,11 +3,11 @@
 
 """Pair potential classes and factory."""
 
+import warnings
 import numpy
 
 from atooms.interaction import library
 from atooms.interaction import decorators
-
 
 def tabulate(potential, parameters, cutoff='c', rc=2.5, npoints=10000,
              rmin=0.5, fmt='lammps', metadata='', fileout=None, precision=14):
@@ -47,14 +47,14 @@ N {}
     elif fmt == 'uwh':
         txt = '# {} columns: r, u, w, h\n'.format(metadata)
         for x, y, z, w in zip(r, u0, u1, u2):
-            txt += '{:.14g} {:.14g} {:.14g} {:.14g}\n'.format(x, y, z, w) 
+            txt += '{:.14g} {:.14g} {:.14g} {:.14g}\n'.format(x, y, z, w)
 
     else:
         u1 *= r
         txt = '# {} columns: r, u, f\n'.format(metadata)
         for x, y, z in zip(r, u0, u1):
             txt += '{} {} {}\n'.format(x, y, z)
-    
+
     if fileout is None:
         return txt
     else:
@@ -175,12 +175,15 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
         # Note that the cutoff is applied to the function only to smooth it
         # not to cut it.
         drsq = (rmax**2 - rmin**2) / (npoints - 3)
+        warnings.filterwarnings("ignore")
         for i in range(npoints):
             rsq[i] = rmin**2 + i * drsq
             try:
                 u0[i], u1[i], u2[i] = self.compute(rsq[i])
             except ZeroDivisionError:
                 u0[i], u1[i], u2[i] = float('nan'), float('nan'), float('nan')
+        warnings.resetwarnings()
+
         # For potentials that diverge at zero, we remove the singularity by hand
         import math
         if math.isnan(u0[0]):

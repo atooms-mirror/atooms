@@ -32,7 +32,7 @@ except subprocess.CalledProcessError:
 def _get_lammps_version():
     """Return lammps version and raise an exception if lammps is not installed"""
     try:
-        cmd = '{} {} < /dev/null'.format(lammps_mpi, lammps_command)
+        cmd = 'echo | {} {}'.format(lammps_mpi, lammps_command)
         _ = subprocess.check_output(cmd, shell=True,
                                     stderr=subprocess.STDOUT, executable='/bin/bash')
         version = _.decode().split('\n')[0][8:-1]
@@ -42,17 +42,17 @@ def _get_lammps_version():
 
 def _run_lammps_command(cmd):
     """Run a lammps script from the command line"""
-    # see https://stackoverflow.com/questions/163542/python-how-do-i-pass-a-string-into-subprocess-popen-using-the-stdin-argument
+    dirout = tempfile.mkdtemp()
+    file_tmp = os.path.join(dirout, 'cmd.lammps')
+    with open(file_tmp, 'w') as fh:
+        fh.write(cmd)
     opt = '-n {}'.format(lammps_mpi_tasks) if lammps_mpi else ''
-    p = subprocess.Popen(['{} {} {}'.format(lammps_mpi, opt, lammps_command)],
-                         shell=True,
-                         stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE,
-                         executable='/bin/bash')
-    stdout = p.communicate(input=cmd.encode('utf8'))[0]
-    code = p.returncode
-    if code != 0:
-        raise RuntimeError(stdout)
+    shell_cmd = '{} {} {} -in {}'.format(lammps_mpi, opt, lammps_command, file_tmp)
+    stdout = subprocess.check_output(shell_cmd, shell=True,
+                                     stderr=subprocess.STDOUT,
+                                     executable='/bin/bash')
+    # Clean up
+    rmd(dirout)
     return stdout.decode()
 
 
@@ -102,8 +102,9 @@ write_dump all custom {} fx fy fz modify format line "%.15g %.15g %.15g"
                 self.virial = (P - rho*T) * ndim * cell.volume
                 break
 
-        new_system = TrajectoryLAMMPS(file_tmp)[-1]
-        self.forces = new_system.interaction.forces
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+            self.forces = new_system.interaction.forces
 
         # Clean up
         rmd(dirout)
@@ -159,7 +160,7 @@ class LAMMPS(object):
             raise ValueError('could not initialize system from {}'.format(inp))
 
         # Default trajectory format
-        self.trajectory = TrajectoryLAMMPS
+        self.trajectory_class = TrajectoryLAMMPS
 
         # Assign commands as potentials, they should be stripped
         self.system.interaction = Interaction(commands)
@@ -171,10 +172,10 @@ class LAMMPS(object):
     def rmsd(self):
         return 0.0
 
-    def read_checkpoint(self):
+    def read_checkpoint(self, output_path):
         pass
 
-    def write_checkpoint(self):
+    def write_checkpoint(self, output_path):
         pass
 
     def run(self, steps):
@@ -224,9 +225,10 @@ write_dump all custom {} id type x y z vx vy vz modify sort id format line "%d %
 
         # Update internal reference to self.system
         # Note that the thermostat and barostat are not touched
-        new_system = TrajectoryLAMMPS(file_tmp)[-1]
-        for i in range(len(self.system.particle)):
-            self.system.particle[i] = new_system.particle[i]
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+            for i in range(len(self.system.particle)):
+                self.system.particle[i] = new_system.particle[i]
 
         # Clean up
         rmd(dirout)
@@ -298,7 +300,8 @@ write_dump all custom {file_tmp} id type x y z modify sort id format line "%d %d
             self.reached_steps = False
 
         # Update internal reference to self.system
-        new_system = TrajectoryLAMMPS(file_tmp)[-1]
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
         for i in range(len(self.system.particle)):
             self.system.particle[i] = new_system.particle[i]
 

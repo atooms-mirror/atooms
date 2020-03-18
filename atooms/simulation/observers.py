@@ -156,6 +156,13 @@ class Scheduler(object):
 # Callbacks as pure function to distinguish their role we adopt a naming convention:
 # if the callback contains write (target) in its __name__ then it is a writer (targeter).
 
+def write_to_ram(sim, trajectory_ram):
+    """
+    Write configurations to a trajectory in ram.
+    """
+    trajectory_ram.write(sim.system, sim.current_step)
+
+
 def write_config(sim, fields=None, precision=None):
     """
     Write configurations to a trajectory file.
@@ -164,17 +171,20 @@ def write_config(sim, fields=None, precision=None):
     instance.
     """
     # Initialize
-    if sim.current_step == 0 and hasattr(sim, '__init_write_config'):
-        del(sim.__init_write_config)
+    # This will clear the variable in a new run
+    if sim.current_step == 0 or not hasattr(sim, '__init_write_config'):
+        sim.__init_write_config = False
+    if sim.restart:
+        sim.__init_write_config = True
 
     # Header
-    if not hasattr(sim, '__init_write_config'):
+    if not sim.__init_write_config:
         sim.__init_write_config = True
         # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
         rmd(sim.output_path)
         rmf(sim.output_path)
 
-    with sim.trajectory(sim.output_path, 'a') as t:
+    with sim.trajectory_class(sim.output_path, 'a') as t:
         if precision is not None:
             t.precision = precision
         if fields is not None:
@@ -243,12 +253,16 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     if fmt is not None:
         _db_fmt.update(fmt)
 
+    # TODO: make it possible to have multiple write_thermo callbacks. At present they interfere
     # Initialize
-    if sim.current_step == 0 and hasattr(sim, '__init_write_thermo'):
-        del(sim.__init_write_thermo)
+    # This will clear the variable in a new run
+    if sim.current_step == 0 or not hasattr(sim, '__init_write_thermo'):
+        sim.__init_write_thermo = False
+    if sim.restart:
+        sim.__init_write_thermo = True
 
     # Header
-    if not hasattr(sim, '__init_write_thermo'):        
+    if not sim.__init_write_thermo:
         sim.__init_write_thermo = True
         with open(sim.output_path + '.thermo', 'w') as fh:
             txt = ', '.join(fields)
@@ -388,7 +402,7 @@ def shell_stop(sim, cmd, exit_code=1):
         if len(output) > 0:
             _log.info('shell command "{}" returned: {}'.format(cmd, output.strip()))
 
-    except subprocess.CalledProcessError as e: 
+    except subprocess.CalledProcessError as e:
         # We stop the simulation
         if e.returncode == exit_code:
             raise SimulationEnd('shell command "{}" returned "{}"'.format(cmd, e.output.strip()))
@@ -441,9 +455,6 @@ class Speedometer(object):
                     kwargs = sim._cbk_params[c]['kwargs']
                     self.x_last = c(sim, *args, **kwargs)
                     self.t_last = time.time()
-                    # # TODO: this assumes that targeters all get their target as attributes of simulation.
-                    # # We should fail or ask the targeter a cached value
-                    # self.x_last = c(sim._cbk_params[c])
                     self._init = True
                     return
 
@@ -460,7 +471,7 @@ class Speedometer(object):
             d_now = datetime.datetime.now()
             d_delta = datetime.timedelta(seconds=eta)
             d_eta = d_now + d_delta
-            # self._callback.__name__, 
+            # self._callback.__name__,
             _log.info('%2d%% ETA: %s S/T: %.1f T/SP: %.2e',
                       int(frac * 100),
                       d_eta.strftime('%Y-%m-%d %H.%M'),
