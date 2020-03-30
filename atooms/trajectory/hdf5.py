@@ -335,28 +335,29 @@ class TrajectoryHDF5(TrajectoryBase):
             return None
 
         n = self.trajectory['/initialstate/interaction/number_of_interactions'][0]
-        interactions = []
-        for i in range(n):
-            g = '/initialstate/interaction/interaction_%d/' % (i+1)
-            np = self.trajectory[g + 'number_of_potentials'][0]
-            name = self.trajectory[g + 'interaction_type'][0].decode()
-            potentials = []
-            for j in range(np):
-                sg = self.trajectory[g + 'potential_%d/' % (j+1)]
-                # params = {k:v for k, v in zip(sg['parameters_name'][:], sg['parameters'][:])}
-                # make it compatible with 2.6
-                params = {}
-                for k, v in zip(sg['parameters_name'][:], sg['parameters'][:]):
-                    params[k.decode()] = v
-                p = PairPotential(sg['potential'][0].decode(), params,
-                                  sg['interacting_species'][:],
-                                  CutOff(sg['cutoff_scheme'][0].decode(),
-                                         sg['cutoff_radius'][0]),
-                                  sg['lookup_points'][0])
+        if n > 1:
+            warning.warn('can only read one interaction term')
+        
+        i = 0
+        g = '/initialstate/interaction/interaction_%d/' % (i+1)
+        np = self.trajectory[g + 'number_of_potentials'][0]
+        name = self.trajectory[g + 'interaction_type'][0].decode()
+        potentials = []
+        for j in range(np):
+            sg = self.trajectory[g + 'potential_%d/' % (j+1)]
+            # params = {k:v for k, v in zip(sg['parameters_name'][:], sg['parameters'][:])}
+            # make it compatible with 2.6
+            params = {}
+            for k, v in zip(sg['parameters_name'][:], sg['parameters'][:]):
+                params[k.decode()] = v
+            p = PairPotential(sg['potential'][0].decode(), params,
+                              sg['interacting_species'][:],
+                              CutOff(sg['cutoff_scheme'][0].decode(),
+                                     sg['cutoff_radius'][0]),
+                              sg['lookup_points'][0])
 
-                potentials.append(p)
-            interactions.append(Interaction(potentials, name))
-        return interactions
+            potentials.append(p)
+        return Interaction(potentials, name)
 
     def read_sample(self, frame, unfolded=False):
         # TODO: due to unfolded argument this differs from the base class method Can we drop this?
