@@ -306,11 +306,8 @@ class TrajectoryHDF5(TrajectoryBase):
                 sidebox = group[entry][:]
         cell = Cell(sidebox)
 
-        # read interaction as h5 group
-        try:
-            interaction = self.trajectory['/initialstate/interaction']
-        except:
-            interaction = None
+        # read interaction
+        interaction = self.read_interaction()
 
         # build system
         self._system = System(particle, cell, interaction)
