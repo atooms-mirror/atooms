@@ -104,6 +104,7 @@ class PairPotential(object):
         self.hard_core = hard_core
         self.npoints = npoints
         self._adjusted = False
+        self._can_compute = True
 
         if not hasattr(self.func, '__call__'):
             # If func is not callable, look up the potential in the
@@ -115,7 +116,8 @@ class PairPotential(object):
                 # Used to implement hard potentials
                 getattr(decorators, self.func)(self)
             else:
-                raise ValueError('unknown potential %s' % self.func)
+                # Unknown potential, cannot be computed
+                self._can_compute = False
 
     def __str__(self):
         if type(self.func) is str:
@@ -195,6 +197,9 @@ cutoff: {0.cutoff} at {0.cutoff.radius}
 
     def compute(self, rsquare):
         """Compute the potential and its derivatives."""
+        if not self._can_compute:
+            raise ValueError('cannot compute unknown potential %s' % self.func)
+
         if not self._adjusted:
             self._adjust()
         # Compute the potential and smooth it via the cutoff
