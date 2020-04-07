@@ -1,24 +1,24 @@
-- [Basics](#org1a2a1bb)
-  - [Particles' properties](#org33d4a38)
-  - [Dealing with velocities](#org3ab8cab)
-  - [Boundary conditions](#orga6c6778)
-  - [The system object](#org732c994)
-  - [Interaction and backends](#orgd7d0873)
-  - [Trajectory files](#orgc6937ea)
-  - [Particles on a lattice](#org025798f)
-- [Simulations](#orgcbc941f)
-  - [A minimal simulation backend](#org885c48a)
-  - [Simple random walk](#org6d3ccf9)
-  - [Molecular dynamics with LAMMPS](#org3737f76)
-  - [Energy minimization with LAMMPS](#org4c81dc8)
-- [Trajectories](#org10814aa)
-  - [Custom trajectory output](#org38e569d)
-  - [Conversion between trajectory formats](#org4619d10)
-  - [Modify trajectories on the fly with callbacks](#org156c16c)
+- [Basics](#orgbd9f167)
+  - [Particles' properties](#orgd5a3d24)
+  - [Dealing with velocities](#org7fd678f)
+  - [Boundary conditions](#org4029e3a)
+  - [The system object](#org406d67f)
+  - [Interaction and backends](#orgd5a4f4f)
+  - [Trajectory files](#org6f693a1)
+  - [Particles on a lattice](#org889b9f5)
+- [Simulations](#org7e11c08)
+  - [A minimal simulation backend](#org40f8080)
+  - [Simple random walk](#orgd075c2f)
+  - [Molecular dynamics with LAMMPS](#orgc8b903b)
+  - [Energy minimization with LAMMPS](#org6d19204)
+- [Trajectories](#orga5b4d39)
+  - [Custom trajectory output](#orgcaa0df8)
+  - [Conversion between trajectory formats](#org5c288b7)
+  - [Modify trajectories on the fly with callbacks](#org092b00f)
 
 
 
-<a id="org1a2a1bb"></a>
+<a id="orgbd9f167"></a>
 
 # Basics
 
@@ -27,7 +27,7 @@ Atooms provides a high-level interface to the main objects of particle-based sim
 We will start by having a look at the basic objects of particle-based simulations and how to store them on a file.
 
 
-<a id="org33d4a38"></a>
+<a id="orgd5a3d24"></a>
 
 ## Particles' properties
 
@@ -73,7 +73,7 @@ particle.charge = -1.0
 This won't break anything!
 
 
-<a id="org3ab8cab"></a>
+<a id="org7fd678f"></a>
 
 ## Dealing with velocities
 
@@ -90,7 +90,7 @@ T = 2.0 / ndof * ekin
 print(T)
 ```
 
-    0.9938245277921229
+    1.0345599318163679
 
 Doing so will leave a non-zero total momentum, but we can fix it (note that all masses are equal)
 
@@ -101,11 +101,11 @@ fix_total_momentum(particle)
 print(cm_velocity(particle))
 ```
 
-    [-0.03667355  0.02856046 -0.00606605]
-    [ 4.88498131e-18  3.43544637e-17 -5.82867088e-17]
+    [-0.00815476 -0.03845362 -0.0040651 ]
+    [3.01980663e-17 3.77475828e-17 1.42663659e-17]
 
 
-<a id="orga6c6778"></a>
+<a id="org4029e3a"></a>
 
 ## Boundary conditions
 
@@ -145,7 +145,7 @@ print(image)
     Particle(species=A, mass=1.0, position=0.55, velocity=[0. 0. 0.], radius=0.5)
 
 
-<a id="org732c994"></a>
+<a id="org406d67f"></a>
 
 ## The system object
 
@@ -162,7 +162,7 @@ system.temperature = 1.5  # equivalent to system.set_temperature(1.2)
 print(system.density, system.temperature)
 ```
 
-    1.1999999999999997 1.4999999999999991
+    1.1999999999999997 1.500000000000001
 
 Note that the system temperature is the kinetic one and need not coincide with the one of the thermostat.
 
@@ -173,14 +173,14 @@ system.temperature = 1.5  # equivalent to system.set_temperature(1.2)
 print(system.temperature, system.thermostat.temperature)
 ```
 
-    1.5000000000000007 1.0
+    1.5000000000000002 1.0
 
 
-<a id="orgd7d0873"></a>
+<a id="orgd5a4f4f"></a>
 
 ## Interaction and backends
 
-Classical particles interact with each other via a potential \(u(\{r_i\})\), where \(\{r_i\}\) is the set of particles' coordinates. Atooms relies on third-party efficient **backends** written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see [Molecular dynamics with LAMMPS](#org3737f76) for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see <https://lammps.sandia.gov/doc/pair_style.html>, and stores a reference to the system object of which we want to compute the energy.
+Classical particles interact with each other via a potential \(u(\{r_i\})\), where \(\{r_i\}\) is the set of particles' coordinates. Atooms relies on third-party efficient **backends** written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see [Molecular dynamics with LAMMPS](#orgc8b903b) for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see <https://lammps.sandia.gov/doc/pair_style.html>, and stores a reference to the system object of which we want to compute the energy.
 
 As proof of principle, we compute the interaction energy between two Lennard-Jones particles
 
@@ -209,7 +209,7 @@ print(system.potential_energy(), system.potential_energy(cache=True))
 The energy and forces are stored in `system.interaction.energy` and `system.interaction.forces`.
 
 
-<a id="orgc6937ea"></a>
+<a id="org6f693a1"></a>
 
 ## Trajectory files
 
@@ -272,7 +272,7 @@ with TrajectoryXYZ('test.xyz') as th:
     20 [0. 0. 0.]
 
 
-<a id="org025798f"></a>
+<a id="org889b9f5"></a>
 
 ## Particles on a lattice
 
@@ -331,7 +331,7 @@ with TrajectoryXYZ('test.xyz') as th:
 Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.
 
 
-<a id="orgcbc941f"></a>
+<a id="org7e11c08"></a>
 
 # Simulations
 
@@ -345,7 +345,7 @@ At a very minimum, a backend is a class that provides
 Optionally, the backend may hold a reference to a trajectory class, which can be used to checkpoint the simulation or to write configurations to a file. This is however not required in a first stage.
 
 
-<a id="org885c48a"></a>
+<a id="org40f8080"></a>
 
 ## A minimal simulation backend
 
@@ -386,13 +386,13 @@ simulation.run(10)
 ```
 
     # 
-    # atooms simulation via <__main__.BareBonesBackend object at 0x7f9ec7705828>
+    # atooms simulation via <__main__.BareBonesBackend object at 0x7f2c87bdc828>
     # 
     # version: 1.11.1+1.10.2-38-g68fe93-dirty (2020-01-06)
     # atooms version: 1.11.1+1.10.2-38-g68fe93-dirty (2020-01-06)
-    # simulation started on: 2020-04-07 at 18:18
+    # simulation started on: 2020-04-07 at 18:21
     # output path: None
-    # backend: <__main__.BareBonesBackend object at 0x7f9ec7705828>
+    # backend: <__main__.BareBonesBackend object at 0x7f2c87bdc828>
     # 
     # target target_steps: 10
     # 
@@ -405,10 +405,10 @@ simulation.run(10)
     # final rmsd: 0.00
     # wall time [s]: 0.00
     # average TSP [s/step/particle]: nan
-    # simulation ended on: 2020-04-07 at 18:18
+    # simulation ended on: 2020-04-07 at 18:21
 
 
-<a id="org6d3ccf9"></a>
+<a id="orgd075c2f"></a>
 
 ## Simple random walk
 
@@ -483,14 +483,12 @@ plt.ylabel("MSD")
 plt.savefig('msd.png')
 ```
 
-    [0, 10, 20, 30, 40, 50] [0.0, 2.4652726888576617, 4.832043391829463, 7.220768527771355, 9.769936922673606, 12.287088741440002]
+    [0, 10, 20, 30, 40, 50] [0.0, 2.574642838590678, 5.042707871613692, 7.415030675661178, 9.771553648704305, 12.355036728620227]
 
-The MSD as a function of time should look linear.
-
-![img](msd.png)
+The MSD as a function of time should look linear. ![img](msd.png)
 
 
-<a id="org3737f76"></a>
+<a id="orgc8b903b"></a>
 
 ## Molecular dynamics with LAMMPS
 
@@ -537,6 +535,7 @@ sim.add(write_config, 500)
 sim.add(write_thermo, 500)
 ```
 
+
 We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
 
 ```python
@@ -560,7 +559,7 @@ api.gr('lammps.xyz')
 ![img](lammps_gr.png)
 
 
-<a id="org4c81dc8"></a>
+<a id="org6d19204"></a>
 
 ## Energy minimization with LAMMPS
 
@@ -590,12 +589,12 @@ print('Energy={}, mean square force={:.2g}'.format(e_final, w_final))
 ```
 
 
-<a id="org10814aa"></a>
+<a id="orga5b4d39"></a>
 
 # Trajectories
 
 
-<a id="org38e569d"></a>
+<a id="orgcaa0df8"></a>
 
 ## Custom trajectory output
 
@@ -635,7 +634,7 @@ with TrajectoryXYZ('test.xyz') as th:
     -1.0
 
 
-<a id="org4619d10"></a>
+<a id="org5c288b7"></a>
 
 ## Conversion between trajectory formats
 
@@ -667,7 +666,7 @@ trj.py convert -i xyz -o lammps test.xyz test.lammps
 Although the script will do its best to guess the appropriate trajectory formats, it is best to provide the input and output trajectory formats via the `-i` and `-o` flags explicitly.
 
 
-<a id="org156c16c"></a>
+<a id="org092b00f"></a>
 
 ## Modify trajectories on the fly with callbacks
 
