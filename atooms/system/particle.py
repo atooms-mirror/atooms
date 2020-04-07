@@ -13,6 +13,7 @@ class Particle(object):
 
     def __init__(self, species='A', mass=1.0, position=None,
                  velocity=None, radius=0.5):
+        # TODO: position should have been first
         self.species = species
         """The chemical species of the particle."""
         self.mass = mass
