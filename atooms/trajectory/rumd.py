@@ -99,11 +99,11 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
 class SuperTrajectoryRUMD(SuperTrajectory):
 
-    def __new__(cls, inp, mode='r', basename='trajectory'):
+    def __new__(cls, inp, mode='r', basename='trajectory*.gz'):
         """ Takes a directory as input and get all block*gz files in there """
         if not os.path.isdir(inp):
             raise IOError("We expected this to be a dir (%s)" % inp)
-        f_all = glob.glob(inp + '/%s*gz' % basename)
+        f_all = glob.glob(inp + '/' + basename)
         if len(f_all) == 0:
             # Let's try with 00000.xyz.gz lie files
             f_all = glob.glob(inp + '/[0-9]*gz')
