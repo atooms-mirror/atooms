@@ -670,7 +670,7 @@ Although the script will do its best to guess the appropriate trajectory formats
 
 ## Modify trajectories on the fly with callbacks
 
-"Callbacks" are functions used to modify the properties of a trajectory without modifying the underlying trajectory itself. They accept a `System` instance as first positional argument, along with optional extra positional and keyword arguments, and return a modified `System`.
+"Callbacks" are functions used to modify the properties of a trajectory on the fly. They accept a `System` instance as first positional argument, along with optional extra positional and keyword arguments, and return a modified `System`.
 
 As an example, suppose your trajectory did not provide any information about the cell side. You can add the information dynamically to all `System` objects read from the trajectory using the following callback
 
