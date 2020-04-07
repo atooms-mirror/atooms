@@ -681,7 +681,7 @@ def fix_missing_cell(system, side):
     return system
 ```
 
-Then we add the callback to the trajectory and provide the cell side (here \(L=10\) along each dimensions) as argument. Reading the trajectory is then done as usual.
+Then we add the callback to the trajectory and provide the cell side (here L=10 along each dimensions) as argument. Reading the trajectory is then done as usual.
 
 ```python
 from atooms.trajectory import TrajectoryXYZ
