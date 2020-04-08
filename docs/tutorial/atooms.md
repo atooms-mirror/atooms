@@ -673,18 +673,14 @@ with TrajectoryXYZ('test.xyz') as th:
 
     [10. 10. 10.]
 
-- [Extend trajectory classes](#org6c77896)
 
-
-<a id="org6c77896"></a>
+<a id="orgf845519"></a>
 
 # Extend trajectory classes
 
 Suppose you have a trajectory that looks almost like xyz, but differs in some way. You may want to customize the xyz trajectory format, so that your code can process the trajectory without manual intervention.
 
-For instance, suppose your xyz file is \`trajectory.xyz\` but the cell side information is stored in a separate file \`trajectory.xyz.cell\`.
-
-We can fix the problem with a callback, which must be added to the trajectory as above
+For instance, your xyz file is `test.xyz` but the cell side information is stored in a separate file `test.xyz.cell`. We can fix the problem using a callback
 
 ```python
 from atooms.system import Cell
@@ -699,9 +695,15 @@ def fix_missing_cell(system, trajectory):
             self._side = [float(L) for L in fh.read().split()]
     system.cell = Cell(self._side)
     return system
+
+# Add the callback now
+with TrajectoryXYZ('test.xyz') as th:
+    th.add_callback(fix_missing_cell, th)
 ```
 
-As a more permanent solution, you can define your own custom trajectory by subclassing \`TrajectoryXYZ\`. First, parse the cell information during the initialization stage (`read_init()`).
+Note how we have passed the trajectory to the callback to extract the path.
+
+As a more permanent solution, you can define your own custom trajectory by subclassing `TrajectoryXYZ`. First, parse the cell information during the initialization stage (`read_init()`).
 
 ```python
 from atooms.system import Cell
@@ -713,9 +715,6 @@ class TrajectoryCustomXYZ(TrajectoryXYZ):
         super().read_init()
         file_cell = self.filename + '.cell'
         with open(file_cell) as fh:
-            # Assume the cell file contains a string like 
-            # Lx Ly Lz
-            # where Lx, Ly, Lz are the sides of the orthorombic cell
             self._side = [float(L) for L in fh.read().split()]
 ```
 
