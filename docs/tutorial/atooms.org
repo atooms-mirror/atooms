@@ -655,7 +655,7 @@ trj.py convert -i xyz -o lammps test.xyz test.lammps
 
 Although the script will do its best to guess the appropriate trajectory formats, it is best to provide the input and output trajectory formats via the =-i= and =-o= flags explicitly.
 
-** Modify trajectories on the fly with callbacks
+** Add and modify trajectory properties on the fly with callbacks
 
 "Callbacks" are functions used to modify the properties of a trajectory on the fly. They accept a =System= instance as first positional argument, along with optional extra positional and keyword arguments, and return a modified =System=.
 
@@ -679,3 +679,51 @@ with TrajectoryXYZ('test.xyz') as th:
 #+results:
 : [10. 10. 10.]
 : [10. 10. 10.]
+** Extend trajectory classes
+
+Suppose you have a trajectory that looks almost like xyz, but differs in some way. You may want to customize the xyz trajectory format, so that your code can process the trajectory without manual intervention.
+
+For instance, suppose your xyz file is `trajectory.xyz` but the cell side information is stored in a separate file `trajectory.xyz.cell`.  
+
+We can fix the problem with a callback, which must be added to the trajectory as above
+#+begin_src python :exports both :results none :session
+from atooms.system import Cell
+def fix_missing_cell(system, trajectory):
+    # Cache the side as self._side
+    if not hasattr(self._side):
+        file_cell = trajectory.filename + '.cell'
+        with open(file_cell) as fh:
+            # Assume the cell file contains a string like 
+            # Lx Ly Lz
+            # where Lx, Ly, Lz are the sides of the orthorombic cell
+            self._side = [float(L) for L in fh.read().split()]
+    system.cell = Cell(self._side)
+    return system
+#+end_src
+
+As a more permanent solution, you can define your own custom trajectory by subclassing `TrajectoryXYZ`. First, parse the cell information during the initialization stage (=read_init()=).
+#+begin_src python :exports both :results none :session
+from atooms.system import Cell
+from atooms.trajectory import TrajectoryXYZ
+
+class TrajectoryCustomXYZ(TrajectoryXYZ):
+
+    def read_init(self):
+        super().read_init()
+        file_cell = self.filename + '.cell'
+        with open(file_cell) as fh:
+            # Assume the cell file contains a string like 
+            # Lx Ly Lz
+            # where Lx, Ly, Lz are the sides of the orthorombic cell
+            self._side = [float(L) for L in fh.read().split()]
+#+end_src
+
+Then modify the =read_sample()= method, which reads a given frame of the trajectory.
+#+begin_src python :exports both :results none :session
+    def read_sample(self, frame):
+        system = super().read_sample()
+        system.cell = Cell(self._side)
+        return system
+#+end_src
+
+Here we have assumed that the cell side is the same for all frames. The code would have to be adjusted to the more general case of a fluctuating cell.

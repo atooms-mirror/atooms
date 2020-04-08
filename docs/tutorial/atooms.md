@@ -1,23 +1,3 @@
-- [Basics](#orgbd9f167)
-  - [Particles' properties](#orgd5a3d24)
-  - [Dealing with velocities](#org7fd678f)
-  - [Boundary conditions](#org4029e3a)
-  - [The system object](#org406d67f)
-  - [Interaction and backends](#orgd5a4f4f)
-  - [Trajectory files](#org6f693a1)
-  - [Particles on a lattice](#org889b9f5)
-- [Simulations](#org7e11c08)
-  - [A minimal simulation backend](#org40f8080)
-  - [Simple random walk](#orgd075c2f)
-  - [Molecular dynamics with LAMMPS](#orgc8b903b)
-  - [Energy minimization with LAMMPS](#org6d19204)
-- [Trajectories](#orga5b4d39)
-  - [Custom trajectory output](#orgcaa0df8)
-  - [Conversion between trajectory formats](#org5c288b7)
-  - [Modify trajectories on the fly with callbacks](#org092b00f)
-
-
-
 <a id="orgbd9f167"></a>
 
 # Basics
@@ -692,3 +672,60 @@ with TrajectoryXYZ('test.xyz') as th:
 ```
 
     [10. 10. 10.]
+
+- [Extend trajectory classes](#org6c77896)
+
+
+<a id="org6c77896"></a>
+
+# Extend trajectory classes
+
+Suppose you have a trajectory that looks almost like xyz, but differs in some way. You may want to customize the xyz trajectory format, so that your code can process the trajectory without manual intervention.
+
+For instance, suppose your xyz file is \`trajectory.xyz\` but the cell side information is stored in a separate file \`trajectory.xyz.cell\`.
+
+We can fix the problem with a callback, which must be added to the trajectory as above
+
+```python
+from atooms.system import Cell
+def fix_missing_cell(system, trajectory):
+    # Cache the side as self._side
+    if not hasattr(self._side):
+        file_cell = trajectory.filename + '.cell'
+        with open(file_cell) as fh:
+            # Assume the cell file contains a string like 
+            # Lx Ly Lz
+            # where Lx, Ly, Lz are the sides of the orthorombic cell
+            self._side = [float(L) for L in fh.read().split()]
+    system.cell = Cell(self._side)
+    return system
+```
+
+As a more permanent solution, you can define your own custom trajectory by subclassing \`TrajectoryXYZ\`. First, parse the cell information during the initialization stage (`read_init()`).
+
+```python
+from atooms.system import Cell
+from atooms.trajectory import TrajectoryXYZ
+
+class TrajectoryCustomXYZ(TrajectoryXYZ):
+
+    def read_init(self):
+        super().read_init()
+        file_cell = self.filename + '.cell'
+        with open(file_cell) as fh:
+            # Assume the cell file contains a string like 
+            # Lx Ly Lz
+            # where Lx, Ly, Lz are the sides of the orthorombic cell
+            self._side = [float(L) for L in fh.read().split()]
+```
+
+Then modify the `read_sample()` method, which reads a given frame of the trajectory.
+
+```python
+    def read_sample(self, frame):
+        system = super().read_sample()
+        system.cell = Cell(self._side)
+        return system
+```
+
+Here we have assumed that the cell side is the same for all frames. The code would have to be adjusted to the more general case of a fluctuating cell.
