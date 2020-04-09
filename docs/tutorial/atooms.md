@@ -673,35 +673,26 @@ with TrajectoryXYZ('test.xyz') as th:
 
     [10. 10. 10.]
 
-
-<a id="org2e26b62"></a>
+<a id="org393e7e4"></a>
 
 # Extend trajectory classes
 
 Suppose you have a trajectory that looks almost like xyz, but differs in some way. You may want to customize the xyz trajectory format, so that your code can process the trajectory without manual intervention.
 
-For instance, your xyz file is `test.xyz` but the cell side information is stored in a separate file `test.xyz.cell`. We can fix the problem using a callback
+For instance, your xyz file is `test.xyz` but the cell side information is stored in a separate file `test.xyz.cell`. We can proceed as before
 
 ```python
 from atooms.system import Cell
-def fix_missing_cell(system, trajectory):
-    # Cache the side as self._side
-    if not hasattr(trajectory._side):
-        file_cell = trajectory.filename + '.cell'
-        with open(file_cell) as fh:
-            # Assume the cell file contains a string like 
-            # Lx Ly Lz
-            # where Lx, Ly, Lz are the sides of the orthorombic cell
-            trajectory._side = [float(L) for L in fh.read().split()]
-    system.cell = Cell(trajectory._side)
-    return system
 
-# Add the callback now
-with TrajectoryXYZ('test.xyz') as th:
-    th.add_callback(fix_missing_cell, th)
+file_inp = 'test.xyz'
+with open(file_inp + '.cell') as fh:
+    # Assume the cell file contains a string Lx Ly Lz
+    # where Lx, Ly, Lz are the sides of the orthorombic cell
+    side = [float(L) for L in fh.read().split()]
+
+with TrajectoryXYZ(file_inp) as th:
+    th.add_callback(fix_missing_cell, side)
 ```
-
-Note how we have passed the trajectory to the callback to extract the path and cache the cell side (we should perhaps make sure `_cell` was not already defined).
 
 As a more permanent solution, you can define your own custom trajectory by subclassing `TrajectoryXYZ`. First, parse the cell information during the initialization stage (`read_init()`).
 
@@ -713,8 +704,7 @@ class TrajectoryCustomXYZ(TrajectoryXYZ):
 
     def read_init(self):
         super().read_init()
-        file_cell = self.filename + '.cell'
-        with open(file_cell) as fh:
+        with open(self.filename + '.cell') as fh:
             self._side = [float(L) for L in fh.read().split()]
 ```
 
