@@ -99,6 +99,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
 class SuperTrajectoryRUMD(SuperTrajectory):
 
+    # TODO: why new here? init should be enough and will make it possible dynamic extension
     def __new__(cls, inp, mode='r', basename='trajectory*.gz'):
         """ Takes a directory as input and get all block*gz files in there """
         if not os.path.isdir(inp):
@@ -108,7 +109,7 @@ class SuperTrajectoryRUMD(SuperTrajectory):
             # Let's try with 00000.xyz.gz lie files
             f_all = glob.glob(inp + '/[0-9]*gz')
             f_all.sort()
-        else:
+        elif len(f_all) > 0:
             # Avoid last block because rumd does not write the last cfg!
             f_all.sort()
             f_all = f_all[:-1]
