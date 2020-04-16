@@ -28,7 +28,7 @@ class TrajectoryHOOMD(TrajectoryBase):
 
     def __init__(self, fname, mode='r'):
 
-        TrajectoryBase.__init__(self, fname, mode)
+        super(TrajectoryHOOMD, self).__init__(fname, mode)
         base = os.path.basename(fname.split('.tgz')[0])
 
         if mode == 'r':

@@ -21,7 +21,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     suffix = 'xyz'
 
     def __init__(self, filename, mode='r'):
-        TrajectoryBase.__init__(self, filename, mode)
+        super(TrajectorySimpleXYZ, self).__init__(filename, mode)
         self._cell = None
         self.trajectory = open(self.filename, self.mode)
         if self.mode == 'r':

@@ -108,7 +108,7 @@ class TrajectoryXYZ(TrajectoryBase):
                      'neighbors*': _update_neighbors_consume}
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
-        TrajectoryBase.__init__(self, filename, mode)
+        super(TrajectoryXYZ, self).__init__(filename, mode)
         self._fields_default = ['id', 'pos']
         self.fields = self._fields_default if fields is None else fields
         self.alias = {} if alias is None else alias

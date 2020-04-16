@@ -82,7 +82,7 @@ class TrajectoryHDF5(TrajectoryBase):
     suffix = 'h5'
 
     def __init__(self, filename, mode='r+'):
-        TrajectoryBase.__init__(self, filename, mode)
+        super(TrajectoryHDF5, self).__init__(filename, mode)
 
         self.general_info = {}
         self._grandcanonical = False
