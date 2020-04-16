@@ -73,7 +73,8 @@ def main(args):
     if args.side is not None:
         def fix_cell(system, side):
             from atooms.system import Cell
-            t.add_callback(Cell(side))
+            system.cell = Cell(side)
+            return system
         t.add_callback(fix_cell, [args.side, args.side, args.side])
 
     # Define slice.
