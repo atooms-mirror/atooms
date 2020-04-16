@@ -71,7 +71,10 @@ def main(args):
     # This way the cell is defined as we read the sample (callbacks
     # will not do that).
     if args.side is not None:
-        t._side = args.side
+        def fix_cell(system, side):
+            from atooms.system import Cell
+            t.add_callback(Cell(side))
+        t.add_callback(fix_cell, [args.side, args.side, args.side])
 
     # Define slice.
     # We interpret --first N --last N as a request of step N
