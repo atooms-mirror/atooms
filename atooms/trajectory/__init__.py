@@ -12,6 +12,7 @@ from .decorators import *
 
 # Import all trajectories
 from .xyz import TrajectorySimpleXYZ, TrajectoryXYZ, TrajectoryNeighbors
+from .exyz import TrajectoryEXYZ
 from .pdb import TrajectoryPDB
 from .hoomd import TrajectoryHOOMD
 from .rumd import TrajectoryRUMD, SuperTrajectoryRUMD
