@@ -136,7 +136,8 @@ class TrajectoryXYZ(TrajectoryBase):
         # go through the file instead of setting up the index. So we stick to it.
         if self.mode == 'r':
             self._setup_index()
-
+            assert len(self._index_frame) > 0, 'empty file {}'.format(self.trajectory)
+            assert len(self._index_header) > 0, 'empty file {}'.format(self.trajectory)
             # Read metadata
             self.metadata = self._read_comment(0)
 
@@ -201,7 +202,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 self._index_frame.append(line)
             else:
                 raise IOError('malformed xyz file [%s]', self.filename)
-
+        
     def read_steps(self):
         """Find steps list."""
         steps = []
