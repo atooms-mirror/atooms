@@ -28,12 +28,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         self.trajectory = gopen(self.filename, self.mode)
         self.alias = {'pos': 'position',
                       'vel': 'velocity'}
-        # TODO: not necessary anymore
-        self.alias_fmt = {'S': 's',
-                          'R': '.{{0}}g'.format(self.precision),
-                          'I': 'd'}
-        self.properties = [['species', 'S', 1],
-                           ['pos', 'R', 3]]
+        self.fields = ['species', 'position']
         
         # Internal index of lines via seek and tell.
         if self.mode == 'r':
@@ -165,8 +160,8 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         # Reformat properties
         # TODO: improve
         _properties = ''
-        for i in range(len(self.properties)):
-            _properties += ':'.join([str(_) for _ in self.properties[i]]) + ':'
+        for i in range(len(self._properties)):
+            _properties += ':'.join([str(_) for _ in self._properties[i]]) + ':'
         _properties = _properties.strip(':')
 
         line = 'Properties={} '.format(_properties)
@@ -176,28 +171,60 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         return line.strip()
     
     def write_sample(self, system, step):
-        self._setup_format()
+        #self.fields = ['species', 'position', 'mass', 'radius', 'velocity']
+        from atooms.core.utils import is_array
+
+        def detect_format(arg):
+            if isinstance(arg, numpy.float) or isinstance(arg, float):
+                return 'R'
+            elif isinstance(arg, numpy.int) or isinstance(arg, int):
+                return 'I'
+            else:
+                return 'S'
+
+        # Collect properties of exyz format
+        self._properties = []
+        for field in self.fields:
+            # Look for shortcuts
+            if field in self.alias:
+                attr = self.alias[field]
+            else:
+                attr = field
+            # Guess attribute features (ndim, fmt)
+            val = getattr(system.particle[0], attr)            
+            if is_array(val):
+                ndim, fmt = len(val), detect_format(val[0])
+            else:
+                ndim, fmt = 1, detect_format(val)
+            self._properties.append([field, fmt, ndim])
+            
+        # Write header
         self.trajectory.write('{}\n'.format(len(system.particle)))
         self.trajectory.write(self._comment(step, system) + '\n')
-
-        # Replace aliases
+        
+        # Replace aliases to access particle attributes
         import copy
-        properties = copy.copy(self.properties)
+        properties = copy.copy(self._properties)
         for i in range(len(properties)):
             key, fmt, ndims = properties[i]
             if key in self.alias:
                 properties[i][0] = self.alias[key]
-            #properties[i][1] = self.alias_fmt[fmt]
-        _fmt = '{:.' + str(self.precision) + 'f}'
+        
+        # Formatters
+        alias_fmt = {'S': '{} ',
+                     'R': '{{:.{precision}f}} '.format(precision=self.precision),
+                     'I': '{} '}
+
+        # Write particles
         for p in system.particle:
             line = ''
             for i in range(len(properties)):
-                key, fmt, ndims =  properties[i]
+                key, fmt, ndims = properties[i]
                 val = getattr(p, key)
                 if ndims == 1:
-                    line += '{} '.format(val)
+                    line += alias_fmt[fmt].format(val)
                 else:
                     # Note: numpy.array2string is MUCH slower
-                    line += ' '.join([_fmt.format(x) for x in val]) + ' '
+                    line += ' '.join([alias_fmt[fmt].format(x) for x in val])
             self.trajectory.write(line.strip() + '\n')
-            
+
