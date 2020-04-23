@@ -177,7 +177,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         return line.strip()
     
     def write_sample(self, system, step):
-        #self._setup_format()
+        self._setup_format()
         self.trajectory.write('{}\n'.format(len(system.particle)))
         self.trajectory.write(self._comment(step, system) + '\n')
 
@@ -189,7 +189,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
             if key in self.alias:
                 properties[i][0] = self.alias[key]
             #properties[i][1] = self.alias_fmt[fmt]
-
+        _fmt = '{:.' + str(self.precision) + 'f}'
         for p in system.particle:
             line = ''
             for i in range(len(properties)):
@@ -198,6 +198,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
                 if ndims == 1:
                     line += '{} '.format(val)
                 else:
-                    line += numpy.array2string(val, precision=self.precision, separator=' ')[1:-1] + ' '
+                    # Note: numpy.array2string is MUCH slower
+                    line += ' '.join([_fmt.format(x) for x in val]) + ' '
             self.trajectory.write(line.strip() + '\n')
             
