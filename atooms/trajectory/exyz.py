@@ -112,7 +112,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         # Read frame now
         self.trajectory.seek(self._index_frame[frame])
         particle = []
-        for i in range(npart):
+        for ipart in range(npart):
             p = Particle()
             data = self.trajectory.readline().split()
             i = 0
@@ -138,13 +138,12 @@ class TrajectoryEXYZ(TrajectoryXYZ):
                         setattr(p, key, numpy.array(data[i: i+ndims]))
                     else:
                         raise ValueError('unknown format key')
-                i += 1            
+                i += ndims
             particle.append(p)
                 
         side = meta["Lattice"]
         # TODO: remove hard coded
         cell = Cell([side[0], side[4], side[8]])
-                
         return System(particle, cell)
 
     def read_timestep(self):
