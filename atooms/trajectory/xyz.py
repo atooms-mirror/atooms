@@ -160,8 +160,7 @@ class TrajectoryXYZ(TrajectoryBase):
                     return ' '.join([_fmt % x for x in arr])
                 except:
                     return _fmt % arr
-                    # except:
-                    #     return numpy.array2string(arr, precision=self.precision, separator=',')[1:-1]
+                    # Note: numpy.array2string is MUCH slower
             numpy.set_string_function(array_fmt, repr=False)
 
     def _setup_index(self):
