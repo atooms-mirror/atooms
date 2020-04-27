@@ -95,6 +95,8 @@ write_dump all custom {} fx fy fz modify format line "%.15g %.15g %.15g"
             if 'Step' in line:
                 found = True
             elif found:
+                if 'MPI' in line:
+                    continue
                 _, T, U, _, _, P = [float(x) for x in line.split()]
                 rho = len(particle) / cell.volume
                 ndim = len(cell.side)
