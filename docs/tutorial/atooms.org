@@ -507,7 +507,7 @@ from atooms.simulation.observers import write_thermo, write_config
 # We create the simulation instance and set the output path
 sim = Simulation(backend, output_path='lammps.xyz')
 # Just store a reference to the trajectory class you want to use
-sim.trajectory = trj.TrajectoryXYZ
+sim.trajectory_class = trj.TrajectoryXYZ
 # Write configurations every 500 steps in xyz format
 sim.add(write_config, 500)
 # Write thermodynamic properties every 500 steps
