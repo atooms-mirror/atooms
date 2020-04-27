@@ -492,7 +492,7 @@ neighbor        0.3 bin
 neigh_modify    check yes
 timestep        0.002
 """
-backend = LAMMPS(cmd, system)
+backend = LAMMPS(system, cmd)
 #+end_src
 
 #+results:
