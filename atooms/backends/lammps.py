@@ -48,9 +48,14 @@ def _run_lammps_command(cmd):
         fh.write(cmd)
     opt = '-n {}'.format(lammps_mpi_tasks) if lammps_mpi else ''
     shell_cmd = '{} {} {} -in {}'.format(lammps_mpi, opt, lammps_command, file_tmp)
-    stdout = subprocess.check_output(shell_cmd, shell=True,
-                                     stderr=subprocess.STDOUT,
-                                     executable='/bin/bash')
+    try:
+        stdout = subprocess.check_output(shell_cmd, shell=True,
+                                         stderr=subprocess.STDOUT,
+                                         executable='/bin/bash')
+    except subprocess.CalledProcessError:
+        print(stdout)
+        raise
+    
     # Clean up
     rmd(dirout)
     return stdout.decode()
@@ -89,7 +94,12 @@ run 0
 write_dump all custom {} fx fy fz modify format line "%.15g %.15g %.15g"
 """.format(file_inp, self.potential, file_tmp)
 
-        stdout = _run_lammps_command(cmd)
+        try:
+            stdout = _run_lammps_command(cmd)
+        except subprocess.CalledProcessError:
+            print(stdout)
+            raise
+
         found = False
         for line in stdout.split('\n'):
             if 'Step' in line:
@@ -220,7 +230,11 @@ write_dump all custom {} id type x y z vx vy vz modify sort id format line "%d %
 """.format(file_inp, self.commands, fix, steps, file_tmp)
 
         # Execute LAMMPS command
-        stdout = _run_lammps_command(cmd)
+        try:
+            stdout = _run_lammps_command(cmd)
+        except subprocess.CalledProcessError:
+            print(stdout)
+            raise
 
         if self.verbose:
             print(stdout)
