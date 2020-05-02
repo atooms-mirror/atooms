@@ -209,10 +209,10 @@ B 1.0 -1.0 0.0 0.5
 A 2.9 -2.9 0.0 0.6
 C 2.9 -2.9 0.0 0.7
 3
-metafmt:space,comma columns:id,x,y,z mass:2.0,3.0 step:1 cell:5.0,5.0,5.0 
-C 1.0 -1.0 0.0
-B 2.9 -2.9 0.0
-B 2.9 -2.9 0.0
+metafmt:space,comma columns:id,x,y,z,radius mass:2.0,3.0 step:1 cell:5.0,5.0,5.0 
+C 1.0 -1.0 0.0 0.5
+B 2.9 -2.9 0.0 0.6
+B 2.9 -2.9 0.0 0.7
 """)
         with self.Trajectory(finp) as th:
             self.assertEqual(th[0].particle[0].radius, 0.5)
