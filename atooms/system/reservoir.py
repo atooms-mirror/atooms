@@ -42,6 +42,7 @@ class Barostat(object):
         self.name = name
         self.pressure = pressure
         self.mass = mass
+        self.relaxation_time = relaxation_time
 
 
 class Reservoir(object):
