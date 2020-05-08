@@ -354,7 +354,7 @@ def self_overlap(particle, other, a, normalize=True):
     return q
 
 
-def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
+def show_matplotlib(particle, cell, outfile=None, linewidth=3, alpha=0.3, show=False):
     """
     Make a snapshot of the `particle`s in the `cell` and save the
     image in `outfile`. The image is returned for further
@@ -378,7 +378,75 @@ def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
         ax.add_artist(c)
     if outfile is not None:
         fig.savefig(outfile, bbox_inches='tight')
+    if show:
+        plt.show()
     return fig
+
+
+def show_ovito(particle, cell, radius=0.35, viewport=None, callback=None, tmpdir=None):
+    """
+    Render particle in cell using ovito
+    """
+    try:
+        from ovito.io import import_file
+    except ImportError:
+        log.warning('install ovito to display the particles')
+        return
+    from ovito.vis import Viewport, TachyonRenderer
+    from ovito.vis import ParticlesVis
+    import tempfile
+
+    # Get a temporary file to write the sample
+    fh = tempfile.NamedTemporaryFile('w', dir=tmpdir, suffix='.xyz', delete=False)
+    tmp_file = fh.name
+
+    # Uncenter
+    for p in particle:
+        p.position += cell.side / 2
+
+    # Self-contained EXYZ dump (it is not clean to use trajectories here)
+    alphabet = 'ABCDEFGHILMNOPQRSTUVZ'
+    fh.write('{}\n'.format(len(particle)))
+    fh.write('Properties=species:S:1:pos:R:3 Lattice="{},0.,0.,0.,{},0.,0.,0.,{}"\n'.format(*cell.side))
+    for p in particle:
+        fh.write('{} {} {} {}\n'.format(p.species, *p.position))
+    fh.close()
+    
+    # Recenter
+    for p in particle:
+        p.position -= cell.side / 2
+
+    # Ovito stuff. Can be customized by client code.
+    pipeline = import_file(tmp_file)
+    pipeline.add_to_scene()
+    if callback:
+        callback(pipeline)
+    else:
+        vis_element = pipeline.source.data.particles.vis
+        vis_element.radius = radius
+    if viewport:
+        vp = vieport
+    else:
+        vp = Viewport(type=Viewport.Type.Ortho, camera_dir=(0, 1, 0), camera_pos=(0, -10, 0))
+
+    # Render
+    vp.zoom_all()
+    vp.render_image(filename=tmp_file + '.png', 
+                    size=(640, 480), 
+                    renderer=TachyonRenderer())
+    
+    from atooms.core.utils import rmf
+    rmf(tmp_file)
+
+    # Try to display the image (e.g. in a jupyter notebook)
+    return tmp_file + '.png'
+    try:
+        from IPython.display import Image
+        return Image(tmp_file + '.png')
+    except ImportError:
+        return tmp_file + '.png'
+
+show = show_matplotlib
 
 
 def decimate(particle, N):
