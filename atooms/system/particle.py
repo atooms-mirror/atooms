@@ -421,9 +421,8 @@ def show_ovito(particle, cell, radius=0.35, viewport=None, callback=None, tmpdir
     pipeline.add_to_scene()
     if callback:
         callback(pipeline)
-    else:
-        vis_element = pipeline.source.data.particles.vis
-        vis_element.radius = radius
+    vis_element = pipeline.source.data.particles.vis
+    vis_element.radius = radius
     if viewport:
         vp = vieport
     else:
