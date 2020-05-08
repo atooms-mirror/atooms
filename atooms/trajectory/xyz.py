@@ -4,6 +4,7 @@
 import numpy
 import re
 import logging
+from copy import copy
 from .simple import TrajectorySimpleXYZ
 from .base import TrajectoryBase
 from .utils import gopen
@@ -108,9 +109,9 @@ class TrajectoryXYZ(TrajectoryBase):
                      'neighbors*': _update_neighbors_consume}
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
-        TrajectoryBase.__init__(self, filename, mode)
+        super(TrajectoryXYZ, self).__init__(filename, mode)
         self._fields_default = ['id', 'pos']
-        self.fields = self._fields_default if fields is None else fields
+        self.fields = copy(self._fields_default) if fields is None else fields
         self.alias = {} if alias is None else alias
 
         # Internal variables
@@ -136,10 +137,52 @@ class TrajectoryXYZ(TrajectoryBase):
         # go through the file instead of setting up the index. So we stick to it.
         if self.mode == 'r':
             self._setup_index()
-
+            assert len(self._index_frame) > 0, 'empty file {}'.format(self.trajectory)
+            assert len(self._index_header) > 0, 'empty file {}'.format(self.trajectory)
             # Read metadata
             self.metadata = self._read_comment(0)
+            # Redefine fields
+            self._setup_fields()
 
+    def _setup_fields(self):
+        """
+        Redefine fields.
+
+        If set by the user, self.fields takes precedence on columns metadata.
+        - fields is default and columns is present: read everything
+        - fields is default and columns not present: read from fields
+        - fields is set by user and columns is present: pad
+        - fields is set by user but columns not present: read from fields
+        """
+        if self.fields == self._fields_default:
+            # Default fields: metadata has priority
+            if 'columns' in self.metadata:
+                self.fields = self.metadata['columns']
+        else:
+            # Fields set by user: pad missing fields if columns metadata are present
+            if 'columns' in self.metadata:
+                fields = []
+                for key in self.metadata['columns']:
+                    if key in self.fields + _optimize_fields(self.fields):
+                        fields.append(key)
+                    else:
+                        fields.append(None)
+                self.fields = fields
+
+        # Replace some column keys with more efficient ones
+        self.fields = _optimize_fields(self.fields)
+
+        # Remove skippable fields
+        for key in self.fields[-1::-1]:
+            if key is None:
+                self.fields.pop()
+            else:
+                break
+
+        # Store a copy of fields in a cache variable
+        # We can avoid setup if the fields have not changed
+        self.__cache_fields = copy(self.fields)
+            
     def _setup_format(self):
         if not self._done_format_setup:
             self._done_format_setup = True
@@ -159,8 +202,7 @@ class TrajectoryXYZ(TrajectoryBase):
                     return ' '.join([_fmt % x for x in arr])
                 except:
                     return _fmt % arr
-                    # except:
-                    #     return numpy.array2string(arr, precision=self.precision, separator=',')[1:-1]
+                    # Note: numpy.array2string is MUCH slower
             numpy.set_string_function(array_fmt, repr=False)
 
     def _setup_index(self):
@@ -201,7 +243,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 self._index_frame.append(line)
             else:
                 raise IOError('malformed xyz file [%s]', self.filename)
-
+        
     def read_steps(self):
         """Find steps list."""
         steps = []
@@ -284,56 +326,16 @@ class TrajectoryXYZ(TrajectoryBase):
         return meta
 
     def read_sample(self, frame):
+        # Setup fields again, in case they have changed
+        if self.__cache_fields != self.fields:
+            self._setup_fields()
         # Read metadata of this frame
         meta = self._read_comment(frame)
-
-        # Redefine fields.
-        # If set by the user, self.fields takes precedence on columns metadata.
-        # fields is [] and columns is present: read everything
-        # fields is [] and columns not present: error
-        # fields is default and columns is present: read everything
-        # fields is default and columns not present: error
-        # fields is set and columns is present: pad
-        # fields is set but columns not present: read from fields
-        if len(self.fields) == 0:
-            # Fields is empty, we try to read everything
-            if 'columns' in meta:
-                fields = meta['columns']
-            else:
-                raise ValueError('file %s without columns' % self.filename)
-        elif self.fields is self._fields_default:
-            # Default fields: we try to read everything, else we use default
-            if 'columns' in meta:
-                fields = meta['columns']
-            else:
-                fields = self.fields
-        else:
-            # Fields set by user: pad missing fields if columns metadata are present
-            if 'columns' in meta:
-                fields = []
-                for key in meta['columns']:
-                    if key in self.fields:
-                        fields.append(key)
-                    else:
-                        fields.append(None)
-            else:
-                fields = self.fields
-
-        # Replace some column keys with more efficient ones
-        fields = _optimize_fields(fields)
-
-        # Remove skippable fields
-        for key in fields[-1::-1]:
-            if key is None:
-                fields.pop()
-            else:
-                break
-
         # Define read callbacks list before reading lines
         callbacks_read = []
         def _skip(p, data, meta):
             return data[1:]
-        for key in fields:
+        for key in self.fields:
             # If the key is associated to a explicit callback, go
             # for it. Otherwise we throw the field in an particle
             # attribute named key. If the key is None it means we skip
@@ -442,7 +444,15 @@ def _add_neighbors_to_system(system, offset):
 
 class TrajectoryNeighbors(TrajectoryXYZ):
 
-    """Neighbors trajectory."""
+    """
+    Neighbors trajectory.
+
+    By default, for reading we assume an xyz file with space-separated
+    integers indicating the particles indices. For writing, we use
+    comma-separated entries (no space).
+    """
+
+    _fields_default = ['neighbors*']
 
     def __init__(self, filename, mode='r', fields=None, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename, mode=mode,
@@ -450,11 +460,6 @@ class TrajectoryNeighbors(TrajectoryXYZ):
         self._offset = offset
         if mode == 'w':
             self.fields = ['neighbors'] if fields is None else fields
-        else:
-            # By default, we assume an xyz file with space-separated
-            # integers indicating the particles indices
-            self._fields_default = ['neighbors*']
-            self.fields = self._fields_default
         self.callback_read['neighbors'] = _update_neighbors
         self.callback_read['neighbors*'] = _update_neighbors_consume
         self.add_callback(_add_neighbors_to_system, self._offset)

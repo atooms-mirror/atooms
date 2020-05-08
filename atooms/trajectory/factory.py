@@ -94,6 +94,7 @@ class TrajectoryFactory(object):
             try:
                 return TrajectoryHDF5(filename, mode)
             except ImportError:
+                # TOOD: this is a uncaught NameError in python3
                 raise ValueError('hdf5 library not installed')
             except:
                 raise ValueError('unknown file format for %s' % filename)

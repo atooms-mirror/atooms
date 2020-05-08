@@ -4,7 +4,7 @@ import unittest
 
 from atooms.core.utils import mkdir
 from atooms.trajectory import Unfolded
-from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD
+from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD, TrajectoryEXYZ
 
 
 class TestXYZ(unittest.TestCase):
@@ -209,10 +209,10 @@ B 1.0 -1.0 0.0 0.5
 A 2.9 -2.9 0.0 0.6
 C 2.9 -2.9 0.0 0.7
 3
-metafmt:space,comma columns:id,x,y,z mass:2.0,3.0 step:1 cell:5.0,5.0,5.0 
-C 1.0 -1.0 0.0
-B 2.9 -2.9 0.0
-B 2.9 -2.9 0.0
+metafmt:space,comma columns:id,x,y,z,radius mass:2.0,3.0 step:1 cell:5.0,5.0,5.0 
+C 1.0 -1.0 0.0 0.5
+B 2.9 -2.9 0.0 0.6
+B 2.9 -2.9 0.0 0.7
 """)
         with self.Trajectory(finp) as th:
             self.assertEqual(th[0].particle[0].radius, 0.5)
@@ -443,5 +443,60 @@ B 2.9 -2.9 0.0
         rmd('/tmp/test_xyz')
 
 
+class TestEXYZ(unittest.TestCase):
+
+    Trajectory = TrajectoryEXYZ
+
+    def setUp(self):
+        mkdir('/tmp/test_xyz')
+        self.finp = '/tmp/test_xyz/pbc.xyz'
+        self.fout = '/tmp/test_xyz/out.xyz'
+        with open(self.finp, 'w') as fh:
+            fh.write("""\
+2
+Lattice="5.44 0.0 0.0 0.0 5.44 0.0 0.0 0.0 5.44" Properties=species:S:1:pos:R:3 Time=0.0
+A 1.0 -1.0 0.0
+B 2.9 -2.9 0.0
+2
+Lattice="5.44 0.0 0.0 0.0 5.44 0.0 0.0 0.0 5.44" Properties=species:S:1:pos:R:3 Time=0.0
+A 1.1 -1.1 0.0
+C -2.9 -2.9 0.0
+""")
+
+    def test_xyz_meta(self):
+        with self.Trajectory(self.finp) as th:
+            meta = th._read_comment(0)
+            system_0 = th[0]
+            system_1 = th[1]
+            self.assertEqual(th.steps, [1, 2])
+            self.assertEqual(th[0].particle[0].species, 'A')
+            self.assertEqual(th[0].particle[1].species, 'B')
+            self.assertEqual(th[1].particle[0].species, 'A')
+            self.assertEqual(th[1].particle[1].species, 'C')
+            self.assertAlmostEqual(th[0].particle[0].position[0], 1.0)
+            self.assertAlmostEqual(th[0].particle[1].position[1], -2.9)
+            self.assertAlmostEqual(th[1].particle[0].position[0], 1.1)
+            self.assertAlmostEqual(th[1].particle[1].position[1], -2.9)
+            
+            #self.assertEqual(meta['mass'], [1, 2])
+        with self.Trajectory(self.fout, 'w') as th:            
+            th.write(system_0, 1)
+            th.write(system_1, 2)
+            
+        with self.Trajectory(self.fout) as th:
+            meta = th._read_comment(0)
+            system_0 = th[0]
+            system_1 = th[1]
+            self.assertEqual(th.steps, [1, 2])
+            self.assertEqual(th[0].particle[0].species, 'A')
+            self.assertEqual(th[0].particle[1].species, 'B')
+            self.assertEqual(th[1].particle[0].species, 'A')
+            self.assertEqual(th[1].particle[1].species, 'C')
+            self.assertAlmostEqual(th[0].particle[0].position[0], 1.0)
+            self.assertAlmostEqual(th[0].particle[1].position[1], -2.9)
+            self.assertAlmostEqual(th[1].particle[0].position[0], 1.1)
+            self.assertAlmostEqual(th[1].particle[1].position[1], -2.9)
+
+            
 if __name__ == '__main__':
     unittest.main()

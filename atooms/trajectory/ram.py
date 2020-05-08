@@ -17,7 +17,7 @@ class TrajectoryRam(TrajectoryBase):
     """
 
     def __init__(self, filename=None, mode='w'):
-        TrajectoryBase.__init__(self, filename, mode)
+        super(TrajectoryRam, self).__init__(filename, mode)
         self._system = []
         self._overwrite = True
 

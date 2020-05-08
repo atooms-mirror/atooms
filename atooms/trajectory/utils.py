@@ -67,7 +67,7 @@ def convert(inp, out, fout, force=True, fields=None,
     else:
         out_class = out
 
-    if fields is None and len(inp.fields) > 0 and include is None:
+    if fields is None and len(inp.fields) > 0 and (include is None or len(include) == 0):
         # We automatically include all fields from the input trajectory
         # Since the output trajectory may have extra fields, we do should not overwrite them
         include = canonicalize_fields(inp.fields)

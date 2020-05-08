@@ -71,7 +71,15 @@ def main(args):
     # This way the cell is defined as we read the sample (callbacks
     # will not do that).
     if args.side is not None:
-        t._side = args.side
+        def fix_cell(system, side):
+            from atooms.system import Cell
+            system.cell = Cell(side)
+            return system
+        L = args.side.split(',')
+        if len(L) == 1:
+            t.add_callback(fix_cell, [L, L, L])
+        else:
+            t.add_callback(fix_cell, [float(_) for _ in L])
 
     # Define slice.
     # We interpret --first N --last N as a request of step N
@@ -255,7 +263,7 @@ if __name__ == '__main__':
     parser_convert.add_argument(      '--flatten-steps',dest='flatten_steps', action='store_true', help='use sample index instead of steps')
     parser_convert.add_argument(      '--unfold',dest='unfold', action='store_true', help='unfold')
     parser_convert.add_argument(      '--fix-cm',dest='fix_cm', action='store_true', help='fix cm')
-    parser_convert.add_argument(      '--side', dest='side', type=float, default=None, help='set cell side')
+    parser_convert.add_argument(      '--side', dest='side', default=None, help='set cell side')
     parser_convert.add_argument(      '--density', dest='rho', type=float, default=None, help='new density')
     parser_convert.add_argument('-T', '--temperature', dest='temperature', type=float, default=None, help='new temperature')
     parser_convert.add_argument('-N', '--number-of-particles', dest='N', type=int, default=-1, help='new number of particles')

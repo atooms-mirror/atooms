@@ -414,3 +414,39 @@ class OrderedSet(object):
             return self.items.index(item)
         except ValueError:
             raise ValueError('item %s not in %s' % (item, self))
+
+def is_array(arg):
+    """
+    Tell if `arg` is iterable but not string, morally an array.
+
+    Source: https://stackoverflow.com/questions/1055360/how-to-tell-a-variable-is-iterable-but-not-a-string/44328500#44328500
+
+    Examples:
+    ---------
+    # non-string iterables    
+    assert iterable(("f", "f"))    # tuple
+    assert iterable(["f", "f"])    # list
+    assert iterable(iter("ff"))    # iterator
+    assert iterable(range(44))     # generator
+    assert iterable(b"ff")         # bytes (Python 2 calls this a string)
+
+    # strings or non-iterables
+    assert not iterable(u"ff")     # string
+    assert not iterable(44)        # integer
+    assert not iterable(iterable)  # function
+    """
+    import collections
+    import six
+    return isinstance(arg, collections.Iterable) and \
+        not isinstance(arg, six.string_types)
+
+def is_array(arg):
+    """
+    Non-python guess whether argument is an array.
+
+    It will match list, tuple and numpy array but fail with iterators / generators.
+    """
+    import numpy
+    return isinstance(arg, numpy.ndarray) or \
+        isinstance(arg, list) or \
+        isinstance(arg, tuple)

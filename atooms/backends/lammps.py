@@ -48,9 +48,15 @@ def _run_lammps_command(cmd):
         fh.write(cmd)
     opt = '-n {}'.format(lammps_mpi_tasks) if lammps_mpi else ''
     shell_cmd = '{} {} {} -in {}'.format(lammps_mpi, opt, lammps_command, file_tmp)
-    stdout = subprocess.check_output(shell_cmd, shell=True,
-                                     stderr=subprocess.STDOUT,
-                                     executable='/bin/bash')
+    try:
+        stdout = subprocess.check_output(shell_cmd,
+                                         executable='/bin/bash',
+                                         stderr=subprocess.STDOUT,
+                                         shell=True)
+    except subprocess.CalledProcessError as exception:
+        print(''.join(exception.output))
+        raise
+    
     # Clean up
     rmd(dirout)
     return stdout.decode()
@@ -90,11 +96,14 @@ write_dump all custom {} fx fy fz modify format line "%.15g %.15g %.15g"
 """.format(file_inp, self.potential, file_tmp)
 
         stdout = _run_lammps_command(cmd)
+        
         found = False
         for line in stdout.split('\n'):
             if 'Step' in line:
                 found = True
             elif found:
+                if 'MPI' in line:
+                    continue
                 _, T, U, _, _, P = [float(x) for x in line.split()]
                 rho = len(particle) / cell.volume
                 ndim = len(cell.side)
@@ -191,11 +200,9 @@ class LAMMPS(object):
         if self.system.thermostat is not None and self.system.barostat is not None:
             # NPT ensemble
             fix = 'fix 1 all npt temp {0.temperature} {0.temperature} {0.relaxation_time} iso {1.pressure} {1.pressure} {1.relaxation_time}'.format(self.system.thermostat, self.system.barostat)
-
-        if self.system.thermostat is not None:
+        elif self.system.thermostat is not None:
             # NVT ensemble
             fix = 'fix 1 all nvt temp {0.temperature} {0.temperature} {0.relaxation_time}'.format(self.system.thermostat)
-
         elif not 'fix' in self.commands:
             # NVE ensemble
             fix = 'fix 1 all nve'

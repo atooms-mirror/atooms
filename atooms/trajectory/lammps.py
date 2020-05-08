@@ -78,7 +78,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
 
     def __init__(self, filename, mode='r', single_frame=False,
                  first_particle=-1, last_particle=-1):
-        TrajectoryBase.__init__(self, filename, mode)
+        super(TrajectoryLAMMPS, self).__init__(filename, mode)
         self.precision = 14  # default to double precision
         self.single_frame = single_frame
         self.first_particle = first_particle
@@ -247,9 +247,9 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 
     def __init__(self, filename, mode='r', file_pattern='*',
                  step_pattern=r'[a-zA-Z\.]*(\d*)', first_particle=-1, last_particle=-1):
-        TrajectoryFolder.__init__(self, filename, mode=mode,
-                                  file_pattern=file_pattern,
-                                  step_pattern=step_pattern)
+        super(TrajectoryFolderLAMMPS, self).__init__(filename, mode=mode,
+                                                     file_pattern=file_pattern,
+                                                     step_pattern=step_pattern)
         self.first_particle = first_particle
         self.last_particle = last_particle
         # Small trick to force reading steps from lammps file
