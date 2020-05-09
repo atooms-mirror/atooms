@@ -386,7 +386,7 @@ def show_matplotlib(particle, cell, outfile=None, linewidth=3, alpha=0.3, show=F
 def show_ovito(particle, cell, outfile=None, radius=0.35,
                viewport=None, callback=None, tmpdir=None,
                camera_dir=(0, 1, 0), camera_pos=(0, -10, 0),
-               size=(640, 480), zoom=True):
+               size=(640, 480), zoom=True, perspective=False):
     """
     Render particle in cell using ovito
     """
@@ -436,7 +436,10 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     if viewport:
         vp = vieport
     else:
-        vp = Viewport(type=Viewport.Type.Ortho, camera_dir=camera_dir, camera_pos=camera_pos)
+        if perspective:
+            vp = Viewport(type=Viewport.Type.Perspective, camera_dir=camera_dir, camera_pos=camera_pos)
+        else:
+            vp = Viewport(type=Viewport.Type.Ortho, camera_dir=camera_dir, camera_pos=camera_pos)
 
     # Render
     if zoom:
