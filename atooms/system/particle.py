@@ -440,6 +440,9 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     vp.render_image(filename=tmp_file + '.png', 
                     size=size, 
                     renderer=TachyonRenderer())
+
+    # Scene is a singleton, so we must clear it
+    pipeline.remove_from_scene()
     
     from atooms.core.utils import rmf
     rmf(tmp_file)
