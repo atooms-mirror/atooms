@@ -421,11 +421,21 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
 
     # Ovito stuff. Can be customized by client code.
     pipeline = import_file(tmp_file)
-    pipeline.add_to_scene()
-    if callback:
-        callback(pipeline)
+    # Ovito seems to ignore the lattice info of exyz file
+    # so we forcibly set the cell info here
+    pipeline.source.data.cell_[0, 0] = cell.side[0]
+    pipeline.source.data.cell_[1, 1] = cell.side[1]
+    pipeline.source.data.cell_[2, 2] = cell.side[2]
+    pipeline.source.data.cell_[:, 3] = 0.0
+    # Scale radius by default
     vis_element = pipeline.source.data.particles.vis
     vis_element.radius = radius
+    # Apply client code callback
+    if callback:
+        callback(pipeline)
+    pipeline.add_to_scene()
+
+    # Define viewport
     if viewport:
         vp = vieport
     else:
