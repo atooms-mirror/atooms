@@ -383,7 +383,10 @@ def show_matplotlib(particle, cell, outfile=None, linewidth=3, alpha=0.3, show=F
     return fig
 
 
-def show_ovito(particle, cell, radius=0.35, viewport=None, callback=None, tmpdir=None):
+def show_ovito(particle, cell, outfile=None, radius=0.35,
+               viewport=None, callback=None, tmpdir=None,
+               camera_dir=(0, 1, 0), camera_pos=(0, -10, 0),
+               size=(640, 480)):
     """
     Render particle in cell using ovito
     """
@@ -396,16 +399,20 @@ def show_ovito(particle, cell, radius=0.35, viewport=None, callback=None, tmpdir
     from ovito.vis import ParticlesVis
     import tempfile
 
-    # Get a temporary file to write the sample
-    fh = tempfile.NamedTemporaryFile('w', dir=tmpdir, suffix='.xyz', delete=False)
-    tmp_file = fh.name
+    if outfile is None:
+        # Get a temporary file to write the sample
+        fh = tempfile.NamedTemporaryFile('w', dir=tmpdir, suffix='.xyz', delete=False)
+        tmp_file = fh.name
+    else:
+        # We replace the suffix with xyz to write the sample
+        tmp_file = os.path.join(os.path.dirname(outfile), os.path.basename(outfile)[:-4]) + '.xyz'
+        fh = open(tmp_file, 'w')
 
     # Uncenter
     for p in particle:
         p.position += cell.side / 2
 
     # Self-contained EXYZ dump (it is not clean to use trajectories here)
-    alphabet = 'ABCDEFGHILMNOPQRSTUVZ'
     fh.write('{}\n'.format(len(particle)))
     fh.write('Properties=species:S:1:pos:R:3 Lattice="{},0.,0.,0.,{},0.,0.,0.,{}"\n'.format(*cell.side))
     for p in particle:
@@ -426,12 +433,12 @@ def show_ovito(particle, cell, radius=0.35, viewport=None, callback=None, tmpdir
     if viewport:
         vp = vieport
     else:
-        vp = Viewport(type=Viewport.Type.Ortho, camera_dir=(0, 1, 0), camera_pos=(0, -10, 0))
+        vp = Viewport(type=Viewport.Type.Ortho, camera_dir=camera_dir, camera_pos=camera_pos)
 
     # Render
     vp.zoom_all()
     vp.render_image(filename=tmp_file + '.png', 
-                    size=(640, 480), 
+                    size=size, 
                     renderer=TachyonRenderer())
     
     from atooms.core.utils import rmf
