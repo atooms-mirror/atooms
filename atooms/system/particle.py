@@ -399,7 +399,12 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     from ovito.vis import Viewport, TachyonRenderer
     from ovito.vis import ParticlesVis
     import tempfile
+    from atooms.core.utils import mkdir
 
+    # Make sure dirname exists
+    if outfile is not None:
+        mkdir(os.path.dirname(outfile)
+    
     # Get a temporary file to write the sample
     fh = tempfile.NamedTemporaryFile('w', dir=tmpdir, suffix='.xyz', delete=False)
     tmp_file = fh.name
