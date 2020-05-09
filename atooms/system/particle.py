@@ -390,6 +390,7 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     """
     Render particle in cell using ovito
     """
+    import os
     try:
         from ovito.io import import_file
     except ImportError:
