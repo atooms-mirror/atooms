@@ -400,14 +400,9 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     from ovito.vis import ParticlesVis
     import tempfile
 
-    if outfile is None:
-        # Get a temporary file to write the sample
-        fh = tempfile.NamedTemporaryFile('w', dir=tmpdir, suffix='.xyz', delete=False)
-        tmp_file = fh.name
-    else:
-        # We replace the suffix with xyz to write the sample
-        tmp_file = os.path.join(os.path.dirname(outfile), os.path.basename(outfile)[:-4]) + '.xyz'
-        fh = open(tmp_file, 'w')
+    # Get a temporary file to write the sample
+    fh = tempfile.NamedTemporaryFile('w', dir=tmpdir, suffix='.xyz', delete=False)
+    tmp_file = fh.name
 
     # Uncenter
     for p in particle:
@@ -438,7 +433,10 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
 
     # Render
     vp.zoom_all()
-    vp.render_image(filename=tmp_file + '.png', 
+    if outfile is None:
+        outfile = tmp_file + '.png'
+        
+    vp.render_image(filename=outfile, 
                     size=size, 
                     renderer=TachyonRenderer())
 
@@ -449,7 +447,6 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     rmf(tmp_file)
 
     # Try to display the image (e.g. in a jupyter notebook)
-    return tmp_file + '.png'
     try:
         from IPython.display import Image
         return Image(tmp_file + '.png')
