@@ -449,9 +449,9 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     # Try to display the image (e.g. in a jupyter notebook)
     try:
         from IPython.display import Image
-        return Image(tmp_file + '.png')
+        return Image(outfile)
     except ImportError:
-        return tmp_file + '.png'
+        return outfile
 
 show = show_matplotlib
 
