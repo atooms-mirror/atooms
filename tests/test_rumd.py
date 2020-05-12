@@ -10,7 +10,7 @@ except ImportError:
     SKIP = True
 from atooms.simulation import Simulation, write_thermo, write_config, target
 from atooms.core.utils import setup_logging
-from atooms.trajectory import TrajectoryRUMD
+from atooms.trajectory.rumd import TrajectoryRUMD, SuperTrajectoryRUMD
 
 setup_logging(level=40)
 
@@ -55,6 +55,36 @@ class Test(unittest.TestCase):
         si.run()
         ls = glob.glob('/tmp/test_rumd_single/trajectory/*')
         self.assertEqual(len(ls), 21)
+
+    @unittest.expectedFailure
+    def test_species(self):
+        """
+        This test is known to fail because RUMD sample do not return the
+        particle types as array and therefore they are not propagated
+        when particles are not sorted by species
+        """
+        from atooms.backends.rumd import System
+        # Create a new input file with one particle species changed
+        self.input_file = os.path.join(os.path.dirname(__file__),
+                                       '../data/ka_N256_rho1.185_rumd.xyz.gz')
+        from atooms.core.utils import mkdir
+        mkdir('/tmp/test_rumd_species/')
+        with TrajectoryRUMD(self.input_file) as th:
+            system = th[-1]
+        system.particle[0].species = system.particle[-1].species
+        with TrajectoryRUMD('/tmp/test_rumd_species/input.xyz.gz', 'w') as th:
+            th.write(system)
+
+        si = Simulation(self.backend,
+                        output_path='/tmp/test_rumd_species/trajectory',
+                        steps=2000, checkpoint_interval=100,
+                        restart=False)
+        self.assertEqual(system.particle[0].species, system.particle[-1].species)
+        si.add(write_config, 100)
+        si.run()
+        with SuperTrajectoryRUMD('/tmp/test_rumd_species/trajectory') as th:
+            system = th[-1]
+        self.assertEqual(system.particle[0].species, system.particle[-1].species, 'rumd requires ordered types')
 
     def test_multi(self):
         si = Simulation(self.backend,

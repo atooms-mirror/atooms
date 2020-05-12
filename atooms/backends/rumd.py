@@ -317,9 +317,13 @@ class System(object):
 
     @property
     def particle(self):
-        # Warning: this is read only. If you change the particles, the
+        # Warning n.1 : this is read only. If you change the particles, the
         # modification won't be propoagated to the RUMD objects.
         # One would have to create a new system.
+        #
+        # Warning n.2 : it ia assumed that particles are sorted by species.
+        # since RUMD does not have accessors to particle types (why??)
+        # and we can only access the number of particles of a given type.
         npart = self.sample.GetNumberOfParticles()
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
