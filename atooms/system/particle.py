@@ -104,7 +104,7 @@ class Particle(object):
         vx = random.gauss(0, numpy.sqrt(T / self.mass))
         vy = random.gauss(0, numpy.sqrt(T / self.mass))
         vz = random.gauss(0, numpy.sqrt(T / self.mass))
-        self.velocity = numpy.array((vx, vy, vz))
+        self.velocity[:] = numpy.array([vx, vy, vz])
 
     @property
     def kinetic_energy(self):
