@@ -56,7 +56,7 @@ class RUMD(object):
 
     def __init__(self, input_file_or_sim, forcefield_file=None,
                  forcefield=None, integrator=None, temperature=None,
-                 dt=0.001, fixcm_interval=0):
+                 dt=0.001, fixcm_interval=0, thermostat_relaxation_time=None):
 
         # Keep a reference of the Trajectory backend class
         self.trajectory_class = Trajectory
@@ -106,6 +106,9 @@ class RUMD(object):
                 if integrator in ['nvt', 'NVT']:
                     itg = rumd.IntegratorNVT(targetTemperature=temperature,
                                              timeStep=dt)
+                    if thermostat_relaxation_time is not None:
+                        itg.SetRelaxationTime(float(thermostat_relaxation_time))
+
                 elif integrator in ['nve', 'NVE']:
                     itg = rumd.IntegratorNVE(timeStep=dt)
                 self.rumd_simulation.SetIntegrator(itg)
