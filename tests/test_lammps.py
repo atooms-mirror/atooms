@@ -50,23 +50,24 @@ class Test(unittest.TestCase):
         pair_coeff      1 1 1.0 1.0 2.5
         neighbor        0.3 bin
         neigh_modify    every 20 delay 0 check no
-        fix             1 all nvt temp 2.0 2.0 1.0
+        fix             1 all nvt temp 2.0 2.0 0.2
         timestep        0.002
         """
-        def store(sim, T):
+        def store(sim, T, U):
             T.append(sim.system.temperature)
+            U.append(sim.system.potential_energy(per_particle=True))
 
         with TrajectoryXYZ(self.input_file) as th:
             system = th[-1]
 
         for inp in [self.input_file, TrajectoryXYZ(self.input_file),
                     system]:
-            T = []
+            T, U = [], []
             random.seed(1)
             bck = LAMMPS(inp, cmd)
             sim = Simulation(bck)
             sim.system.temperature = 1.5
-            sim.add(store, 500, T)
+            sim.add(store, 500, T, U)
             sim.run(2000)
             ave = sum(T[3:]) / len(T[3:])
             self.assertAlmostEqual(ave, 2.0, places=1)

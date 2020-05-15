@@ -3,10 +3,13 @@
 
 """Point particles in a cartesian reference frame."""
 
+import logging
 import numpy
 import random
 from copy import deepcopy
 from atooms.core import ndim as _ndim
+
+_log = logging.getLogger(__name__)
 
 
 class Particle(object):

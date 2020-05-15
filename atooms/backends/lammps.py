@@ -174,6 +174,10 @@ class LAMMPS(object):
         # Assign commands as potentials, they should be stripped
         self.system.interaction = Interaction(commands)
 
+        # Tmp directory for restart files
+        # TODO: clean this somehow
+        self.tmpdir = tempfile.mkdtemp()
+        
     def __str__(self):
         return 'LAMMPS'
 
@@ -191,6 +195,8 @@ class LAMMPS(object):
         dirout = tempfile.mkdtemp()
         file_tmp = os.path.join(dirout, 'lammps.atom')
         file_inp = os.path.join(dirout, 'lammps.atom.inp')
+        file_res = os.path.join(dirout, 'lammps.restart')
+        file_res = os.path.join(self.tmpdir, 'lammps.restart')
         # Update lammps startup file using self.system
         # This will write the .inp startup file
         with TrajectoryLAMMPS(file_tmp, 'w') as th:
@@ -217,12 +223,25 @@ class LAMMPS(object):
         cmd = """\
 units		lj
 atom_style	atomic
-read_data {}
-{}
-{}
-run {}
-write_dump all custom {} id type x y z vx vy vz modify sort id format line "%d %d %.15g %.15g %.15g %.15g %.15g %.15g"
-""".format(file_inp, self.commands, fix, steps, file_tmp)
+"""
+        # Read restart file if it exists
+        if os.path.exists(file_res):
+            cmd += """
+read_restart {}
+""".format(file_res)
+            
+        # Rest of commands
+        cmd += """
+read_data {file_inp}
+{commands}
+{fix}
+""".format(file_res=file_res, file_inp=file_inp, commands=self.commands, fix=fix, steps=steps, file_tmp=file_tmp)
+        
+        cmd += """
+run {steps}
+write_restart {file_res}
+write_dump all custom {file_tmp} id type x y z vx vy vz modify sort id format line "%d %d %.15g %.15g %.15g %.15g %.15g %.15g"
+""".format(file_res=file_res, file_inp=file_inp, commands=self.commands, fix=fix, steps=steps, file_tmp=file_tmp)
 
         # Execute LAMMPS command
         stdout = _run_lammps_command(cmd)
