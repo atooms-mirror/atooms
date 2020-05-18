@@ -32,6 +32,7 @@ setup(name='atooms',
       scripts=['bin/trj.py'],
       long_description_content_type="text/markdown",
       install_requires=['numpy'],
+      package_data = {'atooms/backends/f90': ['*.f90']},
       license='GPLv3',
       classifiers=[
           'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
