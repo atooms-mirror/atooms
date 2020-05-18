@@ -25,3 +25,4 @@ cover
 rumd_timing_info.dat
 log.lammps
 .DS_Store
+jit_modules
