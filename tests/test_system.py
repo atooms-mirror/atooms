@@ -311,6 +311,10 @@ class Test(unittest.TestCase):
         self.assertEqual(x['B'], 4)
 
     def test_ovito(self):
+        try:
+            import ovito
+        except ImportError:
+            self.skipTest('missing ovito')
         N = 3
         L = 5.0
         system = System()
@@ -321,7 +325,6 @@ class Test(unittest.TestCase):
             p = Particle(position=pos)
             system.particle.append(p)
         image = system.show('ovito')
-        print(image)
         
 if __name__ == '__main__':
     unittest.main()
