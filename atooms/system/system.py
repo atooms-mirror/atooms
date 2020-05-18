@@ -13,7 +13,6 @@ barostat or a particle reservoir.
 import copy
 import numpy
 from .particle import cm_position, cm_velocity, fix_total_momentum
-from .particle import show as _show
 
 
 class System(object):
@@ -445,5 +444,14 @@ class System(object):
             pass
         return txt
 
-    def show(self):
-        _show(self.particle, self.cell)
+    def show(self, backend='matplotlib', *args, **kwargs):
+        from .particle import show_ovito
+        from .particle import show_matplotlib
+        if backend == 'matplotlib':
+            _show = show_matplotlib            
+        elif backend == 'ovito':
+            _show = show_ovito
+        else:
+            raise ValueError('unknown backend for visualization')
+        return _show(self.particle, self.cell, *args, **kwargs)
+    

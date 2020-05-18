@@ -3,10 +3,13 @@
 
 """Point particles in a cartesian reference frame."""
 
+import logging
 import numpy
 import random
 from copy import deepcopy
 from atooms.core import ndim as _ndim
+
+_log = logging.getLogger(__name__)
 
 
 class Particle(object):
@@ -104,7 +107,7 @@ class Particle(object):
         vx = random.gauss(0, numpy.sqrt(T / self.mass))
         vy = random.gauss(0, numpy.sqrt(T / self.mass))
         vz = random.gauss(0, numpy.sqrt(T / self.mass))
-        self.velocity = numpy.array((vx, vy, vz))
+        self.velocity[:] = numpy.array([vx, vy, vz])
 
     @property
     def kinetic_energy(self):
@@ -354,7 +357,7 @@ def self_overlap(particle, other, a, normalize=True):
     return q
 
 
-def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
+def show_matplotlib(particle, cell, outfile=None, linewidth=3, alpha=0.3, show=False):
     """
     Make a snapshot of the `particle`s in the `cell` and save the
     image in `outfile`. The image is returned for further
@@ -378,7 +381,93 @@ def show(particle, cell, outfile='plot.png', linewidth=3, alpha=0.3):
         ax.add_artist(c)
     if outfile is not None:
         fig.savefig(outfile, bbox_inches='tight')
+    if show:
+        plt.show()
     return fig
+
+
+def show_ovito(particle, cell, outfile=None, radius=0.35,
+               viewport=None, callback=None, tmpdir=None,
+               camera_dir=(0, 1, 0), camera_pos=(0, -10, 0),
+               size=(640, 480), zoom=True, perspective=False):
+    """
+    Render particle in cell using ovito
+    """
+    import os
+    try:
+        from ovito.io import import_file
+    except ImportError:
+        _log.warning('install ovito to display the particles')
+        return
+    from ovito.vis import Viewport, TachyonRenderer
+    from ovito.vis import ParticlesVis
+    import tempfile
+    from atooms.core.utils import mkdir
+
+    # Make sure dirname exists
+    if outfile is not None:
+        mkdir(os.path.dirname(outfile))
+    
+    # Get a temporary file to write the sample
+    fh = tempfile.NamedTemporaryFile('w', dir=tmpdir, suffix='.xyz', delete=False)
+    tmp_file = fh.name
+
+    # Self-contained EXYZ dump (it is not clean to use trajectories here)
+    fh.write('{}\n'.format(len(particle)))
+    fh.write('Properties=species:S:1:pos:R:3 Lattice="{},0.,0.,0.,{},0.,0.,0.,{}"\n'.format(*cell.side))
+    for p in particle:
+        fh.write('{} {} {} {}\n'.format(p.species, *p.position))
+    fh.close()
+
+    # Ovito stuff. Can be customized by client code.
+    pipeline = import_file(tmp_file)
+    # Ovito seems to ignore the lattice info of exyz file
+    # so we forcibly set the cell info here
+    pipeline.source.data.cell_[0, 0] = cell.side[0]
+    pipeline.source.data.cell_[1, 1] = cell.side[1]
+    pipeline.source.data.cell_[2, 2] = cell.side[2]
+    pipeline.source.data.cell_[:, 3] = -cell.side/2
+    # Scale radius by default
+    vis_element = pipeline.source.data.particles.vis
+    vis_element.radius = radius
+    # Apply client code callback
+    if callback:
+        callback(pipeline)
+    pipeline.add_to_scene()
+
+    # Define viewport
+    if viewport:
+        vp = vieport
+    else:
+        if perspective:
+            vp = Viewport(type=Viewport.Type.Perspective, camera_dir=camera_dir, camera_pos=camera_pos)
+        else:
+            vp = Viewport(type=Viewport.Type.Ortho, camera_dir=camera_dir, camera_pos=camera_pos)
+
+    # Render
+    if zoom:
+        vp.zoom_all()
+    if outfile is None:
+        outfile = tmp_file + '.png'
+        
+    vp.render_image(filename=outfile, 
+                    size=size, 
+                    renderer=TachyonRenderer())
+
+    # Scene is a singleton, so we must clear it
+    pipeline.remove_from_scene()
+    
+    from atooms.core.utils import rmf
+    rmf(tmp_file)
+
+    # Try to display the image (e.g. in a jupyter notebook)
+    try:
+        from IPython.display import Image
+        return Image(outfile)
+    except ImportError:
+        return outfile
+
+show = show_matplotlib
 
 
 def decimate(particle, N):

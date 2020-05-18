@@ -127,7 +127,7 @@ class LAMMPS(object):
 
     """LAMMPS simulation backend."""
 
-    def __init__(self, inp, commands):
+    def __init__(self, inp, commands, restart=False):
         """
         We initialize the backend from `inp`, which can be a `System`, a
         `Trajectory` or path to a trajectory. LAMMPS `commands` must
@@ -174,6 +174,12 @@ class LAMMPS(object):
         # Assign commands as potentials, they should be stripped
         self.system.interaction = Interaction(commands)
 
+        # Tmp directory for restart files
+        # TODO: clean this somehow
+        self.restart = restart
+        if self.restart:
+            self.tmpdir = tempfile.mkdtemp()
+        
     def __str__(self):
         return 'LAMMPS'
 
@@ -191,6 +197,8 @@ class LAMMPS(object):
         dirout = tempfile.mkdtemp()
         file_tmp = os.path.join(dirout, 'lammps.atom')
         file_inp = os.path.join(dirout, 'lammps.atom.inp')
+        if self.restart:
+            file_res = os.path.join(self.tmpdir, 'lammps.restart')
         # Update lammps startup file using self.system
         # This will write the .inp startup file
         with TrajectoryLAMMPS(file_tmp, 'w') as th:
@@ -217,12 +225,29 @@ class LAMMPS(object):
         cmd = """\
 units		lj
 atom_style	atomic
+"""
+        # Read restart file if it exists
+        if self.restart and os.path.exists(file_res):
+            cmd += """
+read_restart {}
+""".format(file_res)
+        else:
+            cmd += """
 read_data {}
-{}
-{}
-run {}
-write_dump all custom {} id type x y z vx vy vz modify sort id format line "%d %d %.15g %.15g %.15g %.15g %.15g %.15g"
-""".format(file_inp, self.commands, fix, steps, file_tmp)
+""".format(file_inp)
+            
+        # Rest of commands
+        cmd += """
+{commands}
+{fix}
+run {steps}
+write_dump all custom {file_tmp} id type x y z vx vy vz modify sort id format line "%d %d %.15g %.15g %.15g %.15g %.15g %.15g"
+""".format(commands=self.commands, fix=fix, steps=steps, file_tmp=file_tmp)
+
+        if self.restart:
+            cmd += """
+write_restart {}
+""".format(file_res)
 
         # Execute LAMMPS command
         stdout = _run_lammps_command(cmd)

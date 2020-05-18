@@ -56,7 +56,7 @@ class RUMD(object):
 
     def __init__(self, input_file_or_sim, forcefield_file=None,
                  forcefield=None, integrator=None, temperature=None,
-                 dt=0.001, fixcm_interval=0):
+                 dt=0.001, fixcm_interval=0, thermostat_relaxation_time=None):
 
         # Keep a reference of the Trajectory backend class
         self.trajectory_class = Trajectory
@@ -106,6 +106,9 @@ class RUMD(object):
                 if integrator in ['nvt', 'NVT']:
                     itg = rumd.IntegratorNVT(targetTemperature=temperature,
                                              timeStep=dt)
+                    if thermostat_relaxation_time is not None:
+                        itg.SetRelaxationTime(float(thermostat_relaxation_time))
+
                 elif integrator in ['nve', 'NVE']:
                     itg = rumd.IntegratorNVE(timeStep=dt)
                 self.rumd_simulation.SetIntegrator(itg)
@@ -317,9 +320,13 @@ class System(object):
 
     @property
     def particle(self):
-        # Warning: this is read only. If you change the particles, the
+        # Warning n.1 : this is read only. If you change the particles, the
         # modification won't be propoagated to the RUMD objects.
         # One would have to create a new system.
+        #
+        # Warning n.2 : it ia assumed that particles are sorted by species.
+        # since RUMD does not have accessors to particle types (why??)
+        # and we can only access the number of particles of a given type.
         npart = self.sample.GetNumberOfParticles()
         pos = self.sample.GetPositions()
         vel = self.sample.GetVelocities()
