@@ -397,7 +397,7 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     try:
         from ovito.io import import_file
     except ImportError:
-        log.warning('install ovito to display the particles')
+        _log.warning('install ovito to display the particles')
         return
     from ovito.vis import Viewport, TachyonRenderer
     from ovito.vis import ParticlesVis
