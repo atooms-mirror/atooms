@@ -4,17 +4,22 @@ import os
 import unittest
 import numpy as np
 
-from atooms import trajectory
+try:
+    from atooms.trajectory import TrajectoryGSD
+    HAS_GSD = True
+except ImportError:
+    HAS_GSD = False
 
 
 class Test(unittest.TestCase):
 
     def setUp(self):
-        pass
+        if not HAS_GSD:
+            self.skipTest('cannot load GSD format (missing hoomd?)')
 
     def test(self):
         fname = '../data/trajectory3d.gsd'
-        traj = trajectory.TrajectoryGSD(fname)
+        traj = TrajectoryGSD(fname)
         p = traj[0].particle[0]
 
         # Sanity checks.
@@ -31,7 +36,7 @@ class Test(unittest.TestCase):
 
     def test2d(self):
         fname = '../data/trajectory2d.gsd'
-        traj = trajectory.TrajectoryGSD(fname)
+        traj = TrajectoryGSD(fname)
         p = traj[0].particle[0]
 
         # Sanity checks.
