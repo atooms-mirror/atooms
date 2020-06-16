@@ -27,16 +27,20 @@ def modify_fields(trajectory, fields=None, include=None, exclude=None):
     Either provide a new list of fields, such as ['id', 'x', 'y'], or
     specify explicit patterns to exclude or include.
     """
+    from atooms.trajectory.base import canonicalize_fields
     if fields is not None:
         # Reset the output format
         trajectory.fields = fields
     else:
+        canonicalize_fields(trajectory.fields)
         # Exclude and/or include lists of patterns from output format
         if exclude is not None:
+            canonicalize_fields(exclude)
             for pattern in exclude:
                 if pattern in trajectory.fields:
                     trajectory.fields.remove(pattern)
         if include is not None:
+            canonicalize_fields(include)
             for pattern in include:
                 if pattern not in trajectory.fields:
                     trajectory.fields.append(pattern)
