@@ -349,7 +349,7 @@ class TrajectoryHDF5(TrajectoryBase):
             # make it compatible with 2.6
             params = {}
             for k, v in zip(sg['parameters_name'][:], sg['parameters'][:]):
-                params[k.decode()] = v
+                params[k] = v
             p = PairPotential(sg['potential'][0].decode(), params,
                               sg['interacting_species'][:],
                               CutOff(sg['cutoff_scheme'][0].decode(),

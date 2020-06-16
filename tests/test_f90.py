@@ -1,23 +1,26 @@
 import os
 import unittest
 
-from atooms.backends import f90
-from atooms.trajectory import Trajectory
-
 try:
-    import f2py_jit
+    from atooms.backends import f90
+    HAS_F90 = True
 except ImportError:
-    raise unittest.SkipTest("Skip f90 backend tests (missing f2py_jit)")
+    HAS_F90 = False
     
 try:
     import atooms.models
     HAS_MODELS = True
 except ImportError:
     HAS_MODELS = False
+    
+from atooms.trajectory import Trajectory
+
 
 class Test(unittest.TestCase):
 
     def setUp(self):
+        if not HAS_F90:
+            self.skipTest("skip f90 backend tests (missing f2py_jit?)")
         self.trajectory = f90.Trajectory('data/lj_N256_rho1.0.xyz')
         #self.trajectory = f90.Trajectory('data/lj_N4000.xyz')
 
