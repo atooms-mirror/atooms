@@ -21,6 +21,10 @@ try:
     from .hdf5 import TrajectoryHDF5
 except ImportError:
     pass
+try:
+    from .gsd import TrajectoryGSD
+except ImportError:
+    pass
 from .ram import TrajectoryRam
 
 from atooms.core.utils import NullHandler
