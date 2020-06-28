@@ -448,10 +448,9 @@ class System(object):
         from .particle import show_ovito
         from .particle import show_matplotlib
         if backend == 'matplotlib':
-            _show = show_matplotlib            
+            _show = show_matplotlib
         elif backend == 'ovito':
             _show = show_ovito
         else:
             raise ValueError('unknown backend for visualization')
         return _show(self.particle, self.cell, *args, **kwargs)
-    

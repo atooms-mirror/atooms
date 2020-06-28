@@ -477,12 +477,12 @@ C -2.9 -2.9 0.0
             self.assertAlmostEqual(th[0].particle[1].position[1], -2.9)
             self.assertAlmostEqual(th[1].particle[0].position[0], 1.1)
             self.assertAlmostEqual(th[1].particle[1].position[1], -2.9)
-            
+
             #self.assertEqual(meta['mass'], [1, 2])
-        with self.Trajectory(self.fout, 'w') as th:            
+        with self.Trajectory(self.fout, 'w') as th:
             th.write(system_0, 1)
             th.write(system_1, 2)
-            
+
         with self.Trajectory(self.fout) as th:
             meta = th._read_comment(0)
             system_0 = th[0]
@@ -497,6 +497,6 @@ C -2.9 -2.9 0.0
             self.assertAlmostEqual(th[1].particle[0].position[0], 1.1)
             self.assertAlmostEqual(th[1].particle[1].position[1], -2.9)
 
-            
+
 if __name__ == '__main__':
     unittest.main()

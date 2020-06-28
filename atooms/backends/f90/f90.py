@@ -4,7 +4,7 @@ import json
 
 import numpy
 import warnings
-                        
+
 from atooms.core.utils import rmf
 from atooms.interaction import Interaction as _Interaction
 from atooms.system import System as _System
@@ -19,7 +19,7 @@ __all__ = ['Interaction', 'System', 'NeighborList', 'Trajectory', 'Particle', 'C
 def _normalize_path(path):
     if not path.endswith('.f90'):
         path = path + '.f90'
-        
+
     if os.path.exists(path):
         return path
     else:
@@ -47,7 +47,7 @@ def _merge_source(*sources):
         with open(source_path) as fh:
             src = fh.read()
         # Merge sources into a single one
-        merged_src += src        
+        merged_src += src
     return merged_src
 
 
@@ -71,7 +71,7 @@ class Interaction(_Interaction):
             potential_parameters = model.get('potential')[0].get('parameters')
             cutoff = model.get('cutoff')[0].get('path')
             cutoff_parameters = model.get('cutoff')[0].get('parameters')
-            
+
         self._module_path = None
 
         # Merge all sources into a unique source blob
@@ -98,7 +98,7 @@ class Interaction(_Interaction):
                                               "cutoff": [cutoff, cutoff_parameters]},
                                     extra_args=extra_args,
                                     db_file='.atooms_jit.json')
-            
+
         # Setup potential and cutoff parameters
         _interaction = f2py_jit.import_module(uid)
         _interaction.potential.setup(**potential_parameters)
@@ -134,7 +134,7 @@ class NeighborList(object):
         self.neighbors = None
         self.number_neighbors = None
         self._module_path = None
-        
+
         # Gather f90 sources into a single one
         source = _merge_source(helpers, neighbors)
 
@@ -156,16 +156,16 @@ class NeighborList(object):
 
         # Store module name (better not store the module itself, else we cannot deepcopy)
         self._uid = uid
-        
+
     def _setup(self, npart, nneigh):
         """Allocate or reallocate arrays for neighbor list"""
         if self.neighbors is None or self.neighbors.shape[1] != npart or self.neighbors.shape[0] < nneigh:
             self.neighbors = numpy.ndarray(shape=(nneigh, npart), order='F', dtype=numpy.int32)
         if self.number_neighbors is None or len(self.number_neighbors) != npart:
-            self.number_neighbors = numpy.ndarray(npart, order='F', dtype=numpy.int32)        
+            self.number_neighbors = numpy.ndarray(npart, order='F', dtype=numpy.int32)
 
     def compute(self, box, pos, ids):
-        # Setup 
+        # Setup
         f90 = f2py_jit.import_module(self._uid)
 
         # Setup arrays
@@ -186,7 +186,7 @@ class NeighborList(object):
             error = f90.neighbor_list.compute(box, pos, ids, self.rcut, self.neighbors, self.number_neighbors)
             assert not error, "something wrong with neighbor_list"
 
-            
+
 class System(_System):
 
     def compute_interaction(self, what='forces'):
@@ -208,7 +208,7 @@ class System(_System):
         for i, p in enumerate(self.particle):
             p.neighbors = nl.neighbors[0: nl.number_neighbors[i], i]
 
-    
+
 def _wrap_system(system):
     from atooms.trajectory.decorators import change_species
     new_system = System()
@@ -226,7 +226,7 @@ def _add_interaction(trajectory, system):
         import atooms.models
     except ImportError:
         return system
-    
+
     try:
         # Lookup in atooms models database
         # TODO: accept serialized json potential/cutoff in metadata
@@ -264,4 +264,3 @@ for key in __Trajectory.formats:
 
 # Lock the xyz format
 Trajectory.suffixes['xyz'] = Trajectory.formats['xyz']
-    

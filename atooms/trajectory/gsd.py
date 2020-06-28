@@ -84,10 +84,10 @@ class TrajectoryGSD(TrajectoryBase):
         mass = data['particle.mass']
         radius = data['particle.radius']
         convert_to_typeid = np.vectorize(lambda species: species_to_typeid[species])
-        typeid = convert_to_typeid(species).astype(int) # This is 0, 0, 1, etc when distinct_species = ['A', 'B']
+        typeid = convert_to_typeid(species).astype(int)  # This is 0, 0, 1, etc when distinct_species = ['A', 'B']
 
         snap = gsd.hoomd.Snapshot()
-        snap.configuration.box = [box[0], box[1], box[2], 0, 0, 0] # Assume all strains 0.
+        snap.configuration.box = [box[0], box[1], box[2], 0, 0, 0]  # Assume all strains 0.
         snap.configuration.step = step
         snap.particles.types = distinct_species
         snap.particles.N = N

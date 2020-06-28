@@ -29,7 +29,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         self.alias = {'pos': 'position',
                       'vel': 'velocity'}
         self.fields = ['species', 'position']
-        
+
         # Internal index of lines via seek and tell.
         if self.mode == 'r':
             self._setup_index()
@@ -67,21 +67,21 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         entries = meta['Properties'].split(':')
         assert len(entries) % 3 == 0, len(entries)
         properties = []
-        for i in range(0, len(entries), 3):            
+        for i in range(0, len(entries), 3):
             key, fmt, ndims = entries[i: i+3]
             properties.append((key, fmt, ndims))
 
         meta['Properties'] = properties
-            
+
         # Go through keys, listify and tipify them
-        for key in meta:            
+        for key in meta:
             if key != 'Properties':
                 if meta[key].startswith('"'):
                     meta[key] = meta[key].strip('"')
                     meta[key] = [tipify(_) for _ in meta[key].split()]
                 else:
                     meta[key] = tipify(meta[key])
-                    
+
         return meta
 
     def read_steps(self):
@@ -135,7 +135,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
                         raise ValueError('unknown format key')
                 i += ndims
             particle.append(p)
-                
+
         side = meta["Lattice"]
         # TODO: remove hard coded
         cell = Cell([side[0], side[4], side[8]])
@@ -143,7 +143,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
 
     def read_timestep(self):
         for key in ['dt', 'Dt', 'timestep', 'Timestep']:
-            if key in self.metadata:                
+            if key in self.metadata:
                 return self.metadata[key]
         return 1.0
 
@@ -169,7 +169,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         line += 'Timestep={} '.format(self.timestep)
         line += 'Step={} '.format(step)
         return line.strip()
-    
+
     def write_sample(self, system, step):
         #self.fields = ['species', 'position', 'mass', 'radius', 'velocity']
         from atooms.core.utils import is_array
@@ -191,17 +191,17 @@ class TrajectoryEXYZ(TrajectoryXYZ):
             else:
                 attr = field
             # Guess attribute features (ndim, fmt)
-            val = getattr(system.particle[0], attr)            
+            val = getattr(system.particle[0], attr)
             if is_array(val):
                 ndim, fmt = len(val), detect_format(val[0])
             else:
                 ndim, fmt = 1, detect_format(val)
             self._properties.append([field, fmt, ndim])
-            
+
         # Write header
         self.trajectory.write('{}\n'.format(len(system.particle)))
         self.trajectory.write(self._comment(step, system) + '\n')
-        
+
         # Replace aliases to access particle attributes
         import copy
         properties = copy.copy(self._properties)
@@ -209,7 +209,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
             key, fmt, ndims = properties[i]
             if key in self.alias:
                 properties[i][0] = self.alias[key]
-        
+
         # Formatters
         alias_fmt = {'S': '{} ',
                      'R': '{{:.{precision}f}} '.format(precision=self.precision),
@@ -227,4 +227,3 @@ class TrajectoryEXYZ(TrajectoryXYZ):
                     # Note: numpy.array2string is MUCH slower
                     line += ' '.join([alias_fmt[fmt].format(x) for x in val])
             self.trajectory.write(line.strip() + '\n')
-

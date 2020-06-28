@@ -56,7 +56,7 @@ def _run_lammps_command(cmd):
     except subprocess.CalledProcessError as exception:
         print(''.join(exception.output))
         raise
-    
+
     # Clean up
     rmd(dirout)
     return stdout.decode()
@@ -96,7 +96,7 @@ write_dump all custom {} fx fy fz modify format line "%.15g %.15g %.15g"
 """.format(file_inp, self.potential, file_tmp)
 
         stdout = _run_lammps_command(cmd)
-        
+
         found = False
         for line in stdout.split('\n'):
             if 'Step' in line:
@@ -179,7 +179,7 @@ class LAMMPS(object):
         self.restart = restart
         if self.restart:
             self.tmpdir = tempfile.mkdtemp()
-        
+
     def __str__(self):
         return 'LAMMPS'
 
@@ -235,7 +235,7 @@ read_restart {}
             cmd += """
 read_data {}
 """.format(file_inp)
-            
+
         # Rest of commands
         cmd += """
 {commands}
