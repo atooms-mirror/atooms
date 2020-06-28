@@ -1,25 +1,23 @@
-from atooms.trajectory.base import TrajectoryBase
-
+from copy import copy
 import numpy as np
-import re
+
+# TODO: here the module is importing itself, can we drop this?
 import gsd
 import gsd.hoomd
-from copy import copy
 
-from atooms.system.particle import Particle, distinct_species
+from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
-from atooms.trajectory.utils import gopen
+from atooms.trajectory.base import TrajectoryBase
 from atooms.trajectory.base import canonicalize_fields
 
 
-
 class TrajectoryGSD(TrajectoryBase):
+
     """
     Trajectory implementing the Glotzer group's binary GSD format.
     """
     suffix = 'gsd'
-
 
     def __init__(self, filename, mode='r', fields=None):
         super(TrajectoryGSD, self).__init__(filename, mode)
@@ -28,7 +26,7 @@ class TrajectoryGSD(TrajectoryBase):
         self.fields = canonicalize_fields(self.fields)
 
         # self.mode can be 'w' or 'r', but gsd is a binary format, so it only accepts 'wb' or 'rb'.
-        file_mode = self.mode + "b" 
+        file_mode = self.mode + "b"
         # Trajectory file handle
         self.trajectory = gsd.hoomd.open(name=self.filename, mode=file_mode)
         # When reading, we must define the steps.
@@ -42,7 +40,7 @@ class TrajectoryGSD(TrajectoryBase):
 
         # Convert typeid from [0, 0, 1, ...] to ['A', 'A', 'B', ...] when snap.particles.types = ['A', 'B']
         distinct_species = snap.particles.types
-        distinct_typeids = list( range(len(distinct_species)) )
+        distinct_typeids = list(range(len(distinct_species)))
         typeid_to_species = {}
         for i in distinct_typeids:
             typeid_to_species[i] = distinct_species[i]
@@ -63,7 +61,7 @@ class TrajectoryGSD(TrajectoryBase):
             particles.append(p)
 
         return System(particle=particles, cell=cell)
-         
+
 
     def write_sample(self, system, step):
         """ Writes to the file handle self.trajectory."""
@@ -85,7 +83,7 @@ class TrajectoryGSD(TrajectoryBase):
         species = data['particle.species']    # This is 'A', 'A', 'B', etc when distinct_species = ['A', 'B']
         mass = data['particle.mass']
         radius = data['particle.radius']
-        convert_to_typeid = np.vectorize( lambda species: species_to_typeid[species] )
+        convert_to_typeid = np.vectorize(lambda species: species_to_typeid[species])
         typeid = convert_to_typeid(species).astype(int) # This is 0, 0, 1, etc when distinct_species = ['A', 'B']
 
         snap = gsd.hoomd.Snapshot()
@@ -104,4 +102,3 @@ class TrajectoryGSD(TrajectoryBase):
             snap.particles.diameter = 2 * radius
 
         self.trajectory.append(snap)
-
