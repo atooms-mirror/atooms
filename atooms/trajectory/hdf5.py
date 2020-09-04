@@ -87,7 +87,7 @@ class TrajectoryHDF5(TrajectoryBase):
         self.general_info = {}
         self._grandcanonical = False
         self._system = None
-        self.fields = ['position', 'velocity', 'cell']
+        self.fields = ['position', 'velocity']
 
         if self.mode == 'r' or self.mode == 'r+':
             self.trajectory = h5py.File(self.filename, mode)
@@ -269,9 +269,8 @@ class TrajectoryHDF5(TrajectoryBase):
 
         if system.cell is not None:
             self.trajectory.create_group_safe('/trajectory/cell')
-            if 'cell' in self.fields:
-                self.trajectory.create_group_safe('/trajectory/cell/sidebox')
-                self.trajectory['/trajectory/cell/sidebox' + csample] = system.cell.side
+            self.trajectory.create_group_safe('/trajectory/cell/sidebox')
+            self.trajectory['/trajectory/cell/sidebox' + csample] = system.cell.side
 
     def read_init(self):
         # read particles
