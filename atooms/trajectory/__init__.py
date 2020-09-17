@@ -48,6 +48,14 @@ for _, _mod_name, _ in pkgutil.iter_modules(atooms.plugins.__path__, prefix='ato
     m = __import__(_mod_name)
     Trajectory.update(_mod_name, overwrite=False)
 
+# Make sure the current directory is in the path. This is needed by
+# the plugin mechanism. Not sure why '' should not be there btw.
+import sys
+__added = False
+if '' not in sys.path:
+    __added = True
+    sys.path.append('')
+    
 # Additional plugins can be put in the atooms_plugins module
 try:
     import atooms_plugins
@@ -59,6 +67,13 @@ else:
         try:
             m = __import__(_mod_name)
             Trajectory.update(_mod_name, overwrite=False)
-        except ImportError:
+        except ImportError as err:
+            # Usually it is an error in the plugin module so we show
+            print(err.message)
             # Could not import this trajectory
             pass
+
+# Clean up
+if __added:
+    sys.path.pop('')
+del(__added)
