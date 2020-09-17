@@ -93,11 +93,22 @@ class System(object):
         """
         Density of the system.
 
-        It will raise a ValueException if `cell` is None.
+        It `cell` is None, an estimate is given.
         """
+        if len(self.particle) == 0:
+            return 0.0
+        
         if self.cell is None:
-            return ValueError('cannot compute density without a cell')
-        return len(self.particle) / self.cell.volume
+            # Estimate density assuming V is the product of the
+            # largest distances along each dimension
+            volume = 1.0
+            for axis in range(len(self.particle[0].position)):
+                x_0 = min([p.position[axis] for p in self.particle])
+                x_1 = max([p.position[axis] for p in self.particle])
+                volume *= (x_1 - x_0)
+            return len(self.particle) / volume
+        else:
+            return len(self.particle) / self.cell.volume
 
     @density.setter
     def density(self, rho):
