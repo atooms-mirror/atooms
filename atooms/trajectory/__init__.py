@@ -75,5 +75,5 @@ else:
 
 # Clean up
 if __added:
-    sys.path.pop('')
+    sys.path.remove('')
 del(__added)
