@@ -415,8 +415,9 @@ def info(trajectory, keys=None):
         txt += 'composition          = %s\n' % dict(composition(system.particle))
         txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in system.particle]) / numpy.mean([p.radius for p in system.particle]))
         txt += 'density              = %s\n' % round(system.density, 10)
-        txt += 'cell side            = %s\n' % str(list(system.cell.side))[1: -1]
-        txt += 'cell volume          = %s\n' % system.cell.volume
+        if system.cell is not None:
+            txt += 'cell side            = %s\n' % str(list(system.cell.side))[1: -1]
+            txt += 'cell volume          = %s\n' % system.cell.volume
         if len(trajectory) > 1:
             txt += 'steps                = %s\n' % trajectory.steps[-1]
             txt += 'duration             = %s\n' % trajectory.times[-1]
