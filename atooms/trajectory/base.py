@@ -95,7 +95,7 @@ class TrajectoryBase(object):
     # to a list in the class method
     class_callbacks = None
     self_callbacks = None
-    
+
     def __init__(self, filename, mode='r', cache=False):
         """
         The `mode` can be 'r' (read) or 'w' (write).
@@ -338,7 +338,7 @@ class TrajectoryBase(object):
     def add_self_callback(self, cbk, *args, **kwargs):
         """Same as `register_self_callback()`."""
         self.register_self_callback(cbk, *args, **kwargs)
-            
+
     # To read/write timestep and block size sublcasses may implement
     # these methods. The default is dt=1 and block determined dynamically.
 

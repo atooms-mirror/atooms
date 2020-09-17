@@ -407,7 +407,7 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     # Make sure dirname exists
     if outfile is not None:
         mkdir(os.path.dirname(outfile))
-    
+
     # Get a temporary file to write the sample
     fh = tempfile.NamedTemporaryFile('w', dir=tmpdir, suffix='.xyz', delete=False)
     tmp_file = fh.name
@@ -449,14 +449,14 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
         vp.zoom_all()
     if outfile is None:
         outfile = tmp_file + '.png'
-        
-    vp.render_image(filename=outfile, 
-                    size=size, 
+
+    vp.render_image(filename=outfile,
+                    size=size,
                     renderer=TachyonRenderer())
 
     # Scene is a singleton, so we must clear it
     pipeline.remove_from_scene()
-    
+
     from atooms.core.utils import rmf
     rmf(tmp_file)
 

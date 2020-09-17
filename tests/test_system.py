@@ -325,6 +325,6 @@ class Test(unittest.TestCase):
             p = Particle(position=pos)
             system.particle.append(p)
         image = system.show('ovito')
-        
+
 if __name__ == '__main__':
     unittest.main()

@@ -182,7 +182,7 @@ class TrajectoryXYZ(TrajectoryBase):
         # Store a copy of fields in a cache variable
         # We can avoid setup if the fields have not changed
         self.__cache_fields = copy(self.fields)
-            
+
     def _setup_format(self):
         if not self._done_format_setup:
             self._done_format_setup = True
@@ -243,7 +243,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 self._index_frame.append(line)
             else:
                 raise IOError('malformed xyz file [%s]', self.filename)
-        
+
     def read_steps(self):
         """Find steps list."""
         steps = []
