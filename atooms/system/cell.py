@@ -10,7 +10,7 @@ from atooms.core import ndim as _ndim
 
 class Cell(object):
 
-    def __init__(self, side=None, center=None):
+    def __init__(self, side=None, center=None, periodic=None):
         if side is None:
             self.side = numpy.zeros(_ndim)
         else:
@@ -22,6 +22,13 @@ class Cell(object):
             self.center = numpy.asarray(center, dtype=numpy.float64)
         self.shape = 'cubic'
 
+        # Periodic boundary conditions apply separately on each axis
+        if periodic is None:
+            self.periodic = numpy.ndarray(self.side.size, dtype=bool)
+            self.periodic[:] = True
+        else:
+            self.periodic = numpy.asarray(periodic, dtype=bool)
+            
     @property
     def volume(self):
         return numpy.prod(self.side)
