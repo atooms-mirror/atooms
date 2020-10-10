@@ -58,7 +58,7 @@ class Particle(object):
             image.position = particle.position + rij
             return image
         else:
-            self.position = particle.position + rij
+            self.position[:] = particle.position + rij
             return self
 
     def distance(self, particle, cell=None, folded=True):
@@ -93,7 +93,7 @@ class Particle(object):
 
         # Move the center to 0
         self.position -= cell.center
-        self.position = _periodic_vector_unfolded(self.position, cell.side)
+        self.position[:] = _periodic_vector_unfolded(self.position, cell.side)
 
         # Restore the center
         self.position += cell.center
