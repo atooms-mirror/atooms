@@ -380,23 +380,33 @@ class System(object):
                 what_list[i] = aliases[what]
 
         for what, dtype in zip(what_list, dtype_list):
-            # Skip if it has been dumped already
-            # and the number of particles has not changed
-            # Note: if particles are reassigned the dump will
-            # not be updated. It can be fixed by keeping a list of ids
-            # although testing it would bring a overhead.
-            if what in self._data:
-                if 'npart' in self._data and \
-                   self._data['npart'] == len(self.particle):
-                    continue
 
             # Extract the requested attribute
             attr = what.split('.')[-1]
 
             # Make array of attributes
             if what.startswith('particle'):
-                self._data['npart'] = len(self.particle)
+
+                # Skip if it has been dumped already
+                # and the number of particles has not changed
+                # Note: if particles are reassigned the dump will
+                # not be updated. It can be fixed by keeping a list of ids
+                # although testing it would bring a overhead.
+                if what in self._data:
+                    if not flat:
+                        if order == 'F':
+                            npart = len(self._data[what][..., :])
+                        else:
+                            npart = len(self._data[what][..., :])
+                    else:
+                        ndims = self.number_of_dimensions
+                        npart = int(len(self._data[what]) / ndims)
+                        
+                    if npart == len(self.particle):
+                        continue
+                    
                 data = numpy.array([getattr(p, attr) for p in self.particle], dtype=dtype)
+                
                 # We transpose the array if F order is requested
                 if order == 'F':
                     data = numpy.transpose(data)
@@ -427,13 +437,19 @@ class System(object):
 
             self._data[what] = data
 
+        # Always keep track of the number of particles
+        self._data['npart'] = len(self.particle)
+            
         # If what is a string or we only have one entry we return an
-        # array, otherwise we return the whole dict
+        # array, otherwise we return a dict with the requested keys
         if len(what_list) == 1:
             return self._data[what_list[0]]
         else:
-            return self._data
-
+            db = {}
+            for key in what_list:
+                db[key] = self._data[key]
+            return db
+                
     def report(self):
         # Summary
         txt = ''
