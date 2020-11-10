@@ -20,6 +20,55 @@ def gopen(filename, mode):
         return open(filename, mode)
 
 
+def file_index(fh, size=None):
+    """Lightweight file indexing for trajectories via tell/seek"""
+    header = []
+    block = []
+    block_size = []
+    if size is None:
+        def size(fh, data, line):
+            npart = int(data)
+            return 1, npart
+
+    # Make sure we start from the beginning
+    fh.seek(0)
+    while True:
+        line = fh.tell()
+        data = fh.readline()
+        # We break if file is over or we found an empty line
+        if not data:
+            break
+
+        # Get size of header and block
+        try:
+            header_size, this_block_size = size(fh, line)
+            header.append(line)
+        except ValueError:
+            raise IOError('malformed file [%s]', fh.filename)
+
+        # Skip header_size lines (if zero none will be skipped)
+        for i in range(header_size):
+            _ = fh.readline()
+
+        # Skip block_size lines, making sure we have
+        # read precisely that number of lines
+        line = fh.tell()
+        for i in range(this_block_size):
+            _ = fh.readline()
+
+        # Store first line /after/ we have read the frame
+        # making sure the last we read was not emtpy
+        # Note that readline() returns an empty string on EOF
+        if len(_) > 0:
+            block.append(line)
+            block_size.append(this_block_size)
+        else:
+            raise IOError('malformed file [%s]', fh.filename)
+
+    # TODO: leave fh as it was
+    return header, block, block_size
+
+
 def modify_fields(trajectory, fields=None, include=None, exclude=None):
     """
     Modify fields of a trajectory.
