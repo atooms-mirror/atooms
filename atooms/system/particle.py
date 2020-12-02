@@ -357,6 +357,25 @@ def self_overlap(particle, other, a, normalize=True):
     return q
 
 
+def show_3dmol(particle, cell, radius=1.0, palette=None):
+    """
+    Render particles in cell using 3dmol http://3dmol.csb.pitt.edu/
+    """
+    import py3Dmol
+    if palette is None:
+        palette = ["#50514f", "#f25f5c", "#ffe066", "#247ba0", "#70c1b3",
+                   "#0cce6b", "#c200fb", "#e2a0ff", "#6622cc", "#119822"]
+    colors = {}
+    for i, s in enumerate(distinct_species(particle)):
+        colors[s] = palette[i]
+    view = py3Dmol.view()
+    view.setBackgroundColor('white')
+    for p in particle:
+        view.addSphere({'center': {'x': p.position[0], 'y': p.position[1], 'z': p.position[2]},
+                        'radius': radius * p.radius, 'color': colors[p.species]})
+    return view
+
+
 def show_matplotlib(particle, cell, outfile=None, linewidth=3, alpha=0.3, show=False):
     """
     Make a snapshot of the `particle`s in the `cell` and save the
