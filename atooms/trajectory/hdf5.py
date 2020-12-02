@@ -198,9 +198,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # Interaction
         if system.interaction is not None:
             if type(system.interaction) is list:
-                raise TypeError('interaction must be list')
-            self.trajectory.copy(system.interaction, '/initialstate/interaction/')
-            # self.write_interaction([system.interaction])
+                raise TypeError('cannot handle more than one interaction')
+            self.write_interaction([system.interaction])
 
     def write_interaction(self, interaction):
         rgr = '/initialstate/interaction/'
@@ -226,7 +225,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.trajectory[pgr + 'interacting_bodies'] = [phi.interacting_bodies]
                 self.trajectory[pgr + 'interacting_species'] = phi.species
                 self.trajectory[pgr + 'parameters_number'] = [len(phi.params)]
-                self.trajectory[pgr + 'parameters_name'] = [_.encode() for _ in sorted(phi.params.keys())]
+                self.trajectory[pgr + 'parameters_name'] = [_ for _ in sorted(phi.params.keys())]
                 self.trajectory[pgr + 'parameters'] = [phi.params[k] for k in sorted(phi.params.keys())]
                 self.trajectory[pgr + 'cutoff_scheme'] = [phi.cutoff.scheme.encode()]
                 self.trajectory[pgr + 'cutoff_radius'] = [phi.cutoff.radius]
