@@ -87,7 +87,7 @@ class TrajectoryHDF5(TrajectoryBase):
         self.general_info = {}
         self._grandcanonical = False
         self._system = None
-        self.fields = ['position', 'velocity', 'cell']
+        self.fields = ['position', 'velocity']
 
         if self.mode == 'r' or self.mode == 'r+':
             self.trajectory = h5py.File(self.filename, mode)
@@ -198,9 +198,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # Interaction
         if system.interaction is not None:
             if type(system.interaction) is list:
-                raise TypeError('interaction must be list')
-            self.trajectory.copy(system.interaction, '/initialstate/interaction/')
-            # self.write_interaction([system.interaction])
+                raise TypeError('cannot handle more than one interaction')
+            self.write_interaction([system.interaction])
 
     def write_interaction(self, interaction):
         rgr = '/initialstate/interaction/'
@@ -226,7 +225,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.trajectory[pgr + 'interacting_bodies'] = [phi.interacting_bodies]
                 self.trajectory[pgr + 'interacting_species'] = phi.species
                 self.trajectory[pgr + 'parameters_number'] = [len(phi.params)]
-                self.trajectory[pgr + 'parameters_name'] = [_.encode() for _ in sorted(phi.params.keys())]
+                self.trajectory[pgr + 'parameters_name'] = [_ for _ in sorted(phi.params.keys())]
                 self.trajectory[pgr + 'parameters'] = [phi.params[k] for k in sorted(phi.params.keys())]
                 self.trajectory[pgr + 'cutoff_scheme'] = [phi.cutoff.scheme.encode()]
                 self.trajectory[pgr + 'cutoff_radius'] = [phi.cutoff.radius]
@@ -269,9 +268,8 @@ class TrajectoryHDF5(TrajectoryBase):
 
         if system.cell is not None:
             self.trajectory.create_group_safe('/trajectory/cell')
-            if 'cell' in self.fields:
-                self.trajectory.create_group_safe('/trajectory/cell/sidebox')
-                self.trajectory['/trajectory/cell/sidebox' + csample] = system.cell.side
+            self.trajectory.create_group_safe('/trajectory/cell/sidebox')
+            self.trajectory['/trajectory/cell/sidebox' + csample] = system.cell.side
 
     def read_init(self):
         # read particles
@@ -337,7 +335,7 @@ class TrajectoryHDF5(TrajectoryBase):
         n = self.trajectory['/initialstate/interaction/number_of_interactions'][0]
         if n > 1:
             warning.warn('can only read one interaction term')
-        
+
         i = 0
         g = '/initialstate/interaction/interaction_%d/' % (i+1)
         np = self.trajectory[g + 'number_of_potentials'][0]
@@ -349,7 +347,7 @@ class TrajectoryHDF5(TrajectoryBase):
             # make it compatible with 2.6
             params = {}
             for k, v in zip(sg['parameters_name'][:], sg['parameters'][:]):
-                params[k.decode()] = v
+                params[k] = v
             p = PairPotential(sg['potential'][0].decode(), params,
                               sg['interacting_species'][:],
                               CutOff(sg['cutoff_scheme'][0].decode(),

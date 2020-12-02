@@ -58,7 +58,7 @@ class Particle(object):
             image.position = particle.position + rij
             return image
         else:
-            self.position = particle.position + rij
+            self.position[:] = particle.position + rij
             return self
 
     def distance(self, particle, cell=None, folded=True):
@@ -93,7 +93,7 @@ class Particle(object):
 
         # Move the center to 0
         self.position -= cell.center
-        self.position = _periodic_vector_unfolded(self.position, cell.side)
+        self.position[:] = _periodic_vector_unfolded(self.position, cell.side)
 
         # Restore the center
         self.position += cell.center
@@ -357,6 +357,25 @@ def self_overlap(particle, other, a, normalize=True):
     return q
 
 
+def show_3dmol(particle, cell, radius=1.0, palette=None):
+    """
+    Render particles in cell using 3dmol http://3dmol.csb.pitt.edu/
+    """
+    import py3Dmol
+    if palette is None:
+        palette = ["#50514f", "#f25f5c", "#ffe066", "#247ba0", "#70c1b3",
+                   "#0cce6b", "#c200fb", "#e2a0ff", "#6622cc", "#119822"]
+    colors = {}
+    for i, s in enumerate(distinct_species(particle)):
+        colors[s] = palette[i]
+    view = py3Dmol.view()
+    view.setBackgroundColor('white')
+    for p in particle:
+        view.addSphere({'center': {'x': p.position[0], 'y': p.position[1], 'z': p.position[2]},
+                        'radius': radius * p.radius, 'color': colors[p.species]})
+    return view
+
+
 def show_matplotlib(particle, cell, outfile=None, linewidth=3, alpha=0.3, show=False):
     """
     Make a snapshot of the `particle`s in the `cell` and save the
@@ -407,7 +426,7 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     # Make sure dirname exists
     if outfile is not None:
         mkdir(os.path.dirname(outfile))
-    
+
     # Get a temporary file to write the sample
     fh = tempfile.NamedTemporaryFile('w', dir=tmpdir, suffix='.xyz', delete=False)
     tmp_file = fh.name
@@ -449,14 +468,14 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
         vp.zoom_all()
     if outfile is None:
         outfile = tmp_file + '.png'
-        
-    vp.render_image(filename=outfile, 
-                    size=size, 
+
+    vp.render_image(filename=outfile,
+                    size=size,
                     renderer=TachyonRenderer())
 
     # Scene is a singleton, so we must clear it
     pipeline.remove_from_scene()
-    
+
     from atooms.core.utils import rmf
     rmf(tmp_file)
 

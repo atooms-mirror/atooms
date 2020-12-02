@@ -1,23 +1,26 @@
 import os
 import unittest
 
-from atooms.backends import f90
-from atooms.trajectory import Trajectory
-
 try:
-    import f2py_jit
+    from atooms.backends import f90
+    HAS_F90 = True
 except ImportError:
-    raise unittest.SkipTest("Skip f90 backend tests (missing f2py_jit)")
-    
+    HAS_F90 = False
+
 try:
     import atooms.models
     HAS_MODELS = True
 except ImportError:
     HAS_MODELS = False
 
+from atooms.trajectory import Trajectory
+
+
 class Test(unittest.TestCase):
 
     def setUp(self):
+        if not HAS_F90:
+            self.skipTest("skip f90 backend tests (missing f2py_jit?)")
         self.trajectory = f90.Trajectory('data/lj_N256_rho1.0.xyz')
         #self.trajectory = f90.Trajectory('data/lj_N4000.xyz')
 
@@ -30,11 +33,11 @@ class Test(unittest.TestCase):
         particles = [Particle(position=[0.0, 0.0, 0.0], species=1),
 	             Particle(position=[1.0, 0.0, 0.0], species=1),
 	             Particle(position=[2.0, 0.0, 0.0], species=1)]
-        cell = Cell([10., 10., 10.])	    
+        cell = Cell([10., 10., 10.])
         system = System(particles, cell)
         system.interaction = Interaction(model)
         self.assertAlmostEqual(system.potential_energy(), -0.01257276409199999)
-        
+
     def test_trajectory(self):
         # Make sure the original trajectories have no wrappers
         with Trajectory('data/lj_N256_rho1.0.xyz') as trajectory:
@@ -62,8 +65,6 @@ class Test(unittest.TestCase):
 
     def tearDown(self):
         self.trajectory.close()
-        
+
 if __name__ == '__main__':
     unittest.main()
-        
-

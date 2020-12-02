@@ -64,9 +64,11 @@ class TrajectoryFactory(object):
         if len(s.group(2)) == 0:
             return
         fmt = (s.group(1) + s.group(2)).lower()
+        # Always add the new class to the dict of trajectory formats
+        # but only add its suffix if not already present (unless we overwrite)
+        self.formats[fmt] = trj_class
         if trj_class.suffix not in self.suffixes or overwrite:
             self.suffixes[trj_class.suffix] = trj_class
-            self.formats[fmt] = trj_class
 
     def add(self, trajectory_class):
         """Add a trajectory class to the factory"""

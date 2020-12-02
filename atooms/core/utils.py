@@ -135,6 +135,29 @@ def cp(finp, fout):
         return
     shutil.copy(finp, fout)
 
+    
+def wget(url, output_dir):
+    """
+    Python implementation of bash wget
+    """
+    import sys
+    import os
+    import shutil
+    try:
+        from urllib.request import urlopen # Python 3
+    except ImportError:
+        from urllib2 import urlopen # Python 2
+
+    basename = os.path.basename(url)
+    output_file = os.path.join(output_dir, basename)
+    response = urlopen(url)
+    length = 16*1024
+    with open(output_file, 'wb') as fh:
+        shutil.copyfileobj(response, fh, length)
+
+# Alias of wget
+download = wget
+
 
 # Timings
 

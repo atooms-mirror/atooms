@@ -15,6 +15,7 @@ class Test(unittest.TestCase):
     def setUp(self):
         N = 100
         L = 10.0
+        random.seed(1)
         self.ref = System()
         self.ref.cell = Cell([L, L, L])
         self.ref.particle = []
@@ -33,6 +34,11 @@ class Test(unittest.TestCase):
         system.density = density_old * 1.1
         self.assertAlmostEqual(system.density, density_old * 1.1)
 
+    def test_density_cluster(self):
+        system = copy.deepcopy(self.ref)
+        system.cell = None
+        self.assertAlmostEqual(system.density, 0.1, 1)
+        
     def test_temperature(self):
         system = copy.copy(self.ref)
         system.set_temperature(1.0)
@@ -325,6 +331,6 @@ class Test(unittest.TestCase):
             p = Particle(position=pos)
             system.particle.append(p)
         image = system.show('ovito')
-        
+
 if __name__ == '__main__':
     unittest.main()

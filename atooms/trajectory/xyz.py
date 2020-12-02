@@ -117,7 +117,6 @@ class TrajectoryXYZ(TrajectoryBase):
         # Internal variables
         self._cell = None
         self._fields_float = True
-        self._done_format_setup = False
         self._shortcuts = {'pos': 'position',
                            'x': 'position[0]',
                            'y': 'position[1]',
@@ -182,28 +181,26 @@ class TrajectoryXYZ(TrajectoryBase):
         # Store a copy of fields in a cache variable
         # We can avoid setup if the fields have not changed
         self.__cache_fields = copy(self.fields)
-            
-    def _setup_format(self):
-        if not self._done_format_setup:
-            self._done_format_setup = True
-            # %g allows to format both float and int but it's 2x slower.
-            # This switch is for performance
-            if self._fields_float:
-                _fmt = '%.' + str(self.precision) + 'f'
-            else:
-                _fmt = '%g'
 
-            def array_fmt(arr):
-                """Remove commas and [] from numpy array repr."""
-                # Passing a scalar will trigger an error (gotcha: even
-                # when casting numpy array to list, the elements remain of
-                # numpy type and this function gets called! (4% slowdown)
-                try:
-                    return ' '.join([_fmt % x for x in arr])
-                except:
-                    return _fmt % arr
-                    # Note: numpy.array2string is MUCH slower
-            numpy.set_string_function(array_fmt, repr=False)
+    def _setup_format(self):
+        # %g allows to format both float and int but it's 2x slower.
+        # This switch is for performance
+        if self._fields_float:
+            _fmt = '%.' + str(self.precision) + 'f'
+        else:
+            _fmt = '%g'
+
+        def array_fmt(arr):
+            """Remove commas and [] from numpy array repr."""
+            # Passing a scalar will trigger an error (gotcha: even
+            # when casting numpy array to list, the elements remain of
+            # numpy type and this function gets called! (4% slowdown)
+            try:
+                return ' '.join([_fmt % x for x in arr])
+            except:
+                return _fmt % arr
+                # Note: numpy.array2string is MUCH slower
+        numpy.set_string_function(array_fmt, repr=False)
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
@@ -243,7 +240,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 self._index_frame.append(line)
             else:
                 raise IOError('malformed xyz file [%s]', self.filename)
-        
+
     def read_steps(self):
         """Find steps list."""
         steps = []
