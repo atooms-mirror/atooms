@@ -474,10 +474,13 @@ class System(object):
     def show(self, backend='matplotlib', *args, **kwargs):
         from .particle import show_ovito
         from .particle import show_matplotlib
+        from .particle import show_3dmol
         if backend == 'matplotlib':
             _show = show_matplotlib
         elif backend == 'ovito':
             _show = show_ovito
+        elif backend == '3dmol':
+            _show = show_3dmol
         else:
             raise ValueError('unknown backend for visualization')
         return _show(self.particle, self.cell, *args, **kwargs)
