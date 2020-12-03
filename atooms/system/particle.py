@@ -357,7 +357,7 @@ def self_overlap(particle, other, a, normalize=True):
     return q
 
 
-def show_3dmol(particle, cell, radius=1.0, palette=None):
+def show_3dmol(particle, cell=None, radius=1.0, palette=None):
     """
     Render particles in cell using 3dmol http://3dmol.csb.pitt.edu/
     """
@@ -373,6 +373,10 @@ def show_3dmol(particle, cell, radius=1.0, palette=None):
     for p in particle:
         view.addSphere({'center': {'x': p.position[0], 'y': p.position[1], 'z': p.position[2]},
                         'radius': radius * p.radius, 'color': colors[p.species]})
+    if cell is not None:
+        view.addBox({'center': {'x': cell.center[0], 'y': cell.center[1], 'z': cell.center[2]},
+                     'dimensions': {'w': cell.side[0], 'h': cell.side[1], 'd': cell.side[2]},
+                     'wireframe': True, 'color': "#000000"})
     return view
 
 
