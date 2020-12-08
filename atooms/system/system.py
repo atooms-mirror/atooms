@@ -395,9 +395,9 @@ class System(object):
                 if what in self._data:
                     if not flat:
                         if order == 'F':
-                            npart = len(self._data[what][..., :])
+                            npart = self._data[what].shape[-1]
                         else:
-                            npart = len(self._data[what][..., :])
+                            npart = self._data[what].shape[0]
                     else:
                         ndims = self.number_of_dimensions
                         npart = int(len(self._data[what]) / ndims)
