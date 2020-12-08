@@ -351,8 +351,9 @@ class TrajectoryHDF5(TrajectoryBase):
             p = PairPotential(sg['potential'][0].decode(), params,
                               sg['interacting_species'][:],
                               CutOff(sg['cutoff_scheme'][0].decode(),
-                                     sg['cutoff_radius'][0]),
-                              sg['lookup_points'][0])
+                                     sg['cutoff_radius'][0]))
+            if 'lookup_points' in sg:
+                p.npoints = sg['lookup_points']
 
             potentials.append(p)
         return Interaction(potentials, name)
