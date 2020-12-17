@@ -186,7 +186,10 @@ class Timer(object):
         self.wall_time += self.__now_wall() - self.__start_wall
 
     def __now_cpu(self):
-        return time.clock()
+        try:
+            return time.clock()
+        except AttributeError:
+            return time.process_time()
 
     def __now_wall(self):
         return self._wall_time_func()
