@@ -83,6 +83,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
         return hdr % tuple([self.timestep, step] + list(system.cell.side) + [len(sp)] + mass)
 
     def write_sample(self, system, step):
+        self._setup_format()
         sp = distinct_species(system.particle)
         self.trajectory.write("%d\n" % len(system.particle))
         self.trajectory.write(self._comment(step, system))
@@ -93,8 +94,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
             # general getting the sample back via read_sample() will
             # not preserve the species.
             isp = sp.index(p.species)
-            self.trajectory.write(("%s"+ndim*" %.6f" + ndim*" %.6f " + "\n") %
-                                  ((isp,) + tuple(p.position) + tuple(p.velocity)))
+            self.trajectory.write("{0} {1.position} {1.velocity}\n".format(isp, p))
 
 
 class SuperTrajectoryRUMD(SuperTrajectory):
