@@ -93,10 +93,12 @@ class TrajectoryFactory(object):
             return self.suffixes[suffix](filename, mode)
         else:
             # Fallback to hdf5
-            try:
-                return TrajectoryHDF5(filename, mode)
-            except ImportError:
-                # TOOD: this is a uncaught NameError in python3
+            # It is important to use the one in the factory
+            # to allow backends to load modified tarjectory classes
+            if 'hdf5' in self.formats:
+                try:
+                    return self.formats['hdf5'](filename, mode)
+                except:
+                    raise ValueError('unknown file format for %s' % filename)
+            else:
                 raise ValueError('hdf5 library not installed')
-            except:
-                raise ValueError('unknown file format for %s' % filename)
