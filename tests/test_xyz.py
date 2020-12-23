@@ -38,7 +38,7 @@ A -2.8 2.8 0.0
         with open(self.finp_meta, 'w') as fh:
             fh.write("""\
 2
-metafmt:space,comma columns:id,x,y,z mass:1.0,2.0 step:1 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z mass:1.0,2.0 step:1 cell:5.0,5.0,5.0
 A 1.0 -1.0 0.0
 B 2.9 -2.9 0.0
 """)
@@ -88,6 +88,21 @@ columns:field step:1
         with self.Trajectory(finp) as t:
             x = t[0].particle[0].field
             self.assertEqual(x, 1.0)
+
+    def test_xyz_meta_with_spaces(self):
+        # Test fields
+        finp = '/tmp/test_xyz/spaces.xyz'
+        with open(finp, 'w') as fh:
+            fh.write("""\
+1
+columns:id step:1 cell:    1.0,   1.0,  1.0
+1
+""")
+        with self.Trajectory(finp) as t:
+            x = t[0].cell.side
+            self.assertEqual(x[0], 1.0)
+            self.assertEqual(x[1], 1.0)
+            self.assertEqual(x[2], 1.0)
 
     def test_xyz_meta(self):
         with self.Trajectory(self.finp_meta) as t:
@@ -185,11 +200,11 @@ columns:field step:1
         with open(finp, 'w') as fh:
             fh.write("""\
 2
-metafmt:space,comma columns:id,x,y,z step:1 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z step:1 cell:5.0,5.0,5.0
 B 1.0 -1.0 0.0
 A 2.9 -2.9 0.0
 2
-metafmt:space,comma columns:id,x,y,z step:2 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z step:2 cell:5.0,5.0,5.0
 C 1.0 -1.0 0.0
 B 2.9 -2.9 0.0
 """)
@@ -204,12 +219,12 @@ B 2.9 -2.9 0.0
         with open(finp, 'w') as fh:
             fh.write("""\
 3
-metafmt:space,comma columns:id,x,y,z,radius mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z,radius mass:1.0,2.0,3.0 step:1 cell:5.0,5.0,5.0
 B 1.0 -1.0 0.0 0.5
 A 2.9 -2.9 0.0 0.6
 C 2.9 -2.9 0.0 0.7
 3
-metafmt:space,comma columns:id,x,y,z,radius mass:2.0,3.0 step:1 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z,radius mass:2.0,3.0 step:1 cell:5.0,5.0,5.0
 C 1.0 -1.0 0.0 0.5
 B 2.9 -2.9 0.0 0.6
 B 2.9 -2.9 0.0 0.7
@@ -306,7 +321,7 @@ class TestNeighbors(unittest.TestCase):
 step:1 columns:neighbors*
 2 4
 1 3
-2 
+2
 1
 """)
         with TrajectoryNeighbors('/tmp/test_xyz/neighbors.xyz', offset=0) as th:
@@ -350,6 +365,9 @@ class TestSimpleXYZ(TestXYZ):
         pass
 
     def test_xyz_meta(self):
+        pass
+
+    def test_xyz_meta_with_spaces(self):
         pass
 
     def test_xyz_mass(self):
@@ -405,10 +423,10 @@ class TestUtils(unittest.TestCase):
 metafmt:space,comma columns:id,x,y,z step:1 cell:5.0,5.0,5.0
 B 1.0 -1.0 0.0
 1
-metafmt:space,comma columns:id,x,y,z step:2 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z step:2 cell:5.0,5.0,5.0
 B 2.9 -2.9 0.0
 1
-metafmt:space,comma columns:id,x,y,z step:4 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z step:4 cell:5.0,5.0,5.0
 B 2.9 -2.9 0.0
 """)
         with open('/tmp/test_xyz/2.xyz', 'w') as fh:
@@ -417,13 +435,13 @@ B 2.9 -2.9 0.0
 metafmt:space,comma columns:id,x,y,z step:2 cell:5.0,5.0,5.0
 B 1.0 -1.0 0.0
 1
-metafmt:space,comma columns:id,x,y,z step:3 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z step:3 cell:5.0,5.0,5.0
 B 2.9 -2.9 0.0
 1
-metafmt:space,comma columns:id,x,y,z step:4 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z step:4 cell:5.0,5.0,5.0
 B 2.9 -2.9 0.0
 1
-metafmt:space,comma columns:id,x,y,z step:5 cell:5.0,5.0,5.0 
+metafmt:space,comma columns:id,x,y,z step:5 cell:5.0,5.0,5.0
 B 2.9 -2.9 0.0
 """)
 
