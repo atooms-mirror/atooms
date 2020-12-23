@@ -31,8 +31,8 @@ class Test(unittest.TestCase):
         db = atooms.models.load()
         model = db["lennard_jones"]
         particles = [Particle(position=[0.0, 0.0, 0.0], species=1),
-	             Particle(position=[1.0, 0.0, 0.0], species=1),
-	             Particle(position=[2.0, 0.0, 0.0], species=1)]
+                     Particle(position=[1.0, 0.0, 0.0], species=1),
+                     Particle(position=[2.0, 0.0, 0.0], species=1)]
         cell = Cell([10., 10., 10.])
         system = System(particles, cell)
         system.interaction = Interaction(model)
@@ -63,6 +63,11 @@ class Test(unittest.TestCase):
             system = trajectory[0]
             self.assertAlmostEqual(system.potential_energy(per_particle=True), -2.24379330538)
 
+    @unittest.skipIf(not HAS_MODELS, 'no atooms-models module')
+    def test_interface(self):
+        from atooms.backends.f90 import Interaction
+        interaction = Interaction("lennard_jones")
+            
     def tearDown(self):
         self.trajectory.close()
 

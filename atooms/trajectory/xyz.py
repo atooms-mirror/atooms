@@ -280,9 +280,10 @@ class TrajectoryXYZ(TrajectoryBase):
 
         else:
             # The comment line contains self descriptive fields
-            # TODO: accept extended xyz format
             # Remove spaces around : or = and replace = by :
             data = re.sub(r'\s*[=:]\s*', ':', data)
+            # Tolerate spaces between entries of vectors
+            data = re.sub(r'\s*,\s*', ',', data)
 
             # Fill metadata dictionary
             for e in data.split():

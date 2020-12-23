@@ -62,9 +62,49 @@ class Interaction(_Interaction):
                  interaction='interaction.f90',
                  helpers='helpers.f90',
                  inline=True, debug=False):
+        """
+        The interaction model can be defined in three ways:
+
+        1) Passing a `model` string that matches any of the models
+        defined in the atooms-models database (ex. "lennard_jones" or
+        "gaussian_core")
+
+        2) Passing a `model` dictionary with "potential" and "cutoff"
+        keys and identical layout as the atooms-model database entries
+        (ex. https://gitlab.info-ufr.univ-montp2.fr/atooms/models/blob/master/atooms/models/lennard_jones.json)
+
+        3) Passing the `potential`, `cutoff`, `potential_parameters`
+        and `cutoff_parameters` parameters. The `potential` and
+        `cutoff` strings should match either
+        
+        a) potential and/or cutoff defined in atooms-models, such as
+        "lennard_jones" or "cut_and_shift", or
+
+        b) paths to Fortran 90 source codes that implement appropriate
+        routines following the interfaces defined by the atooms-models
+        package, see for instance
+        https://gitlab.info-ufr.univ-montp2.fr/atooms/models/blob/master/atooms/models/lennard_jones.f90
+        https://gitlab.info-ufr.univ-montp2.fr/atooms/models/blob/master/atooms/models/cut_shift.f90
+        for an example of the interface the routines should implement.
+
+        The parameters values are provided as dictionaries
+        (`potential_parameters` and `cutoff_parameters``) matching the
+        intent(in) variables entering the `setup()` routines of the
+        fortran modules.
+        """
         _Interaction.__init__(self, None)
 
+        if model and not hasattr(model, 'get'):
+            # This may be a string, so we look for the model in the
+            # atooms-models database and replace the string with the dictionary            
+            try:
+                from atooms.models import database
+                model = database[model]
+            except ImportError:
+                raise ValueError('could not find model {}'.format(model))
+                
         if model:
+            # At this stage we expect a model dictionary
             assert len(model.get('potential')) == 1
             assert len(model.get('cutoff')) == 1
             potential = model.get('potential')[0].get('path')
