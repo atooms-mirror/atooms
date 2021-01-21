@@ -214,7 +214,7 @@ class System(object):
         """
         if normed is not None:
             per_particle = normed
-        return self.potential_energy(per_particle, cache) + self.kinetic_energy(per_particle)
+        return self.potential_energy(per_particle, cache=cache) + self.kinetic_energy(per_particle)
 
     def force_norm(self, per_particle=True, cache=False):
         """
