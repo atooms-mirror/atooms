@@ -2,7 +2,7 @@ import os
 import unittest
 
 try:
-    from atooms.backends import f90
+    import f2py_jit
     HAS_F90 = True
 except ImportError:
     HAS_F90 = False
@@ -14,15 +14,16 @@ except ImportError:
     HAS_MODELS = False
 
 from atooms.trajectory import Trajectory
-
+if HAS_F90:
+    from atooms.backends import f90
 
 class Test(unittest.TestCase):
 
     def setUp(self):
         if not HAS_F90:
-            self.skipTest("skip f90 backend tests (missing f2py_jit?)")
-        self.trajectory = f90.Trajectory('data/lj_N256_rho1.0.xyz')
-        #self.trajectory = f90.Trajectory('data/lj_N4000.xyz')
+            self.skipTest("skip f90 backend tests, missing f2py_jit")
+        self.data = os.path.join(os.path.dirname(__file__),'../data/')
+        self.trajectory = f90.Trajectory(os.path.join(self.data, 'lj_N256_rho1.0.xyz'))
 
     @unittest.skipIf(not HAS_MODELS, 'no atooms-models module')
     def test_collinear(self):
@@ -40,7 +41,7 @@ class Test(unittest.TestCase):
 
     def test_trajectory(self):
         # Make sure the original trajectories have no wrappers
-        with Trajectory('data/lj_N256_rho1.0.xyz') as trajectory:
+        with Trajectory(os.path.join(self.data, 'lj_N256_rho1.0.xyz')) as trajectory:
             self.assertEqual(trajectory.class_callbacks, None)
 
     @unittest.skipIf(not HAS_MODELS, 'no atooms-models module')
@@ -58,7 +59,7 @@ class Test(unittest.TestCase):
 
     @unittest.skipIf(not HAS_MODELS, 'no atooms-models module')
     def test_model(self):
-        with f90.Trajectory('data/lj_rho0.85.xyz') as trajectory:
+        with f90.Trajectory(os.path.join(self.data, 'lj_rho0.85.xyz')) as trajectory:
             trajectory.metadata['model'] = 'lennard_jones'
             system = trajectory[0]
             self.assertAlmostEqual(system.potential_energy(per_particle=True), -2.24379330538)
@@ -68,6 +69,13 @@ class Test(unittest.TestCase):
         from atooms.backends.f90 import Interaction
         interaction = Interaction("lennard_jones")
             
+    @unittest.skipIf(not HAS_MODELS, 'no atooms-models module')
+    def test_model(self):
+        with f90.Trajectory(os.path.join(self.data, 'lj_rho0.85.xyz')) as trajectory:
+            trajectory.metadata['model'] = 'lennard_jones'
+            system = trajectory[0]
+            self.assertAlmostEqual(system.potential_energy(per_particle=True), -2.24379330538)
+        
     def tearDown(self):
         self.trajectory.close()
 
