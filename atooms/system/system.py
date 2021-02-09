@@ -88,7 +88,10 @@ class System(object):
 
     def distinct_species(self):
         """Sorted list of distinct chemical species in the system."""
-        return sorted(set(p.species for p in self.particle))
+    try:
+        return list(sorted(set([p.species for p in particles])))
+    except TypeError:
+        return list(sorted(set([int(p.species) for p in particles])))
 
     @property
     def density(self):
