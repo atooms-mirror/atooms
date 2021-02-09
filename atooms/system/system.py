@@ -81,6 +81,8 @@ class System(object):
         """
         if len(self.particle) > 0:
             return len(self.particle[0].position)
+        elif self.cell is not None:
+            return len(self.cell.side)
         else:
             return 0
 
