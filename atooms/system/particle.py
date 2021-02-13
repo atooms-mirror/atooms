@@ -180,7 +180,10 @@ def cm_position(particle):
 
 def distinct_species(particles):
     """Return sorted list of distinct `species` of `particles`."""
-    return list(sorted(set([p.species for p in particles])))
+    try:
+        return list(sorted(set([p.species for p in particles])))
+    except TypeError:
+        return list(sorted(set([int(p.species) for p in particles])))
 
 
 def composition(particles):
