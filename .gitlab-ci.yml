@@ -23,11 +23,12 @@ before_script:
   - virtualenv env
   - source env/bin/activate
 
-#test:
-script:
-    #- python setup.py test
-    - pip install tox  # you can also use tox
-    - tox -e py36
+test:
+  script:
+    - pip install nose
+    - nosetests
+    #- pip install tox  # you can also use tox
+    #- tox -e py36
 
 run:
   script:
