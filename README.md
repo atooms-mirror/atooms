@@ -51,7 +51,7 @@ The forcefield file `lj_rumd.ff` (available in `data/`) defines the interaction 
 
 Documentation
 -------------
-See the [tutorial](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/atooms/) for a step-by-step introduction to atooms objects and the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/api/atooms/) for full details. 
+See the [tutorial](https://www-dft.ts.infn.it/~coslovich/atooms/) for a step-by-step introduction to atooms objects and the [public API documentation](https://www-dft.ts.infn.it/~coslovich/docs/api/atooms/) for full details. 
 
 Installation
 ------------
@@ -62,14 +62,14 @@ pip install atooms
 
 From the code repository
 ```
-git clone https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms.git
+git clone https://framagit.org/atooms/atooms.git
 cd atooms
 make install
 ```
 
 Simulation backends
 -------------------
-atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://gitlab.info-ufr.univ-montp2.fr/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
+atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://framagit.org/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
 
 Trajectory conversion
 ---------------------
@@ -103,7 +103,7 @@ Actually, the `atooms_plugins` package can be put anywhere in your `PYTHONPATH`.
 Additional packages 
 -------------------
 Atooms is composable: it is easy to add new functionalities, and just those you actually need.
-Additional packages are available from the [atooms main repository](https://gitlab.info-ufr.univ-montp2.fr/atooms).
+Additional packages are available from the [atooms main repository](https://framagit.org/atooms).
 These packages will be installed in the atooms namespace to prevent name clashing.
 
 If you want to add your own package to the atooms namespace, structure it this way
@@ -127,4 +127,4 @@ import atooms.your_package
 
 Authors
 -------
-Daniele Coslovich: http://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/
+Daniele Coslovich: http://www-dft.ts.infn.it/~coslovich/
