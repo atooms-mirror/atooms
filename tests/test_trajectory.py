@@ -58,7 +58,7 @@ class Test(unittest.TestCase):
         with cls(path, 'w') as th:
             th.write_timestep(1.0)
             for i, system in enumerate(self.system):
-                th.write(self.system[i], i)
+                th.write(system, i)
         with cls(path) as th:
             self.assertEqual(th.timestep, 1.0)
             for i, system in enumerate(th):
