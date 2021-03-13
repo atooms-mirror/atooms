@@ -24,10 +24,10 @@ before_script:
   - source env/bin/activate
 
 #test:
-#  script:
+script:
     #- python setup.py test
-    # - pip install tox flake8  # you can also use tox
-    # - tox -e py36,flake8
+    - pip install tox  # you can also use tox
+    - tox -e py36
 
 run:
   script:
