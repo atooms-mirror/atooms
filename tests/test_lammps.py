@@ -5,13 +5,10 @@ import unittest
 from atooms.trajectory import TrajectoryXYZ
 from atooms.simulation import Simulation, write_thermo, write_config, target
 from atooms.core.utils import setup_logging, mkdir, rmd, rmf
-try:
-    from atooms.backends.lammps import LAMMPS, Interaction
-    SKIP = False
-except ImportError:
-    SKIP = True
+import atooms.backends.lammps
+from atooms.backends.lammps import LAMMPS, Interaction
 
-setup_logging(level=40)
+SKIP = not atooms.backends.lammps.installed()
 
 
 class Test(unittest.TestCase):

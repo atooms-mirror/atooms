@@ -29,6 +29,18 @@ except subprocess.CalledProcessError:
     lammps_mpi_tasks = 1
     lammps_mpi = ''
 
+
+def installed():
+    """Return `True` if `lammps_command` can be executed"""
+    try:
+        cmd = 'echo | {} {}'.format(lammps_mpi, lammps_command)
+        _ = subprocess.check_output(cmd, shell=True,
+                                    stderr=subprocess.STDOUT, executable='/bin/bash')
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
 def _get_lammps_version():
     """Return lammps version and raise an exception if lammps is not installed"""
     try:
