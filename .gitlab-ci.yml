@@ -46,27 +46,27 @@ test:latest:
   image: python:latest
   extends: .test
 
-.run:
-  script:
-    - python setup.py bdist_wheel
-    # an alternative approach is to install and run:
-    - pip install dist/*
-    # run the command here
-  artifacts:
-    paths:
-      - dist/*.whl
+# .run:
+#   script:
+#     - python setup.py bdist_wheel
+#     # an alternative approach is to install and run:
+#     - pip install dist/*
+#     # run the command here
+#   artifacts:
+#     paths:
+#       - dist/*.whl
 
-run:2.7:
-  image: python:2.7
-  extends: .run
+# run:2.7:
+#   image: python:2.7
+#   extends: .run
 
-run:3.6:
-  image: python:3.6
-  extends: .run
+# run:3.6:
+#   image: python:3.6
+#   extends: .run
 
-run:latest:
-  image: python:latest
-  extends: .run
+# run:latest:
+#   image: python:latest
+#   extends: .run
 
 # pages:
 #   script:
