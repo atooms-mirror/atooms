@@ -43,6 +43,9 @@ class Test(unittest.TestCase):
         import sys
         from atooms.backends.lammps import LAMMPS
         from atooms.simulation import Simulation
+        import atooms.backends.lammps
+        if not atooms.backend.lammps.installed():
+            self.skipTest('missing LAMMPS')
         input_file = os.path.join(os.path.dirname(__file__),
                                   '../data/lj_N1000_rho1.0.xyz')
         cmd = """
@@ -69,6 +72,9 @@ class Test(unittest.TestCase):
         from atooms.trajectory import TrajectoryXYZ, Unfolded
         from atooms.simulation import Simulation
         from atooms.system import Thermostat
+        import atooms.backends.lammps
+        if not atooms.backend.lammps.installed():
+            self.skipTest('missing LAMMPS')
 
         def store(sim, ram):
             ram.write(sim.system, step=sim.current_step)
@@ -139,6 +145,9 @@ class Test(unittest.TestCase):
         from atooms.backends.lammps import LAMMPS
         from atooms.simulation import Simulation
         from atooms.simulation.observers import write_to_ram
+        import atooms.backends.lammps
+        if not atooms.backend.lammps.installed():
+            self.skipTest('missing LAMMPS')
 
         input_file = os.path.join(os.path.dirname(__file__),
                                   '../data/lj_N1000_rho1.0.xyz')
