@@ -6,7 +6,7 @@ Atooms
 [![license](https://img.shields.io/pypi/l/atooms.svg)](https://en.wikipedia.org/wiki/GNU_General_Public_License)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1183301.svg)](https://doi.org/10.5281/zenodo.1183301)
 [![pipeline](https://framagit.org/atooms/atooms/badges/develop/pipeline.svg)](https://framagit.org/atooms/atooms/badges/develop/pipeline.svg)
-[![coverage report](https://framagit.org/atooms/atooms/badges/develop/coverage.svg)](https://framagit.org/coslo/test/-/commits/master) 
+[![coverage report](https://framagit.org/atooms/atooms/badges/develop/coverage.svg)](https://framagit.org/coslo/atooms/-/commits/master) 
 
 
 **atooms** is a Python framework for simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. To achieve this, atooms relies on backends written in C, CUDA or Fortran.
