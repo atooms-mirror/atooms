@@ -3,11 +3,10 @@
 import unittest
 
 from atooms.optimization import Optimization
-try:
-    from atooms.backends.lammps import EnergyMinimization
-    SKIP = False
-except ImportError:
-    SKIP = True
+import atooms.backends.lammps
+from atooms.backends.lammps import EnergyMinimization
+
+SKIP = not atooms.backends.lammps.installed()
 
 class Test(unittest.TestCase):
 
