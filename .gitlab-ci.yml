@@ -1,6 +1,6 @@
 # Official language image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/python/tags/
-image: python:latest
+# image: python:latest
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -22,14 +22,31 @@ before_script:
   - pip install virtualenv
   - virtualenv env
   - source env/bin/activate
+  - pip install -r requirements.txt
 
-test:
+.test:
   script:
-    - python setup.py test
-    # - pip install tox flake8  # you can also use tox
-    # - tox -e py36,flake8
+    - pip install coverage
+    - coverage run --source sample -m unittest discover
+    - coverage report -m    
+  artifacts:
+    paths:
+      - .coverage
+  coverage: ^TOTAL.+?(\d+\%)$
 
-run:
+test:2.7:
+  image: python:2.7
+  extends: .test
+
+test:3.6:
+  image: python:3.6
+  extends: .test
+
+test:latest:
+  image: python:latest
+  extends: .test
+
+.run:
   script:
     - python setup.py bdist_wheel
     # an alternative approach is to install and run:
@@ -38,6 +55,18 @@ run:
   artifacts:
     paths:
       - dist/*.whl
+
+run:2.7:
+  image: python:2.7
+  extends: .run
+
+run:3.6:
+  image: python:3.6
+  extends: .run
+
+run:latest:
+  image: python:latest
+  extends: .run
 
 # pages:
 #   script:
