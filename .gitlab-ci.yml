@@ -27,7 +27,6 @@ before_script:
 .test:
   script:
     - pip install coverage
-    #- coverage run --source atooms -m unittest discover
     - coverage run --source atooms -m unittest discover -s tests
     - coverage report -m    
   artifacts:
@@ -35,13 +34,13 @@ before_script:
       - .coverage
   coverage: '/^TOTAL.+?(\d+\%)$/'
 
-# test:2.7:
-#   image: python:2.7
-#   extends: .test
+test:2.7:
+  image: python:2.7
+  extends: .test
 
-# test:3.6:
-#   image: python:3.6
-#   extends: .test
+test:3.6:
+  image: python:3.6
+  extends: .test
 
 test:latest:
   image: python:latest
