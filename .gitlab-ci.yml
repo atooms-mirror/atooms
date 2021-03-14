@@ -28,7 +28,7 @@ before_script:
   script:
     - pip install coverage
     - coverage run --source atooms -m unittest discover -s tests
-    - coverage report -m    
+    - coverage report
   artifacts:
     paths:
       - .coverage
