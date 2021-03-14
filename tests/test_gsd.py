@@ -16,9 +16,11 @@ class Test(unittest.TestCase):
     def setUp(self):
         if not HAS_GSD:
             self.skipTest('cannot load GSD format (missing hoomd?)')
+        self.fname3d = os.path.join(os.path.dirname(__file__), '../data/trajectory3d.gsd')
+        self.fname2d = os.path.join(os.path.dirname(__file__), '../data/trajectory2d.gsd')
 
     def test(self):
-        fname = '../data/trajectory3d.gsd'
+        fname = self.fname3d
         traj = TrajectoryGSD(fname)
         p = traj[0].particle[0]
 
@@ -35,7 +37,7 @@ class Test(unittest.TestCase):
         self.assertTrue( np.all(p.position == np.array([5.3419366, 5.3419366, 5.3419366], dtype=np.float32)) )
 
     def test2d(self):
-        fname = '../data/trajectory2d.gsd'
+        fname = self.fname2d
         traj = TrajectoryGSD(fname)
         p = traj[0].particle[0]
 
