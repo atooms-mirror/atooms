@@ -29,7 +29,7 @@ before_script:
     - pip install coverage
     - coverage run --source atooms -m unittest discover -s tests
     # Backends tests are skipped, thus we do not include them in coverage
-    - coverage report --omit=atooms/backends/*py
+    - coverage report --omit=atooms/backends/*py,atooms/system/visualize.py
   artifacts:
     paths:
       - .coverage
