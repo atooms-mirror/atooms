@@ -86,7 +86,18 @@ A 1.0 -1.0 0.0
         from atooms.core import utils
         utils.report_command('cmd', {}, '', None)
         utils.report_parameters({'x': 1.0}, None, '1.0.0')
-            
+
+    def test_timings(self):
+        from atooms.core import utils
+        f = lambda x : x
+        utils.clockit(f)
+        f(1)
+        t = utils.Timer()
+        t.start()
+        t.stop()
+        t.cpu_time
+        t.wall_time
+        
     def tearDown(self):
         from atooms.core.utils import rmf
         rmf('/tmp/test_utils*')
