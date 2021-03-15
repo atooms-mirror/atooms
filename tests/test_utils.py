@@ -82,6 +82,11 @@ A 1.0 -1.0 0.0
             self.assertFalse(utils.is_cell_variable(th, tests=1))
             self.assertTrue(utils.is_cell_variable(th, tests=2))
 
+    def test_dumps(self):
+        from atooms.core import utils
+        utils.report_command('cmd', {}, '', None)
+        utils.report_parameters({'x': 1.0}, None, '1.0.0')
+            
     def tearDown(self):
         from atooms.core.utils import rmf
         rmf('/tmp/test_utils*')
