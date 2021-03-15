@@ -370,7 +370,35 @@ B 2.9 -2.9 0.0
         with trj.TrajectoryXYZ(self.inpfile, 'r') as th:
             self._copy_inplace(th)
 
-
+    def test_info(self):
+        with trj.xyz.TrajectoryXYZ(self.inpfile, 'w') as th:
+            th.write(self.system[0])
+            th.write(self.system[1])
+        with trj.xyz.TrajectoryXYZ(self.inpfile, 'r') as th:
+            from atooms.trajectory.utils import info
+            info(th)
+            keys = [
+                'path',
+                'format',
+                'frames',
+                'megabytes',
+                'particles',
+                'species',
+                'composition',
+                'cell density',
+                'cell side',
+                'cell volume',
+                'steps',
+                'duration',
+                'timestep',
+                'block size',
+                'steps between frames',
+                'time between frames',
+                'block steps',
+                'block',
+                'grandcanonical']
+            info(th, keys=','.join(keys))
+            
     def tearDown(self):
         rmf(self.inpfile)
         rmd(self.inpdir)
