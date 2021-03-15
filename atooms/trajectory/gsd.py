@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 from copy import copy
 import numpy as np
 
-# TODO: here the module is importing itself, can we drop this?
+# With absolute import (default in python 3) this does not clash
 import gsd
 import gsd.hoomd
 
@@ -28,7 +30,7 @@ class TrajectoryGSD(TrajectoryBase):
         # self.mode can be 'w' or 'r', but gsd is a binary format, so it only accepts 'wb' or 'rb'.
         file_mode = self.mode + "b"
         # Trajectory file handle
-        self.trajectory = gsd.hoomd.open(name=self.filename, mode=file_mode)
+        self.trajectory = _gsd.hoomd.open(name=self.filename, mode=file_mode)
         # When reading, we must define the steps.
         if self.mode == 'r':
             self.steps = [snap.configuration.step for snap in self.trajectory]
@@ -86,7 +88,7 @@ class TrajectoryGSD(TrajectoryBase):
         convert_to_typeid = np.vectorize(lambda species: species_to_typeid[species])
         typeid = convert_to_typeid(species).astype(int)  # This is 0, 0, 1, etc when distinct_species = ['A', 'B']
 
-        snap = gsd.hoomd.Snapshot()
+        snap = _gsd.hoomd.Snapshot()
         snap.configuration.box = [box[0], box[1], box[2], 0, 0, 0]  # Assume all strains 0.
         snap.configuration.step = step
         snap.particles.types = distinct_species
