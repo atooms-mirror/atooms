@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import sys
 import os
 import unittest
 import numpy as np
 
+from atooms.trajectory.gsd import TrajectoryGSD
 try:
-    from atooms.trajectory import TrajectoryGSD
+    from atooms.trajectory.gsd import TrajectoryGSD
     HAS_GSD = True
 except ImportError:
     HAS_GSD = False
@@ -14,6 +16,8 @@ except ImportError:
 class Test(unittest.TestCase):
 
     def setUp(self):
+        if sys.version_info.major == 2:
+            self.skipTest('cannot test GSD with python 2')
         if not HAS_GSD:
             self.skipTest('cannot load GSD format (missing hoomd?)')
         self.fname3d = os.path.join(os.path.dirname(__file__), '../data/trajectory3d.gsd')

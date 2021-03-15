@@ -151,6 +151,16 @@ class Test(unittest.TestCase):
             self._read_write(trj.TrajectoryHDF5)
             self._convert(trj.TrajectoryXYZ, 'hdf5', ignore=['mass'])
 
+    def test_gsd(self):
+        try:
+            import gsd
+            from atooms.trajectory.gsd import TrajectoryGSD
+        except ImportError:
+            self.skipTest('missing gsd')
+        else:
+            self._read_write(trj.TrajectoryGSD, ignore=['mass'])
+            self._convert(trj.TrajectoryGSD, 'gsd', ignore=['mass'])
+            
     def test_rumd(self):
         # RUMD uses integer ids for checmical species. They should be integers.
         for s in self.system:
