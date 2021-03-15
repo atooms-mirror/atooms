@@ -28,11 +28,21 @@ class Test(unittest.TestCase):
                    (random.random() - 0.5) * L]
             self.ref.particle.append(Particle(position=pos))
 
+    def test_ndim(self):
+        system = System()
+        self.assertEqual(system.number_of_dimensions, 0)
+        system.cell = Cell([2.0, 2.0])
+        self.assertEqual(system.number_of_dimensions, 2)
+        
     def test_density(self):
         system = copy.copy(self.ref)
         density_old = system.density
         system.density = density_old * 1.1
         self.assertAlmostEqual(system.density, density_old * 1.1)
+
+        # When there are no particles, density is zero
+        system = System()
+        self.assertAlmostEqual(system.density, 0.0)
 
     def test_density_cluster(self):
         system = copy.deepcopy(self.ref)
@@ -43,7 +53,18 @@ class Test(unittest.TestCase):
         system = copy.copy(self.ref)
         system.set_temperature(1.0)
         self.assertAlmostEqual(system.temperature, 1.0)
+        system.scale_velocities(1.0)
+        self.assertAlmostEqual(system.temperature, 1.0)
 
+        # Pathological case
+        system.particle = system.particle[0: 1]
+        self.assertAlmostEqual(system.temperature, 2.0 / system.number_of_dimensions * system.kinetic_energy())
+
+        # Empty system
+        system = System()
+        self.assertAlmostEqual(system.temperature, 0.0)
+
+        
     def test_cm(self):
         system = copy.copy(self.ref)
         system.set_temperature(1.0)
@@ -117,6 +138,11 @@ class Test(unittest.TestCase):
         self.assertEqual(composition(system.particle)['A'], npart - 30)
         self.assertEqual(composition(system.particle)['B'], 10)
         self.assertEqual(composition(system.particle)['C'], 20)
+
+        # Unhashable numpy scalars
+        for p in system.particle:
+            p.species = numpy.array(1)
+        self.assertEqual(system.distinct_species(), [1])
 
     def test_packing(self):
         import math
@@ -344,6 +370,12 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rotated[1].position[1], 1, 6)
         self.assertAlmostEqual(rotated[2].position[1], 2, 6)
         
-        
+    def test_show(self):
+        system = System()
+        try:
+            system.show(backend='')
+        except ValueError:
+            pass
+            
 if __name__ == '__main__':
     unittest.main()
