@@ -332,5 +332,18 @@ class Test(unittest.TestCase):
             system.particle.append(p)
         image = system.show('ovito')
 
+    def test_rotate(self):
+        """Rotate particles so that the principal axis is along the y axis"""
+        from atooms.system import Particle, Cell
+        from atooms.system.particle import rotate
+        p1, p2, p3 = Particle(position=[0.0, 0.0, 0.0]), Particle(position=[1.0, 0.0, 0.0]), Particle(position=[2.0, 0.0, 0.0])
+        particle = [p1, p2, p3]
+        cell = Cell(side=[10.0, 10.0, 10.0])
+        rotated = rotate(particle, cell)
+        self.assertAlmostEqual(rotated[0].position[1], 0, 6)
+        self.assertAlmostEqual(rotated[1].position[1], 1, 6)
+        self.assertAlmostEqual(rotated[2].position[1], 2, 6)
+        
+        
 if __name__ == '__main__':
     unittest.main()
