@@ -64,6 +64,12 @@ class PairPotentialTest(unittest.TestCase):
         self.assertEqual(p.compute(1.05)[0], -1.0)
         self.assertTrue(p.is_zero(1.2**2))
 
+    def test_tabulate_fmt(self):
+        from atooms.interaction.potential import tabulate
+        txt = tabulate('lennard_jones', {'epsilon': 1.0, 'sigma': 1.0}, npoints=6)
+        txt = tabulate('lennard_jones', {'epsilon': 1.0, 'sigma': 1.0}, fmt='uwh', npoints=6)
+        txt = tabulate('lennard_jones', {'epsilon': 1.0, 'sigma': 1.0}, fmt='other', npoints=6)
+        
     def tearDown(self):
         rmf('/tmp/test_potential.h5')
 

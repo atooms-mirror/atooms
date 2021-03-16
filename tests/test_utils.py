@@ -44,24 +44,6 @@ class Test(unittest.TestCase):
 
     def test_cell_variable(self):
         finp = '/tmp/test_utils.xyz'
-#         with open(finp, 'w') as fh:
-#             fh.write("""\
-# 1
-# step:0 cell:1.0,1.0,1.0
-# A 1.0 -1.0 0.0
-# 1
-# step:1 cell:1.0,1.0,1.0
-# A 1.0 -1.0 0.0
-# 1
-# step:2 cell:1.0,1.0,1.0
-# A 1.0 -1.0 0.0
-# 1
-# step:3 cell:1.0,1.0,1.0
-# A 1.0 -1.0 0.0
-# """)
-#         t = Trajectory(finp)
-#         self.assertFalse(utils.is_cell_variable(t, tests=-1))
-
         with open(finp, 'w') as fh:
             fh.write("""\
 1
@@ -72,7 +54,7 @@ step:1 cell:2.0,1.0,1.0
 A 1.0 -1.0 0.0
 1
 step:2 cell:1.0,1.0,1.0
-A 1.0 -1.0 0.0
+B 1.0 -1.0 0.0
 1
 step:3 cell:1.0,1.0,1.0
 A 1.0 -1.0 0.0
@@ -82,6 +64,40 @@ A 1.0 -1.0 0.0
             self.assertFalse(utils.is_cell_variable(th, tests=1))
             self.assertTrue(utils.is_cell_variable(th, tests=2))
 
+            # Test utility function
+            from atooms.trajectory.utils import dump
+            pos = dump(th, what='pos')            
+            from atooms.trajectory.utils import is_semigrandcanonical, is_grandcanonical
+            self.assertFalse(is_grandcanonical(th))
+            self.assertTrue(is_semigrandcanonical(th, tests=3))
+
+    def test_formats(self):
+        from atooms.trajectory.utils import formats
+        self.assertTrue('xyz' in formats())
+            
+    def test_file_index(self):
+        from atooms.trajectory import utils
+        finp = '/tmp/test_utils.xyz'
+        with open(finp, 'w') as fh:
+            fh.write("""\
+2
+step:0 cell:1.0,1.0,1.0
+A 1.0 -1.0 0.0
+A 1.0 -1.0 0.0
+3
+step:1 cell:2.0,1.0,1.0
+A 1.0 -1.0 0.0
+A 1.0 -1.0 0.0
+A 1.0 -1.0 0.0
+3
+step:2 cell:1.0,1.0,1.0
+A 1.0 -1.0 0.0
+A 1.0 -1.0 0.0
+A 1.0 -1.0 0.0
+""")
+        with open(finp) as fh:
+            utils.file_index(fh)
+            
     def test_dumps(self):
         from atooms.core import utils
         utils.report_command('cmd', {}, '', None)
@@ -97,7 +113,7 @@ A 1.0 -1.0 0.0
         t.stop()
         t.cpu_time
         t.wall_time
-        
+
     def tearDown(self):
         from atooms.core.utils import rmf
         rmf('/tmp/test_utils*')
