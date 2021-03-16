@@ -30,7 +30,6 @@ class System(object):
         self.thermostat = thermostat
         self.barostat = barostat
         self.reservoir = reservoir
-        self.matrix = None
         # Internal data dictionary for array dumps
         self._data = None
 

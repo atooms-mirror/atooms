@@ -163,23 +163,6 @@ class TrajectoryHDF5(TrajectoryBase):
                            }
             _write_datasets(self.trajectory, group, particle_h5)
 
-        # Matrix
-        group = '/initialstate/matrix/'
-        if system.matrix is not None:
-            self.trajectory.create_group_safe(group)
-            matrix = system.matrix
-            species = distinct_species(matrix)
-            matrix_h5 = {'type': [b''],
-                         'id': [0],
-                         'number_of_species': [len(species)],
-                         'number_of_particles': [len(matrix)],
-                         'identity': [species.index(p.species)+1 for p in matrix],
-                         'element': [p.species.encode() for p in matrix],
-                         'mass': [p.mass for p in matrix],
-                         'position': [p.position for p in matrix],
-                         }
-            _write_datasets(self.trajectory, group, matrix_h5)
-
         # Cell
         group = '/initialstate/cell/'
         if system.cell is not None:
@@ -309,21 +292,6 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # build system
         self._system = System(particle, cell, interaction)
-
-        # read matrix
-        if 'matrix' in self.trajectory['/initialstate']:
-            group = self.trajectory['/initialstate/matrix']
-            for entry in group:
-                if entry == 'element':
-                    spe = group[entry][:]
-                if entry == 'mass':
-                    mas = group[entry][:]
-                if entry == 'position':
-                    pos = group[entry][:]
-            matrix = [Particle(species=spe[i].decode().strip(), mass=mas[i],
-                               position=pos[i, :])
-                      for i in range(len(spe))]
-            self._system.matrix = copy.deepcopy(matrix)
 
         return self._system
 
