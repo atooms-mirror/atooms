@@ -8,13 +8,14 @@ from atooms.core.utils import rmf
 from atooms.system import System as _System
 from atooms.system import Particle, Cell
 from .interaction import Interaction
+from .verlet_list import VerletList
 from .helpers import _merge_source, _normalize_path
 
 import f2py_jit
 
 
-__all__ = ['Interaction',
-           'System', 'NeighborList', 'Trajectory', 'Particle', 'Cell']
+__all__ = ['Interaction', 'System', 'NeighborList', 'VerletList',
+           'Trajectory', 'Particle', 'Cell']
 
 
 class NeighborList(object):
