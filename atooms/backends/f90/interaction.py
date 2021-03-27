@@ -78,9 +78,9 @@ class Interaction(_Interaction):
 
         # Compile and bundle the module with f2py
         if debug:
-            extra_args = '--opt="-O3 -pg -fbounds-check"'
+            extra_args = '--opt="-O3 -pg -fbounds-check -ffree-form -ffree-line-length-none"'
         else:
-            extra_args = '--opt="-O3 -ffast-math"'
+            extra_args = '--opt="-O3 -ffast-math -ffree-form -ffree-line-length-none"'
 
         # Build a unique module.
         # Every model with its own parameter combination corresponds to a unique module
