@@ -1,31 +1,31 @@
  module neighbor_list
 
-!  use helpers
+  use helpers
   
   implicit none
 
 contains
 
-  pure subroutine pbc(r,box,hbox)
-    double precision, intent(inout) :: r(:)
-    double precision, intent(in)    :: box(:), hbox(:)
-    where (abs(r) > hbox)
-       r = r - sign(box,r)
-    end where
-  end subroutine pbc
+  ! pure subroutine pbc(r,box,hbox)
+  !   double precision, intent(inout) :: r(:)
+  !   double precision, intent(in)    :: box(:), hbox(:)
+  !   where (abs(r) > hbox)
+  !      r = r - sign(box,r)
+  !   end where
+  ! end subroutine pbc
 
-  pure subroutine distance(i,j,pos,rij)
-    integer, intent(in) :: i, j
-    double precision, intent(in)    :: pos(:,:)
-    double precision, intent(inout) :: rij(:)
-    rij = pos(:,i) - pos(:,j)
-  end subroutine distance
+  ! pure subroutine distance(i,j,pos,rij)
+  !   integer, intent(in) :: i, j
+  !   double precision, intent(in)    :: pos(:,:)
+  !   double precision, intent(inout) :: rij(:)
+  !   rij = pos(:,i) - pos(:,j)
+  ! end subroutine distance
 
-  pure subroutine dot(r1,r2,out)
-    double precision, intent(in)  :: r1(:), r2(:)
-    double precision, intent(out) :: out
-    out = dot_product(r1,r2)
-  end subroutine dot
+  ! pure subroutine dot(r1,r2,out)
+  !   double precision, intent(in)  :: r1(:), r2(:)
+  !   double precision, intent(out) :: out
+  !   out = dot_product(r1,r2)
+  ! end subroutine dot
   
   subroutine compute(box,pos,ids,rcut,neighbors,number_neighbors,error)
     !! Compute neighbor lists using III Newton law
@@ -74,10 +74,12 @@ contains
     real(8), intent(in)    :: pos(:,:)
     real(8), intent(inout) :: pos_old(:,:), displacement(:,:)
     real(8), intent(in)    :: box(:)
+    real(8) :: hbox(size(box))
     integer :: i
+    hbox = box / 2
     displacement(:,:) = displacement(:,:) + pos(:,:) - pos_old(:,:)
     do i = 1,size(pos,2)
-       call pbc(displacement(:,i),box,box/2)
+       call pbc(displacement(:,i),box,hbox)
     end do
     pos_old(:,:) = pos(:,:)
   end subroutine add_displacement

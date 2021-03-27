@@ -69,13 +69,6 @@ class Test(unittest.TestCase):
         from atooms.backends.f90 import Interaction
         interaction = Interaction("lennard_jones")
             
-    @unittest.skipIf(not HAS_MODELS, 'no atooms-models module')
-    def test_model(self):
-        with f90.Trajectory(os.path.join(self.data, 'lj_rho0.85.xyz')) as trajectory:
-            trajectory.metadata['model'] = 'lennard_jones'
-            system = trajectory[0]
-            self.assertAlmostEqual(system.potential_energy(per_particle=True), -2.24379330538)
-        
     def tearDown(self):
         self.trajectory.close()
 

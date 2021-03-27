@@ -73,7 +73,8 @@ class Interaction(_Interaction):
         # Inline subroutines
         if inline:
             from f2py_jit.finline import inline_source
-            source = inline_source(source, ignore='compute,tailor,smooth,forces')  # avoid reinlining forces!
+            # TODO: depending on f2py-jit version we can inline compute and smooth as well but this should be checked for bacward compatibility            
+            source = inline_source(source, ignore='tailor,forces')  # avoid reinlining forces!
 
         # Compile and bundle the module with f2py
         if debug:
