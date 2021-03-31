@@ -6,15 +6,11 @@ import f2py_jit
 
 class Interaction(_Interaction):
 
-    def __init__(self,
-                 model=None,
-                 potential='',
-                 potential_parameters={},
-                 cutoff='',
-                 cutoff_parameters={},
-                 interaction='interaction.f90',
-                 helpers='helpers.f90',
-                 inline=True, debug=False):
+    def __init__(self, model=None, potential='',
+                 potential_parameters={}, cutoff='',
+                 cutoff_parameters={}, interaction='interaction.f90',
+                 helpers='helpers.f90', inline=True,
+                 inline_safe=False, debug=False):
         """
         The interaction model can be defined in three ways:
 
@@ -73,8 +69,11 @@ class Interaction(_Interaction):
         # Inline subroutines
         if inline:
             from f2py_jit.finline import inline_source
-            # TODO: depending on f2py-jit version we can inline compute and smooth as well but this should be checked for bacward compatibility            
-            source = inline_source(source, ignore='tailor,forces')  # avoid reinlining forces!
+            # TODO: depending on f2py-jit version we can inline compute and smooth as well but this should be checked for bacward compatibility
+            if inline_safe:
+                source = inline_source(source, ignore='compute,smooth,tailor,forces')
+            elif inline:
+                source = inline_source(source, ignore='tailor,forces')
 
         # Compile and bundle the module with f2py
         if debug:
