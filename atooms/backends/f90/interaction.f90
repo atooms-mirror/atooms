@@ -13,7 +13,7 @@ contains
     double precision, intent(in)    :: box(:)
     double precision, intent(in)    :: pos(:,:)
     integer,          intent(in)    :: ids(:)
-    double precision, intent(inout) :: for(size(pos,1),size(pos,2))
+    double precision, intent(inout) :: for(:,:)
     double precision, intent(out)   :: epot, virial
     double precision                :: rij(size(pos,1)), rijsq, uij, wij, hbox(size(pos,1)), hij
     integer                         :: i, j, isp, jsp
@@ -50,7 +50,8 @@ contains
     double precision, intent(in)    :: box(:)
     double precision, intent(in)    :: pos(:,:)
     integer,          intent(in)    :: ids(:)
-    double precision, intent(inout) :: hes(size(pos,1),size(pos,2),size(pos,1),size(pos,2))
+    !double precision, intent(inout) :: hes(size(pos,1),size(pos,2),size(pos,1),size(pos,2))
+    double precision, intent(inout) :: hes(:,:,:,:)
     double precision                :: rij(size(pos,1)), rijsq, uij, wij, wwij, hbox(size(pos,1))
     double precision                :: unity(size(pos,1),size(pos,1)), mij(size(pos,1),size(pos,1)), mmij(size(pos,1),size(pos,1))
     integer                         :: i, j, isp, jsp
@@ -96,7 +97,7 @@ contains
     double precision, intent(in)    :: box(:)
     double precision, intent(in)    :: pos(:,:)
     integer,  intent(in)    :: ids(:)
-    double precision, intent(inout) :: grad_w(size(pos,1),size(pos,2))
+    double precision, intent(inout) :: grad_w(:,:)
     double precision                :: rij(size(pos,1)), rijsq, uij, wij, wwij
     double precision                :: hbox(size(pos,1)), grwij(size(pos,1)), forc(size(pos,1),size(pos,2)), epot, virial
     integer                 :: i, j, isp, jsp
@@ -146,7 +147,7 @@ contains
     double precision, intent(in)    :: pos(:,:)
     integer,          intent(in)    :: ids(:)
     integer,          intent(in)    :: neighbors(:,:), number_neighbors(:)
-    double precision, intent(inout) :: for(size(pos,1),size(pos,2))
+    double precision, intent(inout) :: for(:,:)
     double precision, intent(out)   :: epot, virial
     double precision                :: rij(size(pos,1)), rijsq, uij, wij, hbox(size(pos,1)), hij
     integer                         :: i, j, isp, jsp, jn
@@ -188,7 +189,8 @@ contains
     double precision, intent(in)    :: pos(:,:)
     integer,          intent(in)    :: ids(:)
     integer,          intent(in)    :: neighbors(:,:), number_neighbors(:)
-    double precision, intent(inout) :: hes(size(pos,1),size(pos,2),size(pos,1),size(pos,2))
+    !double precision, intent(inout) :: hes(size(pos,1),size(pos,2),size(pos,1),size(pos,2))
+    double precision, intent(inout) :: hes(:,:,:,:)
     double precision                :: rij(size(pos,1)), rijsq, uij, wij, wwij, hbox(size(pos,1))
     double precision                :: unity(size(pos,1),size(pos,1)), mij(size(pos,1),size(pos,1)), mmij(size(pos,1),size(pos,1))
     integer                         :: i, j, isp, jsp, jn
