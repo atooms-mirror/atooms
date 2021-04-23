@@ -71,7 +71,7 @@ class TrajectoryGSD(TrajectoryBase):
         data  = system.dump(['pos', 'vel', 'spe', 'particle.mass', 'particle.radius'])
         box = system.cell.side
         N = len(system.particle)
-        distinct_species = system.distinct_species()
+        distinct_species = system.distinct_species
 
         # Convert species from ['A', 'A', 'B', ...] to [0, 0, 1, ...] when distinct_species = ['A', 'B']
         species_to_typeid = {}

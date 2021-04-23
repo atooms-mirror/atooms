@@ -85,6 +85,7 @@ class System(object):
         else:
             return 0
 
+    @property
     def distinct_species(self):
         """Sorted list of distinct chemical species in the system."""
         try:

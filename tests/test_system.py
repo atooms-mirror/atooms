@@ -134,7 +134,7 @@ class Test(unittest.TestCase):
             p.species = 'C'
         from atooms.system.particle import composition, distinct_species
         self.assertEqual(distinct_species(system.particle), ['A', 'B', 'C'])
-        self.assertEqual(system.distinct_species(), ['A', 'B', 'C'])
+        self.assertEqual(system.distinct_species, ['A', 'B', 'C'])
         self.assertEqual(composition(system.particle)['A'], npart - 30)
         self.assertEqual(composition(system.particle)['B'], 10)
         self.assertEqual(composition(system.particle)['C'], 20)
@@ -142,7 +142,7 @@ class Test(unittest.TestCase):
         # Unhashable numpy scalars
         for p in system.particle:
             p.species = numpy.array(1)
-        self.assertEqual(system.distinct_species(), [1])
+        self.assertEqual(system.distinct_species, [1])
 
     def test_packing(self):
         import math
