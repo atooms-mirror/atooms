@@ -16,13 +16,15 @@ class TrajectoryRUMD(TrajectoryXYZ):
     # TODO: allow reading unfolded configuration by parsing the box image integers
 
     def __init__(self, filename, mode='r', fields=None):
+        # We do not currently support writing with custom fields
+        # The format is: species, position, velocity
+        if mode == 'w' and fields is not None:
+            raise ValueError('TrajectoryRUMD cannot write custom fields')
         super(TrajectoryRUMD, self).__init__(filename, mode,
                                              alias={'timeStepIndex': 'step',
                                                     'boxLengths': 'cell',
                                                     'sim_box': 'cell'},
                                              fields=fields)
-        if mode == 'r':
-            self.fields = ['type', 'x', 'y', 'z', 'vx', 'vy', 'vz'] if fields is None else fields
         # The minimum id for RUMD is 0
         self._min_id = 0
 
