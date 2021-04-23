@@ -1,5 +1,6 @@
 # Ignore compilation objects
 *.pyc
+*.mod
 
 reference
 local
