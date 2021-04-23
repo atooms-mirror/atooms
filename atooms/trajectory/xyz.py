@@ -230,7 +230,6 @@ class TrajectoryXYZ(TrajectoryBase):
         """Sample indexing via tell / seek"""
         self._index_frame = []
         self._index_header = []
-        self._index_cell = None
         self.trajectory.seek(0)
         while True:
             line = self.trajectory.tell()
@@ -241,14 +240,12 @@ class TrajectoryXYZ(TrajectoryBase):
                 break
 
             # The first line contains the number of particles
-            # If something went wrong, this could be the last line
-            # with the cell side (Lx,Ly,Lz) and we parse it some other way
-            # TODO: drop compatibility with xyz files having cell as last line.
+            # If something goes wrong, this could be the last line
+            # with the cell side (Lx,Ly,Lz). We do not support this anymore
             try:
                 npart = int(data)
                 self._index_header.append(line)
             except ValueError:
-                self._index_cell = line
                 break
 
             # Skip npart+1 lines, making sure we have read precisely
