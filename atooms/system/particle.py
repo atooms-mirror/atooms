@@ -14,9 +14,8 @@ _log = logging.getLogger(__name__)
 
 class Particle(object):
 
-    def __init__(self, species='A', mass=1.0, position=None,
-                 velocity=None, radius=0.5):
-        # TODO: position should have been first
+    def __init__(self, position=None, velocity=None, species='A',
+                 mass=1.0, radius=0.5):
         self.species = species
         """The chemical species of the particle."""
         self.mass = mass
