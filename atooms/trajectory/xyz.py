@@ -66,6 +66,9 @@ def _update_neighbors(particle, data, meta):
         return []
 
 def _optimize_fields(fields):
+    # TODO: this should be more clever, say we had a 2d simulation
+    #       embedded in 3d we want only to read x and y but this will
+    #       force to read a full vector and it may even cause problems
     if 'x' in fields:
         fields[fields.index('x')] = 'pos'
     if 'vx' in fields:
@@ -110,6 +113,7 @@ class TrajectoryXYZ(TrajectoryBase):
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
         super(TrajectoryXYZ, self).__init__(filename, mode)
+        # TODO: this should be class level, otherwise subclasses are not able to change it
         self._fields_default = ['id', 'pos']
         self.fields = copy(self._fields_default) if fields is None else fields
         self.alias = {} if alias is None else alias
@@ -157,6 +161,12 @@ class TrajectoryXYZ(TrajectoryBase):
             # Default fields: metadata has priority
             if 'columns' in self.metadata:
                 self.fields = self.metadata['columns']
+        # TODO: we may be breaking stuff here, but if the user
+        #       requests some fields why should we pad anything? Only
+        #       those fields should be read and it is the user
+        #       responsibility to provide a full list of them. This
+        #       will simplify things quite a bit
+
         else:
             # Fields set by user: pad missing fields if columns metadata are present
             if 'columns' in self.metadata:
@@ -169,6 +179,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 self.fields = fields
 
         # Replace some column keys with more efficient ones
+        # TODO: some subclasses may not want to optimize fields
         self.fields = _optimize_fields(self.fields)
 
         # Remove skippable fields
