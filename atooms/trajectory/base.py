@@ -10,9 +10,9 @@ from .utils import get_block_size
 # Fields thesaurus: common synonims for fields, such as position -> pos
 # It can be used to match fields read by different trajectory classes.
 # The first element of each entry is the official one.
-FIELDS_DICTIONARY = [('position', 'pos'),
-                     ('velocity', 'vel'),
-                     ('species', 'spe', 'id')]
+FIELDS_DICTIONARY = [('particle.position', 'position', 'pos'),
+                     ('particle.velocity', 'velocity', 'vel'),
+                     ('particle.species', 'species', 'spe', 'id')]
 
 def canonicalize_fields(fields):
     for i, field in enumerate(fields):
@@ -103,11 +103,13 @@ class TrajectoryBase(object):
         self.filename = filename
         self.mode = mode
         self.callbacks = []
-        self.fields = []
+        self.variables = []
+        self.constants = []
         """
-        A list of strings describing data to be written by `write_sample`
-        and/or read by `read_sample`. Subclasses may use it to filter
-        out some data from their format. They can ignore it entirely.
+        Lists of properties describing what system properties are written by
+        `write_sample` and/or read by `read_sample`. Subclasses may
+        use it to allow the user to modify the trajectory layout or
+        they can ignore it entirely.
         """
         self.precision = 6
         self.metadata = {}
@@ -433,7 +435,7 @@ class SuperTrajectory(TrajectoryBase):
     """Collection of subtrajectories."""
 
     # Optimized version
-    # TODO: supertrajectory should propagate fields
+    # TODO: supertrajectory should propagate fields/schema
 
     def __init__(self, files, trajectoryclass, mode='r'):
         """

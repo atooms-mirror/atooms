@@ -69,35 +69,35 @@ def file_index(fh, size=None):
     return header, block, block_size
 
 
-def modify_fields(trajectory, fields=None, include=None, exclude=None):
+def modify_fields(trajectory, variables=None, include=None, exclude=None):
     """
-    Modify fields of a trajectory.
+    Modify variables of a trajectory.
 
-    Either provide a new list of fields, such as ['id', 'x', 'y'], or
+    Either provide a new list of variables, such as ['id', 'x', 'y'], or
     specify explicit patterns to exclude or include.
     """
     from atooms.trajectory.base import canonicalize_fields
-    if fields is not None:
+    if variables is not None:
         # Reset the output format
-        trajectory.fields = fields
+        trajectory.variables = variables
     else:
-        canonicalize_fields(trajectory.fields)
+        canonicalize_fields(trajectory.variables)
         # Exclude and/or include lists of patterns from output format
         if exclude is not None:
             canonicalize_fields(exclude)
             for pattern in exclude:
-                if pattern in trajectory.fields:
-                    trajectory.fields.remove(pattern)
+                if pattern in trajectory.variables:
+                    trajectory.variables.remove(pattern)
         if include is not None:
             canonicalize_fields(include)
             for pattern in include:
-                if pattern not in trajectory.fields:
-                    trajectory.fields.append(pattern)
+                if pattern not in trajectory.variables:
+                    trajectory.variables.append(pattern)
 
     return trajectory
 
 
-def convert(inp, out, fout, force=True, fields=None,
+def convert(inp, out, fout, force=True, variables=None,
             exclude=None, include=None, steps=None):
     """
     Convert trajectory into a different format.
@@ -120,10 +120,10 @@ def convert(inp, out, fout, force=True, fields=None,
     else:
         out_class = out
 
-    if fields is None and len(inp.fields) > 0 and (include is None or len(include) == 0):
-        # We automatically include all fields from the input trajectory
-        # Since the output trajectory may have extra fields, we do should not overwrite them
-        include = canonicalize_fields(inp.fields)
+    if variables is None and len(inp.variables) > 0 and (include is None or len(include) == 0):
+        # We automatically include all variables from the input trajectory
+        # Since the output trajectory may have extra variables, we do should not overwrite them
+        include = canonicalize_fields(inp.variables)
 
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
         print('File exists, conversion skipped')
@@ -132,7 +132,7 @@ def convert(inp, out, fout, force=True, fields=None,
         from atooms.core.utils import mkdir
         mkdir(os.path.dirname(fout))
         with out_class(fout, 'w') as conv:
-            modify_fields(conv, fields, include, exclude)
+            modify_fields(conv, variables, include, exclude)
             conv.precision = inp.precision
             conv.timestep = inp.timestep
             conv.block_size = inp.block_size

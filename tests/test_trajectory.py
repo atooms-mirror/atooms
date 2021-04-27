@@ -30,6 +30,23 @@ def _equal(system1, system2, ignore=None, verbose=True):
             return False
     return True
 
+def _difference(system1, system2, ignore=None):
+    check = {}
+    check['npart'] = len(system1.particle) == len(system2.particle)
+    check['side'] = all(system1.cell.side == system1.cell.side)
+    for p1, p2 in zip(system1.particle, system2.particle):
+        check['position'] = all(p1.position == p2.position)
+        check['mass'] = p1.mass == p2.mass
+        check['species'] = p1.species == p2.species
+        check['velocity'] = all(p1.velocity == p2.velocity)
+    diffs = []
+    for key in check:
+        if ignore is not None and key in ignore:
+            continue
+        if not check[key]:
+            diffs.append(key)
+    return diffs
+
 
 def _rename_species(particle, db):
     for p in particle:
@@ -41,8 +58,8 @@ class Test(unittest.TestCase):
 
     def setUp(self):
         import copy
-        particle = [Particle(position=[0.0, 0.0, 0.0], velocity=[0.0, 0.0, 0.0], species='A', mass=1.0),
-                    Particle(position=[1.0, 1.0, 1.0], velocity=[1.0, 1.0, 1.0], species='B', mass=2.0),
+        particle = [Particle(position=[0.1, 0.2, 0.3], velocity=[0.3, 0.2, 0.1], species='A', mass=1.0),
+                    Particle(position=[1.3, 1.2, 1.1], velocity=[1.1, 1.2, 1.3], species='B', mass=2.0),
                     ]
         cell = Cell([2.0, 2.0, 2.0])
         self.system = []
@@ -67,34 +84,35 @@ class Test(unittest.TestCase):
                 self.assertTrue(_equal(self.system[i], system, ignore))
                 self.assertTrue(self.system[i].__class__ is system.__class__)
 
-    def _read_write_fields(self, cls, write_fields=None, read_fields=None, path=None, ignore=None, fail=False):
+    def _read_write_fields(self, cls, write_fields=None, read_fields=None, path=None, ignore=None, fail=None):
         """Read and write with fields"""
         if path is None:
             path = self.inpfile
 
         # Write
-        try:
-            th = cls(path, 'w', fields=write_fields)
-        except TypeError:
-            th = cls(path, 'w')
-            th.fields = write_fields
+        # try:
+        #     th = cls(path, 'w', fields=write_fields)
+        # except TypeError:
+        th = cls(path, 'w')
+        th.variables = write_fields
         th.write_timestep(1.0)
         for i, system in enumerate(self.system):
             th.write(system, i)
         th.close()
 
         # Read
-        try:
-            th = cls(path, fields=read_fields)
-        except TypeError:
-            th = cls(path)
-            th.fields = read_fields
+        # try:
+        #     th = cls(path, fields=read_fields)
+        # except TypeError:
+        th = cls(path)
+        th.variables = read_fields
         self.assertEqual(th.timestep, 1.0)
         for i, system in enumerate(th):
-            if not fail:
-                self.assertTrue(_equal(self.system[i], system, ignore))
+            if fail is not None:
+                print(set(_difference(self.system[i], system, ignore)), set(fail))
+                self.assertTrue(set(_difference(self.system[i], system, ignore)) == set(fail))
             else:
-                self.assertFalse(_equal(self.system[i], system, ignore, verbose=False))
+                self.assertTrue(_equal(self.system[i], system, ignore, verbose=False))
             self.assertTrue(self.system[i].__class__ is system.__class__)
         th.close()
 
@@ -168,8 +186,8 @@ class Test(unittest.TestCase):
         self._slice(trj.TrajectoryXYZ)
         # Check that when requesting to write the velocity, we actually write it and read it back automatically
         self._read_write_fields(trj.TrajectoryXYZ, write_fields=['species', 'position', 'velocity'], ignore=['mass'])
-        # This must fail: writing velocities but not reading them
-        self._read_write_fields(trj.TrajectoryXYZ, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'position'], ignore=['mass'], fail=True)
+        # This must fail: writing positions but not reading them
+        self._read_write_fields(trj.TrajectoryXYZ, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'velocity'], ignore=['mass'], fail=['position'])
 
     def test_simple_xyz(self):
         # Mass and velocity is not written in default xyz format, so we ignore it
@@ -193,7 +211,7 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectoryHDF5)
         self._read_write_fields(trj.TrajectoryHDF5, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'position', 'velocity'])
         # This must fail: writing velocities but not reading them
-        self._read_write_fields(trj.TrajectoryHDF5, write_fields=['species', 'position'], read_fields=['species', 'position', 'velocity'], fail=True)
+        self._read_write_fields(trj.TrajectoryHDF5, write_fields=['species', 'position'], read_fields=['species', 'position', 'velocity'], fail=['velocity'])
         # Velocity is not kept in conversion to xyz
         self._convert(trj.TrajectoryXYZ, 'hdf5', ignore=['mass', 'velocity'])
 
@@ -208,7 +226,7 @@ class Test(unittest.TestCase):
         self._convert(trj.TrajectoryGSD, 'gsd', ignore=['mass', 'velocity'])
         self._read_write_fields(trj.TrajectoryGSD, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'position', 'velocity'], ignore=['mass'])
         # This must fail: writing velocities but not reading them
-        self._read_write_fields(trj.TrajectoryGSD, write_fields=['species'], read_fields=['species', 'position'], ignore=['mass'], fail=True)
+        self._read_write_fields(trj.TrajectoryGSD, write_fields=['species'], read_fields=['species', 'position'], ignore=['mass'], fail=['velocity'])
 
     def test_rumd(self):
         # RUMD uses integer ids for chemical species. They should be integers.

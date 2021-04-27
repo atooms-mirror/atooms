@@ -87,8 +87,7 @@ class TrajectoryHDF5(TrajectoryBase):
         self.general_info = {}
         self._grandcanonical = False
         self._system = None
-        self.fields = ['position', 'velocity']
-
+        self.variables = ['particle.position', 'particle.velocity']
         if self.mode == 'r' or self.mode == 'r+':
             self.trajectory = h5py.File(self.filename, mode)
             # gather general info on file
@@ -232,16 +231,16 @@ class TrajectoryHDF5(TrajectoryBase):
 
         if system.particle is not None:
             self.trajectory.create_group_safe('/trajectory/particle')
-            if 'position' in self.fields:
+            if 'particle.position' in self.variables:
                 self.trajectory.create_group_safe('/trajectory/particle/position')
                 self.trajectory['/trajectory/particle/position' + csample] = [p.position for p in system.particle]
-            if 'velocity' in self.fields:
+            if 'particle.velocity' in self.variables:
                 self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
                 self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if 'radius' in self.fields:
+            if 'particle.radius' in self.variables:
                 self.trajectory.create_group_safe('/trajectory/particle/radius')
                 self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
-            if 'species' in self.fields:
+            if 'particle.species' in self.variables:
                 self.trajectory.create_group_safe('/trajectory/particle/species')
                 data = ['%-3s' % p.species for p in system.particle]
                 self.trajectory['/trajectory/particle/species' + csample] = [_.encode() for _ in data]
@@ -370,11 +369,11 @@ class TrajectoryHDF5(TrajectoryBase):
             r = group['radius' + csample][:]
             for i, pi in enumerate(p):
                 pi.radius = r[i]
-            if 'radius' not in self.fields:
-                self.fields.append('radius')
+            if 'particle.radius' not in self.variables:
+                self.variables.append('particle.radius')
         except KeyError:
-            if 'radius' in self.fields:
-                self.fields.remove('radius')
+            if 'particle.radius' in self.variables:
+                self.variables.remove('particle.radius')
 
         # Try update species. This must be done after setting defaults.
         # TODO: refactor
@@ -382,11 +381,11 @@ class TrajectoryHDF5(TrajectoryBase):
             spe = group['species' + csample][:]
             for i, pi in enumerate(p):
                 pi.species = spe[i].decode().strip()
-            if 'species' not in self.fields:
-                self.fields.append('species')
+            if 'particle.species' not in self.variables:
+                self.variables.append('particle.species')
         except KeyError:
-            if 'species' in self.fields:
-                self.fields.remove('species')
+            if 'particle.species' in self.variables:
+                self.variables.remove('particle.species')
 
         # Read cell
         group = self.trajectory['/trajectory/cell']
