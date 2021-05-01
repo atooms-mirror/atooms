@@ -225,21 +225,11 @@ class Test(unittest.TestCase):
         #self._read_write(trj.SuperTrajectoryRUMD, self.inpdir, ignore=['id', 'name'])
 
     def test_pdb(self):
-        self._write(trj.TrajectoryPDB)
-        reference = """\
-MODEL        0
-CRYST1    2.000    2.000    2.000     90     90     90 P 1           1
-HETATM    0             A       0.000   0.000   0.000  1.00  1.00             A
-HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
-MODEL        1
-CRYST1    2.000    2.000    2.000     90     90     90 P 1           1
-HETATM    0             A       0.000   0.000   0.000  1.00  1.00             A
-HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
-"""
-        with open(self.inpfile) as fh:
-            output = fh.read()
-        self.assertTrue(output == reference)
-
+        self._read_write(trj.TrajectoryPDB, ignore=['mass', 'velocity'])
+        with trj.TrajectoryPDB('data/trajectory.pdb') as th:
+            self.assertTrue(numpy.all(th[0].cell.side == numpy.array([10.0, 10.0, 10.0])))
+            self.assertTrue(numpy.all(th[1].cell.side == numpy.array([10.0, 10.0, 10.0])))
+        
     def test_super(self):
         import glob
         with TrajectoryXYZ(os.path.join(self.inpdir, '0.xyz'), 'w') as th:
