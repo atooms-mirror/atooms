@@ -53,15 +53,13 @@ class TrajectoryPDB(TrajectoryBase):
         cfg = ''
         cfg += 'MODEL%9i\n' % step
         fmt = 'CRYST1' + 3*'{:9.3f}' + 3*'{:7.2f}' + ' P 1           1\n'
-        cfg += fmt.format(*system.cell.side, 90, 90, 90)
-        # cfg += ('CRYST1' + (3*'%9.3f') + '     90     90     90 P 1           1\n') % tuple(system.cell.side)
+        cfg += fmt.format(*(list(system.cell.side) + [90, 90, 90]))
         for i, p in enumerate(system.particle):
             # If particle has a field property we dump it in the pdb file
             if hasattr(p, 'field'):
                 x = float(p.field)
             else:
                 x = 1.0
-            #fmt = 'HETATM%5d          %4s    ' + 3*'%8.3f' + 2*'%6.2f' + '          %4s\n'
             data = [' '] * 80
             data[0:6] = 'HETATM'
             data[30:38] = '{:8.3f}'.format(p.position[0])
@@ -70,7 +68,6 @@ class TrajectoryPDB(TrajectoryBase):
             data[60:66] = str(x)
             data[76:77] = p.species
             cfg += ''.join(data) + '\n'
-            #cfg += fmt % ((i, '') + tuple(p.position) + (1.0, x, p.species))
         cfg += 'ENDMDL\n'
         self.trajectory.write(cfg)
 
