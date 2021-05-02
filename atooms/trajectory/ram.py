@@ -27,7 +27,6 @@ class TrajectoryRam(TrajectoryBase):
             self._system[ind].update(system)
         else:
             self._system.append(copy.deepcopy(system))
-            self.steps.append(step)
 
     def read_sample(self, frame):
         return copy.deepcopy(self._system[frame])

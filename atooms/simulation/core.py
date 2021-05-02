@@ -133,7 +133,7 @@ class Simulation(object):
         return os.path.splitext(self.output_path)[0]
 
     def add_callback(self, callback, scheduler, *args, **kwargs):
-        self.add(self, callback, scheduler, *args, **kwargs)
+        self.add(callback, scheduler, *args, **kwargs)
 
     def add(self, callback, scheduler, *args, **kwargs):
         """

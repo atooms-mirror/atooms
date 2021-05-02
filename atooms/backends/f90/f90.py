@@ -1,4 +1,3 @@
-import os
 import tempfile
 import json
 
@@ -6,164 +5,17 @@ import numpy
 import warnings
 
 from atooms.core.utils import rmf
-from atooms.interaction import Interaction as _Interaction
 from atooms.system import System as _System
 from atooms.system import Particle, Cell
+from .interaction import Interaction
+from .verlet_list import VerletList
+from .helpers import _merge_source, _normalize_path
 
 import f2py_jit
 
 
-__all__ = ['Interaction', 'System', 'NeighborList', 'Trajectory', 'Particle', 'Cell']
-
-
-def _normalize_path(path):
-    if not path.endswith('.f90'):
-        path = path + '.f90'
-
-    if os.path.exists(path):
-        return path
-    else:
-        # Look in the module path
-        dirname = os.path.dirname(__file__)
-        full_path = os.path.join(dirname, path)
-        if os.path.exists(full_path):
-            return full_path
-        # Look in models
-        try:
-            import atooms.models
-            dirname = os.path.dirname(atooms.models.__file__)
-            full_path = os.path.join(dirname, path)
-            if os.path.exists(full_path):
-                return full_path
-        except ImportError:
-            raise ValueError('could not find source for {}'.format(path))
-
-def _merge_source(*sources):
-    """Merges `sources` into a unique source."""
-    merged_src = ''
-    for source in sources:
-        # Check path existence
-        source_path = _normalize_path(source)
-        with open(source_path) as fh:
-            src = fh.read()
-        # Merge sources into a single one
-        merged_src += src
-    return merged_src
-
-
-class Interaction(_Interaction):
-
-    def __init__(self,
-                 model=None,
-                 potential='',
-                 potential_parameters={},
-                 cutoff='',
-                 cutoff_parameters={},
-                 interaction='interaction.f90',
-                 helpers='helpers.f90',
-                 inline=True, debug=False):
-        """
-        The interaction model can be defined in three ways:
-
-        1) Passing a `model` string that matches any of the models
-        defined in the atooms-models database (ex. "lennard_jones" or
-        "gaussian_core")
-
-        2) Passing a `model` dictionary with "potential" and "cutoff"
-        keys and identical layout as the atooms-model database entries
-        (ex. https://gitlab.info-ufr.univ-montp2.fr/atooms/models/blob/master/atooms/models/lennard_jones.json)
-
-        3) Passing the `potential`, `cutoff`, `potential_parameters`
-        and `cutoff_parameters` parameters. The `potential` and
-        `cutoff` strings should match either
-        
-        a) potential and/or cutoff defined in atooms-models, such as
-        "lennard_jones" or "cut_and_shift", or
-
-        b) paths to Fortran 90 source codes that implement appropriate
-        routines following the interfaces defined by the atooms-models
-        package, see for instance
-        https://gitlab.info-ufr.univ-montp2.fr/atooms/models/blob/master/atooms/models/lennard_jones.f90
-        https://gitlab.info-ufr.univ-montp2.fr/atooms/models/blob/master/atooms/models/cut_shift.f90
-        for an example of the interface the routines should implement.
-
-        The parameters values are provided as dictionaries
-        (`potential_parameters` and `cutoff_parameters``) matching the
-        intent(in) variables entering the `setup()` routines of the
-        fortran modules.
-        """
-        _Interaction.__init__(self, None)
-
-        if model and not hasattr(model, 'get'):
-            # This may be a string, so we look for the model in the
-            # atooms-models database and replace the string with the dictionary            
-            try:
-                from atooms.models import database
-                model = database[model]
-            except ImportError:
-                raise ValueError('could not find model {}'.format(model))
-                
-        if model:
-            # At this stage we expect a model dictionary
-            assert len(model.get('potential')) == 1
-            assert len(model.get('cutoff')) == 1
-            potential = model.get('potential')[0].get('path')
-            potential_parameters = model.get('potential')[0].get('parameters')
-            cutoff = model.get('cutoff')[0].get('path')
-            cutoff_parameters = model.get('cutoff')[0].get('parameters')
-
-        self._module_path = None
-
-        # Merge all sources into a unique source blob
-        source = _merge_source(helpers, potential, cutoff, interaction)
-
-        # Inline subroutines
-        if inline:
-            from f2py_jit.finline import inline_source
-            source = inline_source(source, ignore='compute,tailor,smooth,forces')  # avoid reinlining forces!
-
-        # Compile and bundle the module with f2py
-        if debug:
-            extra_args = '--opt="-O3 -pg -fbounds-check"'
-        else:
-            extra_args = '--opt="-O3 -ffast-math"'
-
-        # Build a unique module.
-        # Every model with its own parameter combination corresponds to a unique module
-        # and can be safely reused (up to changes in interaction / helpers)
-        uid = f2py_jit.build_module(source,
-                                    metadata={"interaction": interaction,
-                                              "helpers": helpers,
-                                              "potential": [potential, potential_parameters],
-                                              "cutoff": [cutoff, cutoff_parameters]},
-                                    extra_args=extra_args,
-                                    db_file='.atooms_jit.json')
-
-        # Setup potential and cutoff parameters
-        _interaction = f2py_jit.import_module(uid)
-        _interaction.potential.setup(**potential_parameters)
-        _interaction.cutoff.setup(**cutoff_parameters)
-
-        # Store module name (better not store the module itself, else we cannot deepcopy)
-        self._uid = uid
-
-    def compute(self, observable, box, pos, ids):
-        _interaction = f2py_jit.import_module(self._uid)
-        if observable in ['forces', 'energy']:
-            if self.forces is None:
-                self.forces = numpy.zeros_like(pos, order='F')
-            self.energy, self.virial = _interaction.interaction.forces(box, pos, ids, self.forces)
-
-        elif observable == 'gradw':
-            if not hasattr(self, 'gradw'):
-                self.gradw = numpy.zeros_like(pos, order='F')
-            _interaction.interaction.gradw(box, pos, ids, self.gradw)
-
-        elif observable == 'hessian':
-            ndim, N = pos.shape
-            if self.hessian is None:
-                self.hessian = numpy.ndarray((ndim, N, ndim, N), order='F')
-            _interaction.interaction.hessian(box, pos, ids, self.hessian)
+__all__ = ['Interaction', 'System', 'NeighborList', 'VerletList',
+           'Trajectory', 'Particle', 'Cell']
 
 
 class NeighborList(object):

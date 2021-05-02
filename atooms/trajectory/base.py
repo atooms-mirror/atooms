@@ -433,6 +433,7 @@ class SuperTrajectory(TrajectoryBase):
     """Collection of subtrajectories."""
 
     # Optimized version
+    # TODO: supertrajectory should propagate fields
 
     def __init__(self, files, trajectoryclass, mode='r'):
         """

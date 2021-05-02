@@ -5,6 +5,8 @@ Atooms
 [![version](https://img.shields.io/pypi/pyversions/atooms.svg)](https://pypi.python.org/pypi/atooms/)
 [![license](https://img.shields.io/pypi/l/atooms.svg)](https://en.wikipedia.org/wiki/GNU_General_Public_License)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1183301.svg)](https://doi.org/10.5281/zenodo.1183301)
+[![pipeline](https://framagit.org/atooms/atooms/badges/develop/pipeline.svg)](https://framagit.org/atooms/atooms/badges/develop/pipeline.svg)
+[![coverage report](https://framagit.org/atooms/atooms/badges/develop/coverage.svg)](https://framagit.org/atooms/atooms/-/commits/develop)
 
 **atooms** is a Python framework for simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. To achieve this, atooms relies on backends written in C, CUDA or Fortran.
 
@@ -12,7 +14,7 @@ Quick start
 -----------
 
 The goal of atooms is to provide a coherent interface to the basic objects of particle simulations, such as [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations. 
-The simulation data are usually stored in trajectory files, which atooms makes it easy to analyze, manipulate and convert.
+The simulation data are stored in trajectory files, which are easy to analyze, manipulate and convert with atooms.
 
 In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format) composed by multiple frames. Each frame holds the state of the system at a given instant of time during the simulation. Accessing the coordinates of the particles in a trajectory file goes like this:
 ```python
@@ -51,7 +53,7 @@ The forcefield file `lj_rumd.ff` (available in `data/`) defines the interaction 
 
 Documentation
 -------------
-See the [tutorial](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/atooms/) for a step-by-step introduction to atooms objects and the [public API documentation](https://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/docs/api/atooms/) for full details. 
+See the [tutorial](https://www-dft.ts.infn.it/~coslovich/atooms/) for a step-by-step introduction to atooms objects and the [public API documentation](https://www-dft.ts.infn.it/~coslovich/docs/api/atooms/) for full details. 
 
 Installation
 ------------
@@ -62,14 +64,14 @@ pip install atooms
 
 From the code repository
 ```
-git clone https://gitlab.info-ufr.univ-montp2.fr/atooms/atooms.git
+git clone https://framagit.org/atooms/atooms.git
 cd atooms
 make install
 ```
 
 Simulation backends
 -------------------
-atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://gitlab.info-ufr.univ-montp2.fr/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
+atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://framagit.org/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
 
 Trajectory conversion
 ---------------------
@@ -103,7 +105,7 @@ Actually, the `atooms_plugins` package can be put anywhere in your `PYTHONPATH`.
 Additional packages 
 -------------------
 Atooms is composable: it is easy to add new functionalities, and just those you actually need.
-Additional packages are available from the [atooms main repository](https://gitlab.info-ufr.univ-montp2.fr/atooms).
+Additional packages are available from the [atooms main repository](https://framagit.org/atooms).
 These packages will be installed in the atooms namespace to prevent name clashing.
 
 If you want to add your own package to the atooms namespace, structure it this way
@@ -127,4 +129,4 @@ import atooms.your_package
 
 Authors
 -------
-Daniele Coslovich: http://www.coulomb.univ-montp2.fr/perso/daniele.coslovich/
+Daniele Coslovich: http://www-dft.ts.infn.it/~coslovich/

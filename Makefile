@@ -17,7 +17,8 @@ develop: version
 	python setup.py develop --user
 
 test:	version
-	python -m unittest discover -s tests
+	coverage run --source atooms -m unittest discover -s tests
+	coverage report --omit=atooms/backends/*py,atooms/system/visualize.py
 
 doc: clean
         # pdoc does play nice with namespace packages -> blank __init__.py

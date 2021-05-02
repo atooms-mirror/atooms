@@ -12,19 +12,21 @@ from atooms.trajectory.base import TrajectoryBase
 import atooms.trajectory as trj
 
 
-def _equal(system1, system2, ignore=None):
+def _equal(system1, system2, ignore=None, verbose=True):
     check = {}
     check['npart'] = len(system1.particle) == len(system2.particle)
+    check['side'] = all(system1.cell.side == system1.cell.side)
     for p1, p2 in zip(system1.particle, system2.particle):
         check['position'] = all(p1.position == p2.position)
         check['mass'] = p1.mass == p2.mass
         check['species'] = p1.species == p2.species
-    check['side'] = all(system1.cell.side == system1.cell.side)
+        check['velocity'] = all(p1.velocity == p2.velocity)
     for key in check:
         if ignore is not None and key in ignore:
             continue
         if not check[key]:
-            print(key, 'differs')
+            if verbose:
+                print(key, 'differs')
             return False
     return True
 
@@ -39,8 +41,8 @@ class Test(unittest.TestCase):
 
     def setUp(self):
         import copy
-        particle = [Particle(position=[0.0, 0.0, 0.0], species='A', mass=1.0),
-                    Particle(position=[1.0, 1.0, 1.0], species='B', mass=2.0),
+        particle = [Particle(position=[0.0, 0.0, 0.0], velocity=[0.0, 0.0, 0.0], species='A', mass=1.0),
+                    Particle(position=[1.0, 1.0, 1.0], velocity=[1.0, 1.0, 1.0], species='B', mass=2.0),
                     ]
         cell = Cell([2.0, 2.0, 2.0])
         self.system = []
@@ -58,12 +60,43 @@ class Test(unittest.TestCase):
         with cls(path, 'w') as th:
             th.write_timestep(1.0)
             for i, system in enumerate(self.system):
-                th.write(self.system[i], i)
+                th.write(system, i)
         with cls(path) as th:
             self.assertEqual(th.timestep, 1.0)
             for i, system in enumerate(th):
                 self.assertTrue(_equal(self.system[i], system, ignore))
                 self.assertTrue(self.system[i].__class__ is system.__class__)
+
+    def _read_write_fields(self, cls, write_fields=None, read_fields=None, path=None, ignore=None, fail=False):
+        """Read and write with fields"""
+        if path is None:
+            path = self.inpfile
+
+        # Write
+        try:
+            th = cls(path, 'w', fields=write_fields)
+        except TypeError:
+            th = cls(path, 'w')
+            th.fields = write_fields
+        th.write_timestep(1.0)
+        for i, system in enumerate(self.system):
+            th.write(system, i)
+        th.close()
+
+        # Read
+        try:
+            th = cls(path, fields=read_fields)
+        except TypeError:
+            th = cls(path)
+            th.fields = read_fields
+        self.assertEqual(th.timestep, 1.0)
+        for i, system in enumerate(th):
+            if not fail:
+                self.assertTrue(_equal(self.system[i], system, ignore))
+            else:
+                self.assertFalse(_equal(self.system[i], system, ignore, verbose=False))
+            self.assertTrue(self.system[i].__class__ is system.__class__)
+        th.close()
 
     def _write(self, cls, path=None):
         """Write only"""
@@ -127,19 +160,28 @@ class Test(unittest.TestCase):
 
     def test_xyz(self):
         # TODO: mass is not written by xyz
-        self._read_write(trj.TrajectoryXYZ, ignore=['mass'])
-        self._read_write(trj.TrajectorySimpleXYZ, ignore=['mass'])
-        self._convert(trj.TrajectoryXYZ, trj.TrajectoryXYZ, ignore=['mass'])
-        self._convert(trj.TrajectoryXYZ, 'xyz', ignore=['mass'])
-        self._append(trj.TrajectoryXYZ, ignore=['mass'])
-        self._append(trj.TrajectorySimpleXYZ, ignore=['mass'])
-
+        # Velocity is not written in default xyz format, so we ignore it
+        self._read_write(trj.TrajectoryXYZ, ignore=['mass', 'velocity'])
+        self._convert(trj.TrajectoryXYZ, trj.TrajectoryXYZ, ignore=['mass', 'velocity'])
+        self._convert(trj.TrajectoryXYZ, 'xyz', ignore=['mass', 'velocity'])
+        self._append(trj.TrajectoryXYZ, ignore=['mass', 'velocity'])
         self._slice(trj.TrajectoryXYZ)
+        # Check that when requesting to write the velocity, we actually write it and read it back automatically
+        self._read_write_fields(trj.TrajectoryXYZ, write_fields=['species', 'position', 'velocity'], ignore=['mass'])
+        # This must fail: writing velocities but not reading them
+        self._read_write_fields(trj.TrajectoryXYZ, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'position'], ignore=['mass'], fail=True)
+
+    def test_simple_xyz(self):
+        # Mass and velocity is not written in default xyz format, so we ignore it
+        self._read_write(trj.TrajectorySimpleXYZ, ignore=['mass', 'velocity'])
+        self._append(trj.TrajectorySimpleXYZ, ignore=['mass', 'velocity'])
 
     def test_ram(self):
         self._read_write(trj.TrajectoryRam)
-        self._read_write(trj.ram.TrajectoryRamFull)
         self._append(trj.TrajectoryRam)
+
+    def test_ram_full(self):
+        self._read_write(trj.ram.TrajectoryRamFull)
         self._append(trj.ram.TrajectoryRamFull)
 
     def test_hdf5(self):
@@ -147,34 +189,47 @@ class Test(unittest.TestCase):
             import h5py
         except ImportError:
             self.skipTest('missing hdf5')
-        else:
-            self._read_write(trj.TrajectoryHDF5)
-            self._convert(trj.TrajectoryXYZ, 'hdf5', ignore=['mass'])
+
+        self._read_write(trj.TrajectoryHDF5)
+        self._read_write_fields(trj.TrajectoryHDF5, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'position', 'velocity'])
+        # This must fail: writing velocities but not reading them
+        self._read_write_fields(trj.TrajectoryHDF5, write_fields=['species', 'position'], read_fields=['species', 'position', 'velocity'], fail=True)
+        # Velocity is not kept in conversion to xyz
+        self._convert(trj.TrajectoryXYZ, 'hdf5', ignore=['mass', 'velocity'])
+
+    def test_gsd(self):
+        try:
+            import gsd
+            from atooms.trajectory.gsd import TrajectoryGSD
+        except ImportError:
+            self.skipTest('missing gsd')
+
+        self._read_write(trj.TrajectoryGSD, ignore=['mass', 'velocity'])
+        self._convert(trj.TrajectoryGSD, 'gsd', ignore=['mass', 'velocity'])
+        self._read_write_fields(trj.TrajectoryGSD, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'position', 'velocity'], ignore=['mass'])
+        # This must fail: writing velocities but not reading them
+        self._read_write_fields(trj.TrajectoryGSD, write_fields=['species'], read_fields=['species', 'position'], ignore=['mass'], fail=True)
 
     def test_rumd(self):
-        # RUMD uses integer ids for checmical species. They should be integers.
+        # RUMD uses integer ids for chemical species. They should be integers.
         for s in self.system:
             s.particle = _rename_species(s.particle, {'A': '0', 'B': '1'})
         self._read_write(trj.TrajectoryRUMD)
+        # TODO: all these fail without changing _optimize_fields() in setup_fields() so as to return a new list
+        # self._read_write_fields(trj.TrajectoryRUMD, read_fields=['species', 'position', 'velocity'], ignore=['mass'])
+        # self._read_write_fields(trj.TrajectoryRUMD, read_fields=['type', 'x', 'y', 'z', 'vx', 'vy', 'vz'], ignore=['mass'])
+        # This must fail: writing velocities but not reading them
+        # self._read_write_fields(trj.TrajectoryRUMD, read_fields=['species', 'position'], ignore=['mass'], fail=True)
+        # self._read_write_fields(trj.TrajectoryRUMD, read_fields=['type', 'x', 'y', 'z'], ignore=['mass'], fail=True)
         # TODO: add write_sample() to supertrajectory
         #self._read_write(trj.SuperTrajectoryRUMD, self.inpdir, ignore=['id', 'name'])
 
     def test_pdb(self):
-        self._write(trj.TrajectoryPDB)
-        reference = """\
-MODEL        0
-CRYST1    2.000    2.000    2.000     90     90     90 P 1           1
-HETATM    0             A       0.000   0.000   0.000  1.00  1.00             A
-HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
-MODEL        1
-CRYST1    2.000    2.000    2.000     90     90     90 P 1           1
-HETATM    0             A       0.000   0.000   0.000  1.00  1.00             A
-HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
-"""
-        with open(self.inpfile) as fh:
-            output = fh.read()
-        self.assertTrue(output == reference)
-
+        self._read_write(trj.TrajectoryPDB, ignore=['mass', 'velocity'])
+        with trj.TrajectoryPDB('data/trajectory.pdb') as th:
+            self.assertTrue(numpy.all(th[0].cell.side == numpy.array([10.0, 10.0, 10.0])))
+            self.assertTrue(numpy.all(th[1].cell.side == numpy.array([10.0, 10.0, 10.0])))
+        
     def test_super(self):
         import glob
         with TrajectoryXYZ(os.path.join(self.inpdir, '0.xyz'), 'w') as th:
@@ -189,9 +244,13 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
             self.assertEqual(th.timestep, 0.001)
             self.assertEqual(th.steps, [10, 20])
             for i, system in enumerate(th):
-                self.assertTrue(_equal(self.system[i], system, ignore=['mass']))
+                self.assertTrue(_equal(self.system[i], system, ignore=['mass', 'velocity']))
 
     def test_super_rumd(self):
+        # TODO: refactor supertrajectory tests
+        # RUMD uses integer ids for chemical species. They should be integers.
+        for s in self.system:
+            s.particle = _rename_species(s.particle, {'A': '0', 'B': '1'})
         with trj.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz'), 'w') as th:
             th.timestep = 0.001
             th.write(self.system[0], 0)
@@ -203,36 +262,24 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
             self.assertEqual(th.timestep, 0.001)
             self.assertEqual(th.steps, [0, 1])
             for i, system in enumerate(th):
-                self.assertTrue(_equal(self.system[i], system, ignore=['mass', 'species']))
+                self.assertTrue(_equal(self.system[i], system, ignore=['mass']))
 
-    def test_(self):
+    @unittest.expectedFailure
+    def test_super_rumd_fields(self):
+        for s in self.system:
+            s.particle = _rename_species(s.particle, {'A': '0', 'B': '1'})
         with trj.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz'), 'w') as th:
             th.timestep = 0.001
             th.write(self.system[0], 0)
         with trj.TrajectoryRUMD(os.path.join(self.inpdir, '1.xyz.gz'), 'w') as th:
             th.timestep = 0.001
             th.write(self.system[0], 1)
-
-        # Reading
-        # This should read only type and pos
-        with trj.rumd.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz')) as th:
-            th.fields = ['type', 'x', 'y', 'z']
-            s = th[0]
-
-        # This should read only type and pos
-        with trj.rumd.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz'),
-                                          fields=['type', 'x', 'y', 'z']) as th:
-            s = th[0]
-
-        # This should fail because requested field does not exist
-        with trj.rumd.TrajectoryRUMD(os.path.join(self.inpdir, '0.xyz.gz'),
-                                          fields=['type', 'fail']) as th:
-            s = th[0]
-
-        # This should propagate fields through supertrajectory
+        # TODO: supertrajectories should propagate fields but currently do not
         with trj.rumd.SuperTrajectoryRUMD(self.inpdir) as th:
             th.fields = ['type', 'x', 'y', 'z']
-            s = th[0]
+            system = th[0]
+            self.assertTrue(_equal(self.system[0], system, ignore=['mass']), fail=True)
+            self.assertTrue(self.system[0].__class__ is system.__class__)
 
     def test_folder(self):
         import glob
@@ -247,7 +294,7 @@ HETATM    1             B       1.000   1.000   1.000  1.00  1.00             B
             self.assertEqual(th.timestep, 0.001)
             self.assertEqual(th.steps, [10, 20])
             for i, system in enumerate(th):
-                self.assertTrue(_equal(self.system[i], system, ignore=['mass']))
+                self.assertTrue(_equal(self.system[i], system, ignore=['mass', 'velocity']))
 
     def test_cache(self):
         with TrajectoryXYZ(os.path.join(self.inpdir, 'cache.xyz'), 'w') as th:
@@ -360,6 +407,113 @@ B 2.9 -2.9 0.0
         with trj.TrajectoryXYZ(self.inpfile, 'r') as th:
             self._copy_inplace(th)
 
+    def test_info(self):
+        with trj.xyz.TrajectoryXYZ(self.inpfile, 'w') as th:
+            th.write(self.system[0])
+            th.write(self.system[1])
+        with trj.xyz.TrajectoryXYZ(self.inpfile, 'r') as th:
+            from atooms.trajectory.utils import info
+            info(th)
+            keys = [
+                'path',
+                'format',
+                'frames',
+                'megabytes',
+                'particles',
+                'species',
+                'composition',
+                'cell density',
+                'cell side',
+                'cell volume',
+                'steps',
+                'duration',
+                'timestep',
+                'block size',
+                'steps between frames',
+                'time between frames',
+                'block steps',
+                'block',
+                'grandcanonical']
+            info(th, keys=','.join(keys))
+
+    def test_lammps(self):
+        import sys
+        with open(self.inpfile, 'w') as fh:
+            fh.write("""\
+ITEM: TIMESTEP
+0
+ITEM: NUMBER OF ATOMS
+2
+ITEM: BOX BOUNDS pp pp pp
+-3 3
+-3 3
+-3 3
+ITEM: ATOMS id type xs ys zs
+2 1 0.10 0.11 0.12
+1 1 0.20 0.21 0.22
+ITEM: TIMESTEP
+1
+ITEM: NUMBER OF ATOMS
+2
+ITEM: BOX BOUNDS pp pp pp
+-4 4
+-4 4
+-4 4
+ITEM: ATOMS id type xs ys zs
+1 1 0.00 0.01 0.02
+2 1 0.50 0.51 0.52
+""")
+        from atooms.trajectory import TrajectoryLAMMPS
+        def scale(pos, side):
+            return [(x - 0.5) * L for x, L in zip(pos, side)]
+        with TrajectoryLAMMPS(self.inpfile) as th:
+            self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
+            self.assertEqual(list(th[0].particle[0].position), scale([0.20, 0.21, 0.22], [6.0, 6.0, 6.0]))
+            self.assertEqual(list(th[0].particle[1].position), scale([0.10, 0.11, 0.12], [6.0, 6.0, 6.0]))
+            self.assertEqual(list(th[1].cell.side), [8.0, 8.0, 8.0])
+            self.assertEqual(list(th[1].particle[0].position), scale([0.00, 0.01, 0.02], [8.0, 8.0, 8.0]))
+            self.assertEqual(list(th[1].particle[1].position), scale([0.50, 0.51, 0.52], [8.0, 8.0, 8.0]))
+
+    def test_lammps_folder(self):
+        with open(self.inpdir + '/0.atom', 'w') as fh:
+            fh.write("""\
+ITEM: TIMESTEP
+10
+ITEM: NUMBER OF ATOMS
+2
+ITEM: BOX BOUNDS pp pp pp
+-3 3
+-3 3
+-3 3
+ITEM: ATOMS id type xs ys zs
+2 1 0.10 0.11 0.12
+1 1 0.20 0.21 0.22
+""")
+        with open(self.inpdir + '/1.atom', 'w') as fh:
+            fh.write("""\
+ITEM: TIMESTEP
+20
+ITEM: NUMBER OF ATOMS
+2
+ITEM: BOX BOUNDS pp pp pp
+-4 4
+-4 4
+-4 4
+ITEM: ATOMS id type xs ys zs
+1 1 0.00 0.01 0.02
+2 1 0.50 0.51 0.52
+""")
+        from atooms.trajectory import TrajectoryFolderLAMMPS
+        def scale(pos, side):
+            return [(x - 0.5) * L for x, L in zip(pos, side)]
+        with TrajectoryFolderLAMMPS(self.inpdir) as th:
+            self.assertEqual(th.steps, [10, 20])
+            self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
+            self.assertEqual(list(th[0].particle[0].position), scale([0.20, 0.21, 0.22], [6.0, 6.0, 6.0]))
+            self.assertEqual(list(th[0].particle[1].position), scale([0.10, 0.11, 0.12], [6.0, 6.0, 6.0]))
+            self.assertEqual(list(th[1].cell.side), [8.0, 8.0, 8.0])
+            self.assertEqual(list(th[1].particle[0].position), scale([0.00, 0.01, 0.02], [8.0, 8.0, 8.0]))
+            self.assertEqual(list(th[1].particle[1].position), scale([0.50, 0.51, 0.52], [8.0, 8.0, 8.0]))
 
     def tearDown(self):
         rmf(self.inpfile)

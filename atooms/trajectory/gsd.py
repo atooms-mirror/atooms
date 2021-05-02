@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 from copy import copy
 import numpy as np
 
-# TODO: here the module is importing itself, can we drop this?
+# With absolute import (default in python 3) this does not clash
 import gsd
 import gsd.hoomd
 

@@ -81,12 +81,17 @@ class System(object):
         """
         if len(self.particle) > 0:
             return len(self.particle[0].position)
+        elif self.cell is not None:
+            return len(self.cell.side)
         else:
             return 0
 
     def distinct_species(self):
         """Sorted list of distinct chemical species in the system."""
-        return sorted(set(p.species for p in self.particle))
+        try:
+            return list(sorted(set([p.species for p in self.particle])))
+        except TypeError:
+            return list(sorted(set([int(p.species) for p in self.particle])))
 
     @property
     def density(self):
@@ -214,7 +219,7 @@ class System(object):
         """
         if normed is not None:
             per_particle = normed
-        return self.potential_energy(per_particle, cache) + self.kinetic_energy(per_particle)
+        return self.potential_energy(per_particle, cache=cache) + self.kinetic_energy(per_particle)
 
     def force_norm(self, per_particle=True, cache=False):
         """
