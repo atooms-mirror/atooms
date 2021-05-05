@@ -428,6 +428,7 @@ def fallback(p, data, meta):
 
     def write_sample(self, system, step):
         # Make sure fields are expanded
+        global _numpy_fmt_lock
         _numpy_fmt_lock = True
         self._setup_format()
         self.trajectory.write('%d\n' % len(system.particle))
