@@ -15,6 +15,8 @@ from atooms.system import System
 
 log = logging.getLogger(__name__)
 
+# Lock to avoid race conditions on numpy array formatting 
+_numpy_fmt_lock = False
 
 # Format callbacks
 
@@ -426,6 +428,7 @@ def fallback(p, data, meta):
 
     def write_sample(self, system, step):
         # Make sure fields are expanded
+        _numpy_fmt_lock = True
         self._setup_format()
         self.trajectory.write('%d\n' % len(system.particle))
         self.trajectory.write(self._comment(step, system) + '\n')
@@ -436,12 +439,14 @@ def fallback(p, data, meta):
             p._index = i
             p._step = step
             self.trajectory.write(fmt.format(p))
+        _numpy_fmt_lock = False
 
     def close(self):
         self.trajectory.close()
         # Restore numpy formatting defaults
-        numpy.set_string_function(None, False)
-        numpy.set_string_function(None, True)
+        if not _numpy_fmt_lock:
+            numpy.set_string_function(None, False)
+            numpy.set_string_function(None, True)
 
 
 def _add_neighbors_to_system(system, offset):
