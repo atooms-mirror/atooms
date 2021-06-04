@@ -23,8 +23,6 @@ class TrajectoryEXYZ(TrajectoryXYZ):
 
         # Trajectory file handle
         self.precision = 12
-        self._done_format_setup = False
-        self._fields_float = True
         self.trajectory = gopen(self.filename, self.mode)
         self.alias = {'pos': 'position',
                       'vel': 'velocity'}
