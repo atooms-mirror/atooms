@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
+import numpy
 
 from atooms.core.utils import mkdir
 from atooms.trajectory import Unfolded
@@ -299,6 +300,21 @@ A 1.0 -1.0 0.0
 """)
         with TrajectoryXYZ(finp) as th:
             self.assertEqual([s.cell.side[0] for s in th], [1.0, 2.0, 1.0, 3.0])
+
+    def test_xyz_position_unfolded(self):
+        """Test that unfolded positions are parsed, if present, and propagated to folded ones"""
+        finp = '/tmp/test_xyz/unfolded.xyz'
+        with open(finp, 'w') as fh:
+            fh.write("""\
+1
+step:0 cell:2.0,2.0,2.0 columns:species,position_unfolded
+A 1.1 11.1 21.1
+""")
+        with TrajectoryXYZ(finp) as th:
+            s = th[0]
+            self.assertAlmostEqual(s.particle[0].position_unfolded[0], 1.1)
+            self.assertAlmostEqual(s.particle[0].position[0], -0.9)
+            self.assertAlmostEqual(s.particle[0].position[1], -0.9)
 
     def tearDown(self):
         from atooms.core.utils import rmd
