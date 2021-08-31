@@ -373,7 +373,7 @@ def is_cell_variable(trajectory, tests=1):
     L0 = trajectory[0].cell.side
     for sample in range(frames-1, -1, -skip):
         L1 = trajectory[sample].cell.side
-        if L0[0] != L1[0] or L0[1] != L1[1] or L0[2] != L1[2]:
+        if numpy.any(L0 != L1):
             is_variable = True
             break
     return is_variable
