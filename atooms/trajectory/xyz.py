@@ -45,6 +45,14 @@ def _update_position(particle, data, meta):
     particle.position = numpy.array(data[0:ndim], dtype=float)
     return data[ndim:]
 
+def _update_position_unfolded(particle, data, meta):
+    from atooms.system.particle import _periodic_vector_unfolded
+    ndim = meta['ndim']
+    r = numpy.array(data[0:ndim], dtype=float)
+    particle.position_unfolded = r
+    particle.position = _periodic_vector_unfolded(r, meta['cell'])
+    return data[ndim:]
+
 def _update_velocity(particle, data, meta):
     ndim = meta['ndim']
     particle.velocity = numpy.array(data[0:ndim], dtype=float)
@@ -109,6 +117,7 @@ class TrajectoryXYZ(TrajectoryBase):
                      'pos': _update_position,
                      'vel': _update_velocity,
                      'position': _update_position,
+                     'position_unfolded': _update_position_unfolded,
                      'velocity': _update_velocity,
                      'neighbors': _update_neighbors,
                      'neighbors*': _update_neighbors_consume}
