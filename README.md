@@ -16,7 +16,7 @@ Quick start
 The goal of atooms is to provide a coherent interface to the basic objects of particle simulations, such as [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations. 
 The simulation data are stored in trajectory files, which are easy to analyze, manipulate and convert with atooms.
 
-In this simple example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format) composed by multiple frames. Each frame holds the state of the system at a given instant of time during the simulation. Accessing the coordinates of the particles in a trajectory file goes like this:
+In this quick example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format) composed by multiple frames. Each frame holds the state of the system at a given instant of time during the simulation. Accessing the coordinates of the particles in a trajectory file goes like this:
 ```python
 from atooms.trajectory import Trajectory
 
