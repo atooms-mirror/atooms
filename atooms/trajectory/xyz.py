@@ -50,7 +50,8 @@ def _update_position_unfolded(particle, data, meta):
     ndim = meta['ndim']
     r = numpy.array(data[0:ndim], dtype=float)
     particle.position_unfolded = r
-    particle.position = _periodic_vector_unfolded(r, meta['cell'])
+    if not 'position' in meta['columns']:
+        particle.position = _periodic_vector_unfolded(r, meta['cell'])
     return data[ndim:]
 
 def _update_velocity(particle, data, meta):
