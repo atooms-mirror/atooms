@@ -173,9 +173,9 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         from atooms.core.utils import is_array
 
         def detect_format(arg):
-            if isinstance(arg, numpy.float) or isinstance(arg, float):
+            if isinstance(arg, float):
                 return 'R'
-            elif isinstance(arg, numpy.int) or isinstance(arg, int):
+            elif isinstance(arg, int):
                 return 'I'
             else:
                 return 'S'
