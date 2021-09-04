@@ -242,8 +242,6 @@ class TrajectoryXYZ(TrajectoryBase):
                 
         # Note: numpy.array2string is MUCH slower
         numpy.set_string_function(array_fmt, repr=False)
-=======
->>>>>>> Work on Trajectory fields refactoring
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
