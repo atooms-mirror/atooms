@@ -8,7 +8,7 @@ import h5py
 import logging
 import copy
 
-from .base import TrajectoryBase, canonicalize
+from .base import TrajectoryBase
 from atooms.core import ndim
 from atooms.system import System
 from atooms.system.particle import Particle
@@ -214,8 +214,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.trajectory[pgr + 'lookup_points'] = [phi.npoints]
 
     def write_sample(self, system, step):
-        # Canonicalize variables
-        variables = canonicalize(self.variables)
+        variables = self.variables
         
         self.trajectory.create_group_safe('/trajectory')
         self.trajectory.create_group_safe('/trajectory/realtime')
@@ -367,8 +366,6 @@ class TrajectoryHDF5(TrajectoryBase):
             pi.species = r.species
             pi.radius = r.radius
 
-        # TODO: make variables a property so that we canonicalize only when it is changed
-            
         # Try update radii. This must be done after setting defaults.
         try:
             r = group['radius' + csample][:]

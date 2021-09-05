@@ -3,48 +3,64 @@
 
 import os
 import copy
+import warnings
+
 
 from .utils import get_block_size
 
 
-# Fields thesaurus: common synonims for fields, such as position -> pos
-# It can be used to match fields read by different trajectory classes.
-# The first element of each entry is the official one.
-FIELDS_DICTIONARY = [('particle.position', 'position', 'pos'),
-                     ('particle.velocity', 'velocity', 'vel'),
-                     ('particle.species', 'species', 'spe', 'id')]
+# FutureWarning must show a traceback so that the user can localize the deprecation
+# This should be moved up the chain
+def _warn_with_traceback(message, category, filename, lineno, file=None, line=None):
+    import traceback
+    import sys
+    if category is FutureWarning:
+        traceback.print_stack(file=sys.stderr, limit=6)
+    sys.stderr.write(warnings.formatwarning(message, category, filename, lineno, line))
 
-def canonicalize_fields(fields):
-    for i, field in enumerate(fields):
-        for entry in FIELDS_DICTIONARY:
-            if field in entry:
-                fields[i] = entry[0]
-                break
-    return fields
+warnings.showwarning = _warn_with_traceback
+
+thesaurus = {
+    'position': 'particle.position',
+    'pos': 'particle.position',
+    'x': 'particle.position[0]',
+    'y': 'particle.position[1]',
+    'z': 'particle.position[2]',
+    'velocity': 'particle.velocity',
+    'vel': 'particle.velocity',
+    'vx': 'particle.velocity[0]',
+    'vy': 'particle.velocity[1]',
+    'vz': 'particle.velocity[2]',
+    'id': 'particle.species',
+    'type': 'particle.species'
+}
+"""
+Common synonims for system attributes, such as
+particle.position -> pos    
+"""
 
 def canonicalize(fields, extra=None):
-    """Expand `shortcuts` present in `fields`"""
-    thesaurus = {'position': 'particle.position',
-                 'pos': 'particle.position',
-                 'x': 'particle.position[0]',
-                 'y': 'particle.position[1]',
-                 'z': 'particle.position[2]',
-                 'velocity': 'particle.velocity',
-                 'vel': 'particle.velocity',
-                 'vx': 'particle.velocity[0]',
-                 'vy': 'particle.velocity[1]',
-                 'vz': 'particle.velocity[2]',
-                 'id': 'particle.species',
-                 'type': 'particle.species'}
+    """
+    Replace entries in `fields` list with those found in `thesaurus`
+    global dictionary and optional `extra` dictionary.
+    """
+    if fields is None:
+        fields = []
+    _thesaurus = copy.copy(thesaurus)
     if extra is not None:
-        thesaurus.update(extra)
+        _thesaurus.update(extra)
     _fields = []
     for field in fields:
         try:
-            _fields.append(thesaurus[field])
+            _fields.append(_thesaurus[field])
         except KeyError:
             _fields.append(field)
     return _fields
+
+def canonicalize_fields(fields):
+    warnings.warn('canonicalize_fields() is deprecated, use canonicalize() instead', FutureWarning)
+    return canonicalize(fields)
+
 
 class TrajectoryBase(object):
     """
@@ -52,7 +68,7 @@ class TrajectoryBase(object):
 
     A trajectory is composed by one or several frames, each frame
     being a sample of a `System` taken at a given `step` during a
-    simulation. Trajectory instances are iterable and behave as file
+    simulation. Trajectory instances are iterable and have as file
     objects: they should be opened and closed using the `with` syntax
 
         #!python
@@ -126,28 +142,34 @@ class TrajectoryBase(object):
         self.filename = filename
         self.mode = mode
         self.callbacks = []
-        self.variables = []
-        self.constants = []
-        """
-        Lists of properties describing what system properties are written by
-        `write_sample` and/or read by `read_sample`. Subclasses may
-        use it to allow the user to modify the trajectory layout or
-        they can ignore it entirely.
-        """
         self.precision = 6
         self.metadata = {}
         """
         Dictionary of metadata about the trajectory. It can be used by
-        subclasses to hold trajectory format info or even dynamically
+        subclasses to hold trajectory format info or dynamically
         on a per sample basis,
         """
-        self._overwrite = False
+        self.thesaurus = {}
+        """
+        Extra entries for thesaurus
+        """
+        
         # These are cached properties
+        self._variables = []
+        """
+        List of system attributes to be written by `write_sample` and/or
+        read by `read_sample`. Its entries are canonicalized using
+        `self._thesaurus` everytime the attribute is set. Subclasses
+        may use it to allow the user to modify the trajectory layout
+        or they can ignore it entirely.
+        """
         self._steps = None
         self._timestep = None
         self._grandcanonical = None
         self._block_size = None
+        
         # Internal state
+        self._overwrite = False
         self._initialized_write = False
         self._initialized_read = False
         # Sanity checks
@@ -387,6 +409,26 @@ class TrajectoryBase(object):
     def write_block_size(self, value):
         pass
 
+    # Properties
+
+    @property
+    def variables(self):
+        return self._variables
+
+    @variables.setter
+    def variables(self, value):
+        self._variables = canonicalize(value, self.thesaurus)
+
+    @property
+    def fields(self):
+        warnings.warn('fields is deprecated, use variables instead', FutureWarning)
+        return self.variables
+
+    @fields.setter
+    def fields(self, value):
+        warnings.warn('fields is deprecated, use variables instead', FutureWarning)
+        self._variables = value # canonicalize(value, self.thesaurus)
+    
     @property
     def steps(self):
         if self._steps is None:

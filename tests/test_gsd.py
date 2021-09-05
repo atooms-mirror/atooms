@@ -31,7 +31,7 @@ class Test(unittest.TestCase):
         # Sanity checks.
         self.assertEqual(len(traj), 4)
         self.assertEqual(traj.steps, [0, 1, 2, 3])
-        self.assertEqual(traj[0].distinct_species(), ['A', 'B'])
+        self.assertEqual(traj[0].distinct_species, ['A', 'B'])
         self.assertTrue( np.all(np.isclose(traj[0].cell.side, np.array([10.68387318, 10.68387318, 10.68387318]), 1e-12)) )
         self.assertEqual(traj[0].number_of_dimensions, 3)
 
@@ -48,7 +48,7 @@ class Test(unittest.TestCase):
         # Sanity checks.
         self.assertEqual(len(traj), 4)
         self.assertEqual(traj.steps, [0, 1, 2, 3])
-        self.assertEqual(traj[0].distinct_species(), ['A', 'B'])
+        self.assertEqual(traj[0].distinct_species, ['A', 'B'])
         self.assertTrue( np.all(np.isclose(traj[0].cell.side, np.array([10.78327751, 10.78327751]), 1e-12)) )
         self.assertEqual(traj[0].number_of_dimensions, 2)
 

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import warnings
 from copy import copy
 import numpy as np
 
@@ -11,7 +12,6 @@ from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
 from atooms.trajectory.base import TrajectoryBase, canonicalize
-from atooms.trajectory.base import canonicalize_fields
 
 
 class TrajectoryGSD(TrajectoryBase):
@@ -23,13 +23,10 @@ class TrajectoryGSD(TrajectoryBase):
 
     def __init__(self, filename, mode='r', fields=None):
         super(TrajectoryGSD, self).__init__(filename, mode)
-        self._fields_default = ['id', 'pos']
-        self.fields = copy(self._fields_default) if fields is None else fields
-        self.fields = canonicalize_fields(self.fields)
-
-        if fields is not None:
-            print('fields is deprecated')
         self.variables = ['particle.species', 'particle.position']
+        if fields is not None:
+            self.variables = fields
+            warnings.warn('fields is deprecated, use variables instead', FutureWarning)
         
         # self.mode can be 'w' or 'r', but gsd is a binary format, so it only accepts 'wb' or 'rb'.
         file_mode = self.mode + "b"
@@ -71,8 +68,7 @@ class TrajectoryGSD(TrajectoryBase):
 
     def write_sample(self, system, step):
         """ Writes to the file handle self.trajectory."""
-        
-        variables = canonicalize(self.variables)
+        variables = self.variables
         data  = system.dump(['pos', 'vel', 'spe', 'particle.mass', 'particle.radius'])
         box = system.cell.side
         N = len(system.particle)

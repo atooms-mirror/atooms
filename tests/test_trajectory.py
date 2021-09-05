@@ -15,7 +15,7 @@ def almost_equal(x, y, rtol):
     try:
         numpy.testing.assert_allclose(x, y, rtol=rtol)
         return True
-    except AssertionError:
+    except AssertionError as exc:
         return False
 
 def _equal(system1, system2, ignore=None, verbose=True, precision=1e-10):
@@ -102,7 +102,8 @@ class Test(unittest.TestCase):
         #     th = cls(path, 'w', fields=write_fields)
         # except TypeError:
         th = cls(path, 'w')
-        th.variables = write_fields
+        if write_fields is not None:
+            th.variables = write_fields
         th.write_timestep(1.0)
         for i, system in enumerate(self.system):
             th.write(system, i)
@@ -113,7 +114,8 @@ class Test(unittest.TestCase):
         #     th = cls(path, fields=read_fields)
         # except TypeError:
         th = cls(path)
-        th.variables = read_fields
+        if read_fields is not None:
+            th.variables = read_fields
         self.assertEqual(th.timestep, 1.0)
         for i, system in enumerate(th):
             if fail is not None:
@@ -301,7 +303,7 @@ class Test(unittest.TestCase):
             th.write(self.system[0], 1)
         # TODO: supertrajectories should propagate fields but currently do not
         with trj.rumd.SuperTrajectoryRUMD(self.inpdir) as th:
-            th.fields = ['type', 'x', 'y', 'z']
+            th.variables = ['type', 'x', 'y', 'z']
             system = th[0]
             self.assertTrue(_equal(self.system[0], system, ignore=['mass']), fail=True)
             self.assertTrue(self.system[0].__class__ is system.__class__)

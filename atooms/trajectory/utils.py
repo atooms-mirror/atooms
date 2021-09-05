@@ -76,24 +76,27 @@ def modify_fields(trajectory, variables=None, include=None, exclude=None):
     Either provide a new list of variables, such as ['id', 'x', 'y'], or
     specify explicit patterns to exclude or include.
     """
-    from atooms.trajectory.base import canonicalize_fields
-    if variables is not None:
-        # Reset the output format
-        trajectory.variables = variables
-    else:
-        canonicalize_fields(trajectory.variables)
+    from atooms.trajectory.base import canonicalize
+    
+    if variables is None:
+        # Get a copy of the variables
+        variables = copy.copy(trajectory.variables)
+        
         # Exclude and/or include lists of patterns from output format
+        # They must be canonicalized because variables is.
         if exclude is not None:
-            canonicalize_fields(exclude)
+            exclude = canonicalize(exclude)
             for pattern in exclude:
-                if pattern in trajectory.variables:
-                    trajectory.variables.remove(pattern)
+                if pattern in variables:
+                    variables.remove(pattern)
         if include is not None:
-            canonicalize_fields(include)
+            include = canonicalize(include)
             for pattern in include:
-                if pattern not in trajectory.variables:
-                    trajectory.variables.append(pattern)
-
+                if pattern not in variables:
+                    variables.append(pattern)
+        
+    # Reset the output format
+    trajectory.variables = variables
     return trajectory
 
 
@@ -114,7 +117,7 @@ def convert(inp, out, fout, force=True, variables=None,
     Return: name of converted trajectory file
     """
     from atooms.trajectory import Trajectory
-    from atooms.trajectory.base import canonicalize_fields
+    
     if isinstance(out, str):
         out_class = Trajectory.formats[out]
     else:
@@ -123,7 +126,7 @@ def convert(inp, out, fout, force=True, variables=None,
     if variables is None and len(inp.variables) > 0 and (include is None or len(include) == 0):
         # We automatically include all variables from the input trajectory
         # Since the output trajectory may have extra variables, we do should not overwrite them
-        include = canonicalize_fields(inp.variables)
+        include = inp.variables
 
     if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
         print('File exists, conversion skipped')

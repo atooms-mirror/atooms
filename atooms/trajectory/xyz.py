@@ -7,7 +7,7 @@ import re
 import logging
 from copy import copy
 from .simple import TrajectorySimpleXYZ
-from .base import TrajectoryBase, canonicalize
+from .base import TrajectoryBase
 from .utils import gopen
 from atooms.core.utils import tipify
 from atooms.system.particle import Particle, distinct_species
@@ -76,22 +76,53 @@ def _update_neighbors(particle, data, meta):
         particle.neighbors = numpy.array(data, dtype=int)
         return []
 
-def _optimize_variables(variables):
-    # TODO: this should be more clever, say we had a 2d simulation
-    #       embedded in 3d we want only to read x and y but this will
-    #       force to read a full vector and it may even cause problems
+
+def scalars_to_arrays(variables):
+    import re
     new_variables = []
+    last_var, last_idx = None, None
     for variable in variables:
-        if variable == 'x':
-            new_variables.append('particle.position')
-        elif variable == 'vx':
-            new_variables.append('particle.velocity')
-        elif variable in ['y', 'z', 'vy', 'vz']:
-            pass
+        # This will match array expressions like position[0]
+        all_matches = re.findall('(\w+)\[(\d+)\]', variable)
+
+        # This must be a single couple (variable, index) or nothing
+        if len(all_matches) == 1:
+            match = all_matches[0]
+        elif len(all_matches) == 0:
+            match = []
         else:
-            new_variables.append(variable)
+            raise ValueError('problem with variable {}'.format(variable))
+            
+        if len(match) == 2:
+            # This is an array element
+            # Extract variable name and array index
+            var, idx = match[0], int(match[1])
+            if last_var != var and last_idx is not None:
+                # We have two consecutive different arrays
+                new_variables.append(last_var)
+            last_var = var
+            last_idx = idx
+        elif len(match) == 0:
+            var = variable
+            if last_var != var and last_idx is not None:
+                # We just finished reading an array variable
+                # We store it and also the next 
+                new_variables.append(last_var)
+            new_variables.append(var)
+            last_var = var
+            last_idx = None
+        else:
+            raise ValueError('problem with variable {}'.format(variable))
+
+    if last_idx is not None:
+        # We get here if the last was an array element
+        new_variables.append(last_var)        
     return new_variables
 
+# print(scalars_to_arrays(['pos[0]', 'pos[1]', 'pos[2]']))
+# print(scalars_to_arrays(['pos[0]', 'pos[1]', 'vel[0]', 'vel[1]']))
+# print(scalars_to_arrays(['pos[0]', 'pos[1]', 'pos[2]', 'hello']))
+# print(scalars_to_arrays(['hello', 'pos[0]', 'pos[1]', 'pos[2]']))
 
 class TrajectoryXYZ(TrajectoryBase):
 
@@ -143,10 +174,11 @@ class TrajectoryXYZ(TrajectoryBase):
         if self.mode == 'r':
             # Internal index of lines via seek and tell.
             self._setup_index()
-            # Read metadata
+            # Initialize metadata and variables
             self.metadata = self._read_comment(0)
-            # Update schema
-            self._setup_schema()
+            if 'columns' in self.metadata:
+                self.variables = self.metadata['columns']
+            self._original_variables = copy(self.variables)
             self._active_read_callbacks = None
 
     def _setup_format(self):
@@ -212,19 +244,13 @@ class TrajectoryXYZ(TrajectoryBase):
         assert len(self._index_frame) > 0, 'empty file {}'.format(self.trajectory)
         assert len(self._index_header) > 0, 'empty file {}'.format(self.trajectory)
 
-    def _setup_schema(self):
-        """
-        Update variables and constants from trajectory metadata
-        """
-        # Default fields: metadata has priority
-        if 'columns' in self.metadata:
-            self.variables = self.metadata['columns']
-        # Replace some column keys with more efficient ones
-        # Some subclasses may not want to do that
-        self.variables = _optimize_variables(self.variables)
-        # Store a copy of fields in a cache variable
-        # This way we can avoid setup if the fields have not changed
-        self._original_variables = copy(self.variables)
+    # Overwrite the variables setter to optimize the variables
+    @TrajectoryBase.variables.setter
+    def variables(self, value):
+        # TODO: make a static method?
+        from atooms.trajectory.base import canonicalize
+        self._variables = canonicalize(value, self.thesaurus)
+        self._variables = scalars_to_arrays(self._variables)
 
     def read_steps(self):
         """Find steps list."""
@@ -317,15 +343,10 @@ class TrajectoryXYZ(TrajectoryBase):
         # Similarly, we assume that columns do not change
         if self._active_read_callbacks is not None:
             return self._active_read_callbacks
-
-        # Check that we have not reset the variables
-        if self.variables is None:
-            self.variables = self._original_variables
         
-        # Define active callbacks before reading the sample.
-        # We handle the case in which the user has removed some
-        # variables, and self.variables is a subset of
-        # self._original_variables
+        # Define active callbacks before reading the sample. We
+        # handle the case in which the user removed some variables,
+        # and self.variables is a subset of variables_in_files
         callbacks = []
         test_particle = Particle()
         for key in self._original_variables:
@@ -365,7 +386,6 @@ def fallback(p, data, meta):
         # Define actual list of callbacks
         self._setup_read_callbacks()
         callbacks = self._active_read_callbacks
-        
         # Read metadata of this frame
         db = self._read_comment(frame)
 
@@ -434,11 +454,11 @@ def fallback(p, data, meta):
         _numpy_fmt_lock = True
         self._setup_format()
         self.trajectory.write('%d\n' % len(system.particle))
+        # column in comment used to have non-canonical variables
+        # we could restore it by adding a de_canonicalize() function
+        # or by storing a copy of the non-canonical variables
         self.trajectory.write(self._comment(step, system) + '\n')
-        # Canonicalize variables now.
-        # The comment header keeps the non-canonical fields
-        variables = canonicalize(self.variables)
-        fmt = ' '.join(['{0.' + variable.split('particle.')[-1] + '}' for variable in variables]) + '\n'
+        fmt = ' '.join(['{0.' + variable.split('particle.')[-1] + '}' for variable in self.variables]) + '\n'
         for i, p in enumerate(system.particle):
             p._index = i
             p._step = step
@@ -470,14 +490,16 @@ class TrajectoryNeighbors(TrajectoryXYZ):
     comma-separated entries (no space).
     """
 
-    _fields_default = ['neighbors*']
-
     def __init__(self, filename, mode='r', fields=None, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename, mode=mode,
                                                   alias={'time': 'step'})
         self._offset = offset
+        self.thesaurus = {'neighbors': 'particle.neighbors',
+                          'neighbors*': 'particle.neighbors*',}
         if mode == 'w':
-            self.fields = ['neighbors'] if fields is None else fields
-        self.callback_read['neighbors'] = _update_neighbors
-        self.callback_read['neighbors*'] = _update_neighbors_consume
+            self.variables = ['neighbors'] if fields is None else fields
+        if mode == 'r' and 'columns' not in self.metadata:
+            self.variables = ['neighbors*']
+        self.callback_read['particle.neighbors'] = _update_neighbors
+        self.callback_read['particle.neighbors*'] = _update_neighbors_consume
         self.add_callback(_add_neighbors_to_system, self._offset)

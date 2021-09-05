@@ -26,8 +26,8 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         self.trajectory = gopen(self.filename, self.mode)
         self.alias = {'pos': 'position',
                       'vel': 'velocity'}
-        self.fields = ['species', 'position']
-
+        self.thesaurus = {'species': 'particle.species'}
+        self.variables = ['species', 'pos']
         # Internal index of lines via seek and tell.
         if self.mode == 'r':
             self._setup_index()
@@ -35,6 +35,9 @@ class TrajectoryEXYZ(TrajectoryXYZ):
             assert len(self._index_header) > 0, 'empty file {}'.format(self.trajectory)
             # Read metadata
             self.metadata = self._read_comment(0)
+            # Note: currently, changing variables in read mode will
+            # not affect which attributes are parsed
+            self.variables = [key for key, _, _ in self.metadata['Properties']]
 
     def _read_comment(self, frame):
         """
@@ -97,7 +100,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
     def read_sample(self, frame):
         # Read metadata of this frame
         meta = self._read_comment(frame)
-
+        
         # Get number of particles
         self.trajectory.seek(self._index_header[frame])
         npart = int(self.trajectory.readline())
@@ -169,9 +172,8 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         return line.strip()
 
     def write_sample(self, system, step):
-        #self.fields = ['species', 'position', 'mass', 'radius', 'velocity']
         from atooms.core.utils import is_array
-
+        
         def detect_format(arg):
             if isinstance(arg, float):
                 return 'R'
@@ -180,33 +182,22 @@ class TrajectoryEXYZ(TrajectoryXYZ):
             else:
                 return 'S'
 
-        # Collect properties of exyz format
-        self._properties = []
-        for field in self.fields:
-            # Look for shortcuts
-            if field in self.alias:
-                attr = self.alias[field]
-            else:
-                attr = field
+        properties = []
+        for variable in self.variables:
+            attr = variable.split('.')[1]
             # Guess attribute features (ndim, fmt)
             val = getattr(system.particle[0], attr)
             if is_array(val):
                 ndim, fmt = len(val), detect_format(val[0])
             else:
                 ndim, fmt = 1, detect_format(val)
-            self._properties.append([field, fmt, ndim])
-
+            properties.append([attr, fmt, ndim])
+        # TODO: this should be aliased to stick with shortcuts
+        self._properties = properties
+            
         # Write header
         self.trajectory.write('{}\n'.format(len(system.particle)))
         self.trajectory.write(self._comment(step, system) + '\n')
-
-        # Replace aliases to access particle attributes
-        import copy
-        properties = copy.copy(self._properties)
-        for i in range(len(properties)):
-            key, fmt, ndims = properties[i]
-            if key in self.alias:
-                properties[i][0] = self.alias[key]
 
         # Formatters
         alias_fmt = {'S': '{} ',
