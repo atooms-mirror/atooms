@@ -27,6 +27,10 @@ class TrajectoryGSD(TrajectoryBase):
         self.fields = copy(self._fields_default) if fields is None else fields
         self.fields = canonicalize_fields(self.fields)
 
+        if fields is not None:
+            print('fields is deprecated')
+        self.variables = ['particle.species', 'particle.position']
+        
         # self.mode can be 'w' or 'r', but gsd is a binary format, so it only accepts 'wb' or 'rb'.
         file_mode = self.mode + "b"
         # Trajectory file handle
@@ -96,11 +100,11 @@ class TrajectoryGSD(TrajectoryBase):
 
         snap.particles.position = pos   # atooms.system and gsd both save positions from -L/2 to L/2.
         snap.particles.typeid = typeid
-        if 'velocity' in self.fields:
+        if 'particle.velocity' in self.variables:
             snap.particles.velocity = vel
-        if 'mass' in self.fields:
+        if 'particle.mass' in self.variables:
             snap.particles.mass = mass
-        if 'diameter' in self.fields:
+        if 'particle.diameter' in self.variables:
             snap.particles.diameter = 2 * radius
 
         self.trajectory.append(snap)

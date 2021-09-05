@@ -22,6 +22,29 @@ def canonicalize_fields(fields):
                 break
     return fields
 
+def canonicalize(fields, extra=None):
+    """Expand `shortcuts` present in `fields`"""
+    thesaurus = {'position': 'particle.position',
+                 'pos': 'particle.position',
+                 'x': 'particle.position[0]',
+                 'y': 'particle.position[1]',
+                 'z': 'particle.position[2]',
+                 'velocity': 'particle.velocity',
+                 'vel': 'particle.velocity',
+                 'vx': 'particle.velocity[0]',
+                 'vy': 'particle.velocity[1]',
+                 'vz': 'particle.velocity[2]',
+                 'id': 'particle.species',
+                 'type': 'particle.species'}
+    if extra is not None:
+        thesaurus.update(extra)
+    _fields = []
+    for field in fields:
+        try:
+            _fields.append(thesaurus[field])
+        except KeyError:
+            _fields.append(field)
+    return _fields
 
 class TrajectoryBase(object):
     """
@@ -52,16 +75,16 @@ class TrajectoryBase(object):
         with Trajectory(outfile, 'w') as th:
             th.write(system, step=0)
 
-    Trajectories can use the `fields` variable to define which system
+    Trajectories can use the `variables` attribute to define which system
     properties will be written to disk. Concrete classes may thus
-    provide means to write arbitrary fields to disk via particle
+    provide means to write arbitrary variables to disk via particle
     properties. Example:
 
         #!python
         for particle in system:
             particle.some_custom_property = 1.0
         with Trajectory(outfile, 'w') as th:
-            th.fields = ['position', 'some_custom_property']
+            th.variables = ['position', 'some_custom_property']
             th.write(system, step=0)
 
     To be fully functional, concrete classes must implement
@@ -435,7 +458,7 @@ class SuperTrajectory(TrajectoryBase):
     """Collection of subtrajectories."""
 
     # Optimized version
-    # TODO: supertrajectory should propagate fields/schema
+    # TODO: supertrajectory should propagate variables/constants
 
     def __init__(self, files, trajectoryclass, mode='r'):
         """

@@ -8,7 +8,7 @@ import h5py
 import logging
 import copy
 
-from .base import TrajectoryBase
+from .base import TrajectoryBase, canonicalize
 from atooms.core import ndim
 from atooms.system import System
 from atooms.system.particle import Particle
@@ -214,6 +214,9 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.trajectory[pgr + 'lookup_points'] = [phi.npoints]
 
     def write_sample(self, system, step):
+        # Canonicalize variables
+        variables = canonicalize(self.variables)
+        
         self.trajectory.create_group_safe('/trajectory')
         self.trajectory.create_group_safe('/trajectory/realtime')
         self.trajectory.create_group_safe('/trajectory/realtime/stepindex')
@@ -231,16 +234,16 @@ class TrajectoryHDF5(TrajectoryBase):
 
         if system.particle is not None:
             self.trajectory.create_group_safe('/trajectory/particle')
-            if 'particle.position' in self.variables:
+            if 'particle.position' in variables:
                 self.trajectory.create_group_safe('/trajectory/particle/position')
                 self.trajectory['/trajectory/particle/position' + csample] = [p.position for p in system.particle]
-            if 'particle.velocity' in self.variables:
+            if 'particle.velocity' in variables:
                 self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
                 self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if 'particle.radius' in self.variables:
+            if 'particle.radius' in variables:
                 self.trajectory.create_group_safe('/trajectory/particle/radius')
                 self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
-            if 'particle.species' in self.variables:
+            if 'particle.species' in variables:
                 self.trajectory.create_group_safe('/trajectory/particle/species')
                 data = ['%-3s' % p.species for p in system.particle]
                 self.trajectory['/trajectory/particle/species' + csample] = [_.encode() for _ in data]
@@ -364,6 +367,8 @@ class TrajectoryHDF5(TrajectoryBase):
             pi.species = r.species
             pi.radius = r.radius
 
+        # TODO: make variables a property so that we canonicalize only when it is changed
+            
         # Try update radii. This must be done after setting defaults.
         try:
             r = group['radius' + csample][:]

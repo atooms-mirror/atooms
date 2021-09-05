@@ -7,7 +7,7 @@ import re
 import logging
 from copy import copy
 from .simple import TrajectorySimpleXYZ
-from .base import TrajectoryBase
+from .base import TrajectoryBase, canonicalize
 from .utils import gopen
 from atooms.core.utils import tipify
 from atooms.system.particle import Particle, distinct_species
@@ -76,28 +76,21 @@ def _update_neighbors(particle, data, meta):
         particle.neighbors = numpy.array(data, dtype=int)
         return []
 
-def _optimize_fields(fields):
+def _optimize_variables(variables):
     # TODO: this should be more clever, say we had a 2d simulation
     #       embedded in 3d we want only to read x and y but this will
     #       force to read a full vector and it may even cause problems
-    if 'x' in fields:
-        fields[fields.index('x')] = 'pos'
-    if 'vx' in fields:
-        fields[fields.index('vx')] = 'vel'
-    for tag in ['y', 'z', 'vy', 'vz']:
-        if tag in fields:
-            fields.remove(tag)
-    return fields
-
-def _expand_fields(fields, shortcuts):
-    """Expand `shortcuts` present in `fields`"""
-    _fields = []
-    for field in fields:
-        try:
-            _fields.append(shortcuts[field])
-        except KeyError:
-            _fields.append(field)
-    return _fields
+    new_variables = []
+    for variable in variables:
+        if variable == 'x':
+            new_variables.append('particle.position')
+        elif variable == 'vx':
+            new_variables.append('particle.velocity')
+        elif variable in ['y', 'z', 'vy', 'vz']:
+            pass
+        else:
+            new_variables.append(variable)
+    return new_variables
 
 
 class TrajectoryXYZ(TrajectoryBase):
@@ -139,26 +132,11 @@ class TrajectoryXYZ(TrajectoryBase):
         }
         if fields is not None:
             self.variables = fields
-            print('fields is deprecated, set trajectory.variables instead')
             warnings.warn('fields is deprecated, set trajectory.variables instead', FutureWarning)
 
         self.alias = {} if alias is None else alias
-
         # Internal variables
         self._cell = None
-        self._shortcuts = {'position': 'particle.position',
-                           'pos': 'particle.position',
-                           'x': 'particle.position[0]',
-                           'y': 'particle.position[1]',
-                           'z': 'particle.position[2]',
-                           'velocity': 'particle.velocity',
-                           'vel': 'particle.velocity',
-                           'vx': 'particle.velocity[0]',
-                           'vy': 'particle.velocity[1]',
-                           'vz': 'particle.velocity[2]',
-                           'id': 'particle.species',
-                           'type': 'particle.species'}
-
         # Trajectory file handle
         self.trajectory = gopen(self.filename, self.mode)
 
@@ -170,55 +148,6 @@ class TrajectoryXYZ(TrajectoryBase):
             # Update schema
             self._setup_schema()
             self._active_read_callbacks = None
-            # TODO: not sure about the order at 2bf6e3e
-            # Redefine fields
-            self._setup_fields()
-
-    def _setup_fields(self):
-        """
-        Redefine fields.
-
-        If set by the user, self.fields takes precedence on columns metadata.
-        - fields is default and columns is present: read everything
-        - fields is default and columns not present: read from fields
-        - fields is set by user and columns is present: pad
-        - fields is set by user but columns not present: read from fields
-        """
-        if self.fields == self._fields_default:
-            # Default fields: metadata has priority
-            if 'columns' in self.metadata:
-                self.fields = self.metadata['columns']
-        # TODO: we may be breaking stuff here, but if the user
-        #       requests some fields why should we pad anything? Only
-        #       those fields should be read and it is the user
-        #       responsibility to provide a full list of them. This
-        #       will simplify things quite a bit
-
-        else:
-            # Fields set by user: pad missing fields if columns metadata are present
-            if 'columns' in self.metadata:
-                fields = []
-                for key in self.metadata['columns']:
-                    if key in self.fields + _optimize_fields(self.fields):
-                        fields.append(key)
-                    else:
-                        fields.append(None)
-                self.fields = fields
-
-        # Replace some column keys with more efficient ones
-        # TODO: some subclasses may not want to optimize fields
-        self.fields = _optimize_fields(self.fields)
-
-        # Remove skippable fields
-        for key in self.fields[-1::-1]:
-            if key is None:
-                self.fields.pop()
-            else:
-                break
-
-        # Store a copy of fields in a cache variable
-        # We can avoid setup if the fields have not changed
-        self.__cache_fields = copy(self.fields)
 
     def _setup_format(self):
         _fmt_any = '{}'
@@ -292,47 +221,11 @@ class TrajectoryXYZ(TrajectoryBase):
             self.variables = self.metadata['columns']
         # Replace some column keys with more efficient ones
         # Some subclasses may not want to do that
-        self.variables = self._optimize_variables()
+        self.variables = _optimize_variables(self.variables)
         # Store a copy of fields in a cache variable
-        # We can avoid setup if the fields have not changed
+        # This way we can avoid setup if the fields have not changed
         self._original_variables = copy(self.variables)
-        
-    def _setup_format(self):
-        # %g allows to format both float and int but it's 2x slower.
-        # This switch is for performance
-        if self._fields_float:
-            _fmt = '%.' + str(self.precision) + 'f'
-        else:
-            _fmt = '%g'
 
-        def array_fmt(arr):
-            """Remove commas and [] from numpy array repr."""
-            # Passing a scalar will trigger an error (gotcha: even
-            # when casting numpy array to list, the elements remain of
-            # numpy type and this function gets called! (4% slowdown)
-            try:
-                return ' '.join([_fmt % x for x in arr])
-            except:
-                return _fmt % arr
-                # Note: numpy.array2string is MUCH slower
-        numpy.set_string_function(array_fmt, repr=False)
-
-    def _optimize_variables(self):
-        # TODO: this should be more clever, say we had a 2d simulation
-        #       embedded in 3d we want only to read x and y but this will
-        #       force to read a full vector and it may even cause problems
-        variables = []
-        for variable in self.variables:
-            if variable == 'x':
-                variables.append('particle.position')
-            elif variable == 'vx':
-                variables.append('particle.velocity')
-            elif variable in ['y', 'z', 'vy', 'vz']:
-                pass
-            else:
-                variables.append(variable)
-        return variables
-        
     def read_steps(self):
         """Find steps list."""
         steps = []
@@ -425,15 +318,14 @@ class TrajectoryXYZ(TrajectoryBase):
         if self._active_read_callbacks is not None:
             return self._active_read_callbacks
 
+        # Check that we have not reset the variables
         if self.variables is None:
             self.variables = self._original_variables
         
-        # Internal callback to skip a variable
-        def _skip(p, data, meta):
-            # TODO: hey, what about skipping a field like position??
-            return data[1:]
-
-        # Define active callbacks before reading the sample
+        # Define active callbacks before reading the sample.
+        # We handle the case in which the user has removed some
+        # variables, and self.variables is a subset of
+        # self._original_variables
         callbacks = []
         test_particle = Particle()
         for key in self._original_variables:
@@ -468,12 +360,12 @@ def fallback(p, data, meta):
                 callbacks.append(namespace['fallback'])
 
         self._active_read_callbacks = callbacks
-        return callbacks
                 
     def read_sample(self, frame):
         # Define actual list of callbacks
-        callbacks = self._setup_read_callbacks()
-
+        self._setup_read_callbacks()
+        callbacks = self._active_read_callbacks
+        
         # Read metadata of this frame
         db = self._read_comment(frame)
 
@@ -499,11 +391,11 @@ def fallback(p, data, meta):
                 if len(species) != len(db['mass']):
                     raise ValueError('mass metadata issue %s, %s' %
                                      (species, db['mass']))
-                db = {}
+                db_species = {}
                 for key, value in zip(species, db['mass']):
-                    db[key] = value
+                    db_species[key] = value
                 for p in particle:
-                    p.mass = float(db[p.species])
+                    p.mass = float(db_species[p.species])
             else:
                 for p in particle:
                     p.mass = float(db['mass'])
@@ -543,8 +435,9 @@ def fallback(p, data, meta):
         self._setup_format()
         self.trajectory.write('%d\n' % len(system.particle))
         self.trajectory.write(self._comment(step, system) + '\n')
-        # Expand shortcut fields now (the comment header keeps the shortcuts)
-        variables = _expand_fields(self.variables, self._shortcuts)
+        # Canonicalize variables now.
+        # The comment header keeps the non-canonical fields
+        variables = canonicalize(self.variables)
         fmt = ' '.join(['{0.' + variable.split('particle.')[-1] + '}' for variable in variables]) + '\n'
         for i, p in enumerate(system.particle):
             p._index = i
