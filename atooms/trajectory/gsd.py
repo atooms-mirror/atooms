@@ -10,7 +10,7 @@ import gsd.hoomd
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
-from atooms.trajectory.base import TrajectoryBase
+from atooms.trajectory.base import TrajectoryBase, canonicalize
 from atooms.trajectory.base import canonicalize_fields
 
 
@@ -71,7 +71,8 @@ class TrajectoryGSD(TrajectoryBase):
 
     def write_sample(self, system, step):
         """ Writes to the file handle self.trajectory."""
-
+        
+        variables = canonicalize(self.variables)
         data  = system.dump(['pos', 'vel', 'spe', 'particle.mass', 'particle.radius'])
         box = system.cell.side
         N = len(system.particle)
@@ -100,11 +101,11 @@ class TrajectoryGSD(TrajectoryBase):
 
         snap.particles.position = pos   # atooms.system and gsd both save positions from -L/2 to L/2.
         snap.particles.typeid = typeid
-        if 'particle.velocity' in self.variables:
+        if 'particle.velocity' in variables:
             snap.particles.velocity = vel
-        if 'particle.mass' in self.variables:
+        if 'particle.mass' in variables:
             snap.particles.mass = mass
-        if 'particle.diameter' in self.variables:
+        if 'particle.diameter' in variables:
             snap.particles.diameter = 2 * radius
 
         self.trajectory.append(snap)

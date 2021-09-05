@@ -11,18 +11,24 @@ from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD
 from atooms.trajectory.base import TrajectoryBase
 import atooms.trajectory as trj
 
+def almost_equal(x, y, rtol):
+    try:
+        numpy.testing.assert_allclose(x, y, rtol=rtol)
+        return True
+    except AssertionError:
+        return False
 
-def _equal(system1, system2, ignore=None, verbose=True):
+def _equal(system1, system2, ignore=None, verbose=True, precision=1e-10):
     check = {}
     check['npart'] = len(system1.particle) == len(system2.particle)
     check['side'] = all(system1.cell.side == system1.cell.side)
     for p1, p2 in zip(system1.particle, system2.particle):
-        # TODO: there can be roundoffs with gsd? it should be up to precision
-        print('EQUAL', '{:.12g}'.format(p1.position[0]), '{:.12g}'.format(p2.position[0]), p1.position[0] - p2.position[0], all(p1.position == p2.position))
-        check['position'] = all(p1.position == p2.position)
+        # There is roundoffs with gsd! It is surprising because it is a binary format. It should be up to machine precision... difference is 10 places
+        # check['position'] = all(p1.position == p2.position)
+        check['position'] = almost_equal(p1.position, p2.position, rtol=precision)
+        check['velocity'] = almost_equal(p1.velocity, p2.velocity, rtol=precision)
         check['mass'] = p1.mass == p2.mass
         check['species'] = p1.species == p2.species
-        check['velocity'] = all(p1.velocity == p2.velocity)
     for key in check:
         if ignore is not None and key in ignore:
             continue
@@ -32,15 +38,15 @@ def _equal(system1, system2, ignore=None, verbose=True):
             return False
     return True
 
-def _difference(system1, system2, ignore=None):
+def _difference(system1, system2, ignore=None, precision=1e-10):
     check = {}
     check['npart'] = len(system1.particle) == len(system2.particle)
     check['side'] = all(system1.cell.side == system1.cell.side)
     for p1, p2 in zip(system1.particle, system2.particle):
-        check['position'] = all(p1.position == p2.position)
+        check['position'] = almost_equal(p1.position, p2.position, rtol=precision)
+        check['velocity'] = almost_equal(p1.velocity, p2.velocity, rtol=precision)
         check['mass'] = p1.mass == p2.mass
         check['species'] = p1.species == p2.species
-        check['velocity'] = all(p1.velocity == p2.velocity)
     diffs = []
     for key in check:
         if ignore is not None and key in ignore:
@@ -72,7 +78,7 @@ class Test(unittest.TestCase):
         from atooms.core.utils import mkdir
         mkdir(self.inpdir)
 
-    def _read_write(self, cls, path=None, ignore=None):
+    def _read_write(self, cls, path=None, ignore=None, precision=1e-10):
         """Read and write"""
         if path is None:
             path = self.inpfile
@@ -83,10 +89,10 @@ class Test(unittest.TestCase):
         with cls(path) as th:
             self.assertEqual(th.timestep, 1.0)
             for i, system in enumerate(th):
-                self.assertTrue(_equal(self.system[i], system, ignore))
+                self.assertTrue(_equal(self.system[i], system, ignore, precision=precision))
                 self.assertTrue(self.system[i].__class__ is system.__class__)
 
-    def _read_write_fields(self, cls, write_fields=None, read_fields=None, path=None, ignore=None, fail=None):
+    def _read_write_fields(self, cls, write_fields=None, read_fields=None, path=None, ignore=None, fail=None, precision=1e-10):
         """Read and write with fields"""
         if path is None:
             path = self.inpfile
@@ -111,9 +117,9 @@ class Test(unittest.TestCase):
         self.assertEqual(th.timestep, 1.0)
         for i, system in enumerate(th):
             if fail is not None:
-                self.assertTrue(set(_difference(self.system[i], system, ignore)) == set(fail))
+                self.assertTrue(set(_difference(self.system[i], system, ignore, precision=precision)) == set(fail))
             else:
-                self.assertTrue(_equal(self.system[i], system, ignore, verbose=False))
+                self.assertTrue(_equal(self.system[i], system, ignore, verbose=False, precision=precision))
             self.assertTrue(self.system[i].__class__ is system.__class__)
         th.close()
 
@@ -223,7 +229,7 @@ class Test(unittest.TestCase):
         except ImportError:
             self.skipTest('missing gsd')
 
-        self._read_write(trj.TrajectoryGSD, ignore=['mass', 'velocity'])
+        self._read_write(trj.TrajectoryGSD, ignore=['mass', 'velocity'], precision=1e-7)
         #self._convert(trj.TrajectoryGSD, 'gsd', ignore=['mass', 'velocity'])
         #self._read_write_fields(trj.TrajectoryGSD, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'position', 'velocity'], ignore=['mass'])
         ## This must fail: writing velocities but not reading them
