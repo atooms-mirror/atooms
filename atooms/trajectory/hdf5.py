@@ -327,8 +327,7 @@ class TrajectoryHDF5(TrajectoryBase):
             potentials.append(p)
         return Interaction(potentials, name)
 
-    def read_sample(self, frame, unfolded=False):
-        # TODO: due to unfolded argument this differs from the base class method Can we drop this?
+    def read_sample(self, frame):
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
@@ -336,23 +335,24 @@ class TrajectoryHDF5(TrajectoryBase):
         csample = '/' + keys[frame]
         # read particles
         group = self.trajectory['/trajectory/particle']
-        if unfolded:
-            if 'position_unfolded' not in group:
-                raise NotImplementedError('cannot unfold like this, use decorator instead')
+        pos = group['position' + csample][:]
+        
+        if 'position_unfolded' in group:
+            # fix for unfolded positions that were not written at the first step
+            # should be fixed once and for all in md.x
+            if frame == 0:
+                pos_unf = self.trajectory['/initialstate/particle/position'][:]
             else:
-                # fix for unfolded positions that were not written at the first step
-                # should be fixed once and for all in md.x
-                if frame == 0:
-                    pos = self.trajectory['/initialstate/particle/position'][:]
-                else:
-                    pos = group['position_unfolded' + csample][:]
-        else:
-            pos = group['position' + csample][:]
+                pos_unf = group['position_unfolded' + csample][:]
+            if 'particle.position_unfolded' not in self.variables:
+                self.variables.append('particle.position_unfolded')
 
-        try:
+        if 'velocity' in group:
             vel = group['velocity' + csample][:]
-        except:
-            vel = numpy.zeros([len(pos), ndim])
+        else:
+            vel = numpy.zeros((len(pos), ndim))
+            if 'particle.velocity' not in self.variables:
+                self.variables.remove('particle.velocity')
 
         # Dynamic properties
         p = []
@@ -361,10 +361,10 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2
-        for pi, r in zip(p, self._system.particle):
-            pi.mass = r.mass
-            pi.species = r.species
-            pi.radius = r.radius
+        for pi, po in zip(p, self._system.particle):
+            pi.mass = po.mass
+            pi.species = po.species
+            pi.radius = po.radius
 
         # Try update radii. This must be done after setting defaults.
         try:
