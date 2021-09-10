@@ -27,7 +27,7 @@ class TrajectoryGSD(TrajectoryBase):
         if fields is not None:
             self.variables = fields
             warnings.warn('fields is deprecated, use variables instead', FutureWarning)
-        
+
         # self.mode can be 'w' or 'r', but gsd is a binary format, so it only accepts 'wb' or 'rb'.
         file_mode = self.mode + "b"
         # Trajectory file handle

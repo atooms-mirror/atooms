@@ -77,11 +77,11 @@ def modify_fields(trajectory, variables=None, include=None, exclude=None):
     specify explicit patterns to exclude or include.
     """
     from atooms.trajectory.base import canonicalize
-    
+
     if variables is None:
         # Get a copy of the variables
         variables = copy.copy(trajectory.variables)
-        
+
         # Exclude and/or include lists of patterns from output format
         # They must be canonicalized because variables is.
         if exclude is not None:
@@ -94,7 +94,7 @@ def modify_fields(trajectory, variables=None, include=None, exclude=None):
             for pattern in include:
                 if pattern not in variables:
                     variables.append(pattern)
-        
+
     # Reset the output format
     trajectory.variables = variables
     return trajectory
@@ -117,7 +117,7 @@ def convert(inp, out, fout, force=True, variables=None,
     Return: name of converted trajectory file
     """
     from atooms.trajectory import Trajectory
-    
+
     if isinstance(out, str):
         out_class = Trajectory.formats[out]
     else:

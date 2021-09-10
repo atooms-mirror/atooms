@@ -33,7 +33,7 @@ class Test(unittest.TestCase):
         self.assertEqual(system.number_of_dimensions, 0)
         system.cell = Cell([2.0, 2.0])
         self.assertEqual(system.number_of_dimensions, 2)
-        
+
     def test_density(self):
         system = copy.copy(self.ref)
         density_old = system.density
@@ -48,7 +48,7 @@ class Test(unittest.TestCase):
         system = copy.deepcopy(self.ref)
         system.cell = None
         self.assertAlmostEqual(system.density, 0.1, 1)
-        
+
     def test_temperature(self):
         system = copy.copy(self.ref)
         system.set_temperature(1.0)
@@ -64,7 +64,7 @@ class Test(unittest.TestCase):
         system = System()
         self.assertAlmostEqual(system.temperature, 0.0)
 
-        
+
     def test_cm(self):
         system = copy.copy(self.ref)
         system.set_temperature(1.0)
@@ -369,13 +369,13 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rotated[0].position[1], 0, 6)
         self.assertAlmostEqual(rotated[1].position[1], 1, 6)
         self.assertAlmostEqual(rotated[2].position[1], 2, 6)
-        
+
     def test_show(self):
         system = System()
         try:
             system.show(backend='')
         except ValueError:
             pass
-            
+
 if __name__ == '__main__':
     unittest.main()

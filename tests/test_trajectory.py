@@ -234,7 +234,7 @@ class Test(unittest.TestCase):
         self._read_write(trj.TrajectoryGSD, ignore=['mass', 'velocity'], precision=1e-7)
         #self._convert(trj.TrajectoryGSD, 'gsd', ignore=['mass', 'velocity'])
         #self._read_write_fields(trj.TrajectoryGSD, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'position', 'velocity'], ignore=['mass'])
-        ## This must fail: writing velocities but not reading them
+        # This must fail: writing velocities but not reading them
         #self._read_write_fields(trj.TrajectoryGSD, write_fields=['species'], read_fields=['species', 'position'], ignore=['mass'], fail=['velocity'])
 
     def test_rumd(self):
@@ -256,7 +256,7 @@ class Test(unittest.TestCase):
         with trj.TrajectoryPDB('data/trajectory.pdb') as th:
             self.assertTrue(numpy.all(th[0].cell.side == numpy.array([10.0, 10.0, 10.0])))
             self.assertTrue(numpy.all(th[1].cell.side == numpy.array([10.0, 10.0, 10.0])))
-        
+
     def test_super(self):
         import glob
         with TrajectoryXYZ(os.path.join(self.inpdir, '0.xyz'), 'w') as th:

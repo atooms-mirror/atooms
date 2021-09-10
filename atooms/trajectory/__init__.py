@@ -55,7 +55,7 @@ __added = False
 if '' not in sys.path:
     __added = True
     sys.path.append('')
-    
+
 # Additional plugins can be put in the atooms_plugins module
 try:
     import atooms_plugins

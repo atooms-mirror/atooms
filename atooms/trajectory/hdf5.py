@@ -215,7 +215,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
     def write_sample(self, system, step):
         variables = self.variables
-        
+
         self.trajectory.create_group_safe('/trajectory')
         self.trajectory.create_group_safe('/trajectory/realtime')
         self.trajectory.create_group_safe('/trajectory/realtime/stepindex')

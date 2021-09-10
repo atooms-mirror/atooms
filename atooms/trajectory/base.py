@@ -153,7 +153,7 @@ class TrajectoryBase(object):
         """
         Extra entries for thesaurus
         """
-        
+
         # These are cached properties
         self._variables = []
         """
@@ -167,7 +167,7 @@ class TrajectoryBase(object):
         self._timestep = None
         self._grandcanonical = None
         self._block_size = None
-        
+
         # Internal state
         self._overwrite = False
         self._initialized_write = False
@@ -427,8 +427,8 @@ class TrajectoryBase(object):
     @fields.setter
     def fields(self, value):
         warnings.warn('fields is deprecated, use variables instead', FutureWarning)
-        self._variables = value # canonicalize(value, self.thesaurus)
-    
+        self._variables = value  # canonicalize(value, self.thesaurus)
+
     @property
     def steps(self):
         if self._steps is None:

@@ -100,7 +100,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
     def read_sample(self, frame):
         # Read metadata of this frame
         meta = self._read_comment(frame)
-        
+
         # Get number of particles
         self.trajectory.seek(self._index_header[frame])
         npart = int(self.trajectory.readline())
@@ -173,7 +173,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
 
     def write_sample(self, system, step):
         from atooms.core.utils import is_array
-        
+
         def detect_format(arg):
             if isinstance(arg, float):
                 return 'R'
@@ -194,7 +194,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
             properties.append([attr, fmt, ndim])
         # TODO: this should be aliased to stick with shortcuts
         self._properties = properties
-            
+
         # Write header
         self.trajectory.write('{}\n'.format(len(system.particle)))
         self.trajectory.write(self._comment(step, system) + '\n')

@@ -68,7 +68,7 @@ class Test(unittest.TestCase):
     def test_interface(self):
         from atooms.backends.f90 import Interaction
         interaction = Interaction("lennard_jones")
-            
+
     def tearDown(self):
         self.trajectory.close()
 

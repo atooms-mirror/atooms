@@ -66,7 +66,7 @@ A 1.0 -1.0 0.0
 
             # Test utility function
             from atooms.trajectory.utils import dump
-            pos = dump(th, what='pos')            
+            pos = dump(th, what='pos')
             from atooms.trajectory.utils import is_semigrandcanonical, is_grandcanonical
             self.assertFalse(is_grandcanonical(th))
             self.assertTrue(is_semigrandcanonical(th, tests=3))
@@ -74,7 +74,7 @@ A 1.0 -1.0 0.0
     def test_formats(self):
         from atooms.trajectory.utils import formats
         self.assertTrue('xyz' in formats())
-            
+
     def test_file_index(self):
         from atooms.trajectory import utils
         finp = '/tmp/test_utils.xyz'
@@ -97,7 +97,7 @@ A 1.0 -1.0 0.0
 """)
         with open(finp) as fh:
             utils.file_index(fh)
-            
+
     def test_dumps(self):
         from atooms.core import utils
         utils.report_command('cmd', {}, '', None)

@@ -23,7 +23,7 @@ class TrajectoryPDB(TrajectoryBase):
 
     def read_steps(self):
         pass
-        
+
     def _setup_index(self):
         self._index_frame = []
         self.steps = []
@@ -48,7 +48,7 @@ class TrajectoryPDB(TrajectoryBase):
                     header = False
                 self.steps.append(int(data.split()[-1]))
                 self._index_frame.append(line)
-        
+
     def write_sample(self, system, step):
         cfg = ''
         cfg += 'MODEL%9i\n' % step
@@ -90,7 +90,7 @@ class TrajectoryPDB(TrajectoryBase):
         self.trajectory.seek(self._index_frame[frame])
         _ = self.trajectory.readline()
         while True:
-            data = self.trajectory.readline()            
+            data = self.trajectory.readline()
             if not data or data.startswith('ENDMDL'):
                 break
             if data.startswith('CRYST1'):

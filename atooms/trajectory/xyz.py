@@ -16,7 +16,7 @@ from atooms.system import System
 
 log = logging.getLogger(__name__)
 
-# Lock to avoid race conditions on numpy array formatting 
+# Lock to avoid race conditions on numpy array formatting
 _numpy_fmt_lock = False
 
 # Format callbacks
@@ -92,7 +92,7 @@ def scalars_to_arrays(variables):
             match = []
         else:
             raise ValueError('problem with variable {}'.format(variable))
-            
+
         if len(match) == 2:
             # This is an array element
             # Extract variable name and array index
@@ -106,7 +106,7 @@ def scalars_to_arrays(variables):
             var = variable
             if last_var != var and last_idx is not None:
                 # We just finished reading an array variable
-                # We store it and also the next 
+                # We store it and also the next
                 new_variables.append(last_var)
             new_variables.append(var)
             last_var = var
@@ -116,7 +116,7 @@ def scalars_to_arrays(variables):
 
     if last_idx is not None:
         # We get here if the last was an array element
-        new_variables.append(last_var)        
+        new_variables.append(last_var)
     return new_variables
 
 # print(scalars_to_arrays(['pos[0]', 'pos[1]', 'pos[2]']))
@@ -151,7 +151,7 @@ class TrajectoryXYZ(TrajectoryBase):
                      'neighbors': _update_neighbors,
                      'neighbors*': _update_neighbors_consume}
 
-    def __init__(self, filename, mode='r', alias=None, fields=None):        
+    def __init__(self, filename, mode='r', alias=None, fields=None):
         super(TrajectoryXYZ, self).__init__(filename, mode)
         self.variables = [
             'particle.species',
@@ -184,7 +184,7 @@ class TrajectoryXYZ(TrajectoryBase):
     def _setup_format(self):
         _fmt_any = '{}'
         _fmt_float = '{:.' + str(self.precision) + 'f}'
-            
+
         def array_fmt(arr):
             """Remove commas and [] from numpy array repr."""
             # Passing a scalar will trigger an error (gotcha: even
@@ -200,7 +200,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 return _fmt.format(arr)
             else:
                 raise ValueError('cannot write multi-dimensional array')
-                
+
         # Note: numpy.array2string is MUCH slower
         numpy.set_string_function(array_fmt, repr=False)
 
@@ -343,7 +343,7 @@ class TrajectoryXYZ(TrajectoryBase):
         # Similarly, we assume that columns do not change
         if self._active_read_callbacks is not None:
             return self._active_read_callbacks
-        
+
         # Define active callbacks before reading the sample. We
         # handle the case in which the user removed some variables,
         # and self.variables is a subset of variables_in_files
@@ -381,7 +381,7 @@ def fallback(p, data, meta):
                 callbacks.append(namespace['fallback'])
 
         self._active_read_callbacks = callbacks
-                
+
     def read_sample(self, frame):
         # Define actual list of callbacks
         self._setup_read_callbacks()
