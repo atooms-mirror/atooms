@@ -483,3 +483,19 @@ def is_array(arg):
     return isinstance(arg, numpy.ndarray) or \
         isinstance(arg, list) or \
         isinstance(arg, tuple)
+
+
+def canonicalize(fields, thesaurus):
+    """
+    Replace entries in `fields` list with those found in `thesaurus`        
+    """
+    if fields is None:
+        return []        
+    _fields = []
+    for field in fields:
+        try:
+            _fields.append(thesaurus[field])
+        except KeyError:
+            _fields.append(field)
+    return _fields
+
