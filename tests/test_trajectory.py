@@ -542,6 +542,12 @@ ITEM: ATOMS id type xs ys zs
             self.assertEqual(list(th[1].particle[0].position), scale([0.00, 0.01, 0.02], [8.0, 8.0, 8.0]))
             self.assertEqual(list(th[1].particle[1].position), scale([0.50, 0.51, 0.52], [8.0, 8.0, 8.0]))
 
+    def test_xyz_gz(self):
+        inp = os.path.join(os.path.dirname(__file__),
+                           '../data/ka_rumd_N1200.xyz.gz')
+        with trj.TrajectoryXYZ(inp) as th:
+            self.assertEqual(len(th), 17)
+            
     def tearDown(self):
         rmf(self.inpfile)
         rmd(self.inpdir)
