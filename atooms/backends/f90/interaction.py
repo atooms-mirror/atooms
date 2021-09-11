@@ -143,7 +143,8 @@ class Interaction(_Interaction):
         elif observable == 'gradw':
             if not hasattr(self, 'gradw'):
                 self.gradw = numpy.zeros_like(pos, order='F')
-            _interaction.interaction.gradw(box, pos, ids, self.gradw)
+            # TODO: implement this
+            raise ValueError('gradw not implemented with neighbors')
 
         elif observable == 'hessian':
             ndim, N = pos.shape
