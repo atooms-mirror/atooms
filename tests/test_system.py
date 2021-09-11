@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import random
 import copy
 import numpy
@@ -342,6 +343,7 @@ class Test(unittest.TestCase):
         self.assertEqual(x['A'], 8)
         self.assertEqual(x['B'], 4)
 
+    @unittest.skipIf(sys.version_info.major == 2, 'skip show() tests with python 2')
     def test_show(self):
         N = 3
         L = 5.0
