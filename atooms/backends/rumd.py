@@ -304,7 +304,7 @@ class System(object):
     def set_temperature(self, T):
         # Scale velocities from temperature Told to T
         # TODO: use maxwellian
-        # TODO: remove CM velocity
+        # TODO: subtract CM velocity
         Told = self.temperature
         velocity_factor = (T/Told)**0.5
         self.sample.ScaleVelocities(velocity_factor)
