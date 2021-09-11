@@ -9,7 +9,7 @@ _log = logging.getLogger(__name__)
 
 class VerletList(object):
 
-    def __init__(self, skin=0.2, update="largest", update_period=10, source=os.path.join(os.path.dirname(__file__),'neighbor_list.f90')):
+    def __init__(self, skin=0.2, update="largest", update_period=10, source=os.path.join(os.path.dirname(__file__), 'neighbor_list.f90')):
         self.skin = skin
         self.update = update
         self.update_period = update_period
@@ -55,7 +55,7 @@ class VerletList(object):
         elif self.update == 'largest':
             return self._f90.neighbor_list.need_update_largest(self.displacement, self.skin)
         else:
-            raise ValueError('unknown update method {}',format(self.update))
+            raise ValueError('unknown update method {}', format(self.update))
 
     def compute(self, box, pos, ids):
         """Compute Verlet lists"""

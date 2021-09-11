@@ -376,7 +376,8 @@ def info(trajectory, keys=None):
         txt += 'particles            = %s\n' % len(system.particle)
         txt += 'species              = %s\n' % ', '.join(distinct_species(system.particle))
         txt += 'composition          = %s\n' % dict(composition(system.particle))
-        txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in system.particle]) / numpy.mean([p.radius for p in system.particle]))
+        txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in system.particle]) / \
+                                                numpy.mean([p.radius for p in system.particle]))
         txt += 'density              = %s\n' % round(system.density, 10)
         if system.cell is not None:
             txt += 'cell side            = %s\n' % str(list(system.cell.side))[1: -1]

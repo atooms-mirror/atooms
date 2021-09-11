@@ -219,7 +219,8 @@ class LAMMPS(object):
         # Set fixes from the system if we find thermostat / barostat
         if self.system.thermostat is not None and self.system.barostat is not None:
             # NPT ensemble
-            fix = 'fix 1 all npt temp {0.temperature} {0.temperature} {0.relaxation_time} iso {1.pressure} {1.pressure} {1.relaxation_time}'.format(self.system.thermostat, self.system.barostat)
+            fix = 'fix 1 all npt temp {0.temperature} {0.temperature} {0.relaxation_time} iso {1.pressure} {1.pressure} {1.relaxation_time}'.format(
+                self.system.thermostat, self.system.barostat)
         elif self.system.thermostat is not None:
             # NVT ensemble
             fix = 'fix 1 all nvt temp {0.temperature} {0.temperature} {0.relaxation_time}'.format(self.system.thermostat)

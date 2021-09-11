@@ -9,9 +9,9 @@ distance `radius`.
 """
 
 _db = {'c': 'cut',
-        'cs': 'cut and shifted',
-        'cspl': 'cut and cubic splined',
-        'qs': 'cut and quadratically shifted'}
+       'cs': 'cut and shifted',
+       'cspl': 'cut and cubic splined',
+       'qs': 'cut and quadratically shifted'}
 
 class CutOff(object):
 

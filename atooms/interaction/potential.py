@@ -11,7 +11,6 @@ from atooms.interaction import decorators
 
 def tabulate(potential, parameters, cutoff='c', rc=2.5, npoints=10000,
              rmin=0.5, fmt='lammps', metadata='', fileout=None, precision=14):
-
     """Tabulate a potential."""
 
     from atooms.core.utils import tipify

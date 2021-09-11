@@ -262,7 +262,7 @@ class System(object):
         else:
             return self.sample.GetPotentialEnergy()
 
-    def kinetic_energy(self,per_particle=False, normed=False):
+    def kinetic_energy(self, per_particle=False, normed=False):
         # TODO: use double IntegratorNVT::GetKineticEnergy(bool copy) const{
         ekin = sum([p.kinetic_energy for p in self.particle])
         if normed or per_particle:

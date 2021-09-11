@@ -491,7 +491,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
                                                   alias={'time': 'step'})
         self._offset = offset
         self.thesaurus = {'neighbors': 'particle.neighbors',
-                          'neighbors*': 'particle.neighbors*',}
+                          'neighbors*': 'particle.neighbors*', }
         if mode == 'w':
             self.variables = ['neighbors'] if fields is None else fields
         if mode == 'r' and 'columns' not in self.metadata:

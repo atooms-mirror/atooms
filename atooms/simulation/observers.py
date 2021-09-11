@@ -204,7 +204,7 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     - total energy
     - pressure
     - rmsd
-    
+
     The set of available `fields` can be augmented by passing an extra
     `functions` dictionary.
 
@@ -367,7 +367,7 @@ def target_python_stop(sim, condition):
 
     will stop the simulation when the step is > 1000 and the rmsd > 1.
     """
-     # We do nothing on the first step
+    # We do nothing on the first step
     if sim.current_step == 0:
         return
     # Interpolate the command string

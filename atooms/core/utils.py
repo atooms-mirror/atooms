@@ -181,7 +181,6 @@ class Timer(object):
     def __repr__(self):
         return 'timer wall time [s]: {:.2f}, cpu time [s]: {:.2f}'.format(self.wall_time, self.cpu_time)
 
-
     def start(self):
         self.__start_cpu = self.__now_cpu()
         self.__start_wall = self.__now_wall()

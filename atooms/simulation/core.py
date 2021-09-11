@@ -213,8 +213,8 @@ class Simulation(object):
             # TODO: use pickle.dump
             # Fallback to backend trajectory class with high precision
             with self.trajectory_class(self.output_path + '.chk', 'w',
-                                        fields=['species', 'position',
-                                                'velocity', 'radius']) as t:
+                                       fields=['species', 'position',
+                                               'velocity', 'radius']) as t:
                 t.precision = 12
                 t.write(self.system, 0)
 
@@ -307,7 +307,7 @@ class Simulation(object):
             intervals = [intv for intv in intervals if intv is not None]
             min_iters = 10
             if min(intervals) > (self.current_step + self.steps) / min_iters and \
-               (self.current_step + self.steps) / min_iters > 10 :
+               (self.current_step + self.steps) / min_iters > 10:
                 def flush(sim):
                     pass
                 self.remove(flush)

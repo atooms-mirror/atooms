@@ -592,7 +592,7 @@ class SuperTrajectory(TrajectoryBase):
         if self._last_trajectory is None:
             self._last_trajectory = self.trajectoryclass(f)
         elif self._last_trajectory.filename != f or \
-             self._last_trajectory.trajectory.closed:
+                self._last_trajectory.trajectory.closed:
             # Careful: we must check if the file object has not been closed in the meantime.
             # This can happen with class decorators.
             self._last_trajectory.close()

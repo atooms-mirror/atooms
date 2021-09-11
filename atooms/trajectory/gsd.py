@@ -55,16 +55,15 @@ class TrajectoryGSD(TrajectoryBase):
         particles = []
         for i in range(N):
             p = Particle(
-                mass     = snap.particles.mass[i],
-                species  = typeid_to_species[ snap.particles.typeid[i] ],
-                position = snap.particles.position[i, :ndim],
-                velocity = snap.particles.velocity[i, :ndim],
-                radius   = snap.particles.diameter[i] / 2
+                mass=snap.particles.mass[i],
+                species=typeid_to_species[snap.particles.typeid[i]],
+                position=snap.particles.position[i, :ndim],
+                velocity=snap.particles.velocity[i, :ndim],
+                radius=snap.particles.diameter[i] / 2
             )
             particles.append(p)
 
         return System(particle=particles, cell=cell)
-
 
     def write_sample(self, system, step):
         """ Writes to the file handle self.trajectory."""

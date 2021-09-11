@@ -45,7 +45,7 @@ class System(object):
         """
         Update current system attributes in-place using the `other` System
         as source.
-        
+
         The default behavior is to make deep copies only of all the
         `other` system attributes that are not None, i.e. which are
         set.
