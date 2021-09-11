@@ -76,14 +76,25 @@ def _update_neighbors(particle, data, meta):
         particle.neighbors = numpy.array(data, dtype=int)
         return []
 
+def _optimize_arrays(variables):
+    """
+    Optimize a list of particles properties (`variables`) by
+    collapsing successive instances of array elements.
 
-def scalars_to_arrays(variables):
+    Example: ['id', 'x[0]', 'x[1]', 'x[2]'] -> ['id', 'x']
+
+    > print(scalars_to_arrays(['pos[0]', 'pos[1]', 'pos[2]']))
+    > print(scalars_to_arrays(['pos[0]', 'pos[1]', 'vel[0]', 'vel[1]']))
+    > print(scalars_to_arrays(['pos[0]', 'pos[1]', 'pos[2]', 'hello']))
+    > print(scalars_to_arrays(['hello', 'pos[0]', 'pos[1]', 'pos[2]']))
+    """
     import re
+
     new_variables = []
     last_var, last_idx = None, None
     for variable in variables:
-        # This will match array expressions like position[0]
-        all_matches = re.findall('(\w+)\[(\d+)\]', variable)
+        # This will match array expressions, like position[0] or particle.position[0]
+        all_matches = re.findall('([\._\w]+)\[(\d+)\]', variable)
 
         # This must be a single couple (variable, index) or nothing
         if len(all_matches) == 1:
@@ -119,10 +130,6 @@ def scalars_to_arrays(variables):
         new_variables.append(last_var)
     return new_variables
 
-# print(scalars_to_arrays(['pos[0]', 'pos[1]', 'pos[2]']))
-# print(scalars_to_arrays(['pos[0]', 'pos[1]', 'vel[0]', 'vel[1]']))
-# print(scalars_to_arrays(['pos[0]', 'pos[1]', 'pos[2]', 'hello']))
-# print(scalars_to_arrays(['hello', 'pos[0]', 'pos[1]', 'pos[2]']))
 
 class TrajectoryXYZ(TrajectoryBase):
 
@@ -132,22 +139,15 @@ class TrajectoryXYZ(TrajectoryBase):
     """
 
     suffix = 'xyz'
-    callback_read = {'species': _update_species,
-                     'particle.species': _update_species,
-                     'type': _update_species,
-                     'name': _update_species,
-                     'id': _update_species,
-                     'tag': _update_tag,
-                     'radius': _update_radius,
-                     'diameter': _update_diameter,
-                     'pos': _update_position,
-                     'vel': _update_velocity,
-                     'position': _update_position,
-                     'position_unfolded': _update_position_unfolded,
+    callback_read = {'particle.species': _update_species,
+                     'particle.radius': _update_radius,
                      'particle.position': _update_position,
-                     'particle.position_unfolded': _update_position_unfolded,
-                     'velocity': _update_velocity,
                      'particle.velocity': _update_velocity,
+                     'particle.position_unfolded': _update_position_unfolded,
+                     'position_unfolded': _update_position_unfolded,
+                     'diameter': _update_diameter,
+                     'name': _update_species,
+                     'tag': _update_tag,
                      'neighbors': _update_neighbors,
                      'neighbors*': _update_neighbors_consume}
 
@@ -157,10 +157,6 @@ class TrajectoryXYZ(TrajectoryBase):
             'particle.species',
             'particle.position'
         ]
-        self.constants = {
-            'particle.mass',
-            'cell.side'
-        }
         if fields is not None:
             self.variables = fields
             warnings.warn('fields is deprecated, set trajectory.variables instead', FutureWarning)
@@ -247,10 +243,10 @@ class TrajectoryXYZ(TrajectoryBase):
     # Overwrite the variables setter to optimize the variables
     @TrajectoryBase.variables.setter
     def variables(self, value):
-        # TODO: make a static method?
-        from atooms.trajectory.base import canonicalize
+        from atooms.core.utils import canonicalize
+
         self._variables = canonicalize(value, self.thesaurus)
-        self._variables = scalars_to_arrays(self._variables)
+        self._variables = _optimize_arrays(self._variables)
 
     def read_steps(self):
         """Find steps list."""
