@@ -10,7 +10,6 @@ except:
 
 from atooms.system import System, Cell, Particle
 from atooms.interaction import Interaction, CutOff, PairPotential
-from atooms.trajectory.utils import modify_fields
 
 
 class Test(unittest.TestCase):
@@ -31,11 +30,6 @@ class Test(unittest.TestCase):
         with TrajectoryHDF5('/tmp/test_hdf5.h5', 'r') as t:
             i = t.read_interaction()
             s = t[0]
-
-    @unittest.skipIf(not HAS_HDF5, 'no h5py module')
-    def test_fmt(self):
-        with TrajectoryHDF5('/tmp/test_hdf5.h5', 'w') as t:
-            modify_fields(t, exclude=['velocity'], include=['position'])
 
     @unittest.skipIf(not HAS_HDF5, 'no h5py module')
     def test_strings(self):

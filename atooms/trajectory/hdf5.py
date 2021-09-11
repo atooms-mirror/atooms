@@ -87,6 +87,7 @@ class TrajectoryHDF5(TrajectoryBase):
         self.general_info = {}
         self._grandcanonical = False
         self._system = None
+        # TODO: move this to write mode
         self.variables = ['particle.position', 'particle.velocity']
         if self.mode == 'r' or self.mode == 'r+':
             self.trajectory = h5py.File(self.filename, mode)

@@ -26,7 +26,6 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         self.trajectory = gopen(self.filename, self.mode)
         self.alias = {'pos': 'position',
                       'vel': 'velocity'}
-        self.thesaurus = {'species': 'particle.species'}
         self.variables = ['species', 'pos']
         # Internal index of lines via seek and tell.
         if self.mode == 'r':

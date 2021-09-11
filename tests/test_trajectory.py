@@ -172,8 +172,8 @@ class Test(unittest.TestCase):
                 th.write(self.system[i], i)
 
         with cls_inp(path) as th:
-            from atooms.trajectory.utils import convert
-            _ = convert(th, cls_out, fout)
+            with th.copy(cls_out, fout) as _:
+                pass
 
         if isinstance(cls_out, str):
             th = trj.Trajectory(fout, fmt=cls_out)

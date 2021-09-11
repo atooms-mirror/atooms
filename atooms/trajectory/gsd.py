@@ -11,7 +11,7 @@ import gsd.hoomd
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
-from atooms.trajectory.base import TrajectoryBase, canonicalize
+from atooms.trajectory.base import TrajectoryBase
 
 
 class TrajectoryGSD(TrajectoryBase):
