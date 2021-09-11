@@ -70,11 +70,7 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     returned for visualization in jupyter notebooks.
     """
     import os
-    try:
-        from ovito.io import import_file
-    except ImportError:
-        _log.warning('install ovito to display the particles')
-        return
+    from ovito.io import import_file
     from ovito.vis import Viewport, TachyonRenderer
     from ovito.vis import ParticlesVis
     import tempfile
