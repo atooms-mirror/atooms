@@ -154,7 +154,7 @@ class Simulation(object):
         # Sanity check (prevent scheduler/callback inversion)
         assert type(scheduler(self)) is int, \
             "probable swap between callback {} and scheduler {}".format(callback, scheduler)
-            
+
         # Store scheduler, callback and its arguments
         # in a separate dict (NOT in the function object itself!)
         self._cbk_params[callback] = {'scheduler': scheduler,

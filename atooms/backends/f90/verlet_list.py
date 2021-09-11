@@ -19,7 +19,7 @@ class VerletList(object):
         self.neighbors = None
         self.is_adjusted = False
         self.calls = 0
-        self._last_call = 0        
+        self._last_call = 0
         self._uid = f2py_jit.build_module(source)
         self._f90 = f2py_jit.import_module(self._uid)
 
@@ -28,7 +28,7 @@ class VerletList(object):
         Adjust neighbor list to positions of particles in the box and cut off distance.
         """
         from math import gamma, pi
-        
+
         if self.is_adjusted:
             return
         self.rcut = rcut + self.skin
@@ -39,7 +39,7 @@ class VerletList(object):
         self.displacement = numpy.zeros_like(pos, order='F')
         self.number_of_neighbors = numpy.zeros(N, dtype=numpy.int32, order='F')
         self.neighbors = numpy.zeros((nmax, N), dtype=numpy.int32, order='F')
-        self._pos_old = pos.copy(order='F')        
+        self._pos_old = pos.copy(order='F')
         self.is_adjusted = True
 
     def add_displacement(self, pos, box):
@@ -58,7 +58,7 @@ class VerletList(object):
             raise ValueError('unknown update method {}',format(self.update))
 
     def compute(self, box, pos, ids):
-        """Compute Verlet lists"""        
+        """Compute Verlet lists"""
         self.add_displacement(pos, box)
         if self.calls == 0 or self.need_update():
             self._f90.neighbor_list.compute(box, pos, ids, self.rcut, self.neighbors, self.number_of_neighbors)

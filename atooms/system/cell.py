@@ -28,7 +28,7 @@ class Cell(object):
             self.periodic[:] = True
         else:
             self.periodic = numpy.asarray(periodic, dtype=bool)
-            
+
     @property
     def volume(self):
         return numpy.prod(self.side)

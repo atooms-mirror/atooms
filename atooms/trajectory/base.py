@@ -424,7 +424,7 @@ class TrajectoryBase(object):
             from atooms.trajectory import Trajectory
             if isinstance(cls, str):
                 cls = Trajectory.formats[cls]
-            
+
         # Make sure parent folder exists
         if fout is not None:
             mkdir(os.path.dirname(fout))
@@ -469,7 +469,7 @@ class TrajectoryBase(object):
                 idx = self.steps.index(step)
                 conv.write(self[idx], step)
         return conv
-    
+
     @property
     def fields(self):
         warnings.warn('fields is deprecated, use variables instead', FutureWarning)

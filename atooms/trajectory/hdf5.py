@@ -338,7 +338,7 @@ class TrajectoryHDF5(TrajectoryBase):
         # read particles
         group = self.trajectory['/trajectory/particle']
         pos = group['position' + csample][:]
-        
+
         if 'position_unfolded' in group:
             # fix for unfolded positions that were not written at the first step
             # should be fixed once and for all in md.x

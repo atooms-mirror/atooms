@@ -102,7 +102,7 @@ class System(object):
         """
         if len(self.particle) == 0:
             return 0.0
-        
+
         if self.cell is None:
             # Estimate density assuming V is the product of the
             # largest distances along each dimension
@@ -406,12 +406,12 @@ class System(object):
                     else:
                         ndims = self.number_of_dimensions
                         npart = int(len(self._data[what]) / ndims)
-                        
+
                     if npart == len(self.particle):
                         continue
-                    
+
                 data = numpy.array([getattr(p, attr) for p in self.particle], dtype=dtype)
-                
+
                 # We transpose the array if F order is requested
                 if order == 'F':
                     data = numpy.transpose(data)
@@ -444,7 +444,7 @@ class System(object):
 
         # Always keep track of the number of particles
         self._data['npart'] = len(self.particle)
-            
+
         # If what is a string or we only have one entry we return an
         # array, otherwise we return a dict with the requested keys
         if len(what_list) == 1:
@@ -454,7 +454,7 @@ class System(object):
             for key in what_list:
                 db[key] = self._data[key]
             return db
-                
+
     def report(self):
         # Summary
         txt = ''

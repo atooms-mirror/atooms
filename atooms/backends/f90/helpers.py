@@ -33,4 +33,3 @@ def _merge_source(*sources):
         # Merge sources into a single one
         merged_src += src
     return merged_src
-

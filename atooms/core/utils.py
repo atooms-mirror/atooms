@@ -135,7 +135,7 @@ def cp(finp, fout):
         return
     shutil.copy(finp, fout)
 
-    
+
 def wget(url, output_dir):
     """
     Python implementation of bash wget
@@ -144,9 +144,9 @@ def wget(url, output_dir):
     import os
     import shutil
     try:
-        from urllib.request import urlopen # Python 3
+        from urllib.request import urlopen  # Python 3
     except ImportError:
-        from urllib2 import urlopen # Python 2
+        from urllib2 import urlopen  # Python 2
 
     basename = os.path.basename(url)
     output_file = os.path.join(output_dir, basename)
@@ -181,7 +181,7 @@ class Timer(object):
     def __repr__(self):
         return 'timer wall time [s]: {:.2f}, cpu time [s]: {:.2f}'.format(self.wall_time, self.cpu_time)
 
-            
+
     def start(self):
         self.__start_cpu = self.__now_cpu()
         self.__start_wall = self.__now_wall()
@@ -467,7 +467,7 @@ def canonicalize(fields, thesaurus):
     Replace entries in `fields` list with those found in `thesaurus`        
     """
     if fields is None:
-        return []        
+        return []
     _fields = []
     for field in fields:
         try:
@@ -475,4 +475,3 @@ def canonicalize(fields, thesaurus):
         except KeyError:
             _fields.append(field)
     return _fields
-
