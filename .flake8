@@ -1,0 +1,16 @@
+[flake8]
+show-source = True
+count = True
+statistics = True
+# Get to 120 in the long run
+max-line-length = 160
+
+# E226 missing whitespace around arithmetic operator [maybe in the long run]
+# E302 expected 2 blank lines, found 1
+# E305 expected 2 blank lines after class or function definition, found 1
+# F401 imported but unused
+# E722 do not use bare 'except' [maybe in the long run]
+# F403 import *' used; unable to detect undefined names  [it does not seem to work]
+# F841 local variable 'rij' is assigned to but never used [maybe in the long run]
+
+ignore = E226,E302,E305,F401,E402,E722,F401,F403,F841
