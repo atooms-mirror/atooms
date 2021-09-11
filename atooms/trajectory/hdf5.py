@@ -6,7 +6,6 @@
 import numpy
 import h5py
 import logging
-import copy
 import warnings
 
 from .base import TrajectoryBase

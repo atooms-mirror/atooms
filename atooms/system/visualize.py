@@ -72,7 +72,6 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     import os
     from ovito.io import import_file
     from ovito.vis import Viewport, TachyonRenderer
-    from ovito.vis import ParticlesVis
     import tempfile
     from atooms.core.utils import mkdir
 
@@ -109,7 +108,7 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
 
     # Define viewport
     if viewport:
-        vp = vieport
+        vp = viewport
     else:
         if perspective:
             vp = Viewport(type=Viewport.Type.Perspective, camera_dir=camera_dir, camera_pos=camera_pos)

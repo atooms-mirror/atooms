@@ -15,7 +15,6 @@ on the fly. The interval in steps at which callbacks are executed is
 controlled by a `Scheduler` instance.
 """
 
-import sys
 import logging
 
 from atooms.simulation import Simulation

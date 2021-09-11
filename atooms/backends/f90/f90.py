@@ -1,17 +1,9 @@
-import tempfile
-import json
-
 import numpy
-import warnings
-
-from atooms.core.utils import rmf
+import f2py_jit
 from atooms.system import System as _System
 from atooms.system import Particle, Cell
 from .interaction import Interaction
 from .verlet_list import VerletList
-from .helpers import _merge_source, _normalize_path
-
-import f2py_jit
 
 
 __all__ = ['Interaction', 'System', 'NeighborList', 'VerletList',

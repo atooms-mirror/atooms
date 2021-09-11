@@ -6,12 +6,11 @@ met, client code can perform some optimizations, ex. tabulation is
 skipped.
 """
 
-from math import sqrt
-
-__all__ = ['hard_sphere', 'square_well']
-
 from .library import constant
 from .cutoff import CutOff
+
+
+__all__ = ['hard_sphere', 'square_well']
 
 
 def hard_sphere(potential):

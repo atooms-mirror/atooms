@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import warnings
-from copy import copy
 import numpy as np
 
 # With absolute import (default in python 3) this does not clash

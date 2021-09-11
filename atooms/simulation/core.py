@@ -330,7 +330,6 @@ class Simulation(object):
         self._start_time = time.time()
 
         import signal
-        import sys
 
         def signal_term_handler(signal, frame):
             raise SimulationKill('simulation terminated')

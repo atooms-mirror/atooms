@@ -1,8 +1,6 @@
 """Store trajectory in memory (it can be huge)."""
 
 import copy
-from atooms.system.system import System
-from atooms.system.particle import Particle
 from .base import TrajectoryBase
 
 

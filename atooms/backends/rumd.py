@@ -16,7 +16,7 @@ import rumd
 from rumdSimulation import rumdSimulation
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
-from atooms.core.utils import mkdir
+
 
 _log = logging.getLogger(__name__)
 _version = rumd.GetVersion()

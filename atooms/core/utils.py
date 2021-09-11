@@ -4,6 +4,7 @@ import os
 import sys
 import shutil
 import time
+import logging
 
 
 # Logging facilities
@@ -15,7 +16,6 @@ _logger = None
 
 # We define the logging handler here to avoid "No handler found" warnings.
 # Client classes should use this instead of logging.NullHandler
-import logging
 try:
     from logging import NullHandler
 except ImportError:
@@ -140,7 +140,6 @@ def wget(url, output_dir):
     """
     Python implementation of bash wget
     """
-    import sys
     import os
     import shutil
     try:

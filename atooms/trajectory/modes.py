@@ -1,9 +1,9 @@
 import os
-import h5py
 import numpy
 from numpy import copysign
 from atooms.system import System
 from atooms.trajectory.hdf5 import TrajectoryHDF5
+
 
 class TrajectoryModes(TrajectoryHDF5):
 

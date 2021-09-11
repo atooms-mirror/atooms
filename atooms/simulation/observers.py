@@ -35,7 +35,6 @@ Of course, general purpose callback can be passed to do whatever.
 
 import sys
 import os
-import shutil
 import time
 import datetime
 import logging
