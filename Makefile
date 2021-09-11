@@ -18,7 +18,7 @@ develop: version
 
 test:	version
 	coverage run --source atooms -m unittest discover -s tests
-	coverage report --omit=atooms/backends/*py,atooms/system/visualize.py
+	coverage report --omit=atooms/backends/*py
 
 doc: clean
         # pdoc does play nice with namespace packages -> blank __init__.py

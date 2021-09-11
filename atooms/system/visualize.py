@@ -11,7 +11,9 @@ def show_3dmol(particle, cell=None, radius=1.0, palette=None):
     """
     Visualize particles in cell using 3dmol http://3dmol.csb.pitt.edu/
     """
+    from .particle import distinct_species
     import py3Dmol
+
     if palette is None:
         palette = ["#50514f", "#f25f5c", "#ffe066", "#247ba0", "#70c1b3",
                    "#0cce6b", "#c200fb", "#e2a0ff", "#6622cc", "#119822"]

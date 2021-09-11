@@ -342,11 +342,7 @@ class Test(unittest.TestCase):
         self.assertEqual(x['A'], 8)
         self.assertEqual(x['B'], 4)
 
-    def test_ovito(self):
-        try:
-            import ovito
-        except ImportError:
-            self.skipTest('missing ovito')
+    def test_show(self):
         N = 3
         L = 5.0
         system = System()
@@ -356,7 +352,17 @@ class Test(unittest.TestCase):
             pos = (numpy.random.random(len(system.cell.side)) - 0.5) * system.cell.side
             p = Particle(position=pos)
             system.particle.append(p)
-        image = system.show('ovito')
+
+        try:
+            system.show(backend='')
+        except ValueError:
+            pass
+        try:
+            system.show(backend='matplotlib')
+            system.show(backend='ovito')
+            system.show(backend='3dmol')
+        except ImportError:
+            self.skipTest('missing backend')
 
     def test_rotate(self):
         """Rotate particles so that the principal axis is along the y axis"""
@@ -369,13 +375,6 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rotated[0].position[1], 0, 6)
         self.assertAlmostEqual(rotated[1].position[1], 1, 6)
         self.assertAlmostEqual(rotated[2].position[1], 2, 6)
-
-    def test_show(self):
-        system = System()
-        try:
-            system.show(backend='')
-        except ValueError:
-            pass
 
 if __name__ == '__main__':
     unittest.main()
