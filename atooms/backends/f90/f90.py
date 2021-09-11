@@ -4,7 +4,7 @@ from atooms.system import System as _System
 from atooms.system import Particle, Cell
 from .interaction import Interaction
 from .verlet_list import VerletList
-
+from .helpers import _merge_source
 
 __all__ = ['Interaction', 'System', 'NeighborList', 'VerletList',
            'Trajectory', 'Particle', 'Cell']
@@ -123,7 +123,6 @@ def _add_interaction(trajectory, system):
             model = atooms.models.read_json(trajectory.filename + '.json')
         except IOError:
             return system
-            #raise ValueError('cannot set interaction')
 
     system.interaction = Interaction(model,
                                      interaction='interaction.f90',

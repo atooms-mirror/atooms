@@ -127,7 +127,7 @@ class RUMD(object):
     #
     def _get_system(self):
         system = System(self.rumd_simulation.sample)
-        #system.__itg_infoStr_start = self.rumd_simulation.itg.GetInfoString(8)
+        # system.__itg_infoStr_start = self.rumd_simulation.itg.GetInfoString(8)
         return system
 
     def _set_system(self, value):
@@ -245,7 +245,7 @@ class System(object):
         result.sample = self.sample.Copy()
         # This way we set the integrator. Note that it is always the same object...
         # result.sample.SetIntegrator(self.sample.GetIntegrator())
-        #result._itg_infoStr_start = self.thermostat._integrator.GetInfoString(18)
+        # result._itg_infoStr_start = self.thermostat._integrator.GetInfoString(18)
         # TODO: thermostat should be a property this way we would not need to update this
         result.thermostat = Thermostat(self.sample.GetIntegrator())
         return result

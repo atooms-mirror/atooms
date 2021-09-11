@@ -53,7 +53,7 @@ class CutOff(object):
             pass
 
         elif self.scheme in ['qs', 'QS']:
-            self.Acut =   u[1] / 2
+            self.Acut = u[1] / 2
             self.Bcut = - u[1] * self.radius**2 / 2 - u[0]
 
         elif self.scheme in ['cspl', 'CSPL']:
@@ -97,7 +97,7 @@ class CutOff(object):
             # function is overwritten when between rcut1 and rcut
             if rsquare > self.radius_mid_sq:
                 rij = rsquare**0.5
-                dr  = self.radius - rij
+                dr = self.radius - rij
                 u_new[0] = self.Acut * dr**3
                 u_new[1] = 3 * self.Acut * dr**2 / rij
             else:

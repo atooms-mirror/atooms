@@ -411,7 +411,7 @@ class TrajectoryBase(object):
 
     def copy(self, cls=None, fout=None, only=None, include=None, exclude=None, steps=None):
         """
-        Return a copy of the trajectory        
+        Return a copy of the trajectory
         """
         from atooms.core.progress import progress
         from atooms.core.utils import canonicalize

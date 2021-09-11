@@ -480,7 +480,7 @@ class System(object):
         from .visualize import show_ovito
         from .visualize import show_matplotlib
         from .visualize import show_3dmol
-        
+
         if backend == 'matplotlib':
             _show = show_matplotlib
         elif backend == 'ovito':

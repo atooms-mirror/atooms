@@ -224,7 +224,7 @@ class LAMMPS(object):
         elif self.system.thermostat is not None:
             # NVT ensemble
             fix = 'fix 1 all nvt temp {0.temperature} {0.temperature} {0.relaxation_time}'.format(self.system.thermostat)
-        elif not 'fix' in self.commands:
+        elif 'fix' not in self.commands:
             # NVE ensemble
             fix = 'fix 1 all nve'
         else:

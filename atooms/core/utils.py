@@ -462,7 +462,7 @@ def is_array(arg):
 
 def canonicalize(fields, thesaurus):
     """
-    Replace entries in `fields` list with those found in `thesaurus`        
+    Replace entries in `fields` list with those found in `thesaurus`
     """
     if fields is None:
         return []
