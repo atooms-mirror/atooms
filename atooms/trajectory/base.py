@@ -311,8 +311,8 @@ class TrajectoryBase(object):
 
     # These methods must be implemented by subclasses
 
-    def read_sample(self, index):
-        """Return the system at the given frame `index`."""
+    def read_sample(self, frame):
+        """Return the system at the given `frame`."""
         raise NotImplementedError()
 
     def write_sample(self, system, step):
