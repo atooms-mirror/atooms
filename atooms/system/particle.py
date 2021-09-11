@@ -359,11 +359,6 @@ def self_overlap(particle, other, a, normalize=True):
     return q
 
 
-# Import visualization functions
-from .visualize import show_3dmol, show_matplotlib, show_ovito
-show = show_matplotlib
-
-
 def decimate(particle, N):
     """
     Return a decimated list of N particles keep the same chemical

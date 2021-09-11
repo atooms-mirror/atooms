@@ -477,9 +477,10 @@ class System(object):
         return txt
 
     def show(self, backend='matplotlib', *args, **kwargs):
-        from .particle import show_ovito
-        from .particle import show_matplotlib
-        from .particle import show_3dmol
+        from .visualize import show_ovito
+        from .visualize import show_matplotlib
+        from .visualize import show_3dmol
+        
         if backend == 'matplotlib':
             _show = show_matplotlib
         elif backend == 'ovito':
