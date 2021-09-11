@@ -20,46 +20,13 @@ def _warn_with_traceback(message, category, filename, lineno, file=None, line=No
 
 warnings.showwarning = _warn_with_traceback
 
-thesaurus = {
-    'position': 'particle.position',
-    'pos': 'particle.position',
-    'x': 'particle.position[0]',
-    'y': 'particle.position[1]',
-    'z': 'particle.position[2]',
-    'velocity': 'particle.velocity',
-    'vel': 'particle.velocity',
-    'vx': 'particle.velocity[0]',
-    'vy': 'particle.velocity[1]',
-    'vz': 'particle.velocity[2]',
-    'id': 'particle.species',
-    'type': 'particle.species'
-}
-"""
-Common synonims for system attributes, such as
-particle.position -> pos
-"""
-
-def canonicalize(fields, extra=None):
-    """
-    Replace entries in `fields` list with those found in `thesaurus`
-    global dictionary and optional `extra` dictionary.
-    """
-    if fields is None:
-        fields = []
-    _thesaurus = copy.copy(thesaurus)
-    if extra is not None:
-        _thesaurus.update(extra)
-    _fields = []
-    for field in fields:
-        try:
-            _fields.append(_thesaurus[field])
-        except KeyError:
-            _fields.append(field)
-    return _fields
 
 def canonicalize_fields(fields):
+    from atooms.core.utils import canonicalize
+
     warnings.warn('canonicalize_fields() is deprecated, use canonicalize() instead', FutureWarning)
-    return canonicalize(fields)
+    th = TrajectoryBase(None)
+    return canonicalize(fields, th.thesaurus)
 
 
 class TrajectoryBase(object):
@@ -149,17 +116,34 @@ class TrajectoryBase(object):
         subclasses to hold trajectory format info or dynamically
         on a per sample basis,
         """
-        self.thesaurus = {}
+        self.thesaurus = {
+            'position': 'particle.position',
+            'velocity': 'particle.velocity',
+            'species': 'particle.species',
+            'radius': 'particle.radius',
+            'mass': 'particle.mass',
+            'pos': 'particle.position',
+            'x': 'particle.position[0]',
+            'y': 'particle.position[1]',
+            'z': 'particle.position[2]',
+            'vel': 'particle.velocity',
+            'vx': 'particle.velocity[0]',
+            'vy': 'particle.velocity[1]',
+            'vz': 'particle.velocity[2]',
+            'id': 'particle.species',
+            'type': 'particle.species',
+        }
         """
-        Extra entries for thesaurus
+        Dictionary of common shortcuts and synonims for system
+        attributes. Can be updated by subclasses.
         """
 
         # These are cached properties
-        self._variables = []
+        self._variables = ()
         """
-        List of system attributes to be written by `write_sample` and/or
+        Tuple of system attributes to be written by `write_sample` and/or
         read by `read_sample`. Its entries are canonicalized using
-        `self._thesaurus` everytime the attribute is set. Subclasses
+        `self.thesaurus` everytime the attribute is set. Subclasses
         may use it to allow the user to modify the trajectory layout
         or they can ignore it entirely.
         """
@@ -422,8 +406,70 @@ class TrajectoryBase(object):
 
     @variables.setter
     def variables(self, value):
+        from atooms.core.utils import canonicalize
         self._variables = canonicalize(value, self.thesaurus)
 
+    def copy(self, cls=None, fout=None, only=None, include=None, exclude=None, steps=None):
+        """
+        Return a copy of the trajectory        
+        """
+        from atooms.core.progress import progress
+        from atooms.core.utils import canonicalize
+        from atooms.core.utils import mkdir
+
+        # Output class
+        if cls is None:
+            cls = self.__class__
+        else:
+            from atooms.trajectory import Trajectory
+            if isinstance(cls, str):
+                cls = Trajectory.formats[cls]
+            
+        # Make sure parent folder exists
+        if fout is not None:
+            mkdir(os.path.dirname(fout))
+
+        # Copy trajectory
+        conv = cls(fout, 'w')
+        # In a previous version of trajectory conversion, we only
+        # included the variables of the original trajectory, to allow
+        # the output trajectory to include variables not present in
+        # the original one. I do not think this makes sense. Suppose
+        # the original trajectory did not store velocities, but the
+        # output one writes them by default. The results will be wrong.
+        variables = list(self.variables)
+        if only is not None:
+            variables = only
+        if include is not None:
+            for pattern in canonicalize(include, self.thesaurus):
+                if pattern not in variables:
+                    variables.append(pattern)
+        if exclude is not None:
+            for pattern in canonicalize(exclude, self.thesaurus):
+                if pattern not in variables:
+                    variables.append(pattern)
+        conv.variables = variables
+        conv.precision = self.precision
+        conv.timestep = self.timestep
+        conv.block_size = self.block_size
+        # In python 3, zip returns a generator so this is ok
+        #
+        # for system, step in zip(inp, inp.steps):
+        #     conv.write(system, step)
+        #
+        # In python 2, zipping t and t.steps will load everything
+        # in RAM. In this case, it is better to use enumerate()
+        if steps is None:
+            for i, system in progress(enumerate(self), total=len(self)):
+                conv.write(system, self.steps[i])
+        else:
+            # Only include requested steps (useful to prune
+            # non-periodic trajectories)
+            for step in steps:
+                idx = self.steps.index(step)
+                conv.write(self[idx], step)
+        return conv
+    
     @property
     def fields(self):
         warnings.warn('fields is deprecated, use variables instead', FutureWarning)
@@ -432,7 +478,7 @@ class TrajectoryBase(object):
     @fields.setter
     def fields(self, value):
         warnings.warn('fields is deprecated, use variables instead', FutureWarning)
-        self._variables = value  # canonicalize(value, self.thesaurus)
+        self._variables = value
 
     @property
     def steps(self):
