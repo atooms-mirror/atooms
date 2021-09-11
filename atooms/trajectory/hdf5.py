@@ -328,6 +328,7 @@ class TrajectoryHDF5(TrajectoryBase):
         return Interaction(potentials, name)
 
     def read_sample(self, frame):
+        # TODO: refactor reading particle variables
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
@@ -378,7 +379,6 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.variables.remove('particle.radius')
 
         # Try update species. This must be done after setting defaults.
-        # TODO: refactor
         try:
             spe = group['species' + csample][:]
             for i, pi in enumerate(p):
