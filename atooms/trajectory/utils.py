@@ -1,10 +1,9 @@
 """Useful functions to manipulate trajectories."""
 
 import os
+import copy
 import tarfile
 import numpy
-import copy
-from atooms.core.progress import progress
 
 
 def gopen(filename, mode):
@@ -44,7 +43,7 @@ def file_index(fh, size=None):
             header_size, this_block_size = size(fh, data, line)
             header.append(line)
         except ValueError:
-            raise IOError('malformed file [%s]', fh.filename)
+            raise IOError('malformed file [{}]'.format(fh.filename))
 
         # Skip header_size lines (if zero none will be skipped)
         for i in range(header_size):

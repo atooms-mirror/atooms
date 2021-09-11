@@ -7,6 +7,7 @@ import numpy
 import h5py
 import logging
 import copy
+import warnings
 
 from .base import TrajectoryBase
 from atooms.core import ndim
@@ -304,7 +305,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
         n = self.trajectory['/initialstate/interaction/number_of_interactions'][0]
         if n > 1:
-            warning.warn('can only read one interaction term')
+            warnings.warn('can only read one interaction term')
 
         i = 0
         g = '/initialstate/interaction/interaction_%d/' % (i+1)

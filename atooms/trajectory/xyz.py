@@ -94,7 +94,7 @@ def _optimize_arrays(variables):
     last_var, last_idx = None, None
     for variable in variables:
         # This will match array expressions, like position[0] or particle.position[0]
-        all_matches = re.findall('([\._\w]+)\[(\d+)\]', variable)
+        all_matches = re.findall(r'([\._\w]+)\[(\d+)\]', variable)
 
         # This must be a single couple (variable, index) or nothing
         if len(all_matches) == 1:
