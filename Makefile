@@ -36,8 +36,5 @@ autopep8:
 	autopep8 -r -i $(PROJECT)
 	autopep8 -r -i tests
 
-pep8:
-	flake8 $(PROJECT)
-
 clean:
 	rm -rf atooms/*pyc atooms/*/*pyc tests/*pyc atooms/*/*pyo atooms/*/__pycache__
