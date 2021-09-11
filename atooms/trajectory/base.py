@@ -36,7 +36,7 @@ thesaurus = {
 }
 """
 Common synonims for system attributes, such as
-particle.position -> pos    
+particle.position -> pos
 """
 
 def canonicalize(fields, extra=None):
@@ -251,13 +251,18 @@ class TrajectoryBase(object):
         # by storing a "temporary" frame instance variable
         # (deleted after this loop)
         system.frame = index
-        # TODO: this is an old hack to pass variables across calls
-        # For persistency we can now use self_callbacks
+        # TODO: copying callbacks is an old hack that allowed client
+        # code to safely pass variables in the callback across calls
+        # Deprecating this feature would require checking if the
+        # callback has variables not starting with __
+        # For persistency of such variables we can now use self_callbacks
         callbacks = copy.copy(self.callbacks)
         if self.class_callbacks is not None:
             callbacks += self.class_callbacks
         for cbk, args, kwargs in callbacks:
             system = cbk(system, *args, **kwargs)
+
+        # Self callbacks accept the trajectory instance as first variable
         if self.self_callbacks is not None:
             for cbk, args, kwargs in self.self_callbacks:
                 system = cbk(self, system, *args, **kwargs)
