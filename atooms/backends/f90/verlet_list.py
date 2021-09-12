@@ -9,7 +9,9 @@ _log = logging.getLogger(__name__)
 
 class VerletList(object):
 
-    def __init__(self, skin=0.2, update="largest", update_period=10, source=os.path.join(os.path.dirname(__file__), 'neighbor_list.f90')):
+    def __init__(self, skin=0.2, update="largest", update_period=10, source=''):
+        if len(source) == 0:
+            os.path.join(os.path.dirname(__file__), 'neighbor_list.f90')
         self.skin = skin
         self.update = update
         self.update_period = update_period

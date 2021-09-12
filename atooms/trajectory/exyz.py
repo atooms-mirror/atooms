@@ -107,7 +107,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         # Read frame now
         self.trajectory.seek(self._index_frame[frame])
         particle = []
-        for ipart in range(npart):
+        for _ in range(npart):
             p = Particle()
             data = self.trajectory.readline().split()
             i = 0

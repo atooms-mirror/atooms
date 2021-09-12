@@ -68,8 +68,8 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             # Skip npart+1 lines
             _ = self.trajectory.readline()
             self._index_frame.append(self.trajectory.tell())
-            for i in range(npart):
-                _ = self.trajectory.readline()
+            for _ in range(npart):
+                self.trajectory.readline()
 
     def _read_comment(self, frame):
         """Internal xyz method to get header metadata from comment line of given `frame`.

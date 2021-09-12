@@ -148,7 +148,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         self._fh.readline()
         ndim = len(data.split())  # line is ITEM: BOX BONDS pp pp pp
         L, center = [], []
-        for i in range(ndim):
+        for _ in range(ndim):
             data = [float(x) for x in self._fh.readline().split()]
             L.append(data[1] - data[0])
             center.append((data[1] + data[0]) / 2)

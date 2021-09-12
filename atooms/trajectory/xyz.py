@@ -226,8 +226,8 @@ class TrajectoryXYZ(TrajectoryBase):
             # that number of lines
             _ = self.trajectory.readline()
             line = self.trajectory.tell()
-            for i in range(npart):
-                _ = self.trajectory.readline()
+            for _ in range(npart):
+                self.trajectory.readline()
             # Store first line /after/ we have read the frame
             # making sure the last we read was not emtpy
             # Note that readline() returns an empty string on EOF
@@ -388,7 +388,7 @@ def fallback(p, data, meta):
         # Read frame now
         self.trajectory.seek(self._index_frame[frame])
         particle = []
-        for i in range(db['npart']):
+        for _ in range(db['npart']):
             p = Particle()
             # Note: we cannot optimize by shifting an index instead of
             # cropping lists all the time

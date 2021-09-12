@@ -7,8 +7,8 @@ import f2py_jit
 class Interaction(_Interaction):
 
     def __init__(self, model=None, potential='',
-                 potential_parameters={}, cutoff='',
-                 cutoff_parameters={}, interaction='interaction.f90',
+                 potential_parameters=None, cutoff='',
+                 cutoff_parameters=None, interaction='interaction.f90',
                  helpers='helpers.f90', inline=True,
                  inline_safe=False, debug=False):
         """
@@ -42,6 +42,11 @@ class Interaction(_Interaction):
         fortran modules.
         """
         _Interaction.__init__(self, None)
+
+        if potential_parameters is None:
+            potential_parameters = {}
+        if cutoff_parameters is None:
+            cutoff_parameters = {}
 
         if model and not hasattr(model, 'get'):
             # This may be a string, so we look for the model in the

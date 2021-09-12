@@ -46,14 +46,14 @@ def file_index(fh, size=None):
             raise IOError('malformed file [{}]'.format(fh.filename))
 
         # Skip header_size lines (if zero none will be skipped)
-        for i in range(header_size):
-            _ = fh.readline()
+        for _ in range(header_size):
+            fh.readline()
 
         # Skip block_size lines, making sure we have
         # read precisely that number of lines
         line = fh.tell()
-        for i in range(this_block_size):
-            _ = fh.readline()
+        for _ in range(this_block_size):
+            fh.readline()
 
         # Store first line /after/ we have read the frame
         # making sure the last we read was not emtpy
@@ -164,7 +164,7 @@ def check_block_size(steps, block_size, prune=False):
     block = steps_local[0: block_size]
     ibl, jbl = 0, 0
     prune_me = []
-    for i, step in enumerate(steps_local):
+    for _, step in enumerate(steps_local):
         offset = block[0] if ibl > 0 else 0
         step_expected = ibl * (steps_local[block_size] - offset) + block[jbl]
         if step == step_expected:

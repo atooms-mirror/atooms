@@ -205,7 +205,7 @@ class Unfolded(object):
         if delta > 1:
             # Allow to skip some frames by reading them internally
             # We read delta-1 frames, then delta is 1
-            for i in range(delta-1):
+            for _ in range(delta-1):
                 self.read_sample(self._last_read+1)
 
         # With deepcopy we make sure that Unfolded() returns copies of

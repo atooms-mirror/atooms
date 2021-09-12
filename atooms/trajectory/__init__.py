@@ -69,7 +69,7 @@ else:
             Trajectory.update(_mod_name, overwrite=False)
         except ImportError as err:
             # Usually it is an error in the plugin module so we show
-            print(err.message)
+            print(err)
             # Could not import this trajectory
             pass
 

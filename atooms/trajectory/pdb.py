@@ -54,7 +54,7 @@ class TrajectoryPDB(TrajectoryBase):
         cfg += 'MODEL%9i\n' % step
         fmt = 'CRYST1' + 3*'{:9.3f}' + 3*'{:7.2f}' + ' P 1           1\n'
         cfg += fmt.format(*(list(system.cell.side) + [90, 90, 90]))
-        for i, p in enumerate(system.particle):
+        for p in system.particle:
             # If particle has a field property we dump it in the pdb file
             if hasattr(p, 'field'):
                 x = float(p.field)
