@@ -179,5 +179,6 @@ class Test(unittest.TestCase):
         t.callbacks.pop()
         self.assertEqual(t[0].distinct_species, ['A', 'B'])
 
+
 if __name__ == '__main__':
     unittest.main()

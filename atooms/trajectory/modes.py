@@ -40,6 +40,7 @@ class TrajectoryModes(TrajectoryHDF5):
 
 # test('')
 
+
 if __name__ == '__main__':
     import sys
     with TrajectoryModes(sys.argv[1]) as inm:

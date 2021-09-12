@@ -52,5 +52,6 @@ class TrajectoryRamView(TrajectoryRam):
     def read_sample(self, frame):
         return self._system[frame]
 
+
 # This is maintanined for backward compatibility
 TrajectoryRamFull = TrajectoryRamView

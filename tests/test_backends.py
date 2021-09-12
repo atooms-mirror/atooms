@@ -93,7 +93,7 @@ class TestBackendRUMD(unittest.TestCase):
         U = system.potential_energy()
         T = system.temperature
         Uref = 36.9236726612
-        Tref = 6.0 / (9 -3)
+        Tref = 6.0 / (9 - 3)
         # Note places is the number of decimal places, not significant digits, 4 is enough
         self.assertAlmostEqual(U, Uref, 4)
         self.assertAlmostEqual(T, Tref)

@@ -18,6 +18,7 @@ def _warn_with_traceback(message, category, filename, lineno, file=None, line=No
         traceback.print_stack(file=sys.stderr, limit=6)
     sys.stderr.write(warnings.formatwarning(message, category, filename, lineno, line))
 
+
 warnings.showwarning = _warn_with_traceback
 
 

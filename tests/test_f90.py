@@ -22,7 +22,7 @@ class Test(unittest.TestCase):
     def setUp(self):
         if not HAS_F90:
             self.skipTest("skip f90 backend tests, missing f2py_jit")
-        self.data = os.path.join(os.path.dirname(__file__),'../data/')
+        self.data = os.path.join(os.path.dirname(__file__), '../data/')
         self.trajectory = f90.Trajectory(os.path.join(self.data, 'lj_N256_rho1.0.xyz'))
 
     @unittest.skipIf(not HAS_MODELS, 'no atooms-models module')
@@ -71,6 +71,7 @@ class Test(unittest.TestCase):
 
     def tearDown(self):
         self.trajectory.close()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -36,8 +36,8 @@ class Test(unittest.TestCase):
         t = TrajectoryRUMD(self.input_file)
         s0 = t[-1]
         sim = Simulation(self.backend,
-                       output_path='/tmp/test_rumd_temp/trajectory',
-                       steps=1, restart=False)
+                         output_path='/tmp/test_rumd_temp/trajectory',
+                         steps=1, restart=False)
         s1 = sim.system
         self.assertAlmostEqual(s1.temperature, s0.temperature)
         self.assertAlmostEqual(s1.cell.side[0], s0.cell.side[0])
@@ -176,8 +176,8 @@ class Test(unittest.TestCase):
         si.system = s
         si.run(100)
         pos2 = si.system.particle[0].position[0]
-        self.assertTrue(abs(pos1 - pos0)>1e-2)
-        self.assertTrue(abs(pos1 - pos2)<1e-4)
+        self.assertTrue(abs(pos1 - pos0) > 1e-2)
+        self.assertTrue(abs(pos1 - pos2) < 1e-4)
 
     def test_copy_and_run(self):
         self.skipTest('skipped test')
@@ -195,8 +195,8 @@ class Test(unittest.TestCase):
                                   '../data/ka_N256_rho1.185_rumd.xyz.gz')
         backend = RUMD(input_file, integrator='nvt', temperature=0.8, dt=0.002, forcefield=[potential])
         sim = Simulation(backend,
-                        output_path='/tmp/test_rumd_single/trajectory',
-                        steps=100, restart=False)
+                         output_path='/tmp/test_rumd_single/trajectory',
+                         steps=100, restart=False)
 
         # First set if runs
         # print sim.system.particle[0].position[0]
@@ -220,6 +220,7 @@ class Test(unittest.TestCase):
 
     def test_unfold(self):
         from atooms.backends.rumd import unfold
+
         def unf(sim):
             unfold(sim.system).particle[0].position
         si = Simulation(self.backend,

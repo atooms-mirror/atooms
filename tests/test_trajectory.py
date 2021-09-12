@@ -196,7 +196,8 @@ class Test(unittest.TestCase):
         # Check that when requesting to write the velocity, we actually write it and read it back automatically
         self._read_write_fields(trj.TrajectoryXYZ, write_fields=['species', 'position', 'velocity'], ignore=['mass'])
         # This must fail: writing positions but not reading them
-        self._read_write_fields(trj.TrajectoryXYZ, write_fields=['species', 'position', 'velocity'], read_fields=['species', 'velocity'], ignore=['mass'], fail=['position'])
+        self._read_write_fields(trj.TrajectoryXYZ, write_fields=['species', 'position', 'velocity'],
+                                read_fields=['species', 'velocity'], ignore=['mass'], fail=['position'])
 
     def test_simple_xyz(self):
         # Mass and velocity is not written in default xyz format, so we ignore it
@@ -356,6 +357,7 @@ columns:id,x,y,z step:2 cell:5.0,5.0,5.0
 C 1.0 -1.0 0.0
 B 2.9 -2.9 0.0
 """)
+
         def cbk(system):
             system.frame
             return system
@@ -491,6 +493,7 @@ ITEM: ATOMS id type xs ys zs
 2 1 0.50 0.51 0.52
 """)
         from atooms.trajectory import TrajectoryLAMMPS
+
         def scale(pos, side):
             return [(x - 0.5) * L for x, L in zip(pos, side)]
         with TrajectoryLAMMPS(self.inpfile) as th:
@@ -531,6 +534,7 @@ ITEM: ATOMS id type xs ys zs
 2 1 0.50 0.51 0.52
 """)
         from atooms.trajectory import TrajectoryFolderLAMMPS
+
         def scale(pos, side):
             return [(x - 0.5) * L for x, L in zip(pos, side)]
         with TrajectoryFolderLAMMPS(self.inpdir) as th:
@@ -547,7 +551,7 @@ ITEM: ATOMS id type xs ys zs
                            '../data/ka_rumd_N1200.xyz.gz')
         with trj.TrajectoryXYZ(inp) as th:
             self.assertEqual(len(th), 17)
-            
+
     def tearDown(self):
         rmf(self.inpfile)
         rmd(self.inpdir)

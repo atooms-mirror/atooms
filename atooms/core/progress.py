@@ -43,6 +43,7 @@ class NoProgressBar(object):
         self.close()
         return False
 
+
 try:
 
     from tqdm import tqdm

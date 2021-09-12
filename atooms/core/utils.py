@@ -154,6 +154,7 @@ def wget(url, output_dir):
     with open(output_file, 'wb') as fh:
         shutil.copyfileobj(response, fh, length)
 
+
 # Alias of wget
 download = wget
 

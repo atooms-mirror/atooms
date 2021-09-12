@@ -65,7 +65,6 @@ class Test(unittest.TestCase):
         system = System()
         self.assertAlmostEqual(system.temperature, 0.0)
 
-
     def test_cm(self):
         system = copy.copy(self.ref)
         system.set_temperature(1.0)
@@ -234,7 +233,6 @@ class Test(unittest.TestCase):
         q_rand = ((a**3 * 4./3*3.1415) * N / sys[0].cell.volume)
         self.assertTrue(abs(q_rand - collective_overlap(sys[0].particle, sys[1].particle, a, sys[0].cell.side)) < 0.5)
 
-
     def test_view(self):
         import numpy
         from atooms.system import Particle, System
@@ -298,6 +296,7 @@ class Test(unittest.TestCase):
             p = [Particle(), Particle()]
             s = System(p)
             pos1 = s.dump("pos", view=view)
+
             def cbk(system):
                 s = copy.copy(system)
                 s.particle = [system.particle[0]]
@@ -377,6 +376,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rotated[0].position[1], 0, 6)
         self.assertAlmostEqual(rotated[1].position[1], 1, 6)
         self.assertAlmostEqual(rotated[2].position[1], 2, 6)
+
 
 if __name__ == '__main__':
     unittest.main()

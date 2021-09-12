@@ -105,7 +105,7 @@ A 1.0 -1.0 0.0
 
     def test_timings(self):
         from atooms.core import utils
-        f = lambda x : x
+        def f(x): return x
         utils.clockit(f)
         f(1)
         t = utils.Timer()

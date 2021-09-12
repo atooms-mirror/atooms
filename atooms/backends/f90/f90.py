@@ -130,6 +130,7 @@ def _add_interaction(trajectory, system):
                                      inline=True)
     return system
 
+
 # Boost all trajectory classes with specific jit callbacks
 # and create a new Trajectory factory that only loads these classes
 # They keep their original names but live in this module namespace
