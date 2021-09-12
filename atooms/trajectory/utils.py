@@ -53,12 +53,12 @@ def file_index(fh, size=None):
         # read precisely that number of lines
         line = fh.tell()
         for _ in range(this_block_size):
-            fh.readline()
+            data = fh.readline()
 
         # Store first line /after/ we have read the frame
         # making sure the last we read was not emtpy
         # Note that readline() returns an empty string on EOF
-        if len(_) > 0:
+        if len(data) > 0:
             block.append(line)
             block_size.append(this_block_size)
         else:

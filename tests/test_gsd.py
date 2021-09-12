@@ -5,7 +5,6 @@ import os
 import unittest
 import numpy as np
 
-from atooms.trajectory.gsd import TrajectoryGSD
 try:
     from atooms.trajectory.gsd import TrajectoryGSD
     HAS_GSD = True
