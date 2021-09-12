@@ -105,7 +105,7 @@ class PairPotential(object):
         self._adjusted = False
         self._can_compute = True
 
-        if not hasattr(self.func, '__call__'):
+        if not callable(self.func):
             # If func is not callable, look up the potential in the
             # potential library
             if self.func in library.__all__:
