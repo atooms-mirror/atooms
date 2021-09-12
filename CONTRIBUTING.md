@@ -26,6 +26,6 @@ Style
 
 atooms seeks to provide an expressive and consistent interface. If a method doesn't clearly express its goal or an attribute doesn't feel natural, then I consider it a bug. Therefore, when adding new interface to the code, always use expressive, non abbreviated names for public methods and variables - even if they are long! Ex: `system.total_energy` is nice, `system.etot` is not.
 
-The general [PEP8 style guidelines](https://www.python.org/dev/peps/pep-0008/) apply - with a grain of salt. For instance, lines up to 120 characters are fine with me. Imports in functions too. It is typically safe to execute `make autopep8` (if `autopep8` is installed) to fix some cosmetic, whitespace issues. The PEP8 fixes I ignore are listed in `setup.cfg`.
+The general [PEP8 style guidelines](https://www.python.org/dev/peps/pep-0008/) apply - with a grain of salt. For instance, lines up to 120 characters are fine with me. Imports in functions too. It is typically safe to execute `make pep8` (if `autopep8` and `flake8` are installed) to fix some cosmetic, whitespace issues and get a report on the outstanding PEP8 issues. The PEP8 issues I ignore are listed in `setup.cfg`.
 
 Please follow [these simple rules](https://chris.beams.io/posts/git-commit/) to write commit messages. Try to use the verb "add" to start a commit describing a new feature (ex: "Add new trajectory class") and "fix" to describe a bug fix (ex. "Fix writing cell side in NPT simulations"). Do not leave empty commit message. Consider rebasing your branch to reword or squash commits, before pushing.

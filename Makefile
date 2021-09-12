@@ -3,18 +3,12 @@ COMMIT = $$(git describe --abbrev=6 --always 2>/dev/null || echo 0)
 COMMIT_DIRTY = $$(git describe --abbrev=6 --dirty --always 2>/dev/null || echo 0)
 DATE=$$(git show -s --format=%ci $(COMMIT) | cut -d ' ' -f 1)
 
-.PHONY: all test todo install develop docs version clean
+.PHONY: all test todo install docs version pep8 clean
 
 all: version
 
 install: version
 	python setup.py install
-
-user: version
-	python setup.py install --user
-
-develop: version
-	python setup.py develop --user
 
 test:	version
 	coverage run --source atooms -m unittest discover -s tests
@@ -32,9 +26,10 @@ version:
 	@echo __commit__ = \'$(COMMIT_DIRTY)\' > atooms/core/_commit.py
 	@echo __date__ = \'$(DATE)\' >> atooms/core/_commit.py
 
-autopep8:
+pep8:
 	autopep8 -r -i $(PROJECT)
 	autopep8 -r -i tests
+	flake8 $(PROJECT)
 
 clean:
 	rm -rf atooms/*pyc atooms/*/*pyc tests/*pyc atooms/*/*pyo atooms/*/__pycache__
