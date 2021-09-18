@@ -201,7 +201,7 @@ class System(object):
         energy per particle.
         """
         if self.interaction is not None:
-            if not cache:
+            if not cache or self.interaction.energy is None:
                 self.compute_interaction('forces')
             if per_particle or normed:
                 return self.interaction.energy / len(self.particle)
@@ -228,7 +228,7 @@ class System(object):
         If `per_particle` is `True`, return the force norm per particle.
         """
         if self.interaction is not None:
-            if not cache:
+            if not cache or self.interaction.forces is None:
                 self.compute_interaction('forces')
             if per_particle:
                 return numpy.sum(self.interaction.forces**2)**0.5 / len(self.particle)
@@ -244,7 +244,7 @@ class System(object):
         If `per_particle` is `True`, return the force squared norm per particle.
         """
         if self.interaction is not None:
-            if not cache:
+            if not cache or self.interaction.forces is None:
                 self.compute_interaction('forces')
             if per_particle:
                 return numpy.sum(self.interaction.forces**2) / len(self.particle)
@@ -260,7 +260,7 @@ class System(object):
         If `per_unit_volume` is `True`, return the virial per particle.
         """
         if self.interaction is not None:
-            if not cache:
+            if not cache  or self.interaction.virial is None:
                 self.compute_interaction('forces')
             if per_particle:
                 return self.interaction.virial / len(self.particle)
