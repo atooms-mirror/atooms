@@ -4,7 +4,7 @@ import os
 import copy
 import tarfile
 import numpy
-
+import warnings
 
 def gopen(filename, mode):
     """Open a file recognizing gzipped and bzipped files by extension."""
@@ -180,7 +180,6 @@ def check_block_size(steps, block_size, prune=False):
 
     # Remove samples that do not conform with first block
     if prune and len(prune_me) > 0:
-        # print('#', len(prune_me), 'samples should be pruned')
         for step in prune_me:
             _ = steps_local.pop(steps_local.index(step))
 
@@ -189,7 +188,7 @@ def check_block_size(steps, block_size, prune=False):
     rest = len(steps_local) % block_size
     if rest > 1:
         steps_local = steps_local[:-rest]
-        print('# block was truncated')
+        warning.warn('truncated block')
 
     # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
@@ -203,8 +202,7 @@ def check_block_size(steps, block_size, prune=False):
             if diff_last is None:
                 diff_last = diff
             if diff_last != diff:
-                print('# finger print:', block)
-                raise IndexError('block does not match finger print')
+                raise IndexError('block does not match finger print {}'.format(block))
     return steps_local
 
 
