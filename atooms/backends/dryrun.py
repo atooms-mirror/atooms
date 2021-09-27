@@ -130,7 +130,7 @@ class EnergyMinimization(object):
 
     def __init__(self, system):
         self.system = system
-        self.trajectory = Trajectory
+        self.trajectory_class = Trajectory
         self.output_path = None
         self.method = 'cg'
         self.tolerance = 1e-10
