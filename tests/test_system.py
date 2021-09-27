@@ -185,7 +185,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rg3, 0.57735026919)
 
     def test_interaction(self):
-        from atooms.interaction import Interaction
+        from atooms.system.interaction import Interaction
         system = copy.copy(self.ref)
         self.assertAlmostEqual(system.potential_energy(), 0.0)
         system.interaction = Interaction([])

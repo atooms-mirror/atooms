@@ -9,7 +9,7 @@ from .base import TrajectoryBase
 from .folder import TrajectoryFolder
 from atooms.system import System, Particle, Cell
 from atooms.system.particle import distinct_species
-from atooms.interaction import Interaction
+from atooms.system.interaction import Interaction
 
 import sys
 

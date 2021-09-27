@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 from atooms import trajectory
 from atooms import system
-from atooms import interaction
+from atooms.system import interaction
 from atooms.trajectory import TrajectoryLAMMPS
 from atooms.trajectory.decorators import change_species
 from atooms.core.utils import rmd

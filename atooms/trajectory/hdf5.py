@@ -13,11 +13,32 @@ from atooms.core import ndim
 from atooms.system import System
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
-from atooms.interaction import Interaction
-from atooms.interaction.potential import PairPotential
-from atooms.interaction.cutoff import CutOff
+from atooms.system.interaction import Interaction
 
 _log = logging.getLogger(__name__)
+
+
+class _CutOff(object):
+
+    def __init__(self, scheme, radius):
+        self.scheme = scheme
+        self.radius = radius
+        self.rcutsq = radius**2
+        self.radius_mid = radius
+        self.radius_mid_sq = radius**2
+
+
+class _PairPotential(object):
+
+    interacting_bodies = 2
+
+    def __init__(self, func, params, species, cutoff=None,
+                 npoints=20000):
+        self.func = func
+        self.params = params
+        self.species = species
+        self.cutoff = cutoff
+        self.npoints = npoints
 
 
 #  Helper functions and classes
@@ -318,10 +339,10 @@ class TrajectoryHDF5(TrajectoryBase):
             params = {}
             for k, v in zip(sg['parameters_name'][:], sg['parameters'][:]):
                 params[k] = v
-            p = PairPotential(sg['potential'][0].decode(), params,
-                              sg['interacting_species'][:],
-                              CutOff(sg['cutoff_scheme'][0].decode(),
-                                     sg['cutoff_radius'][0]))
+            p = _PairPotential(sg['potential'][0].decode(), params,
+                               sg['interacting_species'][:],
+                               _CutOff(sg['cutoff_scheme'][0].decode(),
+                                       sg['cutoff_radius'][0]))
             if 'lookup_points' in sg:
                 p.npoints = sg['lookup_points']
 
