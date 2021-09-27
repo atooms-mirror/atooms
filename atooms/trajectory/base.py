@@ -95,14 +95,6 @@ class TrajectoryBase(object):
 
     suffix = None
 
-    # Mutable class variables are shared by subclasses https://stackoverflow.com/a/13404513
-
-    # To avoid that subclasses modify the parent class variable, we
-    # use the trick to define class_callbacks as None, then assign it
-    # to a list in the class method
-    class_callbacks = None
-    self_callbacks = None
-
     def __init__(self, filename, mode='r', cache=False):
         """
         The `mode` can be 'r' (read) or 'w' (write).
@@ -242,15 +234,8 @@ class TrajectoryBase(object):
         # callback has variables not starting with __
         # For persistency of such variables we can now use self_callbacks
         callbacks = copy.copy(self.callbacks)
-        if self.class_callbacks is not None:
-            callbacks += self.class_callbacks
         for cbk, args, kwargs in callbacks:
             system = cbk(system, *args, **kwargs)
-
-        # Self callbacks accept the trajectory instance as first variable
-        if self.self_callbacks is not None:
-            for cbk, args, kwargs in self.self_callbacks:
-                system = cbk(self, system, *args, **kwargs)
         if hasattr(system, 'frame'):
             del(system.frame)
         return system
@@ -343,46 +328,6 @@ class TrajectoryBase(object):
     def add_callback(self, cbk, *args, **kwargs):
         """Same as `register_callback()`."""
         self.register_callback(cbk, *args, **kwargs)
-
-    @classmethod
-    def register_class_callback(cls, cbk, *args, **kwargs):
-        """
-        Register a class level callback `cbk` to be applied when reading a frame.
-
-        The callback must receive a `System` instance as input an
-        return the modified `System` instance as output.
-
-        Class level callbacks are applied to all instances of a class.
-        """
-        if cls.class_callbacks is None:
-            cls.class_callbacks = []
-        if (cbk, args, kwargs) not in cls.class_callbacks:
-            cls.class_callbacks.append((cbk, args, kwargs))
-
-    @classmethod
-    def add_class_callback(self, cbk, *args, **kwargs):
-        """Same as `register_class_callback()`."""
-        self.register_class_callback(cbk, *args, **kwargs)
-
-    @classmethod
-    def register_self_callback(cls, cbk, *args, **kwargs):
-        """
-        Register an extended class level callback `cbk` to be applied when
-        reading a frame. The self argument will be passed as first
-        variable, then the `System` instance. The modified `System`
-        instance is returned as output.
-
-        Class level callbacks are applied to all instances of a class.
-        """
-        if cls.self_callbacks is None:
-            cls.self_callbacks = []
-        if (cbk, args, kwargs) not in cls.self_callbacks:
-            cls.self_callbacks.append((cbk, args, kwargs))
-
-    @classmethod
-    def add_self_callback(self, cbk, *args, **kwargs):
-        """Same as `register_self_callback()`."""
-        self.register_self_callback(cbk, *args, **kwargs)
 
     # To read/write timestep and block size sublcasses may implement
     # these methods. The default is dt=1 and block determined dynamically.

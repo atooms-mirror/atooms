@@ -366,29 +366,6 @@ B 2.9 -2.9 0.0
             th[0]
             th[1]
 
-    def test_class_callback(self):
-        def f(s):
-            s._signal = True
-            return s
-
-        class TrajectoryXYZCustom(TrajectoryXYZ):
-            pass
-        TrajectoryXYZCustom.add_class_callback(f)
-        Trajectory.add(TrajectoryXYZCustom)
-
-        self.assertFalse(TrajectoryXYZCustom.class_callbacks is TrajectoryXYZ.class_callbacks)
-
-        with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'w') as th:
-            th.write(self.system[0])
-        with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'r') as th:
-            s = th[0]
-            self.assertTrue(hasattr(s, '_signal'))
-
-        TrajectoryXYZCustom.class_callbacks.remove((f, (), {}))
-        with Trajectory(os.path.join(self.inpdir, 'test.xyz'), 'r') as th:
-            s = th[0]
-            self.assertFalse(hasattr(s, '_signal'))
-
     def _copy_inplace(self, trajectory, expect=False):
         """
         Test that trajectory returns a copy of the system and that
