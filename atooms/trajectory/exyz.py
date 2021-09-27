@@ -96,7 +96,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
                 steps.append(frame+1)
         return steps
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         # Read metadata of this frame
         meta = self._read_comment(frame)
 

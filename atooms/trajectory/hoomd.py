@@ -84,7 +84,7 @@ class TrajectoryHOOMD(TrajectoryBase):
             vel_list = None
         return cfg, box_list, pos_list, typ_list, vel_list
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         cfg, box, pos, typ, vel = self.__read_one(self.__f_frames[frame])
         if vel is None:
             particle = [Particle(species=t, position=numpy.array(p)) for p, t in zip(pos, typ)]

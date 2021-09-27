@@ -328,7 +328,7 @@ class TrajectoryHDF5(TrajectoryBase):
             potentials.append(p)
         return Interaction(potentials, name)
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         # TODO: refactor reading particle variables
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all

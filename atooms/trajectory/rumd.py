@@ -94,7 +94,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
         for p in system.particle:
             # We get the integer index corresponding to species Ex.:
             # if species are 'A', 'B' we get 0 and 1. Note that in
-            # general getting the sample back via read_sample() will
+            # general getting the sample back via read_system() will
             # not preserve the species.
             isp = sp.index(p.species)
             self.trajectory.write("{0} {1.position} {1.velocity}\n".format(isp, p))

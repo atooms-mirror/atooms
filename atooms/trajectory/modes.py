@@ -7,7 +7,7 @@ from atooms.trajectory.hdf5 import TrajectoryHDF5
 
 class TrajectoryModes(TrajectoryHDF5):
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         system = System()
         s = self.trajectory["trajectory/realtime/sampleindex"].keys()[frame]
         system.eigenvalues = self.trajectory["trajectory/normalmodes/eigenvalues/%s" % s][:]

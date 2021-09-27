@@ -124,7 +124,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         self._fh.seek(0)
         return steps
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         # Read number of particles
         idx, _ = self._index_db['NUMBER OF ATOMS'][frame]
         self._fh.seek(idx)
@@ -271,7 +271,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
                 steps.append(th.steps[0])
         return steps
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         with TrajectoryLAMMPS(self.files[frame], 'r', single_frame=True,
                               first_particle=self.first_particle,
                               last_particle=self.last_particle) as th:

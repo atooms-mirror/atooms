@@ -35,7 +35,7 @@ class TrajectoryGSD(TrajectoryBase):
         if self.mode == 'r':
             self.steps = [snap.configuration.step for snap in self.trajectory]
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         """ returns System instance. """
         snap = self.trajectory[frame]
         ndim = snap.configuration.dimensions

@@ -9,7 +9,7 @@ class TrajectoryRam(TrajectoryBase):
     """
     Store trajectory in RAM
 
-    The read_sample method of this class conforms with the normal
+    The read_system method of this class conforms with the normal
     Trajectory behavior, i.e. a copy of the system is returned when
     requesting the same frame multiple times.
     """
@@ -26,7 +26,7 @@ class TrajectoryRam(TrajectoryBase):
         else:
             self._system.append(copy.deepcopy(system))
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         return copy.deepcopy(self._system[frame])
 
     def __setitem__(self, i, value):
@@ -44,12 +44,12 @@ class TrajectoryRamView(TrajectoryRam):
 
     """
     This class deviates from the normal Trajectory behavior in that it
-    returns views on the System when calling read_sample(), and not
+    returns views on the System when calling read_system(), and not
     copies. Thus modifications to the read system object will be
     propagated to the trajectory.
     """
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         return self._system[frame]
 
 

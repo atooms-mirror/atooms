@@ -119,7 +119,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             cell = Cell(side)
         return cell
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         meta = self._read_comment(frame)
         self.trajectory.seek(self._index_frame[frame])
 

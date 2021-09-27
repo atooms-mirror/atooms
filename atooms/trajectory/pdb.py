@@ -82,7 +82,7 @@ class TrajectoryPDB(TrajectoryBase):
                 Lz = float(data[24:33])
                 self._cell = Cell([Lx, Ly, Lz])
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         particle = []
         cell = self._cell
 

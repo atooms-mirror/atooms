@@ -378,7 +378,7 @@ def fallback(p, data, meta):
 
         self._active_read_callbacks = callbacks
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         # Define actual list of callbacks
         self._setup_read_callbacks()
         callbacks = self._active_read_callbacks

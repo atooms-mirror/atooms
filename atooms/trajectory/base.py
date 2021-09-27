@@ -72,7 +72,7 @@ class TrajectoryBase(object):
             th.write(system, step=0)
 
     To be fully functional, concrete classes must implement
-    `read_sample()` and `write_sample()` methods.
+    `read_system()` and `write_sample()` methods.
 
     `read()` is a template composed of the two following steps:
 
@@ -80,7 +80,7 @@ class TrajectoryBase(object):
     structures, grab metadata, etc. Need *not* be implemented by
     subclasses.
 
-    - `read_sample(n)`: actually return the system at frame n. It must
+    - `read_system(n)`: actually return the system at frame n. It must
       be implemented by subclasses.
 
     Similarly, `write()` is a template composed of `write_init()` and
@@ -143,7 +143,7 @@ class TrajectoryBase(object):
         self._variables = ()
         """
         Tuple of system attributes to be written by `write_sample` and/or
-        read by `read_sample`. Its entries are canonicalized using
+        read by `read_system`. Its entries are canonicalized using
         `self.thesaurus` everytime the attribute is set. Subclasses
         may use it to allow the user to modify the trajectory layout
         or they can ignore it entirely.
@@ -223,7 +223,7 @@ class TrajectoryBase(object):
             # We get the system from the cache
             system = self._cache[index]
         else:
-            system = self.read_sample(index)
+            system = self.read_system(index)
             if self.cache:
                 # Store the system in cache
                 if self._cache is None:
@@ -312,7 +312,7 @@ class TrajectoryBase(object):
 
     # These methods must be implemented by subclasses
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         """Return the system at the given `frame`."""
         raise NotImplementedError()
 
@@ -320,7 +320,7 @@ class TrajectoryBase(object):
         """Write a `system` to file. Noting to return."""
         raise NotImplementedError()
 
-    # Callbacks will be applied to the output of read_sample()
+    # Callbacks will be applied to the output of read_system()
 
     def register_callback(self, cbk, *args, **kwargs):
         """
@@ -585,7 +585,7 @@ class SuperTrajectory(TrajectoryBase):
                         self._steps_file.append(f)
                         self._steps_frame.append(j)
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         f = self._steps_file[frame]
         j = self._steps_frame[frame]
         # Optimization: use the last trajectory in cache (it works
@@ -604,6 +604,10 @@ class SuperTrajectory(TrajectoryBase):
         t = self._last_trajectory
         return t[j]
 
+    def read_sample(self, frame):
+        warnings.warn('read_system() is deprecated, use read_system()', DeprecationWarning)
+        return self.read_system(frame)
+    
     def read_timestep(self):
         with self.trajectoryclass(self.files[0]) as t:
             return t.timestep
