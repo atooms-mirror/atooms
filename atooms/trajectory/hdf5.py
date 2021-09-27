@@ -214,7 +214,7 @@ class TrajectoryHDF5(TrajectoryBase):
                 self.trajectory[pgr + 'cutoff_radius'] = [phi.cutoff.radius]
                 self.trajectory[pgr + 'lookup_points'] = [phi.npoints]
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         variables = self.variables
 
         self.trajectory.create_group_safe('/trajectory')

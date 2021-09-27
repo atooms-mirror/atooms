@@ -64,7 +64,7 @@ class TrajectoryGSD(TrajectoryBase):
 
         return System(particle=particles, cell=cell)
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         """ Writes to the file handle self.trajectory."""
         variables = self.variables
         data = system.dump(['pos', 'vel', 'spe', 'particle.mass', 'particle.radius'])

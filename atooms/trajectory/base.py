@@ -72,7 +72,7 @@ class TrajectoryBase(object):
             th.write(system, step=0)
 
     To be fully functional, concrete classes must implement
-    `read_system()` and `write_sample()` methods.
+    `read_system()` and `write_system()` methods.
 
     `read()` is a template composed of the two following steps:
 
@@ -84,7 +84,7 @@ class TrajectoryBase(object):
       be implemented by subclasses.
 
     Similarly, `write()` is a template composed of `write_init()` and
-    `write_sample()`. Only the latter method must be implemented by
+    `write_system()`. Only the latter method must be implemented by
     subclasses.
 
     The `cache` variable reduces access time when reading the same
@@ -142,7 +142,7 @@ class TrajectoryBase(object):
         # These are cached properties
         self._variables = ()
         """
-        Tuple of system attributes to be written by `write_sample` and/or
+        Tuple of system attributes to be written by `write_system` and/or
         read by `read_system`. Its entries are canonicalized using
         `self.thesaurus` everytime the attribute is set. Subclasses
         may use it to allow the user to modify the trajectory layout
@@ -285,7 +285,7 @@ class TrajectoryBase(object):
                 raise ValueError('cannot add step {} when overwrite is False'.format(current_step))
 
         # Write the sample.
-        self.write_sample(system, current_step)
+        self.write_system(system, current_step)
         # Step is added last, frame index starts from 0 by default.
         if step is None:
             self.steps.append(current_step)
@@ -314,11 +314,19 @@ class TrajectoryBase(object):
 
     def read_system(self, frame):
         """Return the system at the given `frame`."""
-        raise NotImplementedError()
-
-    def write_sample(self, system, step):
+        if hasattr(self, 'read_sample'):
+            warnings.warn('read_sample() is deprecated, use read_system()', DeprecationWarning)
+            return self.read_sample(frame)
+        else:
+            raise NotImplementedError()
+        
+    def write_system(self, system, step):
         """Write a `system` to file. Noting to return."""
-        raise NotImplementedError()
+        if hasattr(self, 'write_sample'):
+            warnings.warn('write_sample() is deprecated, use write_system()', DeprecationWarning)
+            return self.write_sample(system, step)
+        else:
+            raise NotImplementedError()
 
     # Callbacks will be applied to the output of read_system()
 
@@ -604,10 +612,6 @@ class SuperTrajectory(TrajectoryBase):
         t = self._last_trajectory
         return t[j]
 
-    def read_sample(self, frame):
-        warnings.warn('read_system() is deprecated, use read_system()', DeprecationWarning)
-        return self.read_system(frame)
-    
     def read_timestep(self):
         with self.trajectoryclass(self.files[0]) as t:
             return t.timestep

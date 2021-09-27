@@ -444,7 +444,7 @@ def fallback(p, data, meta):
             line += '{}:{} '.format(entry, self.metadata[entry])
         return line
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         # Make sure fields are expanded
         global _numpy_fmt_lock
         _numpy_fmt_lock = True

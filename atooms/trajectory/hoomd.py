@@ -94,7 +94,7 @@ class TrajectoryHOOMD(TrajectoryBase):
         cell = Cell(numpy.array(box))
         return System(particle, cell)
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         ndim = len(system.particle[0].position)
         n = len(system.particle)
 

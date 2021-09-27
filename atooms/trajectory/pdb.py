@@ -49,7 +49,7 @@ class TrajectoryPDB(TrajectoryBase):
                 self.steps.append(int(data.split()[-1]))
                 self._index_frame.append(line)
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         cfg = ''
         cfg += 'MODEL%9i\n' % step
         fmt = 'CRYST1' + 3*'{:9.3f}' + 3*'{:7.2f}' + ' P 1           1\n'

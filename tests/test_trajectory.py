@@ -249,7 +249,7 @@ class Test(unittest.TestCase):
         # This must fail: writing velocities but not reading them
         # self._read_write_fields(trj.TrajectoryRUMD, read_fields=['species', 'position'], ignore=['mass'], fail=True)
         # self._read_write_fields(trj.TrajectoryRUMD, read_fields=['type', 'x', 'y', 'z'], ignore=['mass'], fail=True)
-        # TODO: add write_sample() to supertrajectory
+        # TODO: add write_system() to supertrajectory
         #self._read_write(trj.SuperTrajectoryRUMD, self.inpdir, ignore=['id', 'name'])
 
     def test_pdb(self):

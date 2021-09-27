@@ -228,7 +228,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         f.write(v)
         f.close()
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         pass
 
     def close(self):
@@ -277,7 +277,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
                               last_particle=self.last_particle) as th:
             return th[0]
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         # We cannot write
         raise NotImplementedError('cannot write lammps folder trajectory')
 

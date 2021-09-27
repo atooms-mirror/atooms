@@ -85,7 +85,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
         hdr += ' columns=type,x,y,z,vx,vy,vz\n'
         return hdr % tuple([self.timestep, step] + list(system.cell.side) + [len(sp)] + mass)
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         self._setup_format()
         sp = distinct_species(system.particle)
         self.trajectory.write("%d\n" % len(system.particle))

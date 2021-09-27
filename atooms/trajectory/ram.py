@@ -19,7 +19,7 @@ class TrajectoryRam(TrajectoryBase):
         self._system = []
         self._overwrite = True
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         if step in self.steps:
             ind = self.steps.index(step)
             self._system[ind].update(system)

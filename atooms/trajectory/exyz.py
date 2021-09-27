@@ -170,7 +170,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         line += 'Step={} '.format(step)
         return line.strip()
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         from atooms.core.utils import is_array
 
         def detect_format(arg):

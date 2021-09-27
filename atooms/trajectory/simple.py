@@ -146,7 +146,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             fmt += " cell:" + ','.join(['%s' % x for x in system.cell.side])
         return fmt
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         self.trajectory.write("%s\n" % len(system.particle))
         self.trajectory.write(self._comment_header(step, system) + '\n')
         ndim = len(system.particle[0].position)
