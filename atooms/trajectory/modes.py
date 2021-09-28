@@ -9,20 +9,20 @@ class TrajectoryModes(TrajectoryHDF5):
 
     def read_system(self, frame):
         system = System()
-        s = self.trajectory["trajectory/realtime/sampleindex"].keys()[frame]
-        system.eigenvalues = self.trajectory["trajectory/normalmodes/eigenvalues/%s" % s][:]
+        s = self._file["trajectory/realtime/sampleindex"].keys()[frame]
+        system.eigenvalues = self._file["trajectory/normalmodes/eigenvalues/%s" % s][:]
         system.eigenfreq = numpy.array([copysign(abs(x)**0.5, x) for x in system.eigenvalues])
-        mode_idx = self.trajectory["trajectory/normalmodes/eigenvectors/index/%s" % s][:]
+        mode_idx = self._file["trajectory/normalmodes/eigenvectors/index/%s" % s][:]
         eigv = {}
         for idx in mode_idx:
             # Modes are F-indexed
             omega = system.eigenfreq[idx-1]
-            vect = self.trajectory["trajectory/normalmodes/eigenvectors/vector/%s_mode_%05d" % (s, idx)][:]
+            vect = self._file["trajectory/normalmodes/eigenvectors/vector/%s_mode_%05d" % (s, idx)][:]
             eigv[omega] = vect
         system.eigenvectors = eigv
 
         # Add positions
-        parent = os.path.splitext(self.trajectory.filename)[0]
+        parent = os.path.splitext(self._file.filename)[0]
         step = self.steps[frame]
         with TrajectoryHDF5(parent) as th:
             # The step should be there

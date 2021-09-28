@@ -83,18 +83,18 @@ class TrajectoryLAMMPS(TrajectoryBase):
         self.single_frame = single_frame
         self.first_particle = first_particle
         self.last_particle = last_particle
-        self._fh = open(self.filename, self.mode)
+        self._file = open(self.filename, self.mode)
         if mode == 'r':
             self._setup_index()
 
     def _setup_index(self):
         """Sample indexing via tell / seek"""
         from collections import defaultdict
-        self._fh.seek(0)
+        self._file.seek(0)
         self._index_db = defaultdict(list)
         while True:
-            line = self._fh.tell()
-            data = self._fh.readline()
+            line = self._file.tell()
+            data = self._file.readline()
             # We break if file is over or we found an empty line
             if not data:
                 break
@@ -112,24 +112,24 @@ class TrajectoryLAMMPS(TrajectoryBase):
                 # no more frames in the file
                 if block == 'ATOMS' and self.single_frame:
                     break
-        self._fh.seek(0)
+        self._file.seek(0)
 
     def read_steps(self):
         steps = []
         for idx, _ in self._index_db['TIMESTEP']:
-            self._fh.seek(idx)
-            self._fh.readline()
-            step = int(self._fh.readline())
+            self._file.seek(idx)
+            self._file.readline()
+            step = int(self._file.readline())
             steps.append(step)
-        self._fh.seek(0)
+        self._file.seek(0)
         return steps
 
     def read_system(self, frame):
         # Read number of particles
         idx, _ = self._index_db['NUMBER OF ATOMS'][frame]
-        self._fh.seek(idx)
-        self._fh.readline()
-        data = self._fh.readline()
+        self._file.seek(idx)
+        self._file.readline()
+        data = self._file.readline()
         npart = int(data)
 
         # Build the system
@@ -144,12 +144,12 @@ class TrajectoryLAMMPS(TrajectoryBase):
 
         # Add cell
         idx, data = self._index_db['BOX BOUNDS'][frame]
-        self._fh.seek(idx)
-        self._fh.readline()
+        self._file.seek(idx)
+        self._file.readline()
         ndim = len(data.split())  # line is ITEM: BOX BONDS pp pp pp
         L, center = [], []
         for _ in range(ndim):
-            data = [float(x) for x in self._fh.readline().split()]
+            data = [float(x) for x in self._file.readline().split()]
             L.append(data[1] - data[0])
             center.append((data[1] + data[0]) / 2)
         system.cell = Cell(numpy.array(L), center=numpy.array(center))
@@ -157,7 +157,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         # Read atoms data
         idx, data = self._index_db['ATOMS'][frame]
         fields = data.split()  # fields on a line
-        _ = self._fh.readline()
+        _ = self._file.readline()
 
         # Add interaction if forces are present
         # In atooms, forces belong to the interaction, not to particles
@@ -174,7 +174,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
                 continue
             if self.last_particle > 0 and i >= self.last_particle:
                 break
-            data = self._fh.readline().split()
+            data = self._file.readline().split()
             # Accept unsorted particles by parsing their id
             if 'id' in fields:
                 idx = int(data[0]) - 1
@@ -232,7 +232,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         pass
 
     def close(self):
-        self._fh.close()
+        self._file.close()
 
 
 class TrajectoryFolderLAMMPS(TrajectoryFolder):

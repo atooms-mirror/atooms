@@ -49,7 +49,7 @@ class TrajectoryHOOMD(TrajectoryBase):
             pass
 
         elif mode == 'w:gz':
-            self._tar = tarfile.open(fname, "w:gz")
+            self._file = tarfile.open(fname, "w:gz")
 
     def read_steps(self):
         steps = []
@@ -134,7 +134,7 @@ class TrajectoryHOOMD(TrajectoryBase):
         fh.close()
 
         if self.mode == 'w:gz':
-            self._tar.add(fname)
+            self._file.add(fname)
             os.remove(fname)
 
     def close(self):
@@ -143,4 +143,4 @@ class TrajectoryHOOMD(TrajectoryBase):
             import shutil
             shutil.rmtree(self.__tmp_path)
         elif self.mode == 'w:gz':
-            self._tar.close()
+            self._file.close()

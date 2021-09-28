@@ -23,15 +23,15 @@ class TrajectoryEXYZ(TrajectoryXYZ):
 
         # Trajectory file handle
         self.precision = 12
-        self.trajectory = gopen(self.filename, self.mode)
+        self._file = gopen(self.filename, self.mode)
         self.alias = {'pos': 'position',
                       'vel': 'velocity'}
         self.variables = ['species', 'pos']
         # Internal index of lines via seek and tell.
         if self.mode == 'r':
             self._setup_index()
-            assert len(self._index_frame) > 0, 'empty file {}'.format(self.trajectory)
-            assert len(self._index_header) > 0, 'empty file {}'.format(self.trajectory)
+            assert len(self._index_frame) > 0, 'empty file {}'.format(self._file)
+            assert len(self._index_header) > 0, 'empty file {}'.format(self._file)
             # Read metadata
             self.metadata = self._read_comment(0)
             # Note: currently, changing variables in read mode will
@@ -44,9 +44,9 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         given `frame`.
         """
         # Go to line and skip Npart info
-        self.trajectory.seek(self._index_header[frame])
-        npart = int(self.trajectory.readline())
-        data = self.trajectory.readline()
+        self._file.seek(self._index_header[frame])
+        npart = int(self._file.readline())
+        data = self._file.readline()
         meta = {}
 
         # We first gather all keys
@@ -101,15 +101,15 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         meta = self._read_comment(frame)
 
         # Get number of particles
-        self.trajectory.seek(self._index_header[frame])
-        npart = int(self.trajectory.readline())
+        self._file.seek(self._index_header[frame])
+        npart = int(self._file.readline())
 
         # Read frame now
-        self.trajectory.seek(self._index_frame[frame])
+        self._file.seek(self._index_frame[frame])
         particle = []
         for _ in range(npart):
             p = Particle()
-            data = self.trajectory.readline().split()
+            data = self._file.readline().split()
             i = 0
             for key, fmt, ndims in meta['Properties']:
                 ndims = int(ndims)
@@ -195,8 +195,8 @@ class TrajectoryEXYZ(TrajectoryXYZ):
         self._properties = properties
 
         # Write header
-        self.trajectory.write('{}\n'.format(len(system.particle)))
-        self.trajectory.write(self._comment(step, system) + '\n')
+        self._file.write('{}\n'.format(len(system.particle)))
+        self._file.write(self._comment(step, system) + '\n')
 
         # Formatters
         alias_fmt = {'S': '{} ',
@@ -214,4 +214,4 @@ class TrajectoryEXYZ(TrajectoryXYZ):
                 else:
                     # Note: numpy.array2string is MUCH slower
                     line += ' '.join([alias_fmt[fmt].format(x) for x in val])
-            self.trajectory.write(line.strip() + '\n')
+            self._file.write(line.strip() + '\n')

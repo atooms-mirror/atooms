@@ -30,14 +30,14 @@ class TrajectoryGSD(TrajectoryBase):
         # self.mode can be 'w' or 'r', but gsd is a binary format, so it only accepts 'wb' or 'rb'.
         file_mode = self.mode + "b"
         # Trajectory file handle
-        self.trajectory = gsd.hoomd.open(name=self.filename, mode=file_mode)
+        self._file = gsd.hoomd.open(name=self.filename, mode=file_mode)
         # When reading, we must define the steps.
         if self.mode == 'r':
-            self.steps = [snap.configuration.step for snap in self.trajectory]
+            self.steps = [snap.configuration.step for snap in self._file]
 
     def read_system(self, frame):
         """ returns System instance. """
-        snap = self.trajectory[frame]
+        snap = self._file[frame]
         ndim = snap.configuration.dimensions
 
         # Convert typeid from [0, 0, 1, ...] to ['A', 'A', 'B', ...] when snap.particles.types = ['A', 'B']
@@ -102,4 +102,4 @@ class TrajectoryGSD(TrajectoryBase):
         if 'particle.diameter' in variables:
             snap.particles.diameter = 2 * radius
 
-        self.trajectory.append(snap)
+        self._file.append(snap)

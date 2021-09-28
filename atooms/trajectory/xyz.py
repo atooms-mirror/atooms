@@ -165,7 +165,7 @@ class TrajectoryXYZ(TrajectoryBase):
         # Internal variables
         self._cell = None
         # Trajectory file handle
-        self.trajectory = gopen(self.filename, self.mode)
+        self._file = gopen(self.filename, self.mode)
 
         if self.mode == 'r':
             # Internal index of lines via seek and tell.
@@ -204,10 +204,10 @@ class TrajectoryXYZ(TrajectoryBase):
         """Sample indexing via tell / seek"""
         self._index_frame = []
         self._index_header = []
-        self.trajectory.seek(0)
+        self._file.seek(0)
         while True:
-            line = self.trajectory.tell()
-            data = self.trajectory.readline()
+            line = self._file.tell()
+            data = self._file.readline()
 
             # We break if file is over or we found an empty line
             if not data:
@@ -224,10 +224,10 @@ class TrajectoryXYZ(TrajectoryBase):
 
             # Skip npart+1 lines, making sure we have read precisely
             # that number of lines
-            data = self.trajectory.readline()
-            line = self.trajectory.tell()
+            data = self._file.readline()
+            line = self._file.tell()
             for _ in range(npart):
-                data = self.trajectory.readline()
+                data = self._file.readline()
             # Store first line /after/ we have read the frame
             # making sure the last we read was not emtpy
             # Note that readline() returns an empty string on EOF
@@ -237,8 +237,8 @@ class TrajectoryXYZ(TrajectoryBase):
                 raise IOError('malformed xyz file [%s]', self.filename)
 
         # Sanity tests
-        assert len(self._index_frame) > 0, 'empty file {}'.format(self.trajectory)
-        assert len(self._index_header) > 0, 'empty file {}'.format(self.trajectory)
+        assert len(self._index_frame) > 0, 'empty file {}'.format(self._file)
+        assert len(self._index_header) > 0, 'empty file {}'.format(self._file)
 
     # Overwrite the variables setter to optimize the variables
     @TrajectoryBase.variables.setter
@@ -272,9 +272,9 @@ class TrajectoryXYZ(TrajectoryBase):
         columns=id,x,y,z step=10
         """
         # Go to line and skip Npart info
-        self.trajectory.seek(self._index_header[frame])
-        npart = int(self.trajectory.readline())
-        data = self.trajectory.readline()
+        self._file.seek(self._index_header[frame])
+        npart = int(self._file.readline())
+        data = self._file.readline()
         meta = {}
         meta['npart'] = npart
 
@@ -386,13 +386,13 @@ def fallback(p, data, meta):
         db = self._read_comment(frame)
 
         # Read frame now
-        self.trajectory.seek(self._index_frame[frame])
+        self._file.seek(self._index_frame[frame])
         particle = []
         for _ in range(db['npart']):
             p = Particle()
             # Note: we cannot optimize by shifting an index instead of
             # cropping lists all the time
-            data = self.trajectory.readline().split()
+            data = self._file.readline().split()
             for cbk in callbacks:
                 data = cbk(p, data, db)
             particle.append(p)
@@ -449,20 +449,20 @@ def fallback(p, data, meta):
         global _numpy_fmt_lock
         _numpy_fmt_lock = True
         self._setup_format()
-        self.trajectory.write('%d\n' % len(system.particle))
+        self._file.write('%d\n' % len(system.particle))
         # column in comment used to have non-canonical variables
         # we could restore it by adding a de_canonicalize() function
         # or by storing a copy of the non-canonical variables
-        self.trajectory.write(self._comment(step, system) + '\n')
+        self._file.write(self._comment(step, system) + '\n')
         fmt = ' '.join(['{0.' + variable.split('particle.')[-1] + '}' for variable in self.variables]) + '\n'
         for i, p in enumerate(system.particle):
             p._index = i
             p._step = step
-            self.trajectory.write(fmt.format(p))
+            self._file.write(fmt.format(p))
         _numpy_fmt_lock = False
 
     def close(self):
-        self.trajectory.close()
+        self._file.close()
         # Restore numpy formatting defaults
         if not _numpy_fmt_lock:
             numpy.set_string_function(None, False)

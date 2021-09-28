@@ -17,7 +17,7 @@ class TrajectoryPDB(TrajectoryBase):
 
     def __init__(self, filename, mode='r'):
         super(TrajectoryPDB, self).__init__(filename, mode)
-        self.trajectory = open(self.filename, self.mode)
+        self._file = open(self.filename, self.mode)
         if mode == 'r':
             self._setup_index()
 
@@ -27,7 +27,7 @@ class TrajectoryPDB(TrajectoryBase):
     def _setup_index(self):
         self._index_frame = []
         self.steps = []
-        fh = self.trajectory
+        fh = self._file
         self._index_header_lines = 0
         header = True
         while True:
@@ -69,13 +69,13 @@ class TrajectoryPDB(TrajectoryBase):
             data[76:77] = p.species
             cfg += ''.join(data) + '\n'
         cfg += 'ENDMDL\n'
-        self.trajectory.write(cfg)
+        self._file.write(cfg)
 
     def read_init(self):
         self._cell = None
-        self.trajectory.seek(0)
+        self._file.seek(0)
         for _ in range(self._index_header_lines):
-            data = self.trajectory.readline()
+            data = self._file.readline()
             if data.startswith('CRYST1'):
                 Lx = float(data[6:15])
                 Ly = float(data[15:24])
@@ -87,10 +87,10 @@ class TrajectoryPDB(TrajectoryBase):
         cell = self._cell
 
         # Read system at frame
-        self.trajectory.seek(self._index_frame[frame])
-        _ = self.trajectory.readline()
+        self._file.seek(self._index_frame[frame])
+        _ = self._file.readline()
         while True:
-            data = self.trajectory.readline()
+            data = self._file.readline()
             if not data or data.startswith('ENDMDL'):
                 break
             if data.startswith('CRYST1'):
@@ -124,4 +124,4 @@ class TrajectoryPDB(TrajectoryBase):
         return system
 
     def close(self):
-        self.trajectory.close()
+        self._file.close()
