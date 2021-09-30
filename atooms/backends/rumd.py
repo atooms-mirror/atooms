@@ -351,9 +351,6 @@ class System(object):
         system = atooms.system.System(self.particle, self.cell)
         return system.dump(what)
 
-    def report(self):
-        return ''
-
 
 class Trajectory(object):
 

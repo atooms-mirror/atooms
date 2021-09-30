@@ -347,7 +347,10 @@ class TrajectoryHDF5(TrajectoryBase):
                 p.npoints = sg['lookup_points']
 
             potentials.append(p)
-        return Interaction(potentials, name)
+        interaction = Interaction()
+        interaction.potential = potentials
+        interaction.name = name
+        return interaction
 
     def read_system(self, frame):
         # TODO: refactor reading particle variables

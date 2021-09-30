@@ -18,7 +18,9 @@ class Test(unittest.TestCase):
     def test_write_initial_state(self):
         p = [_PairPotential("lennard_jones", {"epsilon": 1.0, "sigma": 1.0},
                            [1, 1], _CutOff("CS", 2.5))]
-        i = [Interaction(p, "atomic")]
+        i = [Interaction()]
+        i[0].name = "atomic"
+        i[0].potential = p
         s = System()
         s.particle = [Particle(position=[1.0, 1.0, 1.0],
                                velocity=[0.0, 0.0, 0.0])]

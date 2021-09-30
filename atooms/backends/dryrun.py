@@ -89,8 +89,9 @@ class System(object):
                 if full or other.__dict__[key] is not None:
                     self.__dict__[key] = copy.deepcopy(other.__dict__[key])
 
-    def report(self):
-        return ''
+    def __str__(self):
+        return 'DryRun'
+
 
 class Thermostat(object):
 

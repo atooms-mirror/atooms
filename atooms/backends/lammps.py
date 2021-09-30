@@ -84,6 +84,11 @@ class Interaction(interaction.Interaction):
     """
     # TODO: assign interaction to system based on pair_style entries in cmd
 
+    def __init__(self, *args, **kwargs):
+        interaction.Interaction.__init__(self, *args, **kwargs)
+        self.variables = {'particle': 'particle',
+                          'cell': 'cell'}
+
     def compute(self, observable, particle, cell):
         # We use self.potential as lammps commands
         dirout = tempfile.mkdtemp()

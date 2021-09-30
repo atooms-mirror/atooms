@@ -191,7 +191,10 @@ class System(object):
         Compute interaction in the system
         """
         if self.interaction is not None:
-            self.interaction.compute(what, self.particle, self.cell)
+            kwargs = {}
+            for variable, variable_to_dump in self.interaction.variables.items():
+                kwargs[variable] = self.dump(variable_to_dump)
+            self.interaction.compute(what, **kwargs)
 
     def potential_energy(self, per_particle=False, normed=False, cache=False):
         """
@@ -305,16 +308,14 @@ class System(object):
         """
         Return a numpy array with system properties specified by `what`.
 
-        If `what` is a string, it must be of the form
-        `particle.<attribute>` or `cell.<attribute>`. The following
-        aliases are allowed:
+        `what` must be a string of the form `particle.<attribute>` or
+        `cell.<attribute>`. Some aliases are allowed like:
 
         - `pos` (`particle.position`)
         - `vel` (`particle.velocity`)
         - `spe` (`particle.species`)
 
-        If `what` is a list of strings of the form above, a dict of
-        numpy arrays is returned with `what` as keys.
+        If `what` is a System attribute, it is returned.
 
         If `view` is `True`, the requested particle property is set as
         a view on the corresponding portion of the dump array. This
@@ -339,11 +340,6 @@ class System(object):
             pos = system.dump('particle.position')
             pos = system.dump('position')
             pos = system.dump('pos')
-
-        Return a dict with both positions and velocities
-
-            #!python
-            dump = system.dump(['pos', 'vel'])
         """
         # Unless a view is requested the default behavior is to always
         # create a new dump. This allows changes in the particles'
@@ -351,6 +347,13 @@ class System(object):
         if not view:
             clear = True
 
+        if isinstance(what, list):
+            raise ValueError('list arguments to dump() are not supported, use dict comprehension instead')
+            
+        # If the dump is a System attribute, just return it
+        if what in self.__dict__:
+            return getattr(self, what)
+            
         # Setup data dictionary
         if self._data is None or clear:
             self._data = {}
@@ -358,16 +361,6 @@ class System(object):
         # Return immediately if we only want to clear the dump
         if what is None and clear:
             return
-
-        # Listify input variables
-        if type(what) is str:
-            what_list = [what]
-            dtype_list = [dtype]
-        else:
-            what_list = what
-            dtype_list = dtype
-            if dtype is None:
-                dtype_list = [None] * len(what_list)
 
         # Accepts some aliases
         aliases = {
@@ -380,36 +373,21 @@ class System(object):
             'position': 'particle.position',
             'velocity': 'particle.velocity',
             'species': 'particle.species'}
-        for i, what in enumerate(what_list):
-            if what in aliases:
-                what_list[i] = aliases[what]
+        if what in aliases:
+            what = aliases[what]
+        # Extract the requested attribute
+        attr = what.split('.')[-1]
 
-        for what, dtype in zip(what_list, dtype_list):
-
-            # Extract the requested attribute
-            attr = what.split('.')[-1]
-
-            # Make array of attributes
-            if what.startswith('particle'):
-
-                # Skip if it has been dumped already
-                # and the number of particles has not changed
-                # Note: if particles are reassigned the dump will
-                # not be updated. It can be fixed by keeping a list of ids
-                # although testing it would bring a overhead.
-                if what in self._data:
-                    if not flat:
-                        if order == 'F':
-                            npart = self._data[what].shape[-1]
-                        else:
-                            npart = self._data[what].shape[0]
-                    else:
-                        ndims = self.number_of_dimensions
-                        npart = int(len(self._data[what]) / ndims)
-
-                    if npart == len(self.particle):
-                        continue
-
+        # Make array of attributes
+        if what.startswith('particle'):
+            # Skip if it has been dumped already
+            # and the number of particles has not changed
+            # Note: if particles are reassigned the dump will
+            # not be updated. It can be fixed by keeping a list of ids
+            # although testing it would bring a overhead.
+            if what in self._data and len(self.particle) == self._data['npart']:
+                data = self._data[what]
+            else:
                 data = numpy.array([getattr(p, attr) for p in self.particle], dtype=dtype)
 
                 # We transpose the array if F order is requested
@@ -433,49 +411,38 @@ class System(object):
                         for i, p in enumerate(self.particle):
                             setattr(p, attr, data[i*ndim: (i+1)*ndim])
 
-            elif what.startswith('cell'):
-                data = numpy.array(getattr(self.cell, attr), dtype=dtype)
-                if view:
-                    setattr(self.cell, attr, data)
-            else:
-                raise ValueError('Unknown attribute %s' % what)
+        elif what.startswith('cell'):
+            data = numpy.array(getattr(self.cell, attr), dtype=dtype)
+            if view:
+                setattr(self.cell, attr, data)
+        else:
+            raise ValueError('Unknown attribute %s' % what)
 
-            self._data[what] = data
-
-        # Always keep track of the number of particles
+        # Store data in local dict and keep track of the number of particles
+        self._data[what] = data
         self._data['npart'] = len(self.particle)
 
         # If what is a string or we only have one entry we return an
         # array, otherwise we return a dict with the requested keys
-        if len(what_list) == 1:
-            return self._data[what_list[0]]
-        else:
-            db = {}
-            for key in what_list:
-                db[key] = self._data[key]
-            return db
+        return self._data[what]
 
-    def report(self):
-        # Summary
+    def __str__(self):
         txt = ''
-        try:
-            if self.particle:
-                txt += 'system composed by {0} particles\n'.format(len(self.particle))
-            if self.cell:
-                txt += 'enclosed in a {0.shape} box at number density rho={1:.6f}\n'.format(self.cell, self.density)
-            if self.thermostat:
-                txt += 'in contact with a thermostat at T={0.temperature}\n'.format(self.thermostat)
-            if self.barostat:
-                txt += 'in contact with a barostat at P={0.pressure}\n'.format(self.barostat)
-            if self.reservoir:
-                txt += 'in contact with a reservoir at mu={0.chemical_potential}\n'.format(self.reservoir)
-            if self.interaction:
-                txt += '\n'
-                txt += self.interaction.report()
-        except:
-            pass
+        if self.particle:
+            txt += 'system composed by {0} particles\n'.format(len(self.particle))
+        if self.cell:
+            txt += 'enclosed in a {0.shape} box at number density rho={1:.6f}\n'.format(self.cell, self.density)
+        if self.thermostat:
+            txt += 'in contact with a thermostat at T={0.temperature}\n'.format(self.thermostat)
+        if self.barostat:
+            txt += 'in contact with a barostat at P={0.pressure}\n'.format(self.barostat)
+        if self.reservoir:
+            txt += 'in contact with a reservoir at mu={0.chemical_potential}\n'.format(self.reservoir)
+        if self.interaction:
+            txt += '\n'
+            txt += str(self.interaction)
         return txt
-
+        
     def show(self, backend='matplotlib', *args, **kwargs):
         from .visualize import show_ovito
         from .visualize import show_matplotlib
