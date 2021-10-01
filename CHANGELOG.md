@@ -2,7 +2,7 @@
 
 The format of this file is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
 
 [Full changelog](https://framagit.org/atooms/atooms/-/compare/2.8.1...master)
 	
@@ -12,7 +12,7 @@ The format of this file is based on [Keep a Changelog](https://keepachangelog.co
 - Use new Trajectory.copy() method to convert trajectory, instead of trajectory.utils.convert()
 - Rename inappropriate Trajectory.trajectory attribute in Trajectory subclasses. The new convention is to use _file as private attribute for the file object
 - Rename index attribute to frame in TrajectoryBase.read_system()
-- Change options order in Particle.__init__()
+- Change options order in Particle constructor
 - Change system.distinct_species() method as a property
 - Merge autopep8 and flake8 Makefile targets into pep8
 
