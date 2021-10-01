@@ -17,7 +17,7 @@ The format of this file is based on [Keep a Changelog](https://keepachangelog.co
 - Merge autopep8 and flake8 Makefile targets into pep8
 
 ### Removed
-- Remove Interaction subpackage
+- Remove Interaction subpackage, including potential tabulation stuff, which will be moved to a specific backend.
 - Remove atooms.backends.f90, it will be added to the atooms-models package
 - Remove Trajectory.self_callbacks and Trajectory.class_callbacks
 - Remove atooms.simulation.umbrella
