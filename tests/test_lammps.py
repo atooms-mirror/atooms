@@ -50,6 +50,7 @@ class Test(unittest.TestCase):
         fix             1 all nvt temp 2.0 2.0 0.2
         timestep        0.002
         """
+
         def store(sim, T, U):
             T.append(sim.system.temperature)
             U.append(sim.system.potential_energy(per_particle=True))
@@ -84,6 +85,7 @@ class Test(unittest.TestCase):
         """
         random.seed(1)
         T = []
+
         def store(sim, T):
             T.append(sim.system.temperature)
         bck = LAMMPS(self.input_file, cmd)

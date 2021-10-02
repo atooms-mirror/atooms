@@ -11,7 +11,9 @@ def show_3dmol(particle, cell=None, radius=1.0, palette=None):
     """
     Visualize particles in cell using 3dmol http://3dmol.csb.pitt.edu/
     """
+    from .particle import distinct_species
     import py3Dmol
+
     if palette is None:
         palette = ["#50514f", "#f25f5c", "#ffe066", "#247ba0", "#70c1b3",
                    "#0cce6b", "#c200fb", "#e2a0ff", "#6622cc", "#119822"]
@@ -68,13 +70,8 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     returned for visualization in jupyter notebooks.
     """
     import os
-    try:
-        from ovito.io import import_file
-    except ImportError:
-        _log.warning('install ovito to display the particles')
-        return
+    from ovito.io import import_file
     from ovito.vis import Viewport, TachyonRenderer
-    from ovito.vis import ParticlesVis
     import tempfile
     from atooms.core.utils import mkdir
 
@@ -111,7 +108,7 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
 
     # Define viewport
     if viewport:
-        vp = vieport
+        vp = viewport
     else:
         if perspective:
             vp = Viewport(type=Viewport.Type.Perspective, camera_dir=camera_dir, camera_pos=camera_pos)

@@ -69,6 +69,10 @@ cd atooms
 make install
 ```
 
+Contributing
+------------
+You are welcome to contribute to this project! Please have a look at [these guidelines](https://framagit.org/atooms/atooms/-/blob/atooms-3.0.0/CONTRIBUTING.md).
+
 Simulation backends
 -------------------
 atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://framagit.org/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.

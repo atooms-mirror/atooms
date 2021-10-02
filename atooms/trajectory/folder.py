@@ -116,10 +116,10 @@ class Foldered(TrajectoryFolder):
         with Trajectory(self.files[0], fmt=self._cls) as th:
             return th.read_timestep()
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         from atooms.trajectory import Trajectory
         with Trajectory(self.files[frame], fmt=self._cls) as th:
-            # We must use read(), instead of read_sample(), to
+            # We must use read(), instead of read_system(), to
             # initialize the trajectory properly
             return th.read(0)
 

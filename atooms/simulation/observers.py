@@ -35,7 +35,6 @@ Of course, general purpose callback can be passed to do whatever.
 
 import sys
 import os
-import shutil
 import time
 import datetime
 import logging
@@ -204,7 +203,7 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     - total energy
     - pressure
     - rmsd
-    
+
     The set of available `fields` can be augmented by passing an extra
     `functions` dictionary.
 
@@ -367,7 +366,7 @@ def target_python_stop(sim, condition):
 
     will stop the simulation when the step is > 1000 and the rmsd > 1.
     """
-     # We do nothing on the first step
+    # We do nothing on the first step
     if sim.current_step == 0:
         return
     # Interpolate the command string
@@ -427,6 +426,7 @@ def user_stop(sim):
             raise SimulationEnd('user has stopped the simulation')
 
 # Aliases
+
 
 target_user_stop = user_stop
 target_shell_stop = shell_stop

@@ -4,6 +4,7 @@ import os
 import sys
 import shutil
 import time
+import logging
 
 
 # Logging facilities
@@ -15,7 +16,6 @@ _logger = None
 
 # We define the logging handler here to avoid "No handler found" warnings.
 # Client classes should use this instead of logging.NullHandler
-import logging
 try:
     from logging import NullHandler
 except ImportError:
@@ -135,18 +135,17 @@ def cp(finp, fout):
         return
     shutil.copy(finp, fout)
 
-    
+
 def wget(url, output_dir):
     """
     Python implementation of bash wget
     """
-    import sys
     import os
     import shutil
     try:
-        from urllib.request import urlopen # Python 3
+        from urllib.request import urlopen  # Python 3
     except ImportError:
-        from urllib2 import urlopen # Python 2
+        from urllib2 import urlopen  # Python 2
 
     basename = os.path.basename(url)
     output_file = os.path.join(output_dir, basename)
@@ -154,6 +153,7 @@ def wget(url, output_dir):
     length = 16*1024
     with open(output_file, 'wb') as fh:
         shutil.copyfileobj(response, fh, length)
+
 
 # Alias of wget
 download = wget
@@ -181,7 +181,6 @@ class Timer(object):
     def __repr__(self):
         return 'timer wall time [s]: {:.2f}, cpu time [s]: {:.2f}'.format(self.wall_time, self.cpu_time)
 
-            
     def start(self):
         self.__start_cpu = self.__now_cpu()
         self.__start_wall = self.__now_wall()
@@ -448,38 +447,30 @@ class OrderedSet(object):
         except ValueError:
             raise ValueError('item %s not in %s' % (item, self))
 
-def is_array(arg):
-    """
-    Tell if `arg` is iterable but not string, morally an array.
-
-    Source: https://stackoverflow.com/questions/1055360/how-to-tell-a-variable-is-iterable-but-not-a-string/44328500#44328500
-
-    Examples:
-    ---------
-    # non-string iterables    
-    assert iterable(("f", "f"))    # tuple
-    assert iterable(["f", "f"])    # list
-    assert iterable(iter("ff"))    # iterator
-    assert iterable(range(44))     # generator
-    assert iterable(b"ff")         # bytes (Python 2 calls this a string)
-
-    # strings or non-iterables
-    assert not iterable(u"ff")     # string
-    assert not iterable(44)        # integer
-    assert not iterable(iterable)  # function
-    """
-    import collections
-    import six
-    return isinstance(arg, collections.Iterable) and \
-        not isinstance(arg, six.string_types)
 
 def is_array(arg):
     """
-    Non-python guess whether argument is an array.
+    Non-pythonic guess whether argument is an array.
 
     It will match list, tuple and numpy array but fail with iterators / generators.
+    For a full fledged alternative, see https://stackoverflow.com/questions/1055360/how-to-tell-a-variable-is-iterable-but-not-a-string/44328500#44328500
     """
     import numpy
     return isinstance(arg, numpy.ndarray) or \
         isinstance(arg, list) or \
         isinstance(arg, tuple)
+
+
+def canonicalize(fields, thesaurus):
+    """
+    Replace entries in `fields` list with those found in `thesaurus`
+    """
+    if fields is None:
+        return []
+    _fields = []
+    for field in fields:
+        try:
+            _fields.append(thesaurus[field])
+        except KeyError:
+            _fields.append(field)
+    return _fields

@@ -1,11 +1,10 @@
 """Useful functions to manipulate trajectories."""
 
 import os
+import copy
 import tarfile
 import numpy
-import copy
-from atooms.core.progress import progress
-
+import warnings
 
 def gopen(filename, mode):
     """Open a file recognizing gzipped and bzipped files by extension."""
@@ -44,22 +43,22 @@ def file_index(fh, size=None):
             header_size, this_block_size = size(fh, data, line)
             header.append(line)
         except ValueError:
-            raise IOError('malformed file [%s]', fh.filename)
+            raise IOError('malformed file [{}]'.format(fh.filename))
 
         # Skip header_size lines (if zero none will be skipped)
-        for i in range(header_size):
-            _ = fh.readline()
+        for _ in range(header_size):
+            fh.readline()
 
         # Skip block_size lines, making sure we have
         # read precisely that number of lines
         line = fh.tell()
-        for i in range(this_block_size):
-            _ = fh.readline()
+        for _ in range(this_block_size):
+            data = fh.readline()
 
         # Store first line /after/ we have read the frame
         # making sure the last we read was not emtpy
         # Note that readline() returns an empty string on EOF
-        if len(_) > 0:
+        if len(data) > 0:
             block.append(line)
             block_size.append(this_block_size)
         else:
@@ -67,93 +66,6 @@ def file_index(fh, size=None):
 
     # TODO: leave fh as it was
     return header, block, block_size
-
-
-def modify_fields(trajectory, fields=None, include=None, exclude=None):
-    """
-    Modify fields of a trajectory.
-
-    Either provide a new list of fields, such as ['id', 'x', 'y'], or
-    specify explicit patterns to exclude or include.
-    """
-    from atooms.trajectory.base import canonicalize_fields
-    if fields is not None:
-        # Reset the output format
-        trajectory.fields = fields
-    else:
-        canonicalize_fields(trajectory.fields)
-        # Exclude and/or include lists of patterns from output format
-        if exclude is not None:
-            canonicalize_fields(exclude)
-            for pattern in exclude:
-                if pattern in trajectory.fields:
-                    trajectory.fields.remove(pattern)
-        if include is not None:
-            canonicalize_fields(include)
-            for pattern in include:
-                if pattern not in trajectory.fields:
-                    trajectory.fields.append(pattern)
-
-    return trajectory
-
-
-def convert(inp, out, fout, force=True, fields=None,
-            exclude=None, include=None, steps=None):
-    """
-    Convert trajectory into a different format.
-
-    `inp`: input trajectory object
-    `out`: output trajectory class
-    `fout`: output file
-
-    If `out` is a string, we look for a matching trajectory format
-    else we assume out is a trajectory class.
-    If `out` is None, we rely on the factory guessing the format
-    from the filename suffix.
-
-    Return: name of converted trajectory file
-    """
-    from atooms.trajectory import Trajectory
-    from atooms.trajectory.base import canonicalize_fields
-    if isinstance(out, str):
-        out_class = Trajectory.formats[out]
-    else:
-        out_class = out
-
-    if fields is None and len(inp.fields) > 0 and (include is None or len(include) == 0):
-        # We automatically include all fields from the input trajectory
-        # Since the output trajectory may have extra fields, we do should not overwrite them
-        include = canonicalize_fields(inp.fields)
-
-    if fout != '/dev/stdout' and (os.path.exists(fout) and not force):
-        print('File exists, conversion skipped')
-    else:
-        # Make sure parent folder exists
-        from atooms.core.utils import mkdir
-        mkdir(os.path.dirname(fout))
-        with out_class(fout, 'w') as conv:
-            modify_fields(conv, fields, include, exclude)
-            conv.precision = inp.precision
-            conv.timestep = inp.timestep
-            conv.block_size = inp.block_size
-            # In python 3, zip returns a generator so this is ok
-            #
-            # for system, step in zip(inp, inp.steps):
-            #     conv.write(system, step)
-            #
-            # In python 2, zipping t and t.steps will load everything
-            # in RAM. In this case, it is better to use enumerate()
-            if steps is None:
-                for i, system in progress(enumerate(inp), total=len(inp)):
-                    conv.write(system, inp.steps[i])
-            else:
-                # Only include requested steps (useful to prune
-                # non-periodic trajectories)
-                for step in steps:
-                    idx = inp.steps.index(step)
-                    conv.write(inp[idx], step)
-
-    return fout
 
 
 def split(inp, index='step', archive=False):
@@ -252,7 +164,7 @@ def check_block_size(steps, block_size, prune=False):
     block = steps_local[0: block_size]
     ibl, jbl = 0, 0
     prune_me = []
-    for i, step in enumerate(steps_local):
+    for _, step in enumerate(steps_local):
         offset = block[0] if ibl > 0 else 0
         step_expected = ibl * (steps_local[block_size] - offset) + block[jbl]
         if step == step_expected:
@@ -268,7 +180,6 @@ def check_block_size(steps, block_size, prune=False):
 
     # Remove samples that do not conform with first block
     if prune and len(prune_me) > 0:
-        # print('#', len(prune_me), 'samples should be pruned')
         for step in prune_me:
             _ = steps_local.pop(steps_local.index(step))
 
@@ -277,7 +188,7 @@ def check_block_size(steps, block_size, prune=False):
     rest = len(steps_local) % block_size
     if rest > 1:
         steps_local = steps_local[:-rest]
-        print('# block was truncated')
+        warning.warn('truncated block')
 
     # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
@@ -291,8 +202,7 @@ def check_block_size(steps, block_size, prune=False):
             if diff_last is None:
                 diff_last = diff
             if diff_last != diff:
-                print('# finger print:', block)
-                raise IndexError('block does not match finger print')
+                raise IndexError('block does not match finger print {}'.format(block))
     return steps_local
 
 
@@ -464,7 +374,7 @@ def info(trajectory, keys=None):
         txt += 'particles            = %s\n' % len(system.particle)
         txt += 'species              = %s\n' % ', '.join(distinct_species(system.particle))
         txt += 'composition          = %s\n' % dict(composition(system.particle))
-        txt += 'size dispersion      = %s\n' % (numpy.std([p.radius for p in system.particle]) / numpy.mean([p.radius for p in system.particle]))
+        txt += 'size dispersion      = {}\n'.format((numpy.std([p.radius for p in system.particle]) / numpy.mean([p.radius for p in system.particle])))
         txt += 'density              = %s\n' % round(system.density, 10)
         if system.cell is not None:
             txt += 'cell side            = %s\n' % str(list(system.cell.side))[1: -1]

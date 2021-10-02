@@ -3,24 +3,31 @@
 
 import os
 import copy
+import warnings
+
 
 from .utils import get_block_size
 
 
-# Fields thesaurus: common synonims for fields, such as position -> pos
-# It can be used to match fields read by different trajectory classes.
-# The first element of each entry is the official one.
-FIELDS_DICTIONARY = [('position', 'pos'),
-                     ('velocity', 'vel'),
-                     ('species', 'spe', 'id')]
+# FutureWarning must show a traceback so that the user can localize the deprecation
+# This should be moved up the chain
+def _warn_with_traceback(message, category, filename, lineno, file=None, line=None):
+    import traceback
+    import sys
+    if category is FutureWarning:
+        traceback.print_stack(file=sys.stderr, limit=6)
+    sys.stderr.write(warnings.formatwarning(message, category, filename, lineno, line))
+
+
+warnings.showwarning = _warn_with_traceback
+
 
 def canonicalize_fields(fields):
-    for i, field in enumerate(fields):
-        for entry in FIELDS_DICTIONARY:
-            if field in entry:
-                fields[i] = entry[0]
-                break
-    return fields
+    from atooms.core.utils import canonicalize
+
+    warnings.warn('canonicalize_fields() is deprecated, use canonicalize() instead', FutureWarning)
+    th = TrajectoryBase(None)
+    return canonicalize(fields, th.thesaurus)
 
 
 class TrajectoryBase(object):
@@ -29,7 +36,7 @@ class TrajectoryBase(object):
 
     A trajectory is composed by one or several frames, each frame
     being a sample of a `System` taken at a given `step` during a
-    simulation. Trajectory instances are iterable and behave as file
+    simulation. Trajectory instances are iterable and have as file
     objects: they should be opened and closed using the `with` syntax
 
         #!python
@@ -52,20 +59,20 @@ class TrajectoryBase(object):
         with Trajectory(outfile, 'w') as th:
             th.write(system, step=0)
 
-    Trajectories can use the `fields` variable to define which system
+    Trajectories can use the `variables` attribute to define which system
     properties will be written to disk. Concrete classes may thus
-    provide means to write arbitrary fields to disk via particle
+    provide means to write arbitrary variables to disk via particle
     properties. Example:
 
         #!python
         for particle in system:
             particle.some_custom_property = 1.0
         with Trajectory(outfile, 'w') as th:
-            th.fields = ['position', 'some_custom_property']
+            th.variables = ['position', 'some_custom_property']
             th.write(system, step=0)
 
     To be fully functional, concrete classes must implement
-    `read_sample()` and `write_sample()` methods.
+    `read_system()` and `write_system()` methods.
 
     `read()` is a template composed of the two following steps:
 
@@ -73,11 +80,11 @@ class TrajectoryBase(object):
     structures, grab metadata, etc. Need *not* be implemented by
     subclasses.
 
-    - `read_sample(n)`: actually return the system at frame n. It must
+    - `read_system(n)`: actually return the system at frame n. It must
       be implemented by subclasses.
 
     Similarly, `write()` is a template composed of `write_init()` and
-    `write_sample()`. Only the latter method must be implemented by
+    `write_system()`. Only the latter method must be implemented by
     subclasses.
 
     The `cache` variable reduces access time when reading the same
@@ -88,14 +95,6 @@ class TrajectoryBase(object):
 
     suffix = None
 
-    # Mutable class variables are shared by subclasses https://stackoverflow.com/a/13404513
-
-    # To avoid that subclasses modify the parent class variable, we
-    # use the trick to define class_callbacks as None, then assign it
-    # to a list in the class method
-    class_callbacks = None
-    self_callbacks = None
-
     def __init__(self, filename, mode='r', cache=False):
         """
         The `mode` can be 'r' (read) or 'w' (write).
@@ -103,26 +102,51 @@ class TrajectoryBase(object):
         self.filename = filename
         self.mode = mode
         self.callbacks = []
-        self.fields = []
-        """
-        A list of strings describing data to be written by `write_sample`
-        and/or read by `read_sample`. Subclasses may use it to filter
-        out some data from their format. They can ignore it entirely.
-        """
         self.precision = 6
         self.metadata = {}
         """
         Dictionary of metadata about the trajectory. It can be used by
-        subclasses to hold trajectory format info or even dynamically
+        subclasses to hold trajectory format info or dynamically
         on a per sample basis,
         """
-        self._overwrite = False
+        self.thesaurus = {
+            'position': 'particle.position',
+            'velocity': 'particle.velocity',
+            'species': 'particle.species',
+            'radius': 'particle.radius',
+            'mass': 'particle.mass',
+            'pos': 'particle.position',
+            'x': 'particle.position[0]',
+            'y': 'particle.position[1]',
+            'z': 'particle.position[2]',
+            'vel': 'particle.velocity',
+            'vx': 'particle.velocity[0]',
+            'vy': 'particle.velocity[1]',
+            'vz': 'particle.velocity[2]',
+            'id': 'particle.species',
+            'type': 'particle.species',
+        }
+        """
+        Dictionary of common shortcuts and synonims for system
+        attributes. Can be updated by subclasses.
+        """
+
         # These are cached properties
+        self._variables = ()
+        """
+        Tuple of system attributes to be written by `write_system` and/or
+        read by `read_system`. Its entries are canonicalized using
+        `self.thesaurus` everytime the attribute is set. Subclasses
+        may use it to allow the user to modify the trajectory layout
+        or they can ignore it entirely.
+        """
         self._steps = None
         self._timestep = None
         self._grandcanonical = None
         self._block_size = None
+
         # Internal state
+        self._overwrite = False
         self._initialized_write = False
         self._initialized_read = False
         # Sanity checks
@@ -191,7 +215,7 @@ class TrajectoryBase(object):
             # We get the system from the cache
             system = self._cache[index]
         else:
-            system = self.read_sample(index)
+            system = self.read_system(index)
             if self.cache:
                 # Store the system in cache
                 if self._cache is None:
@@ -204,16 +228,13 @@ class TrajectoryBase(object):
         # by storing a "temporary" frame instance variable
         # (deleted after this loop)
         system.frame = index
-        # TODO: this is an old hack to pass variables across calls
-        # For persistency we can now use self_callbacks
+        # Copying callbacks is an old hack that allowed client
+        # code to safely pass variables in the callback across calls
+        # Deprecating this feature would require checking if the
+        # callback has variables not starting with __
         callbacks = copy.copy(self.callbacks)
-        if self.class_callbacks is not None:
-            callbacks += self.class_callbacks
         for cbk, args, kwargs in callbacks:
             system = cbk(system, *args, **kwargs)
-        if self.self_callbacks is not None:
-            for cbk, args, kwargs in self.self_callbacks:
-                system = cbk(self, system, *args, **kwargs)
         if hasattr(system, 'frame'):
             del(system.frame)
         return system
@@ -248,7 +269,7 @@ class TrajectoryBase(object):
                 raise ValueError('cannot add step {} when overwrite is False'.format(current_step))
 
         # Write the sample.
-        self.write_sample(system, current_step)
+        self.write_system(system, current_step)
         # Step is added last, frame index starts from 0 by default.
         if step is None:
             self.steps.append(current_step)
@@ -275,15 +296,23 @@ class TrajectoryBase(object):
 
     # These methods must be implemented by subclasses
 
-    def read_sample(self, index):
-        """Return the system at the given frame `index`."""
-        raise NotImplementedError()
-
-    def write_sample(self, system, step):
+    def read_system(self, frame):
+        """Return the system at the given `frame`."""
+        if hasattr(self, 'read_sample'):
+            warnings.warn('read_sample() is deprecated, use read_system()', DeprecationWarning)
+            return self.read_sample(frame)
+        else:
+            raise NotImplementedError()
+        
+    def write_system(self, system, step):
         """Write a `system` to file. Noting to return."""
-        raise NotImplementedError()
+        if hasattr(self, 'write_sample'):
+            warnings.warn('write_sample() is deprecated, use write_system()', DeprecationWarning)
+            return self.write_sample(system, step)
+        else:
+            raise NotImplementedError()
 
-    # Callbacks will be applied to the output of read_sample()
+    # Callbacks will be applied to the output of read_system()
 
     def register_callback(self, cbk, *args, **kwargs):
         """
@@ -298,46 +327,6 @@ class TrajectoryBase(object):
     def add_callback(self, cbk, *args, **kwargs):
         """Same as `register_callback()`."""
         self.register_callback(cbk, *args, **kwargs)
-
-    @classmethod
-    def register_class_callback(cls, cbk, *args, **kwargs):
-        """
-        Register a class level callback `cbk` to be applied when reading a frame.
-
-        The callback must receive a `System` instance as input an
-        return the modified `System` instance as output.
-
-        Class level callbacks are applied to all instances of a class.
-        """
-        if cls.class_callbacks is None:
-            cls.class_callbacks = []
-        if (cbk, args, kwargs) not in cls.class_callbacks:
-            cls.class_callbacks.append((cbk, args, kwargs))
-
-    @classmethod
-    def add_class_callback(self, cbk, *args, **kwargs):
-        """Same as `register_class_callback()`."""
-        self.register_class_callback(cbk, *args, **kwargs)
-
-    @classmethod
-    def register_self_callback(cls, cbk, *args, **kwargs):
-        """
-        Register an extended class level callback `cbk` to be applied when
-        reading a frame. The self argument will be passed as first
-        variable, then the `System` instance. The modified `System`
-        instance is returned as output.
-
-        Class level callbacks are applied to all instances of a class.
-        """
-        if cls.self_callbacks is None:
-            cls.self_callbacks = []
-        if (cbk, args, kwargs) not in cls.self_callbacks:
-            cls.self_callbacks.append((cbk, args, kwargs))
-
-    @classmethod
-    def add_self_callback(self, cbk, *args, **kwargs):
-        """Same as `register_self_callback()`."""
-        self.register_self_callback(cbk, *args, **kwargs)
 
     # To read/write timestep and block size sublcasses may implement
     # these methods. The default is dt=1 and block determined dynamically.
@@ -361,6 +350,88 @@ class TrajectoryBase(object):
 
     def write_block_size(self, value):
         pass
+
+    # Properties
+
+    @property
+    def variables(self):
+        return self._variables
+
+    @variables.setter
+    def variables(self, value):
+        from atooms.core.utils import canonicalize
+        self._variables = canonicalize(value, self.thesaurus)
+
+    def copy(self, cls=None, fout=None, only=None, include=None, exclude=None, steps=None):
+        """
+        Return a copy of the trajectory
+        """
+        from atooms.core.progress import progress
+        from atooms.core.utils import canonicalize
+        from atooms.core.utils import mkdir
+
+        # Output class
+        if cls is None:
+            cls = self.__class__
+        else:
+            from atooms.trajectory import Trajectory
+            if isinstance(cls, str):
+                cls = Trajectory.formats[cls]
+
+        # Make sure parent folder exists
+        if fout is not None:
+            mkdir(os.path.dirname(fout))
+
+        # Copy trajectory
+        conv = cls(fout, 'w')
+        # In a previous version of trajectory conversion, we only
+        # included the variables of the original trajectory, to allow
+        # the output trajectory to include variables not present in
+        # the original one. I do not think this makes sense. Suppose
+        # the original trajectory did not store velocities, but the
+        # output one writes them by default. The results will be wrong.
+        variables = list(self.variables)
+        if only is not None:
+            variables = only
+        if include is not None:
+            for pattern in canonicalize(include, self.thesaurus):
+                if pattern not in variables:
+                    variables.append(pattern)
+        if exclude is not None:
+            for pattern in canonicalize(exclude, self.thesaurus):
+                if pattern not in variables:
+                    variables.append(pattern)
+        conv.variables = variables
+        conv.precision = self.precision
+        conv.timestep = self.timestep
+        conv.block_size = self.block_size
+        # In python 3, zip returns a generator so this is ok
+        #
+        # for system, step in zip(inp, inp.steps):
+        #     conv.write(system, step)
+        #
+        # In python 2, zipping t and t.steps will load everything
+        # in RAM. In this case, it is better to use enumerate()
+        if steps is None:
+            for i, system in progress(enumerate(self), total=len(self)):
+                conv.write(system, self.steps[i])
+        else:
+            # Only include requested steps (useful to prune
+            # non-periodic trajectories)
+            for step in steps:
+                idx = self.steps.index(step)
+                conv.write(self[idx], step)
+        return conv
+
+    @property
+    def fields(self):
+        warnings.warn('fields is deprecated, use variables instead', FutureWarning)
+        return self.variables
+
+    @fields.setter
+    def fields(self, value):
+        warnings.warn('fields is deprecated, use variables instead', FutureWarning)
+        self._variables = value
 
     @property
     def steps(self):
@@ -433,7 +504,7 @@ class SuperTrajectory(TrajectoryBase):
     """Collection of subtrajectories."""
 
     # Optimized version
-    # TODO: supertrajectory should propagate fields
+    # TODO: supertrajectory should propagate variables/constants
 
     def __init__(self, files, trajectoryclass, mode='r'):
         """
@@ -466,7 +537,7 @@ class SuperTrajectory(TrajectoryBase):
                         self._steps_file.append(f)
                         self._steps_frame.append(j)
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         f = self._steps_file[frame]
         j = self._steps_frame[frame]
         # Optimization: use the last trajectory in cache (it works
@@ -474,7 +545,7 @@ class SuperTrajectory(TrajectoryBase):
         if self._last_trajectory is None:
             self._last_trajectory = self.trajectoryclass(f)
         elif self._last_trajectory.filename != f or \
-             self._last_trajectory.trajectory.closed:
+                self._last_trajectory.trajectory.closed:
             # Careful: we must check if the file object has not been closed in the meantime.
             # This can happen with class decorators.
             self._last_trajectory.close()

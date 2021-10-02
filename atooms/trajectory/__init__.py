@@ -6,7 +6,7 @@
 import logging
 import pkgutil
 
-from .utils import convert, split
+from .utils import split
 from .base import SuperTrajectory
 from .decorators import *
 
@@ -55,7 +55,7 @@ __added = False
 if '' not in sys.path:
     __added = True
     sys.path.append('')
-    
+
 # Additional plugins can be put in the atooms_plugins module
 try:
     import atooms_plugins
@@ -69,7 +69,7 @@ else:
             Trajectory.update(_mod_name, overwrite=False)
         except ImportError as err:
             # Usually it is an error in the plugin module so we show
-            print(err.message)
+            print(err)
             # Could not import this trajectory
             pass
 

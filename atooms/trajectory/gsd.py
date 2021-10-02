@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from copy import copy
+import warnings
 import numpy as np
 
 # With absolute import (default in python 3) this does not clash
@@ -11,7 +11,6 @@ from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 from atooms.system import System
 from atooms.trajectory.base import TrajectoryBase
-from atooms.trajectory.base import canonicalize_fields
 
 
 class TrajectoryGSD(TrajectoryBase):
@@ -23,21 +22,22 @@ class TrajectoryGSD(TrajectoryBase):
 
     def __init__(self, filename, mode='r', fields=None):
         super(TrajectoryGSD, self).__init__(filename, mode)
-        self._fields_default = ['id', 'pos']
-        self.fields = copy(self._fields_default) if fields is None else fields
-        self.fields = canonicalize_fields(self.fields)
+        self.variables = ['particle.species', 'particle.position']
+        if fields is not None:
+            self.variables = fields
+            warnings.warn('fields is deprecated, use variables instead', FutureWarning)
 
         # self.mode can be 'w' or 'r', but gsd is a binary format, so it only accepts 'wb' or 'rb'.
         file_mode = self.mode + "b"
         # Trajectory file handle
-        self.trajectory = gsd.hoomd.open(name=self.filename, mode=file_mode)
+        self._file = gsd.hoomd.open(name=self.filename, mode=file_mode)
         # When reading, we must define the steps.
         if self.mode == 'r':
-            self.steps = [snap.configuration.step for snap in self.trajectory]
+            self.steps = [snap.configuration.step for snap in self._file]
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         """ returns System instance. """
-        snap = self.trajectory[frame]
+        snap = self._file[frame]
         ndim = snap.configuration.dimensions
 
         # Convert typeid from [0, 0, 1, ...] to ['A', 'A', 'B', ...] when snap.particles.types = ['A', 'B']
@@ -54,24 +54,24 @@ class TrajectoryGSD(TrajectoryBase):
         particles = []
         for i in range(N):
             p = Particle(
-                mass     = snap.particles.mass[i],
-                species  = typeid_to_species[ snap.particles.typeid[i] ],
-                position = snap.particles.position[i, :ndim],
-                velocity = snap.particles.velocity[i, :ndim],
-                radius   = snap.particles.diameter[i] / 2
+                mass=snap.particles.mass[i],
+                species=typeid_to_species[snap.particles.typeid[i]],
+                position=snap.particles.position[i, :ndim],
+                velocity=snap.particles.velocity[i, :ndim],
+                radius=snap.particles.diameter[i] / 2
             )
             particles.append(p)
 
         return System(particle=particles, cell=cell)
 
-
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         """ Writes to the file handle self.trajectory."""
-
-        data  = system.dump(['pos', 'vel', 'spe', 'particle.mass', 'particle.radius'])
+        variables = self.variables
+        data = {what: system.dump(what) for what in ['particle.position', 'particle.velocity',
+                                                     'particle.species', 'particle.mass', 'particle.radius']}
         box = system.cell.side
         N = len(system.particle)
-        distinct_species = system.distinct_species()
+        distinct_species = system.distinct_species
 
         # Convert species from ['A', 'A', 'B', ...] to [0, 0, 1, ...] when distinct_species = ['A', 'B']
         species_to_typeid = {}
@@ -96,11 +96,11 @@ class TrajectoryGSD(TrajectoryBase):
 
         snap.particles.position = pos   # atooms.system and gsd both save positions from -L/2 to L/2.
         snap.particles.typeid = typeid
-        if 'velocity' in self.fields:
+        if 'particle.velocity' in variables:
             snap.particles.velocity = vel
-        if 'mass' in self.fields:
+        if 'particle.mass' in variables:
             snap.particles.mass = mass
-        if 'diameter' in self.fields:
+        if 'particle.diameter' in variables:
             snap.particles.diameter = 2 * radius
 
-        self.trajectory.append(snap)
+        self._file.append(snap)

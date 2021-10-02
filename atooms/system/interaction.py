@@ -9,25 +9,25 @@ Actual backends should implement this interface.
 
 import numpy
 
+
 class Interaction(object):
 
-    def __init__(self, potential, name=''):
+    def __init__(self):
+        self.variables = {'position': 'particle.position',
+                          'species': 'particle.species',
+                          'side': 'cell.side'}
         """
-        The interaction is calculated given a set of potentials.
-
-        - `potential` is a list of `Potential` instances.
-        - `name` is a string tag that can be used to distinguish
-        different interaction instances.
+        A list of variables needed to compute the interaction. The keys
+        must match the interfaces of compute(), the fields are
+        variables accepted by System.dump().
         """
-        self.potential = potential
-        self.name = name
         self.forces = None
         self.energy = None
         self.virial = None
         self.stress = None  # this will be (ndim,ndim) numpy array
         self.hessian = None
-
-    def compute(self, observable, particle, cell):
+        
+    def compute(self, observable, position=None, species=None, side=None):
         """
         Compute interaction between `particle` instances in a `cell`.
 
@@ -37,6 +37,9 @@ class Interaction(object):
         forces implies energy calculation. The following observables
         are set to `None`.
         """
+        assert position is not None
+        assert species is not None
+        assert side is not None
         if observable == 'energy':
             self.energy = 0.0
             self.virial = None
@@ -46,20 +49,11 @@ class Interaction(object):
             self.energy = 0.0
             self.virial = 0.0
             self.stress = None
-            self.forces = numpy.zeros((len(particle), len(cell.side)))
+            self.forces = numpy.zeros_like(position)
         elif observable == 'stress':
             self.energy = 0.0
             self.virial = 0.0
-            self.stress = numpy.zeros((len(cell.side), len(cell.side)))
-            self.forces = numpy.zeros((len(particle), len(cell.side)))
+            self.stress = numpy.zeros((len(side), len(side)))
+            self.forces = numpy.zeros_like(position)
         else:
             raise ValueError('unsupported observable %s' % observable)
-
-    def report(self):
-        txt = ''
-        for p in self.potential:
-            try:
-                txt += p.report()
-            except AttributeError:
-                pass
-        return txt

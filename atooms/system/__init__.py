@@ -10,3 +10,4 @@ from .system import System
 from .particle import Particle
 from .cell import Cell
 from .reservoir import Thermostat, Barostat, Reservoir
+from .interaction import Interaction

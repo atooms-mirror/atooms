@@ -35,11 +35,6 @@ import os
 import sys
 import re
 import inspect
-from .xyz import TrajectoryXYZ
-try:
-    from .hdf5 import TrajectoryHDF5
-except ImportError:
-    pass
 
 
 # Note: trajectories should implement a method to check if a file is

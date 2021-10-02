@@ -16,7 +16,7 @@ import rumd
 from rumdSimulation import rumdSimulation
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
-from atooms.core.utils import mkdir
+
 
 _log = logging.getLogger(__name__)
 _version = rumd.GetVersion()
@@ -127,7 +127,7 @@ class RUMD(object):
     #
     def _get_system(self):
         system = System(self.rumd_simulation.sample)
-        #system.__itg_infoStr_start = self.rumd_simulation.itg.GetInfoString(8)
+        # system.__itg_infoStr_start = self.rumd_simulation.itg.GetInfoString(8)
         return system
 
     def _set_system(self, value):
@@ -245,7 +245,7 @@ class System(object):
         result.sample = self.sample.Copy()
         # This way we set the integrator. Note that it is always the same object...
         # result.sample.SetIntegrator(self.sample.GetIntegrator())
-        #result._itg_infoStr_start = self.thermostat._integrator.GetInfoString(18)
+        # result._itg_infoStr_start = self.thermostat._integrator.GetInfoString(18)
         # TODO: thermostat should be a property this way we would not need to update this
         result.thermostat = Thermostat(self.sample.GetIntegrator())
         return result
@@ -262,7 +262,7 @@ class System(object):
         else:
             return self.sample.GetPotentialEnergy()
 
-    def kinetic_energy(self,per_particle=False, normed=False):
+    def kinetic_energy(self, per_particle=False, normed=False):
         # TODO: use double IntegratorNVT::GetKineticEnergy(bool copy) const{
         ekin = sum([p.kinetic_energy for p in self.particle])
         if normed or per_particle:
@@ -304,7 +304,7 @@ class System(object):
     def set_temperature(self, T):
         # Scale velocities from temperature Told to T
         # TODO: use maxwellian
-        # TODO: remove CM velocity
+        # TODO: subtract CM velocity
         Told = self.temperature
         velocity_factor = (T/Told)**0.5
         self.sample.ScaleVelocities(velocity_factor)
@@ -350,9 +350,6 @@ class System(object):
         import atooms.system
         system = atooms.system.System(self.particle, self.cell)
         return system.dump(what)
-
-    def report(self):
-        return ''
 
 
 class Trajectory(object):

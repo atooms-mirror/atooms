@@ -49,7 +49,7 @@ class TrajectoryHOOMD(TrajectoryBase):
             pass
 
         elif mode == 'w:gz':
-            self._tar = tarfile.open(fname, "w:gz")
+            self._file = tarfile.open(fname, "w:gz")
 
     def read_steps(self):
         steps = []
@@ -84,7 +84,7 @@ class TrajectoryHOOMD(TrajectoryBase):
             vel_list = None
         return cfg, box_list, pos_list, typ_list, vel_list
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         cfg, box, pos, typ, vel = self.__read_one(self.__f_frames[frame])
         if vel is None:
             particle = [Particle(species=t, position=numpy.array(p)) for p, t in zip(pos, typ)]
@@ -94,7 +94,7 @@ class TrajectoryHOOMD(TrajectoryBase):
         cell = Cell(numpy.array(box))
         return System(particle, cell)
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         ndim = len(system.particle[0].position)
         n = len(system.particle)
 
@@ -134,7 +134,7 @@ class TrajectoryHOOMD(TrajectoryBase):
         fh.close()
 
         if self.mode == 'w:gz':
-            self._tar.add(fname)
+            self._file.add(fname)
             os.remove(fname)
 
     def close(self):
@@ -143,4 +143,4 @@ class TrajectoryHOOMD(TrajectoryBase):
             import shutil
             shutil.rmtree(self.__tmp_path)
         elif self.mode == 'w:gz':
-            self._tar.close()
+            self._file.close()

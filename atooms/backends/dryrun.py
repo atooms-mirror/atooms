@@ -89,8 +89,9 @@ class System(object):
                 if full or other.__dict__[key] is not None:
                     self.__dict__[key] = copy.deepcopy(other.__dict__[key])
 
-    def report(self):
-        return ''
+    def __str__(self):
+        return 'DryRun'
+
 
 class Thermostat(object):
 
@@ -130,7 +131,7 @@ class EnergyMinimization(object):
 
     def __init__(self, system):
         self.system = system
-        self.trajectory = Trajectory
+        self.trajectory_class = Trajectory
         self.output_path = None
         self.method = 'cg'
         self.tolerance = 1e-10

@@ -174,10 +174,11 @@ class Test(unittest.TestCase):
         t[0] = system
         t.add_callback(copy.deepcopy)
         t.add_callback(filter_species, 'A')
-        self.assertEqual(t[0].distinct_species(), ['A'])
+        self.assertEqual(t[0].distinct_species, ['A'])
         t.callbacks.pop()
         t.callbacks.pop()
-        self.assertEqual(t[0].distinct_species(), ['A', 'B'])
+        self.assertEqual(t[0].distinct_species, ['A', 'B'])
+
 
 if __name__ == '__main__':
     unittest.main()

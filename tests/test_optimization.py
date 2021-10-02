@@ -34,5 +34,6 @@ class Test(unittest.TestCase):
         self.assertLess(e, -6.8)
         self.assertLess(w, 1e-4)
 
+
 if __name__ == '__main__':
     unittest.main()

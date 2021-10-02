@@ -15,7 +15,6 @@ on the fly. The interval in steps at which callbacks are executed is
 controlled by a `Scheduler` instance.
 """
 
-import sys
 import logging
 
 from atooms.simulation import Simulation
@@ -42,7 +41,7 @@ class Optimization(Simulation):
     """Optimization base class."""
 
     def __init__(self, backend, output_path=None, tolerance=None,
-                 steps=int(1e6)):
+                 steps=1e6):
         """
         Perform an optimization using the specified `backend` and
         optionally write output to `output_path`. This can be a file
@@ -52,7 +51,7 @@ class Optimization(Simulation):
         other paths are defined based on it and on its base_path.
         """
         Simulation.__init__(self, backend, output_path=output_path)
-        self.steps = steps
+        self.steps = int(steps)
         self.tolerance = tolerance
         self._check_interval = 1000
 

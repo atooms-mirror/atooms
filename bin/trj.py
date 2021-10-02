@@ -140,9 +140,15 @@ def main(args):
         include_list = args.fields_include.split(',')
     if len(args.fields_exclude) > 0:
         exclude_list = args.fields_exclude.split(',')
-    fout = trajectory.convert(ts, out_class, args.file_out,
-                              fields=args.fields, include=include_list,
-                              exclude=exclude_list, steps=steps)
+
+    from atooms.trajectory import Trajectory
+    if isinstance(out_class, str):
+        out_class = Trajectory.formats[out_class]
+
+    conv = inp.copy(fout=args.file_out, cls=out_class,
+                    only=args.fields, exclude=exclude_list,
+                    include=include_list, steps=steps)
+    fout = conv.close()
 
     if args.ff:
         from atooms.trajectory.hdf5 import add_interaction_hdf5

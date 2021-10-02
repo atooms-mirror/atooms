@@ -5,7 +5,7 @@
 Trajectory callbacks and class decorators.
 
 - "Callbacks" are simple functions that modify the `system` instance
-  returned by `read_sample()`. They can be registered to `trajectory`
+  returned by `read_system()`. They can be registered to `trajectory`
   instance via `add_callback()`.
 - "Class decorators" can be used for
   more complex modifications of trajectory behavior.
@@ -163,9 +163,9 @@ class Sliced(object):
         self._sliced_frames = range(len(self.steps))[uslice]
         self.steps = self.steps[uslice]
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         i = self._sliced_frames[frame]
-        return super(Sliced, self).read_sample(i)
+        return super(Sliced, self).read_system(i)
 
 
 class Unfolded(object):
@@ -189,7 +189,7 @@ class Unfolded(object):
         self._old = numpy.array([p.position for p in s.particle])
         self._last_read = 0
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         # Return here if first frame
         if frame == 0:
             # Deepcopy needed, see below
@@ -205,8 +205,8 @@ class Unfolded(object):
         if delta > 1:
             # Allow to skip some frames by reading them internally
             # We read delta-1 frames, then delta is 1
-            for i in range(delta-1):
-                self.read_sample(self._last_read+1)
+            for _ in range(delta-1):
+                self.read_system(self._last_read+1)
 
         # With deepcopy we make sure that Unfolded() returns copies of
         # the system read by the component trajectory and does not

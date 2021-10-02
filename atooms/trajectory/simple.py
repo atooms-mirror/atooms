@@ -23,7 +23,7 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def __init__(self, filename, mode='r'):
         super(TrajectorySimpleXYZ, self).__init__(filename, mode)
         self._cell = None
-        self.trajectory = open(self.filename, self.mode)
+        self._file = open(self.filename, self.mode)
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
             # We may delay setup, moving to read_init() assuming
@@ -46,10 +46,10 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         self._index_frame = []
         self._index_header = []
         self._index_cell = None
-        self.trajectory.seek(0)
+        self._file.seek(0)
         while True:
-            line = self.trajectory.tell()
-            data = self.trajectory.readline().strip()
+            line = self._file.tell()
+            data = self._file.readline().strip()
 
             # We break if file is over or we found an empty line
             if not data:
@@ -66,10 +66,10 @@ class TrajectorySimpleXYZ(TrajectoryBase):
                 break
 
             # Skip npart+1 lines
-            _ = self.trajectory.readline()
-            self._index_frame.append(self.trajectory.tell())
-            for i in range(npart):
-                _ = self.trajectory.readline()
+            _ = self._file.readline()
+            self._index_frame.append(self._file.tell())
+            for _ in range(npart):
+                self._file.readline()
 
     def _read_comment(self, frame):
         """Internal xyz method to get header metadata from comment line of given `frame`.
@@ -81,9 +81,9 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         columns=id,x,y,z step=10
         """
         # Go to line and skip Npart info
-        self.trajectory.seek(self._index_header[frame])
-        npart = int(self.trajectory.readline())
-        data = self.trajectory.readline()
+        self._file.seek(self._index_header[frame])
+        npart = int(self._file.readline())
+        data = self._file.readline()
 
         # Fill metadata dictionary
         meta = {}
@@ -114,19 +114,19 @@ class TrajectorySimpleXYZ(TrajectoryBase):
         """Internal emergency method to grab the cell."""
         cell = None
         if self._index_cell:
-            self.trajectory.seek(self._index_cell)
-            side = numpy.fromstring(self.trajectory.readline(), sep=' ')
+            self._file.seek(self._index_cell)
+            side = numpy.fromstring(self._file.readline(), sep=' ')
             cell = Cell(side)
         return cell
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         meta = self._read_comment(frame)
-        self.trajectory.seek(self._index_frame[frame])
+        self._file.seek(self._index_frame[frame])
 
         # Read particles
         particle = []
         for _ in range(meta['npart']):
-            data = self.trajectory.readline().strip().split()
+            data = self._file.readline().strip().split()
             species = data[0]
             r = numpy.array(data[1:4], dtype=float)
             particle.append(Particle(species=species, position=r))
@@ -146,13 +146,13 @@ class TrajectorySimpleXYZ(TrajectoryBase):
             fmt += " cell:" + ','.join(['%s' % x for x in system.cell.side])
         return fmt
 
-    def write_sample(self, system, step):
-        self.trajectory.write("%s\n" % len(system.particle))
-        self.trajectory.write(self._comment_header(step, system) + '\n')
+    def write_system(self, system, step):
+        self._file.write("%s\n" % len(system.particle))
+        self._file.write(self._comment_header(step, system) + '\n')
         ndim = len(system.particle[0].position)
         fmt = "%s" + ndim*" %14.6f" + "\n"
         for p in system.particle:
-            self.trajectory.write(fmt % ((p.species,) + tuple(p.position)))
+            self._file.write(fmt % ((p.species,) + tuple(p.position)))
 
     def close(self):
-        self.trajectory.close()
+        self._file.close()

@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 from atooms import trajectory
 from atooms import system
-from atooms import interaction
+from atooms.system import interaction
 from atooms.trajectory import TrajectoryLAMMPS
 from atooms.trajectory.decorators import change_species
 from atooms.core.utils import rmd
@@ -83,6 +83,11 @@ class Interaction(interaction.Interaction):
     interaction.
     """
     # TODO: assign interaction to system based on pair_style entries in cmd
+
+    def __init__(self, *args, **kwargs):
+        interaction.Interaction.__init__(self, *args, **kwargs)
+        self.variables = {'particle': 'particle',
+                          'cell': 'cell'}
 
     def compute(self, observable, particle, cell):
         # We use self.potential as lammps commands
@@ -219,11 +224,12 @@ class LAMMPS(object):
         # Set fixes from the system if we find thermostat / barostat
         if self.system.thermostat is not None and self.system.barostat is not None:
             # NPT ensemble
-            fix = 'fix 1 all npt temp {0.temperature} {0.temperature} {0.relaxation_time} iso {1.pressure} {1.pressure} {1.relaxation_time}'.format(self.system.thermostat, self.system.barostat)
+            fix = 'fix 1 all npt temp {0.temperature} {0.temperature} {0.relaxation_time} iso {1.pressure} {1.pressure} {1.relaxation_time}'.format(
+                self.system.thermostat, self.system.barostat)
         elif self.system.thermostat is not None:
             # NVT ensemble
             fix = 'fix 1 all nvt temp {0.temperature} {0.temperature} {0.relaxation_time}'.format(self.system.thermostat)
-        elif not 'fix' in self.commands:
+        elif 'fix' not in self.commands:
             # NVE ensemble
             fix = 'fix 1 all nve'
         else:

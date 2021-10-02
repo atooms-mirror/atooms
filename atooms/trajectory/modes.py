@@ -1,28 +1,28 @@
 import os
-import h5py
 import numpy
 from numpy import copysign
 from atooms.system import System
 from atooms.trajectory.hdf5 import TrajectoryHDF5
 
+
 class TrajectoryModes(TrajectoryHDF5):
 
-    def read_sample(self, frame):
+    def read_system(self, frame):
         system = System()
-        s = self.trajectory["trajectory/realtime/sampleindex"].keys()[frame]
-        system.eigenvalues = self.trajectory["trajectory/normalmodes/eigenvalues/%s" % s][:]
+        s = self._file["trajectory/realtime/sampleindex"].keys()[frame]
+        system.eigenvalues = self._file["trajectory/normalmodes/eigenvalues/%s" % s][:]
         system.eigenfreq = numpy.array([copysign(abs(x)**0.5, x) for x in system.eigenvalues])
-        mode_idx = self.trajectory["trajectory/normalmodes/eigenvectors/index/%s" % s][:]
+        mode_idx = self._file["trajectory/normalmodes/eigenvectors/index/%s" % s][:]
         eigv = {}
         for idx in mode_idx:
             # Modes are F-indexed
             omega = system.eigenfreq[idx-1]
-            vect = self.trajectory["trajectory/normalmodes/eigenvectors/vector/%s_mode_%05d" % (s, idx)][:]
+            vect = self._file["trajectory/normalmodes/eigenvectors/vector/%s_mode_%05d" % (s, idx)][:]
             eigv[omega] = vect
         system.eigenvectors = eigv
 
         # Add positions
-        parent = os.path.splitext(self.trajectory.filename)[0]
+        parent = os.path.splitext(self._file.filename)[0]
         step = self.steps[frame]
         with TrajectoryHDF5(parent) as th:
             # The step should be there
@@ -40,9 +40,11 @@ class TrajectoryModes(TrajectoryHDF5):
 
 # test('')
 
+
 if __name__ == '__main__':
     import sys
     with TrajectoryModes(sys.argv[1]) as inm:
         for i in range(len(inm.steps)):
             w = inm[i].eigenfreq[1]
-            print(w, inm[i].particle[0].position, inm[i].eigenvectors[w][0])  # dict, what if we have two identical eigenvalues? or list of arrays but we need the list of w
+            # dict, what if we have two identical eigenvalues? or list of arrays but we need the list of w
+            print(w, inm[i].particle[0].position, inm[i].eigenvectors[w][0])

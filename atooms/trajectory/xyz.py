@@ -1,6 +1,7 @@
 # This file is part of atooms
 # Copyright 2010-2017, Daniele Coslovich
 
+import warnings
 import numpy
 import re
 import logging
@@ -15,7 +16,7 @@ from atooms.system import System
 
 log = logging.getLogger(__name__)
 
-# Lock to avoid race conditions on numpy array formatting 
+# Lock to avoid race conditions on numpy array formatting
 _numpy_fmt_lock = False
 
 # Format callbacks
@@ -76,28 +77,59 @@ def _update_neighbors(particle, data, meta):
         particle.neighbors = numpy.array(data, dtype=int)
         return []
 
-def _optimize_fields(fields):
-    # TODO: this should be more clever, say we had a 2d simulation
-    #       embedded in 3d we want only to read x and y but this will
-    #       force to read a full vector and it may even cause problems
-    if 'x' in fields:
-        fields[fields.index('x')] = 'pos'
-    if 'vx' in fields:
-        fields[fields.index('vx')] = 'vel'
-    for tag in ['y', 'z', 'vy', 'vz']:
-        if tag in fields:
-            fields.remove(tag)
-    return fields
+def _optimize_arrays(variables):
+    """
+    Optimize a list of particles properties (`variables`) by
+    collapsing successive instances of array elements.
 
-def _expand_fields(fields, shortcuts):
-    """Expand `shortcuts` present in `fields`"""
-    _fields = []
-    for field in fields:
-        try:
-            _fields.append(shortcuts[field])
-        except KeyError:
-            _fields.append(field)
-    return _fields
+    Example: ['id', 'x[0]', 'x[1]', 'x[2]'] -> ['id', 'x']
+
+    > print(scalars_to_arrays(['pos[0]', 'pos[1]', 'pos[2]']))
+    > print(scalars_to_arrays(['pos[0]', 'pos[1]', 'vel[0]', 'vel[1]']))
+    > print(scalars_to_arrays(['pos[0]', 'pos[1]', 'pos[2]', 'hello']))
+    > print(scalars_to_arrays(['hello', 'pos[0]', 'pos[1]', 'pos[2]']))
+    """
+    import re
+
+    new_variables = []
+    last_var, last_idx = None, None
+    for variable in variables:
+        # This will match array expressions, like position[0] or particle.position[0]
+        all_matches = re.findall(r'([\._\w]+)\[(\d+)\]', variable)
+
+        # This must be a single couple (variable, index) or nothing
+        if len(all_matches) == 1:
+            match = all_matches[0]
+        elif len(all_matches) == 0:
+            match = []
+        else:
+            raise ValueError('problem with variable {}'.format(variable))
+
+        if len(match) == 2:
+            # This is an array element
+            # Extract variable name and array index
+            var, idx = match[0], int(match[1])
+            if last_var != var and last_idx is not None:
+                # We have two consecutive different arrays
+                new_variables.append(last_var)
+            last_var = var
+            last_idx = idx
+        elif len(match) == 0:
+            var = variable
+            if last_var != var and last_idx is not None:
+                # We just finished reading an array variable
+                # We store it and also the next
+                new_variables.append(last_var)
+            new_variables.append(var)
+            last_var = var
+            last_idx = None
+        else:
+            raise ValueError('problem with variable {}'.format(variable))
+
+    if last_idx is not None:
+        # We get here if the last was an array element
+        new_variables.append(last_var)
+    return new_variables
 
 
 class TrajectoryXYZ(TrajectoryBase):
@@ -108,106 +140,48 @@ class TrajectoryXYZ(TrajectoryBase):
     """
 
     suffix = 'xyz'
-    callback_read = {'species': _update_species,
-                     'type': _update_species,  # alias
-                     'name': _update_species,  # alias
-                     'id': _update_species,  # alias
-                     'tag': _update_tag,
-                     'radius': _update_radius,
-                     'diameter': _update_diameter,
-                     'pos': _update_position,
-                     'vel': _update_velocity,
-                     'position': _update_position,
+    callback_read = {'particle.species': _update_species,
+                     'particle.radius': _update_radius,
+                     'particle.position': _update_position,
+                     'particle.velocity': _update_velocity,
+                     'particle.position_unfolded': _update_position_unfolded,
                      'position_unfolded': _update_position_unfolded,
-                     'velocity': _update_velocity,
+                     'diameter': _update_diameter,
+                     'name': _update_species,
+                     'tag': _update_tag,
                      'neighbors': _update_neighbors,
                      'neighbors*': _update_neighbors_consume}
 
     def __init__(self, filename, mode='r', alias=None, fields=None):
         super(TrajectoryXYZ, self).__init__(filename, mode)
-        # TODO: this should be class level, otherwise subclasses are not able to change it
-        self._fields_default = ['id', 'pos']
-        self.fields = copy(self._fields_default) if fields is None else fields
-        self.alias = {} if alias is None else alias
+        self.variables = [
+            'particle.species',
+            'particle.position'
+        ]
+        if fields is not None:
+            self.variables = fields
+            warnings.warn('fields is deprecated, set trajectory.variables instead', FutureWarning)
 
+        self.alias = {} if alias is None else alias
         # Internal variables
         self._cell = None
-        self._shortcuts = {'pos': 'position',
-                           'x': 'position[0]',
-                           'y': 'position[1]',
-                           'z': 'position[2]',
-                           'vel': 'velocity',
-                           'vx': 'velocity[0]',
-                           'vy': 'velocity[1]',
-                           'vz': 'velocity[2]',
-                           'id': 'species',
-                           'type': 'species'}
-
         # Trajectory file handle
-        self.trajectory = gopen(self.filename, self.mode)
+        self._file = gopen(self.filename, self.mode)
 
-        # Internal index of lines via seek and tell.
-        # Note: there is little gain in using the read_len() method to just
-        # go through the file instead of setting up the index. So we stick to it.
         if self.mode == 'r':
+            # Internal index of lines via seek and tell.
             self._setup_index()
-            assert len(self._index_frame) > 0, 'empty file {}'.format(self.trajectory)
-            assert len(self._index_header) > 0, 'empty file {}'.format(self.trajectory)
-            # Read metadata
+            # Initialize metadata and variables
             self.metadata = self._read_comment(0)
-            # Redefine fields
-            self._setup_fields()
-
-    def _setup_fields(self):
-        """
-        Redefine fields.
-
-        If set by the user, self.fields takes precedence on columns metadata.
-        - fields is default and columns is present: read everything
-        - fields is default and columns not present: read from fields
-        - fields is set by user and columns is present: pad
-        - fields is set by user but columns not present: read from fields
-        """
-        if self.fields == self._fields_default:
-            # Default fields: metadata has priority
             if 'columns' in self.metadata:
-                self.fields = self.metadata['columns']
-        # TODO: we may be breaking stuff here, but if the user
-        #       requests some fields why should we pad anything? Only
-        #       those fields should be read and it is the user
-        #       responsibility to provide a full list of them. This
-        #       will simplify things quite a bit
-
-        else:
-            # Fields set by user: pad missing fields if columns metadata are present
-            if 'columns' in self.metadata:
-                fields = []
-                for key in self.metadata['columns']:
-                    if key in self.fields + _optimize_fields(self.fields):
-                        fields.append(key)
-                    else:
-                        fields.append(None)
-                self.fields = fields
-
-        # Replace some column keys with more efficient ones
-        # TODO: some subclasses may not want to optimize fields
-        self.fields = _optimize_fields(self.fields)
-
-        # Remove skippable fields
-        for key in self.fields[-1::-1]:
-            if key is None:
-                self.fields.pop()
-            else:
-                break
-
-        # Store a copy of fields in a cache variable
-        # We can avoid setup if the fields have not changed
-        self.__cache_fields = copy(self.fields)
+                self.variables = self.metadata['columns']
+            self._original_variables = copy(self.variables)
+            self._active_read_callbacks = None
 
     def _setup_format(self):
         _fmt_any = '{}'
         _fmt_float = '{:.' + str(self.precision) + 'f}'
-            
+
         def array_fmt(arr):
             """Remove commas and [] from numpy array repr."""
             # Passing a scalar will trigger an error (gotcha: even
@@ -223,7 +197,7 @@ class TrajectoryXYZ(TrajectoryBase):
                 return _fmt.format(arr)
             else:
                 raise ValueError('cannot write multi-dimensional array')
-                
+
         # Note: numpy.array2string is MUCH slower
         numpy.set_string_function(array_fmt, repr=False)
 
@@ -231,40 +205,49 @@ class TrajectoryXYZ(TrajectoryBase):
         """Sample indexing via tell / seek"""
         self._index_frame = []
         self._index_header = []
-        self._index_cell = None
-        self.trajectory.seek(0)
+        self._file.seek(0)
         while True:
-            line = self.trajectory.tell()
-            data = self.trajectory.readline()
+            line = self._file.tell()
+            data = self._file.readline()
 
             # We break if file is over or we found an empty line
             if not data:
                 break
 
             # The first line contains the number of particles
-            # If something went wrong, this could be the last line
-            # with the cell side (Lx,Ly,Lz) and we parse it some other way
-            # TODO: drop compatibility with xyz files having cell as last line.
+            # If something goes wrong, this could be the last line
+            # with the cell side (Lx,Ly,Lz). We do not support this anymore
             try:
                 npart = int(data)
                 self._index_header.append(line)
             except ValueError:
-                self._index_cell = line
                 break
 
             # Skip npart+1 lines, making sure we have read precisely
             # that number of lines
-            _ = self.trajectory.readline()
-            line = self.trajectory.tell()
-            for i in range(npart):
-                _ = self.trajectory.readline()
+            data = self._file.readline()
+            line = self._file.tell()
+            for _ in range(npart):
+                data = self._file.readline()
             # Store first line /after/ we have read the frame
             # making sure the last we read was not emtpy
             # Note that readline() returns an empty string on EOF
-            if len(_) > 0:
+            if len(data) > 0:
                 self._index_frame.append(line)
             else:
                 raise IOError('malformed xyz file [%s]', self.filename)
+
+        # Sanity tests
+        assert len(self._index_frame) > 0, 'empty file {}'.format(self._file)
+        assert len(self._index_header) > 0, 'empty file {}'.format(self._file)
+
+    # Overwrite the variables setter to optimize the variables
+    @TrajectoryBase.variables.setter
+    def variables(self, value):
+        from atooms.core.utils import canonicalize
+
+        self._variables = canonicalize(value, self.thesaurus)
+        self._variables = _optimize_arrays(self._variables)
 
     def read_steps(self):
         """Find steps list."""
@@ -290,9 +273,9 @@ class TrajectoryXYZ(TrajectoryBase):
         columns=id,x,y,z step=10
         """
         # Go to line and skip Npart info
-        self.trajectory.seek(self._index_header[frame])
-        npart = int(self.trajectory.readline())
-        data = self.trajectory.readline()
+        self._file.seek(self._index_header[frame])
+        npart = int(self._file.readline())
+        data = self._file.readline()
         meta = {}
         meta['npart'] = npart
 
@@ -348,26 +331,41 @@ class TrajectoryXYZ(TrajectoryBase):
 
         return meta
 
-    def read_sample(self, frame):
-        # Setup fields again, in case they have changed
-        if self.__cache_fields != self.fields:
-            self._setup_fields()
-        # Read metadata of this frame
-        meta = self._read_comment(frame)
-        # Define read callbacks list before reading lines
-        callbacks_read = []
-        def _skip(p, data, meta):
-            return data[1:]
-        for key in self.fields:
-            # If the key is associated to a explicit callback, go
-            # for it. Otherwise we throw the field in an particle
-            # attribute named key. If the key is None it means we skip
-            # this column.
-            if key is None:
-                callbacks_read.append(_skip)
+    def _setup_read_callbacks(self):
+        """
+        Return a list of callbacks to read the variables given in self.variables
+        """
+        # We only call this method once, when the we read the first sample
+        # If self.variables change after setup, we ignore the change
+        # Similarly, we assume that columns do not change
+        if self._active_read_callbacks is not None:
+            return self._active_read_callbacks
+
+        # Define active callbacks before reading the sample. We
+        # handle the case in which the user removed some variables,
+        # and self.variables is a subset of variables_in_files
+        callbacks = []
+        test_particle = Particle()
+        for key in self._original_variables:
+            if key not in self.variables:
+                # If the key is not the in original list of variables
+                # the user has removed it from the list and we skip it
+                nsafe = 20
+                cbk = self.callback_read[key]
+                consumed_entries = nsafe - len(cbk(test_particle, range(nsafe), self.metadata))
+                # Trick. We instantiate dynamically a skip function
+                # with the right number of consumed entries
+                namespace = {}
+                exec("""
+def skip(p, data, meta):
+    return data[{}:]
+""".format(consumed_entries), namespace)
+                callbacks.append(namespace['skip'])
             elif key in self.callback_read:
-                callbacks_read.append(self.callback_read[key])
+                # The key is associated to a explicit callback
+                callbacks.append(self.callback_read[key])
             else:
+                # We throw the field in an particle.
                 # Trick. We instantiate dynamically a fallback function
                 # to avoid adding `key` to the other callbacks' interface
                 namespace = {}
@@ -377,42 +375,51 @@ def fallback(p, data, meta):
     p.__dict__['%s'] = tipify(data[0])
     return data[1:]
 """ % key, namespace)
-                callbacks_read.append(namespace['fallback'])
+                callbacks.append(namespace['fallback'])
+
+        self._active_read_callbacks = callbacks
+
+    def read_system(self, frame):
+        # Define actual list of callbacks
+        self._setup_read_callbacks()
+        callbacks = self._active_read_callbacks
+        # Read metadata of this frame
+        db = self._read_comment(frame)
 
         # Read frame now
-        self.trajectory.seek(self._index_frame[frame])
+        self._file.seek(self._index_frame[frame])
         particle = []
-        for i in range(meta['npart']):
+        for _ in range(db['npart']):
             p = Particle()
             # Note: we cannot optimize by shifting an index instead of
             # cropping lists all the time
-            data = self.trajectory.readline().split()
-            for cbk in callbacks_read:
-                data = cbk(p, data, meta)
+            data = self._file.readline().split()
+            for cbk in callbacks:
+                data = cbk(p, data, db)
             particle.append(p)
 
         # Fix the masses.
         # We assume masses read from the header are sorted by species name.
-        # The mass metadata must be adjusted to the given frame.
-        if 'mass' in meta:
-            if isinstance(meta['mass'], list) or isinstance(meta['mass'], tuple):
+        # The mass dbdata must be adjusted to the given frame.
+        if 'mass' in db:
+            if isinstance(db['mass'], list) or isinstance(db['mass'], tuple):
                 species = distinct_species(particle)
                 # We must have as many mass entries as species
-                if len(species) != len(meta['mass']):
+                if len(species) != len(db['mass']):
                     raise ValueError('mass metadata issue %s, %s' %
-                                     (species, meta['mass']))
-                db = {}
-                for key, value in zip(species, meta['mass']):
-                    db[key] = value
+                                     (species, db['mass']))
+                db_species = {}
+                for key, value in zip(species, db['mass']):
+                    db_species[key] = value
                 for p in particle:
-                    p.mass = float(db[p.species])
+                    p.mass = float(db_species[p.species])
             else:
                 for p in particle:
-                    p.mass = float(meta['mass'])
+                    p.mass = float(db['mass'])
 
         # Add cell info
-        if 'cell' in meta:
-            cell = Cell(meta['cell'])
+        if 'cell' in db:
+            cell = Cell(db['cell'])
         else:
             cell = None
 
@@ -429,7 +436,7 @@ def fallback(p, data, meta):
     def _comment(self, step, system):
         # Concatenate metadata in comment line
         line = 'step:{} '.format(step)
-        line += 'columns:{} '.format(','.join(self.fields))
+        line += 'columns:{} '.format(','.join(self.variables))
         if self.timestep is not None:
             line += 'dt:{:g} '.format(self.timestep)
         if system.cell is not None:
@@ -438,24 +445,25 @@ def fallback(p, data, meta):
             line += '{}:{} '.format(entry, self.metadata[entry])
         return line
 
-    def write_sample(self, system, step):
+    def write_system(self, system, step):
         # Make sure fields are expanded
         global _numpy_fmt_lock
         _numpy_fmt_lock = True
         self._setup_format()
-        self.trajectory.write('%d\n' % len(system.particle))
-        self.trajectory.write(self._comment(step, system) + '\n')
-        # Expand shortcut fields now (the comment header keeps the shortcuts)
-        fields = _expand_fields(self.fields, self._shortcuts)
-        fmt = ' '.join(['{0.' + field + '}' for field in fields]) + '\n'
+        self._file.write('%d\n' % len(system.particle))
+        # column in comment used to have non-canonical variables
+        # we could restore it by adding a de_canonicalize() function
+        # or by storing a copy of the non-canonical variables
+        self._file.write(self._comment(step, system) + '\n')
+        fmt = ' '.join(['{0.' + variable.split('particle.')[-1] + '}' for variable in self.variables]) + '\n'
         for i, p in enumerate(system.particle):
             p._index = i
             p._step = step
-            self.trajectory.write(fmt.format(p))
+            self._file.write(fmt.format(p))
         _numpy_fmt_lock = False
 
     def close(self):
-        self.trajectory.close()
+        self._file.close()
         # Restore numpy formatting defaults
         if not _numpy_fmt_lock:
             numpy.set_string_function(None, False)
@@ -479,14 +487,16 @@ class TrajectoryNeighbors(TrajectoryXYZ):
     comma-separated entries (no space).
     """
 
-    _fields_default = ['neighbors*']
-
     def __init__(self, filename, mode='r', fields=None, offset=1):
         super(TrajectoryNeighbors, self).__init__(filename, mode=mode,
                                                   alias={'time': 'step'})
         self._offset = offset
+        self.thesaurus = {'neighbors': 'particle.neighbors',
+                          'neighbors*': 'particle.neighbors*', }
         if mode == 'w':
-            self.fields = ['neighbors'] if fields is None else fields
-        self.callback_read['neighbors'] = _update_neighbors
-        self.callback_read['neighbors*'] = _update_neighbors_consume
+            self.variables = ['neighbors'] if fields is None else fields
+        if mode == 'r' and 'columns' not in self.metadata:
+            self.variables = ['neighbors*']
+        self.callback_read['particle.neighbors'] = _update_neighbors
+        self.callback_read['particle.neighbors*'] = _update_neighbors_consume
         self.add_callback(_add_neighbors_to_system, self._offset)

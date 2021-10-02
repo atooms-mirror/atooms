@@ -1,3 +1,6 @@
 numpy
 h5py # optional
 gsd # optional
+py3dmol # optional
+matplotlib # optional
+# ovito # optional

@@ -6,18 +6,39 @@
 import numpy
 import h5py
 import logging
-import copy
+import warnings
 
 from .base import TrajectoryBase
 from atooms.core import ndim
 from atooms.system import System
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
-from atooms.interaction import Interaction
-from atooms.interaction.potential import PairPotential
-from atooms.interaction.cutoff import CutOff
+from atooms.system.interaction import Interaction
 
 _log = logging.getLogger(__name__)
+
+
+class _CutOff(object):
+
+    def __init__(self, scheme, radius):
+        self.scheme = scheme
+        self.radius = radius
+        self.rcutsq = radius**2
+        self.radius_mid = radius
+        self.radius_mid_sq = radius**2
+
+
+class _PairPotential(object):
+
+    interacting_bodies = 2
+
+    def __init__(self, func, params, species, cutoff=None,
+                 npoints=20000):
+        self.func = func
+        self.params = params
+        self.species = species
+        self.cutoff = cutoff
+        self.npoints = npoints
 
 
 #  Helper functions and classes
@@ -87,69 +108,69 @@ class TrajectoryHDF5(TrajectoryBase):
         self.general_info = {}
         self._grandcanonical = False
         self._system = None
-        self.fields = ['position', 'velocity']
-
+        # TODO: move this to write mode
+        self.variables = ['particle.position', 'particle.velocity']
         if self.mode == 'r' or self.mode == 'r+':
-            self.trajectory = h5py.File(self.filename, mode)
+            self._file = h5py.File(self.filename, mode)
             # gather general info on file
-            for entry in self.trajectory['/']:
-                if type(self.trajectory[entry]) == h5py.Dataset:
-                    self.general_info[entry] = self.trajectory[entry]
+            for entry in self._file['/']:
+                if type(self._file[entry]) == h5py.Dataset:
+                    self.general_info[entry] = self._file[entry]
 
         elif self.mode == 'w' or self.mode == 'r+' or self.mode == "w-":
-            self.trajectory = _SafeFile(self.filename, self.mode)
+            self._file = _SafeFile(self.filename, self.mode)
 
         else:
             raise ValueError('Specify mode (r/w) for file %s (invalid: %s)' % (self.filename, self.mode))
 
     def read_steps(self):
-        return [d[0] for d in self.trajectory['trajectory/realtime/stepindex'].values()]
+        return [d[0] for d in self._file['trajectory/realtime/stepindex'].values()]
 
     def read_len(self):
-        return len(self.trajectory['trajectory/realtime/stepindex'])
+        return len(self._file['trajectory/realtime/stepindex'])
 
     def close(self):
         try:
-            self.trajectory.close()
+            self._file.close()
         except ValueError:
             _log.error('file %s already closed', self.filename)
             raise
 
     def read_timestep(self):
         try:
-            return self.trajectory['trajectory/realtime/timestep'][0]
+            return self._file['trajectory/realtime/timestep'][0]
         except:
             _log.warning('no time step in file %s, set to 1', self.filename)
             return 1.0
 
     def write_timestep(self, value):
-        self.trajectory.create_group_safe('/trajectory')
-        self.trajectory.create_group_safe('/trajectory/realtime')
-        self.trajectory['trajectory/realtime/timestep'] = [value]
+        self._file.create_group_safe('/trajectory')
+        self._file.create_group_safe('/trajectory/realtime')
+        self._file['trajectory/realtime/timestep'] = [value]
 
     def read_block_size(self):
         try:
-            return self.trajectory['trajectory/realtime/block_period'][0]
+            return self._file['trajectory/realtime/block_period'][0]
         except:
             return None
 
     def write_block_size(self, value):
-        self.trajectory.create_group_safe('/trajectory')
-        self.trajectory.create_group_safe('/trajectory/realtime')
-        self.trajectory['trajectory/realtime/block_period'] = [value]
+        self._file.create_group_safe('/trajectory')
+        self._file.create_group_safe('/trajectory/realtime')
+        self._file['trajectory/realtime/block_period'] = [value]
 
     def write_init(self, system):
         from atooms.system.particle import distinct_species
-        self.trajectory.create_group_safe('/initialstate')
-        self.trajectory['DIMENSIONS'] = [3]
-        self.trajectory['NAME_SYS'] = [b'Unknown']
-        self.trajectory['VERSION_TRJ'] = [b'1.2']
-        self.trajectory['VERSION_MD'] = [b'X.X.X']
+        self._file.create_group_safe('/initialstate')
+        self._file['DIMENSIONS'] = [3]
+        self._file['NAME_SYS'] = [b'Unknown']
+        self._file['VERSION_TRJ'] = [b'1.2']
+        self._file['VERSION_MD'] = [b'X.X.X']
 
         # Particles
         group = '/initialstate/particle/'
         if system.particle is not None:
-            self.trajectory.create_group_safe(group)
+            self._file.create_group_safe(group)
             particle = system.particle
             species = distinct_species(particle)
             particle_h5 = {'number_of_species': [len(species)],
@@ -161,39 +182,22 @@ class TrajectoryHDF5(TrajectoryBase):
                            'position': [p.position for p in particle],
                            'velocity': [p.velocity for p in particle],
                            }
-            _write_datasets(self.trajectory, group, particle_h5)
-
-        # Matrix
-        group = '/initialstate/matrix/'
-        if system.matrix is not None:
-            self.trajectory.create_group_safe(group)
-            matrix = system.matrix
-            species = distinct_species(matrix)
-            matrix_h5 = {'type': [b''],
-                         'id': [0],
-                         'number_of_species': [len(species)],
-                         'number_of_particles': [len(matrix)],
-                         'identity': [species.index(p.species)+1 for p in matrix],
-                         'element': [p.species.encode() for p in matrix],
-                         'mass': [p.mass for p in matrix],
-                         'position': [p.position for p in matrix],
-                         }
-            _write_datasets(self.trajectory, group, matrix_h5)
+            _write_datasets(self._file, group, particle_h5)
 
         # Cell
         group = '/initialstate/cell/'
         if system.cell is not None:
-            self.trajectory.create_group_safe(group)
-            self.trajectory[group + 'sidebox'] = system.cell.side
+            self._file.create_group_safe(group)
+            self._file[group + 'sidebox'] = system.cell.side
 
         # Thermostat
         group = '/initialstate/thermostat/'
         if system.thermostat is not None:
-            self.trajectory.create_group_safe(group)
-            self.trajectory[group + 'temperature'] = system.thermostat.temperature
-            self.trajectory[group + 'type'] = system.thermostat.name
-            self.trajectory[group + 'mass'] = system.thermostat.mass
-            self.trajectory[group + 'collision_period'] = system.thermostat.collision_period
+            self._file.create_group_safe(group)
+            self._file[group + 'temperature'] = system.thermostat.temperature
+            self._file[group + 'type'] = system.thermostat.name
+            self._file[group + 'mass'] = system.thermostat.mass
+            self._file[group + 'collision_period'] = system.thermostat.collision_period
 
         # Interaction
         if system.interaction is not None:
@@ -203,78 +207,80 @@ class TrajectoryHDF5(TrajectoryBase):
 
     def write_interaction(self, interaction):
         rgr = '/initialstate/interaction/'
-        self.trajectory.create_group_safe('/initialstate/')
+        self._file.create_group_safe('/initialstate/')
         # If the group exisist we delete it. This does not actual clear space in h5 file.
         # We could do it on a dataset basis via require_dataset, or visit the group and delete everything.
         try:
-            del self.trajectory['/initialstate/interaction/']
+            del self._file['/initialstate/interaction/']
         except:
             pass
-        self.trajectory.create_group_safe('/initialstate/interaction/')
-        self.trajectory[rgr + 'number_of_interactions'] = [len(interaction)]
+        self._file.create_group_safe('/initialstate/interaction/')
+        self._file[rgr + 'number_of_interactions'] = [len(interaction)]
         for i, term in enumerate(interaction):
             igr = rgr + '/interaction_%d/' % (i+1)
             # Numbering is fortran style for backward compatibility
-            self.trajectory.create_group_safe(igr)
-            self.trajectory[igr + 'interaction_type'] = [term.name.encode()]
-            self.trajectory[igr + 'number_of_potentials'] = [len(term.potential)]
+            self._file.create_group_safe(igr)
+            self._file[igr + 'interaction_type'] = [term.name.encode()]
+            self._file[igr + 'number_of_potentials'] = [len(term.potential)]
             for j, phi in enumerate(term.potential):
                 pgr = igr + '/potential_%d/' % (j+1)
-                self.trajectory.create_group_safe(pgr)
-                self.trajectory[pgr + 'potential'] = [str(phi).encode()]
-                self.trajectory[pgr + 'interacting_bodies'] = [phi.interacting_bodies]
-                self.trajectory[pgr + 'interacting_species'] = phi.species
-                self.trajectory[pgr + 'parameters_number'] = [len(phi.params)]
-                self.trajectory[pgr + 'parameters_name'] = [_ for _ in sorted(phi.params.keys())]
-                self.trajectory[pgr + 'parameters'] = [phi.params[k] for k in sorted(phi.params.keys())]
-                self.trajectory[pgr + 'cutoff_scheme'] = [phi.cutoff.scheme.encode()]
-                self.trajectory[pgr + 'cutoff_radius'] = [phi.cutoff.radius]
-                self.trajectory[pgr + 'lookup_points'] = [phi.npoints]
+                self._file.create_group_safe(pgr)
+                self._file[pgr + 'potential'] = [str(phi).encode()]
+                self._file[pgr + 'interacting_bodies'] = [phi.interacting_bodies]
+                self._file[pgr + 'interacting_species'] = phi.species
+                self._file[pgr + 'parameters_number'] = [len(phi.params)]
+                self._file[pgr + 'parameters_name'] = [_ for _ in sorted(phi.params.keys())]
+                self._file[pgr + 'parameters'] = [phi.params[k] for k in sorted(phi.params.keys())]
+                self._file[pgr + 'cutoff_scheme'] = [phi.cutoff.scheme.encode()]
+                self._file[pgr + 'cutoff_radius'] = [phi.cutoff.radius]
+                self._file[pgr + 'lookup_points'] = [phi.npoints]
 
-    def write_sample(self, system, step):
-        self.trajectory.create_group_safe('/trajectory')
-        self.trajectory.create_group_safe('/trajectory/realtime')
-        self.trajectory.create_group_safe('/trajectory/realtime/stepindex')
-        self.trajectory.create_group_safe('/trajectory/realtime/sampleindex')
+    def write_system(self, system, step):
+        variables = self.variables
+
+        self._file.create_group_safe('/trajectory')
+        self._file.create_group_safe('/trajectory/realtime')
+        self._file.create_group_safe('/trajectory/realtime/stepindex')
+        self._file.create_group_safe('/trajectory/realtime/sampleindex')
 
         frame = len(self.steps) + 1
         csample = '/sample_%7.7i' % frame
 
         try:
-            self.trajectory['/trajectory/realtime/stepindex' + csample] = [step]
-            self.trajectory['/trajectory/realtime/sampleindex' + csample] = [frame]
+            self._file['/trajectory/realtime/stepindex' + csample] = [step]
+            self._file['/trajectory/realtime/sampleindex' + csample] = [frame]
         except RuntimeError:
             _log.error('error when writing step %s sample %s to file %s', step, frame, self.filename)
             raise
 
         if system.particle is not None:
-            self.trajectory.create_group_safe('/trajectory/particle')
-            if 'position' in self.fields:
-                self.trajectory.create_group_safe('/trajectory/particle/position')
-                self.trajectory['/trajectory/particle/position' + csample] = [p.position for p in system.particle]
-            if 'velocity' in self.fields:
-                self.trajectory['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
-                self.trajectory.create_group_safe('/trajectory/particle/velocity')
-            if 'radius' in self.fields:
-                self.trajectory.create_group_safe('/trajectory/particle/radius')
-                self.trajectory['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
-            if 'species' in self.fields:
-                self.trajectory.create_group_safe('/trajectory/particle/species')
+            self._file.create_group_safe('/trajectory/particle')
+            if 'particle.position' in variables:
+                self._file.create_group_safe('/trajectory/particle/position')
+                self._file['/trajectory/particle/position' + csample] = [p.position for p in system.particle]
+            if 'particle.velocity' in variables:
+                self._file['/trajectory/particle/velocity' + csample] = [p.velocity for p in system.particle]
+                self._file.create_group_safe('/trajectory/particle/velocity')
+            if 'particle.radius' in variables:
+                self._file.create_group_safe('/trajectory/particle/radius')
+                self._file['/trajectory/particle/radius' + csample] = [p.radius for p in system.particle]
+            if 'particle.species' in variables:
+                self._file.create_group_safe('/trajectory/particle/species')
                 data = ['%-3s' % p.species for p in system.particle]
-                self.trajectory['/trajectory/particle/species' + csample] = [_.encode() for _ in data]
+                self._file['/trajectory/particle/species' + csample] = [_.encode() for _ in data]
                 from atooms.system.particle import distinct_species
                 ids = distinct_species(system.particle)
-                self.trajectory['/trajectory/particle/ids' + csample] = [1+ids.index(p.species) for p in system.particle]
+                self._file['/trajectory/particle/ids' + csample] = [1+ids.index(p.species) for p in system.particle]
 
         if system.cell is not None:
-            self.trajectory.create_group_safe('/trajectory/cell')
-            self.trajectory.create_group_safe('/trajectory/cell/sidebox')
-            self.trajectory['/trajectory/cell/sidebox' + csample] = system.cell.side
+            self._file.create_group_safe('/trajectory/cell')
+            self._file.create_group_safe('/trajectory/cell/sidebox')
+            self._file['/trajectory/cell/sidebox' + csample] = system.cell.side
 
     def read_init(self):
         # read particles
-        group = self.trajectory['/initialstate/particle']
-        n = self.trajectory['/initialstate/particle/number_of_particles'][0]
+        group = self._file['/initialstate/particle']
+        n = self._file['/initialstate/particle/number_of_particles'][0]
         rad = None
         for entry in group:
             # TODO: refactor this
@@ -298,7 +304,7 @@ class TrajectoryHDF5(TrajectoryBase):
                         for i in range(n)]
 
         # read cell
-        group = self.trajectory['/initialstate/cell']
+        group = self._file['/initialstate/cell']
         for entry in group:
             if entry == 'sidebox':
                 sidebox = group[entry][:]
@@ -310,80 +316,69 @@ class TrajectoryHDF5(TrajectoryBase):
         # build system
         self._system = System(particle, cell, interaction)
 
-        # read matrix
-        if 'matrix' in self.trajectory['/initialstate']:
-            group = self.trajectory['/initialstate/matrix']
-            for entry in group:
-                if entry == 'element':
-                    spe = group[entry][:]
-                if entry == 'mass':
-                    mas = group[entry][:]
-                if entry == 'position':
-                    pos = group[entry][:]
-            matrix = [Particle(species=spe[i].decode().strip(), mass=mas[i],
-                               position=pos[i, :])
-                      for i in range(len(spe))]
-            self._system.matrix = copy.deepcopy(matrix)
-
         return self._system
 
     def read_interaction(self):
         # read interaction terms
-        if 'interaction' not in self.trajectory['/initialstate']:
+        if 'interaction' not in self._file['/initialstate']:
             return None
 
-        n = self.trajectory['/initialstate/interaction/number_of_interactions'][0]
+        n = self._file['/initialstate/interaction/number_of_interactions'][0]
         if n > 1:
-            warning.warn('can only read one interaction term')
+            warnings.warn('can only read one interaction term')
 
         i = 0
         g = '/initialstate/interaction/interaction_%d/' % (i+1)
-        np = self.trajectory[g + 'number_of_potentials'][0]
-        name = self.trajectory[g + 'interaction_type'][0].decode()
+        np = self._file[g + 'number_of_potentials'][0]
+        name = self._file[g + 'interaction_type'][0].decode()
         potentials = []
         for j in range(np):
-            sg = self.trajectory[g + 'potential_%d/' % (j+1)]
+            sg = self._file[g + 'potential_%d/' % (j+1)]
             # params = {k:v for k, v in zip(sg['parameters_name'][:], sg['parameters'][:])}
             # make it compatible with 2.6
             params = {}
             for k, v in zip(sg['parameters_name'][:], sg['parameters'][:]):
                 params[k] = v
-            p = PairPotential(sg['potential'][0].decode(), params,
-                              sg['interacting_species'][:],
-                              CutOff(sg['cutoff_scheme'][0].decode(),
-                                     sg['cutoff_radius'][0]))
+            p = _PairPotential(sg['potential'][0].decode(), params,
+                               sg['interacting_species'][:],
+                               _CutOff(sg['cutoff_scheme'][0].decode(),
+                                       sg['cutoff_radius'][0]))
             if 'lookup_points' in sg:
                 p.npoints = sg['lookup_points']
 
             potentials.append(p)
-        return Interaction(potentials, name)
+        interaction = Interaction()
+        interaction.potential = potentials
+        interaction.name = name
+        return interaction
 
-    def read_sample(self, frame, unfolded=False):
-        # TODO: due to unfolded argument this differs from the base class method Can we drop this?
+    def read_system(self, frame):
+        # TODO: refactor reading particle variables
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
-        keys = list(self.trajectory['/trajectory/realtime/stepindex'].keys())
+        keys = list(self._file['/trajectory/realtime/stepindex'].keys())
         csample = '/' + keys[frame]
         # read particles
-        group = self.trajectory['/trajectory/particle']
-        if unfolded:
-            if 'position_unfolded' not in group:
-                raise NotImplementedError('cannot unfold like this, use decorator instead')
-            else:
-                # fix for unfolded positions that were not written at the first step
-                # should be fixed once and for all in md.x
-                if frame == 0:
-                    pos = self.trajectory['/initialstate/particle/position'][:]
-                else:
-                    pos = group['position_unfolded' + csample][:]
-        else:
-            pos = group['position' + csample][:]
+        group = self._file['/trajectory/particle']
+        pos = group['position' + csample][:]
 
-        try:
+        if 'position_unfolded' in group:
+            # fix for unfolded positions that were not written at the first step
+            # should be fixed once and for all in md.x
+            if frame == 0:
+                pos_unf = self._file['/initialstate/particle/position'][:]
+            else:
+                pos_unf = group['position_unfolded' + csample][:]
+            if 'particle.position_unfolded' not in self.variables:
+                self.variables.append('particle.position_unfolded')
+
+        if 'velocity' in group:
             vel = group['velocity' + csample][:]
-        except:
-            vel = numpy.zeros([len(pos), ndim])
+        else:
+            vel = numpy.zeros((len(pos), ndim))
+            if 'particle.velocity' not in self.variables:
+                self.variables.remove('particle.velocity')
 
         # Dynamic properties
         p = []
@@ -392,36 +387,35 @@ class TrajectoryHDF5(TrajectoryBase):
 
         # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2
-        for pi, r in zip(p, self._system.particle):
-            pi.mass = r.mass
-            pi.species = r.species
-            pi.radius = r.radius
+        for pi, po in zip(p, self._system.particle):
+            pi.mass = po.mass
+            pi.species = po.species
+            pi.radius = po.radius
 
         # Try update radii. This must be done after setting defaults.
         try:
             r = group['radius' + csample][:]
             for i, pi in enumerate(p):
                 pi.radius = r[i]
-            if 'radius' not in self.fields:
-                self.fields.append('radius')
+            if 'particle.radius' not in self.variables:
+                self.variables.append('particle.radius')
         except KeyError:
-            if 'radius' in self.fields:
-                self.fields.remove('radius')
+            if 'particle.radius' in self.variables:
+                self.variables.remove('particle.radius')
 
         # Try update species. This must be done after setting defaults.
-        # TODO: refactor
         try:
             spe = group['species' + csample][:]
             for i, pi in enumerate(p):
                 pi.species = spe[i].decode().strip()
-            if 'species' not in self.fields:
-                self.fields.append('species')
+            if 'particle.species' not in self.variables:
+                self.variables.append('particle.species')
         except KeyError:
-            if 'species' in self.fields:
-                self.fields.remove('species')
+            if 'particle.species' in self.variables:
+                self.variables.remove('particle.species')
 
         # Read cell
-        group = self.trajectory['/trajectory/cell']
+        group = self._file['/trajectory/cell']
         side = group['sidebox' + csample][:]
         # This fixes an issue with some hdf5 trajectories that stored
         # cell as (1,3) array
@@ -432,7 +426,7 @@ class TrajectoryHDF5(TrajectoryBase):
         # Read also interaction.
         has_int = True
         try:
-            group = self.trajectory['/trajectory/interaction']
+            group = self._file['/trajectory/interaction']
         except:
             has_int = False
 

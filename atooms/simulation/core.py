@@ -154,7 +154,7 @@ class Simulation(object):
         # Sanity check (prevent scheduler/callback inversion)
         assert type(scheduler(self)) is int, \
             "probable swap between callback {} and scheduler {}".format(callback, scheduler)
-            
+
         # Store scheduler, callback and its arguments
         # in a separate dict (NOT in the function object itself!)
         self._cbk_params[callback] = {'scheduler': scheduler,
@@ -213,8 +213,8 @@ class Simulation(object):
             # TODO: use pickle.dump
             # Fallback to backend trajectory class with high precision
             with self.trajectory_class(self.output_path + '.chk', 'w',
-                                        fields=['species', 'position',
-                                                'velocity', 'radius']) as t:
+                                       fields=['species', 'position',
+                                               'velocity', 'radius']) as t:
                 t.precision = 12
                 t.write(self.system, 0)
 
@@ -307,7 +307,7 @@ class Simulation(object):
             intervals = [intv for intv in intervals if intv is not None]
             min_iters = 10
             if min(intervals) > (self.current_step + self.steps) / min_iters and \
-               (self.current_step + self.steps) / min_iters > 10 :
+               (self.current_step + self.steps) / min_iters > 10:
                 def flush(sim):
                     pass
                 self.remove(flush)
@@ -317,10 +317,8 @@ class Simulation(object):
         _report(self._info_start())
         _report(self._info_backend())
         _report(self._info_observers())
-        if hasattr(self.system, 'report'):
-            _report(self.system.report())
-        if hasattr(self.backend, 'report'):
-            _report(self.backend.report())
+        _report(str(self.system))
+        _report(str(self.backend))
 
         # Read checkpoint if we restart
         if self.restart:
@@ -330,7 +328,6 @@ class Simulation(object):
         self._start_time = time.time()
 
         import signal
-        import sys
 
         def signal_term_handler(signal, frame):
             raise SimulationKill('simulation terminated')

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import random
 import copy
 import numpy
@@ -33,7 +34,7 @@ class Test(unittest.TestCase):
         self.assertEqual(system.number_of_dimensions, 0)
         system.cell = Cell([2.0, 2.0])
         self.assertEqual(system.number_of_dimensions, 2)
-        
+
     def test_density(self):
         system = copy.copy(self.ref)
         density_old = system.density
@@ -48,7 +49,7 @@ class Test(unittest.TestCase):
         system = copy.deepcopy(self.ref)
         system.cell = None
         self.assertAlmostEqual(system.density, 0.1, 1)
-        
+
     def test_temperature(self):
         system = copy.copy(self.ref)
         system.set_temperature(1.0)
@@ -64,7 +65,6 @@ class Test(unittest.TestCase):
         system = System()
         self.assertAlmostEqual(system.temperature, 0.0)
 
-        
     def test_cm(self):
         system = copy.copy(self.ref)
         system.set_temperature(1.0)
@@ -134,7 +134,7 @@ class Test(unittest.TestCase):
             p.species = 'C'
         from atooms.system.particle import composition, distinct_species
         self.assertEqual(distinct_species(system.particle), ['A', 'B', 'C'])
-        self.assertEqual(system.distinct_species(), ['A', 'B', 'C'])
+        self.assertEqual(system.distinct_species, ['A', 'B', 'C'])
         self.assertEqual(composition(system.particle)['A'], npart - 30)
         self.assertEqual(composition(system.particle)['B'], 10)
         self.assertEqual(composition(system.particle)['C'], 20)
@@ -142,7 +142,7 @@ class Test(unittest.TestCase):
         # Unhashable numpy scalars
         for p in system.particle:
             p.species = numpy.array(1)
-        self.assertEqual(system.distinct_species(), [1])
+        self.assertEqual(system.distinct_species, [1])
 
     def test_packing(self):
         import math
@@ -185,13 +185,13 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rg3, 0.57735026919)
 
     def test_interaction(self):
-        from atooms.interaction import Interaction
+        from atooms.system.interaction import Interaction
         system = copy.copy(self.ref)
         self.assertAlmostEqual(system.potential_energy(), 0.0)
-        system.interaction = Interaction([])
-        system.interaction.compute('energy', system.particle, system.cell)
-        system.interaction.compute('forces', system.particle, system.cell)
-        system.interaction.compute('stress', system.particle, system.cell)
+        system.interaction = Interaction()
+        system.interaction.compute('energy', system.dump('position'), system.dump('species'), system.cell.side)
+        system.interaction.compute('forces', system.dump('position'), system.dump('species'), system.cell.side)
+        system.interaction.compute('stress', system.dump('position'), system.dump('species'), system.cell.side)
         self.assertAlmostEqual(system.potential_energy(), 0.0)
         self.assertAlmostEqual(system.potential_energy(normed=True), 0.0)
         self.assertAlmostEqual(system.total_energy(), system.kinetic_energy())
@@ -232,7 +232,6 @@ class Test(unittest.TestCase):
         a = 0.3
         q_rand = ((a**3 * 4./3*3.1415) * N / sys[0].cell.volume)
         self.assertTrue(abs(q_rand - collective_overlap(sys[0].particle, sys[1].particle, a, sys[0].cell.side)) < 0.5)
-
 
     def test_view(self):
         import numpy
@@ -297,6 +296,7 @@ class Test(unittest.TestCase):
             p = [Particle(), Particle()]
             s = System(p)
             pos1 = s.dump("pos", view=view)
+
             def cbk(system):
                 s = copy.copy(system)
                 s.particle = [system.particle[0]]
@@ -342,11 +342,8 @@ class Test(unittest.TestCase):
         self.assertEqual(x['A'], 8)
         self.assertEqual(x['B'], 4)
 
-    def test_ovito(self):
-        try:
-            import ovito
-        except ImportError:
-            self.skipTest('missing ovito')
+    @unittest.skipIf(sys.version_info.major == 2, 'skip show() tests with python 2')
+    def test_show(self):
         N = 3
         L = 5.0
         system = System()
@@ -356,7 +353,17 @@ class Test(unittest.TestCase):
             pos = (numpy.random.random(len(system.cell.side)) - 0.5) * system.cell.side
             p = Particle(position=pos)
             system.particle.append(p)
-        image = system.show('ovito')
+
+        try:
+            system.show(backend='')
+        except ValueError:
+            pass
+        try:
+            system.show(backend='matplotlib')
+            system.show(backend='ovito')
+            system.show(backend='3dmol')
+        except ImportError:
+            self.skipTest('missing backend')
 
     def test_rotate(self):
         """Rotate particles so that the principal axis is along the y axis"""
@@ -369,13 +376,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rotated[0].position[1], 0, 6)
         self.assertAlmostEqual(rotated[1].position[1], 1, 6)
         self.assertAlmostEqual(rotated[2].position[1], 2, 6)
-        
-    def test_show(self):
-        system = System()
-        try:
-            system.show(backend='')
-        except ValueError:
-            pass
-            
+
+
 if __name__ == '__main__':
     unittest.main()
