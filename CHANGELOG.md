@@ -1,10 +1,10 @@
 # Changelog
 
-The format of this file is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations.
 
 ## Unreleased
 
-[Full changelog](https://framagit.org/atooms/atooms/-/compare/2.8.1...master)
+[Full diff](https://framagit.org/atooms/atooms/-/compare/2.8.1...master)
 	
 ### Changed
 - Interaction class now belongs to system.interaction module
