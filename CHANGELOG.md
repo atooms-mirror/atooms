@@ -2,9 +2,9 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations.
 
-## Unreleased
+## 3.0.0 - 2021/10/03
 
-[Full diff](https://framagit.org/atooms/atooms/-/compare/2.8.1...master)
+[Full diff](https://framagit.org/atooms/atooms/-/compare/2.8.1...3.0.0)
 	
 ### Changed
 - Interaction class now belongs to system.interaction module
