@@ -40,16 +40,23 @@ with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
 
 We can now run 1000 molecular dynamics steps using the Lennard-Jones potential:
 ```python
+import rumd
 from atooms.backends.rumd import RUMD
 from atooms.simulation import Simulation
 
-backend = RUMD('rescaled.xyz.gz', forcefield_file='lj_rumd.ff', 
+# Kob-Andersen model
+potential = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
+potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
+potential.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+potential.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+potential.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
+
+backend = RUMD('rescaled.xyz.gz', [potential], 
                output_path='/tmp/outdir', integrator='nve')
 sim = Simulation(backend)
 sim.run(1000)
 print('Final temperature and density', sim.system.temperature, sim.system.density)
 ```
-The forcefield file `lj_rumd.ff` (available in `data/`) defines the interaction potential.
 
 Documentation
 -------------
