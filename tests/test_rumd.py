@@ -16,20 +16,33 @@ setup_logging(level=40)
 
 
 class Test(unittest.TestCase):
-
+    
     def setUp(self):
+        from atooms.backends.rumd import RUMD
+        
         if SKIP:
             self.skipTest('missing RUMD')
         self.input_file = os.path.join(os.path.dirname(__file__),
-                                       '../data/ka_N256_rho1.185_rumd.xyz.gz')
-        self.forcefield_file = os.path.join(os.path.dirname(__file__),
-                                            '../data/ka_rumd.ff')
-        from atooms.backends.rumd import RUMD
+                                       '../data/ka_N256_rho1.185_rumd.xyz.gz')        
+        potential = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
+        potential.SetVerbose(False)
+        potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
+        potential.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+        potential.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+        potential.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
         self.backend = RUMD(self.input_file,
-                            self.forcefield_file, integrator='nvt',
+                            potentials=[potential], integrator='nvt',
                             temperature=0.80, dt=0.002)
+
+        # Each backend must have separate potentials
+        potential = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
+        potential.SetVerbose(False)
+        potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
+        potential.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+        potential.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
+        potential.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
         self.backend_2 = RUMD(self.input_file,
-                              self.forcefield_file, integrator='nvt',
+                              potentials=[potential], integrator='nvt',
                               temperature=0.80, dt=0.002)
 
     def test_properties(self):
@@ -165,12 +178,14 @@ class Test(unittest.TestCase):
 
     def test_potential(self):
         import copy
+        from atooms.backends.rumd import RUMD
         si = Simulation(self.backend,
                         output_path='/tmp/test_rumd_single/trajectory',
                         steps=2000, checkpoint_interval=100,
                         restart=False)
         pos0 = si.system.particle[0].position[0]
         s = copy.deepcopy(si.system)
+        self.assertAlmostEqual(si.system.potential_energy(per_particle=True), -6.4014371344819665, 3)
         si.run(100)
         pos1 = si.system.particle[0].position[0]
         si.system = s

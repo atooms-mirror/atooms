@@ -13,13 +13,15 @@ import numpy
 import logging
 
 import rumd
-from rumdSimulation import rumdSimulation
+from rumd.Simulation import Simulation
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 
-
 _log = logging.getLogger(__name__)
 _version = rumd.GetVersion()
+
+if int(_version.split('.')[0]) < 3:
+    raise ImportError('RUMD version must be at least 3')
 
 
 def unfold(system):
@@ -54,22 +56,22 @@ class RUMD(object):
 
     version = _version
 
-    def __init__(self, input_file_or_sim, forcefield_file=None,
-                 forcefield=None, integrator=None, temperature=None,
-                 dt=0.001, fixcm_interval=0, thermostat_relaxation_time=None):
+    def __init__(self, input_file_or_sim, potentials=None,
+                 integrator=None, temperature=None, dt=0.001,
+                 fixcm_interval=0, thermostat_relaxation_time=None):
 
         # Keep a reference of the Trajectory backend class
         self.trajectory_class = Trajectory
 
         # Store internal rumd simulation instance.
         # It is exposed as self.rumd_simulation for further customization
-        if isinstance(input_file_or_sim, rumdSimulation):
+        if isinstance(input_file_or_sim, Simulation):
             self.rumd_simulation = input_file_or_sim
             self._suppress_all_output = False
             self._initialize_output = True
 
         else:
-            self.rumd_simulation = rumdSimulation(input_file_or_sim, verbose=False)
+            self.rumd_simulation = Simulation(input_file_or_sim, verbose=False)
             self.rumd_simulation.SetVerbose(False)
             self.rumd_simulation.sample.SetVerbose(False)
             self.rumd_simulation.sample.EnableBackup(False)
@@ -83,35 +85,26 @@ class RUMD(object):
             self._suppress_all_output = True
             self._initialize_output = False
 
-            # Set the forcefield
-            if forcefield is not None:
-                # We are provided a list of rumd potentials
-                for potential in forcefield:
-                    self.rumd_simulation.AddPotential(potential)
-            # We parse the forcefield file
-            # It should provide a list of potentials named potential
-            if forcefield_file is not None:
-                with open(forcefield_file) as fh:
-                    exec(fh.read())
-                if 'potential' not in locals():
-                    raise ValueError('forcefield file should contain a list of potentials named potential')
-                for pot in potential:
-                    self.rumd_simulation.AddPotential(pot)
+        # Set the forcefield
+        if potentials is not None:
+            # We are provided a list of rumd potentials
+            for potential in potentials:
+                self.rumd_simulation.AddPotential(potential)
 
-            # Add a rumd integrator
-            if temperature is not None:
-                integrator = 'nvt'
+        # Add a rumd integrator
+        if temperature is not None:
+            integrator = 'nvt'
 
-            if integrator is not None:
-                if integrator in ['nvt', 'NVT']:
-                    itg = rumd.IntegratorNVT(targetTemperature=temperature,
-                                             timeStep=dt)
-                    if thermostat_relaxation_time is not None:
-                        itg.SetRelaxationTime(float(thermostat_relaxation_time))
+        if integrator is not None:
+            if integrator in ['nvt', 'NVT']:
+                itg = rumd.IntegratorNVT(targetTemperature=temperature,
+                                         timeStep=dt)
+                if thermostat_relaxation_time is not None:
+                    itg.SetRelaxationTime(float(thermostat_relaxation_time))
 
-                elif integrator in ['nve', 'NVE']:
-                    itg = rumd.IntegratorNVE(timeStep=dt)
-                self.rumd_simulation.SetIntegrator(itg)
+            elif integrator in ['nve', 'NVE']:
+                itg = rumd.IntegratorNVE(timeStep=dt)
+            self.rumd_simulation.SetIntegrator(itg)
 
         # Copy of initial state
         self._initial_sample = self.rumd_simulation.sample.Copy()

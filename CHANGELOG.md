@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Rename index attribute to frame in TrajectoryBase.read_system()
 - Change options order in Particle constructor
 - Change system.distinct_species() method as a property
+- RUMD backend requires version 3
 - Merge autopep8 and flake8 Makefile targets into pep8
 
 ### Removed
@@ -29,6 +30,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Remove support for matrix attribute in System
 - Remove support for list of attributes passed to System.dump(), use dict compreheshion instead to collect dumped attributes
 - Remove report() methods throughout, rely on __str__() instead
+- Remove forcefield and forcefield_file options from RUMD backend, pass RUMD Potentials instances instead
 - Remove user and develop targets from Makefile
 - Remove tox.ini
 
