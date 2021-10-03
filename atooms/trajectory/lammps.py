@@ -163,7 +163,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
         # In atooms, forces belong to the interaction, not to particles
         if 'fx' in fields or 'fy' in fields or 'fz' in fields:
             # TODO: this won't work with first and last particles
-            system.interaction = Interaction([])  # empty list of potentials
+            system.interaction = Interaction()
             system.interaction.forces = numpy.ndarray((npart, ndim))
         else:
             interaction = None

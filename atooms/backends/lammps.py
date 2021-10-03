@@ -66,7 +66,10 @@ def _run_lammps_command(cmd):
                                          stderr=subprocess.STDOUT,
                                          shell=True)
     except subprocess.CalledProcessError as exception:
-        print(''.join(exception.output))
+        if isinstance(exception.output, bytes):
+            print(exception.output.decode())
+        else:
+            print(''.join(exception.output))
         raise
 
     # Clean up
@@ -84,8 +87,9 @@ class Interaction(interaction.Interaction):
     """
     # TODO: assign interaction to system based on pair_style entries in cmd
 
-    def __init__(self, *args, **kwargs):
-        interaction.Interaction.__init__(self, *args, **kwargs)
+    def __init__(self, potential):
+        interaction.Interaction.__init__(self)
+        self.potential = potential
         self.variables = {'particle': 'particle',
                           'cell': 'cell'}
 
