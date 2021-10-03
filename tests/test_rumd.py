@@ -5,6 +5,7 @@ import glob
 import unittest
 try:
     import rumd
+    from atooms.backends.rumd import RUMD
     SKIP = False
 except ImportError:
     SKIP = True
@@ -18,8 +19,6 @@ setup_logging(level=40)
 class Test(unittest.TestCase):
     
     def setUp(self):
-        from atooms.backends.rumd import RUMD
-        
         if SKIP:
             self.skipTest('missing RUMD')
         self.input_file = os.path.join(os.path.dirname(__file__),
