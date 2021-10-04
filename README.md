@@ -13,7 +13,7 @@ Atooms
 Quick start
 -----------
 
-The goal of atooms is to provide a coherent interface to the basic objects of particle simulations, such as [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations. 
+The goal of atooms is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
 The simulation data are stored in trajectory files, which are easy to analyze, manipulate and convert with atooms.
 
 In this quick example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format) composed by multiple frames. Each frame holds the state of the system at a given instant of time during the simulation. Accessing the coordinates of the particles in a trajectory file goes like this:
@@ -47,9 +47,6 @@ from atooms.simulation import Simulation
 # Kob-Andersen model
 potential = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
 potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
-potential.SetParams(i=1, j=0, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
-potential.SetParams(i=0, j=1, Epsilon=1.5, Sigma=0.8, Rcut=2.5)
-potential.SetParams(i=1, j=1, Epsilon=0.5, Sigma=0.88, Rcut=2.5)
 
 backend = RUMD('rescaled.xyz.gz', [potential], 
                output_path='/tmp/outdir', integrator='nve')
