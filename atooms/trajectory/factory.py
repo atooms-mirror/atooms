@@ -48,6 +48,7 @@ class TrajectoryFactory(object):
     def __init__(self):
         self.formats = {}
         self.suffixes = {}
+        self.callbacks = []
 
     def _add(self, trj_class, trj_name, overwrite=True):
         """Atomically add one trajectory class to the factory"""
@@ -79,21 +80,36 @@ class TrajectoryFactory(object):
                 continue
             self._add(trj_class, trj_name, overwrite)
 
+    def register_callback(self, cbk, *args, **kwargs):
+        """
+        Register a callback `cbk` to be applied when reading a frame.
+
+        The callback is registered in the Trajectory instance when
+        calling the factory, see __call__().
+        """
+        if (cbk, args, kwargs) not in self.callbacks:
+            self.callbacks.append((cbk, args, kwargs))
+
     def __call__(self, filename, mode='r', fmt=None):
         if fmt is not None:
             return self.formats[fmt](filename, mode)
 
+        th = None
         suffix = os.path.splitext(filename)[-1].replace('.', '')
         if suffix in self.suffixes:
-            return self.suffixes[suffix](filename, mode)
+            th = self.suffixes[suffix](filename, mode)
         else:
             # Fallback to hdf5
-            # It is important to use the one in the factory
-            # to allow backends to load modified tarjectory classes
             if 'hdf5' in self.formats:
                 try:
-                    return self.formats['hdf5'](filename, mode)
-                except:
-                    raise ValueError('unknown file format for %s' % filename)
-            else:
-                raise ValueError('hdf5 library not installed')
+                    th = self.formats['hdf5'](filename, mode)
+                except OSError:
+                    pass
+        if th is not None:
+            # Register the callbacks in the actual trajectory instance
+            for cbk, args, kwargs in self.callbacks:
+                th.register_callback(cbk, *args, **kwargs)
+            return th
+        else:
+            raise ValueError('unknown file format for %s' % filename)            
+
