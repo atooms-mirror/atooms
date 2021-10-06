@@ -193,7 +193,8 @@ class System(object):
         if self.interaction is not None:
             kwargs = {}
             for variable, variable_to_dump in self.interaction.variables.items():
-                kwargs[variable] = self.dump(variable_to_dump)
+                kwargs[variable] = self.dump(variable_to_dump, view=True,
+                                             order=self.interaction.order)
             self.interaction.compute(what, **kwargs)
 
     def potential_energy(self, per_particle=False, normed=False, cache=False):

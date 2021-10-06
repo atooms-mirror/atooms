@@ -21,6 +21,7 @@ class Interaction(object):
         must match the interfaces of compute(), the fields are
         variables accepted by System.dump().
         """
+        self.order = 'F'        
         self.forces = None
         self.energy = None
         self.virial = None
