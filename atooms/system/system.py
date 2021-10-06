@@ -186,7 +186,7 @@ class System(object):
         else:
             return ekin
 
-    def compute_interaction(self, what):
+    def compute_interaction(self, what=None):
         """
         Compute interaction in the system
         """
