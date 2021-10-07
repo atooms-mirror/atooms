@@ -74,7 +74,8 @@ pages:
   script:
     - pip install pdoc3
     - make docs
-    - mv docs/api public
+    - mkdir -p public
+    - mv docs/api public/api
   artifacts:
     paths:
       - public
