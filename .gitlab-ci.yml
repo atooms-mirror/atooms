@@ -73,7 +73,7 @@ pages:
   image: python:3.8
   script:
     - pip install pdoc
-    - make doc
+    - make docs
     - mv docs/api public
   artifacts:
     paths:
