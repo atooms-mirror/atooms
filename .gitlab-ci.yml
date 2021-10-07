@@ -22,10 +22,10 @@ before_script:
   - pip install virtualenv
   - virtualenv env
   - source env/bin/activate
-  - pip install -r requirements.txt
 
 .test:
   script:
+    - pip install -r requirements.txt
     - pip install coverage
     - coverage run --source atooms -m unittest discover -s tests
     # Backends tests are skipped, thus we do not include them in coverage
@@ -70,7 +70,7 @@ before_script:
 #   extends: .run
 
 pages:
-  image: python:latest
+  image: python:3.8
   script:
     - pip install pdoc
     - make doc
