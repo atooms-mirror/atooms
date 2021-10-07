@@ -72,7 +72,7 @@ before_script:
 pages:
   image: python:3.8
   script:
-    - pip install pdoc
+    - pip install pdoc3
     - make docs
     - mv docs/api public
   artifacts:
