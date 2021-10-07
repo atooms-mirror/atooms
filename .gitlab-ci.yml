@@ -43,8 +43,8 @@ test:3.6:
   image: python:3.6
   extends: .test
 
-test:latest:
-  image: python:latest
+test:3.8:
+  image: python:3.8
   extends: .test
 
 # .run:
