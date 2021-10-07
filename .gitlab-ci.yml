@@ -35,17 +35,17 @@ before_script:
       - .coverage
   coverage: '/^TOTAL.+?(\d+\%)$/'
 
-# test:2.7:
-#   image: python:2.7
-#   extends: .test
+test:2.7:
+  image: python:2.7
+  extends: .test
 
-# test:3.6:
-#   image: python:3.6
-#   extends: .test
+test:3.6:
+  image: python:3.6
+  extends: .test
 
-# test:3.8:
-#   image: python:3.8
-#   extends: .test
+test:3.8:
+  image: python:3.8
+  extends: .test
 
 # .run:
 #   script:
@@ -80,4 +80,4 @@ pages:
     paths:
       - public
   only:
-    - master
+    - tags
