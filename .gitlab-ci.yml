@@ -69,13 +69,13 @@ test:3.8:
 #   image: python:latest
 #   extends: .run
 
-# pages:
-#   script:
-#     - pip install sphinx sphinx-rtd-theme
-#     - cd doc ; make html
-#     - mv build/html/ ../public/
-#   artifacts:
-#     paths:
-#       - public
-#   only:
-#     - master
+pages:
+  script:
+    - pip install pdoc
+    - make doc
+    - mv docs/api public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
