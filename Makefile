@@ -16,6 +16,7 @@ test:	version
 
 docs: clean
 	pdoc -o docs/api --force --html --skip-errors atooms
+	# sed -i '/^$/d' docs/tutorial/atooms.html
 
 version:
 	@echo __commit__ = \'$(COMMIT_DIRTY)\' > atooms/core/_commit.py

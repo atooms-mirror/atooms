@@ -15,9 +15,7 @@
 /*
 @licstart  The following is the entire license notice for the
 JavaScript code in this tag.
-
 Copyright (C) 2012-2018 Free Software Foundation, Inc.
-
 The JavaScript code in this tag is free software: you can
 redistribute it and/or modify it under the terms of the GNU
 General Public License (GNU GPL) as published by the Free Software
@@ -25,14 +23,11 @@ Foundation, either version 3 of the License, or (at your option)
 any later version.  The code is distributed WITHOUT ANY WARRANTY;
 without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
-
 As additional permission under GNU GPL version 3 section 7, you
 may distribute non-source (e.g., minimized or compacted) forms of
 that code without the copy of the GNU GPL normally required by
 section 4, provided you include this license notice and a URL
 through which recipients can access the Corresponding Source.
-
-
 @licend  The above is the entire license notice
 for the JavaScript code in this tag.
 */
@@ -61,7 +56,6 @@ for the JavaScript code in this tag.
     MathJax.Hub.Config({
         displayAlign: "center",
         displayIndent: "0em",
-
         "HTML-CSS": { scale: 100,
                         linebreaks: { automatic: "false" },
                         webFont: "TeX"
@@ -125,12 +119,10 @@ for the JavaScript code in this tag.
 <p>
 Atooms provides a high-level interface to the main objects of particle-based simulations. It mostly focuses on classical molecular dynamics and Monte Carlo simulations, but it is not limited to that. It can be used to simulate and analyze lattice models such as TASEP or kinetically constrained models.
 </p>
-
 <p>
 We will start by having a look at the basic objects of particle-based simulations and how to store them on a file.
 </p>
 </div>
-
 <div id="outline-container-org30fa309" class="outline-3">
 <h3 id="org30fa309">Particles' properties</h3>
 <div class="outline-text-3" id="text-org30fa309">
@@ -143,12 +135,9 @@ Particles' positions are stored as numpy arrays, but we can pass a simple list w
 <span style="color: #483d8b;">print</span>(particle.position, <span style="color: #483d8b;">type</span>(particle.position))
 </pre>
 </div>
-
 <pre class="example">
 [ 1.  0.  0.] &lt;class 'numpy.ndarray'&gt;
-
 </pre>
-
 <p>
 Particles can live in an arbitrary number of spatial dimensions
 </p>
@@ -157,12 +146,9 @@ Particles can live in an arbitrary number of spatial dimensions
 <span style="color: #483d8b;">print</span>(<span style="color: #483d8b;">len</span>(particle.position))
 </pre>
 </div>
-
 <pre class="example">
 5
-
 </pre>
-
 <p>
 By default, particles have a few more properties such as velocity, chemical species, mass and radius. They can all be altered at will or even set to None.
 </p>
@@ -176,12 +162,9 @@ By default, particles have a few more properties such as velocity, chemical spec
 <span style="color: #483d8b;">print</span>(particle)
 </pre>
 </div>
-
 <pre class="example">
 Particle(species=Na, mass=1.0, position=[ 1.  1.  1.], velocity=[ 2.  0.  0.], radius=None)
-
 </pre>
-
 <p>
 You may want to add physical properties to particles, like charge or whatever. Of course, in python you can do it very easily
 </p>
@@ -189,13 +172,11 @@ You may want to add physical properties to particles, like charge or whatever. O
 <pre class="src src-python"><span style="color: #000000;">particle.charge</span> = -1.0
 </pre>
 </div>
-
 <p>
 This won't break anything!
 </p>
 </div>
 </div>
-
 <div id="outline-container-org5aa8f72" class="outline-3">
 <h3 id="org5aa8f72">Dealing with velocities</h3>
 <div class="outline-text-3" id="text-org5aa8f72">
@@ -213,12 +194,9 @@ You may not need velocities at all (for instance because you are working with Mo
 <span style="color: #483d8b;">print</span>(T)
 </pre>
 </div>
-
 <pre class="example">
 0.944755026085
-
 </pre>
-
 <p>
 Doing so will leave a non-zero total momentum, but we can fix it (note that all masses are equal)
 </p>
@@ -229,15 +207,12 @@ fix_total_momentum(particle)
 <span style="color: #483d8b;">print</span>(cm_velocity(particle))
 </pre>
 </div>
-
 <pre class="example">
 [-0.03078045  0.05653126  0.01857607]
 [  1.31006317e-17   7.77156117e-18  -2.07056594e-17]
-
 </pre>
 </div>
 </div>
-
 <div id="outline-container-orge75713d" class="outline-3">
 <h3 id="orge75713d">Boundary conditions</h3>
 <div class="outline-text-3" id="text-orge75713d">
@@ -251,12 +226,9 @@ To avoid major finite size effects, we enclose particles in a cell with periodic
 <span style="color: #483d8b;">print</span>(cell.side, cell.volume)
 </pre>
 </div>
-
 <pre class="example">
 [ 2.  2.  2.] 8.0
-
 </pre>
-
 <p>
 Atooms provides means to fold particles back in the "central" simulation cell, i.e. the one centered at the origin at the reference frame. For simplicity, let us work with particles in 1d.
 </p>
@@ -267,16 +239,12 @@ particle.fold(cell)
 <span style="color: #483d8b;">print</span>(particle.position)
 </pre>
 </div>
-
 <pre class="example">
 0.0
-
 </pre>
-
 <p>
 The particle is now folded back at the origin.
 </p>
-
 <p>
 A related method returns the nearest periodic image of a given particle with respect to another particle
 </p>
@@ -287,21 +255,17 @@ A related method returns the nearest periodic image of a given particle with res
 <span style="color: #483d8b;">print</span>(image)
 </pre>
 </div>
-
 <pre class="example">
 Particle(species=A, mass=1.0, position=0.55, velocity=[ 0.  0.  0.], radius=0.5)
-
 </pre>
 </div>
 </div>
-
 <div id="outline-container-org4e0b528" class="outline-3">
 <h3 id="org4e0b528">The system object</h3>
 <div class="outline-text-3" id="text-org4e0b528">
 <p>
 Objects like particles and the simulation cell can be gathered in an instance of a god-like class called System. The system contains all the relevant physical objects of your simulation. Reservoirs like thermostats, barostats and particle reservoirs can be added as well. These objects are placeholders for thermodynamic state variables like temperature, pressure or chemical potential. Any class meant to describe the interaction between particles also belongs to the system.
 </p>
-
 <p>
 Let us build a system with a few particles in a cell and use the system methods to modify the system density and temperature. Note that density and temperature are python properties and thus modify the attributes of particles and cell under the hoods using the <code>set_density</code> and <code>set_temperature</code> methods respectively
 </p>
@@ -314,12 +278,9 @@ Let us build a system with a few particles in a cell and use the system methods 
 <span style="color: #483d8b;">print</span>(system.density, system.temperature)
 </pre>
 </div>
-
 <pre class="example">
 1.2 1.5
-
 </pre>
-
 <p>
 Note that the system temperature is the kinetic one and need not coincide with the one of the thermostat.
 </p>
@@ -330,28 +291,23 @@ Note that the system temperature is the kinetic one and need not coincide with t
 <span style="color: #483d8b;">print</span>(system.temperature, system.thermostat.temperature)
 </pre>
 </div>
-
 <pre class="example">
 1.5 1.0
-
 </pre>
 </div>
 </div>
-
 <div id="outline-container-orgd57460a" class="outline-3">
 <h3 id="orgd57460a">Interaction and backends</h3>
 <div class="outline-text-3" id="text-orgd57460a">
 <p>
 Classical particles interact with each other via a potential \(u(\{r_i\})\), where \(\{r_i\}\) is the set of particles' coordinates. Atooms relies on third-party efficient <b>backends</b> written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see <a href="#org474994d">Molecular dynamics with LAMMPS</a> for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see <a href="https://lammps.sandia.gov/doc/pair_style.html">https://lammps.sandia.gov/doc/pair_style.html</a>, and stores a reference to the system object of which we want to compute the energy.
 </p>
-
 <p>
 As proof of principle, we compute the interaction energy between two Lennard-Jones particles
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System, Particle, Cell
 <span style="color: #483d8b;">from</span> atooms.backends.lammps <span style="color: #483d8b;">import</span> LAMMPS
-
 <span style="color: #000000;">x</span> = 1.122  <span style="color: #b22222;"># </span><span style="color: #b22222;">Minimum of the potential</span>
 <span style="color: #000000;">system</span> = System(particle=[Particle(position=[0.0, 0.0, 0.0]),
                           Particle(position=[x, 0.0, 0.0])],
@@ -362,24 +318,19 @@ As proof of principle, we compute the interaction energy between two Lennard-Jon
 <span style="color: #8b2252;">"""</span>
 <span style="color: #b22222;"># </span><span style="color: #b22222;">The backend will add an interaction to the system</span>
 <span style="color: #000000;">backend</span> = LAMMPS(system, cmd)
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Compute and get the potential energy</span>
 <span style="color: #b22222;"># </span><span style="color: #b22222;">The cache option allows to get the potential energy without recalculating it</span>
 <span style="color: #483d8b;">print</span>(system.potential_energy(), system.potential_energy(cache=<span style="color: #008b8b;">True</span>))
 </pre>
 </div>
-
 <pre class="example">
 -0.99999388 -0.99999388
-
 </pre>
-
 <p>
 The energy and forces are stored in <code>system.interaction.energy</code> and <code>system.interaction.forces</code>.
 </p>
 </div>
 </div>
-
 <div id="outline-container-orgac04978" class="outline-3">
 <h3 id="orgac04978">Trajectory files</h3>
 <div class="outline-text-3" id="text-orgac04978">
@@ -388,21 +339,17 @@ To write the state of the system to a file, we use a <code>Trajectory</code> cla
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> TrajectoryXYZ
-
 <span style="color: #000000;">system</span> = System(particle=[Particle() <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(4)],
                 cell=Cell([10.0, 10.0, 10.0]))
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Open the trajectory in write mode and write the state of the system</span>
 <span style="color: #b22222;"># </span><span style="color: #b22222;">at step 0</span>
 <span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>, <span style="color: #8b2252;">'w'</span>) <span style="color: #483d8b;">as</span> th:
     th.write(system, step=0)
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Read the xyz file back as plain text</span>
 <span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> fh:
     <span style="color: #483d8b;">print</span>(fh.read())
 </pre>
 </div>
-
 <pre class="example">
 4
 step:0 columns:id,pos dt:1 cell:10.0,10.0,10.0 
@@ -410,13 +357,10 @@ A 0.000000 0.000000 0.000000
 A 0.000000 0.000000 0.000000
 A 0.000000 0.000000 0.000000
 A 0.000000 0.000000 0.000000
-
 </pre>
-
 <p>
 Note that trajectories are file-like objects: they must be opened and closed, preferably using the <code>with</code> syntax.
 </p>
-
 <p>
 Of course, we can write multiple frames by calling <code>write()</code> repeatedly.
 </p>
@@ -426,7 +370,6 @@ Of course, we can write multiple frames by calling <code>write()</code> repeated
         th.write(system, step=i*10)
 </pre>
 </div>
-
 <p>
 To get the system back we read the trajectory. Trajectories support iteration and indexing, just like lists.
 </p>
@@ -435,28 +378,23 @@ To get the system back we read the trajectory. Trajectories support iteration an
     <span style="color: #b22222;"># </span><span style="color: #b22222;">First frame</span>
     <span style="color: #000000;">system</span> = th[0]
     <span style="color: #483d8b;">print</span>(system.particle[0].position, system.cell.side)
-
     <span style="color: #b22222;"># </span><span style="color: #b22222;">Last frame</span>
     <span style="color: #000000;">system</span> = th[-1]
     <span style="color: #483d8b;">print</span>(system.particle[0].position, system.cell.side)
-
     <span style="color: #b22222;"># </span><span style="color: #b22222;">Iterate over all frames</span>
     <span style="color: #483d8b;">for</span> i, system <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">enumerate</span>(th):
         <span style="color: #483d8b;">print</span>(th.steps[i], system.particle[0].position)
 </pre>
 </div>
-
 <pre class="example">
 [ 0.  0.  0.] [ 10.  10.  10.]
 [ 0.  0.  0.] [ 10.  10.  10.]
 0 [ 0.  0.  0.]
 10 [ 0.  0.  0.]
 20 [ 0.  0.  0.]
-
 </pre>
 </div>
 </div>
-
 <div id="outline-container-org831eae4" class="outline-3">
 <h3 id="org831eae4">Particles on a lattice</h3>
 <div class="outline-text-3" id="text-org831eae4">
@@ -466,34 +404,28 @@ Suppose we want to simulate a system where particles can only be located at disc
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #483d8b;">import</span> numpy
 <span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System, Particle
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Build model system with integer coordinates</span>
 <span style="color: #000000;">particle</span> = [Particle() <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(3)]
 particle[0]<span style="color: #000000;">.position</span> = 0
 particle[1]<span style="color: #000000;">.position</span> = 1
 particle[2]<span style="color: #000000;">.position</span> = 2
 <span style="color: #000000;">system</span> = System(particle=particle)
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Write xyz trajectory</span>
 <span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> TrajectoryXYZ
 <span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>, <span style="color: #8b2252;">'w'</span>) <span style="color: #483d8b;">as</span> th:
     th.write(system, 0)
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Read the xyz file back as plain text</span>
 <span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> fh:
     <span style="color: #483d8b;">print</span>(fh.read())
 </pre>
 </div>
-
 <pre class="example">
 3
 step:0 columns:id,pos dt:1 
 A 0
 A 1
 A 2
-
 </pre>
-
 <p>
 Everything went fine. However, we have to tweak things a bit when reading the particles back, to avoid positions being transformed to arrays of floats instead of integers. This can be done with the help of a callback that transforms the system accordingly as we read the trajectory.
 </p>
@@ -509,40 +441,33 @@ Everything went fine. However, we have to tweak things a bit when reading the pa
             <span style="color: #000000;">p.radius</span> = <span style="color: #008b8b;">None</span>
         <span style="color: #483d8b;">return</span> system
     th.add_callback(modify)
-
     <span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span> th[0].particle:
         <span style="color: #483d8b;">print</span>(p)
 </pre>
 </div>
-
 <p>
 Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.
 </p>
 </div>
 </div>
 </div>
-
 <div id="outline-container-org3414563" class="outline-2">
 <h2 id="org3414563">Simulations</h2>
 <div class="outline-text-2" id="text-org3414563">
 <p>
 Within atooms, a <b>simulation</b> is a high-level class that encapsulates some common tasks and provides a consistent interface to the user, while <b>backends</b> are classes that actually make the system evolve. Here, we implement a minimal backend to run a simulation.
 </p>
-
 <p>
 At a very minimum, a backend is a class that provides 
 </p>
-
 <ul class="org-ul">
 <li>a <b>system</b> instance variable, which should (mostly) behave like <code>atooms.system.System</code>.</li>
 <li>a <b>run()</b> method, which evolves the system for a prescribed number of steps (passed as argument)</li>
 </ul>
-
 <p>
 Optionally, the backend may hold a reference to a trajectory class, which can be used to checkpoint the simulation or to write configurations to a file. This is however not required in a first stage.
 </p>
 </div>
-
 <div id="outline-container-orgf1ab7bb" class="outline-3">
 <h3 id="orgf1ab7bb">A minimal simulation backend</h3>
 <div class="outline-text-3" id="text-orgf1ab7bb">
@@ -551,16 +476,13 @@ We set up a bare-bones simulation backend building on the native System class
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System
-
 <span style="color: #483d8b;">class</span> <span style="color: #483d8b; font-weight: bold;">BareBonesBackend</span>(<span style="color: #483d8b;">object</span>):
     
     <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">__init__</span>(<span style="color: #483d8b;">self</span>):
         <span style="color: #483d8b;">self</span>.system = System()
-
     <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">run</span>(<span style="color: #483d8b;">self</span>, steps):
         <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(steps):
             <span style="color: #483d8b;">pass</span>
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">The backend is created and wrapped by a simulation object.</span>
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Here we first call the run() method then run_until()</span>
 <span style="color: #483d8b;">from</span> atooms.simulation <span style="color: #483d8b;">import</span> Simulation
@@ -569,13 +491,11 @@ We set up a bare-bones simulation backend building on the native System class
 simulation.run(10)
 simulation.run_until(30)
 <span style="color: #483d8b;">assert</span> simulation.current_step == 30
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">This time we call run() multiple times </span>
 <span style="color: #000000;">simulation</span> = Simulation(backend)
 simulation.run(10)
 simulation.run(20)
 <span style="color: #483d8b;">assert</span> simulation.current_step == 30  
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Increase verbosity to see a meaningful log</span>
 <span style="color: #483d8b;">from</span> atooms.core.utils <span style="color: #483d8b;">import</span> setup_logging
 setup_logging(level=20)
@@ -583,7 +503,6 @@ setup_logging(level=20)
 simulation.run(10)  
 </pre>
 </div>
-
 <pre class="example">
 # 
 # atooms simulation via &lt;__main__.BareBonesBackend object at 0x7ff54d0527f0&gt;
@@ -609,26 +528,21 @@ simulation.run(10)
 </pre>
 </div>
 </div>
-
 <div id="outline-container-org32016b4" class="outline-3">
 <h3 id="org32016b4">Simple random walk</h3>
 <div class="outline-text-3" id="text-org32016b4">
 <p>
 We implement a simple random walk in 3d. This requires adding code to the backend <code>run()</code> method to actually move the particles around.
 </p>
-
 <p>
 We start by building an empty system. Then we add a few particles and place them at random in a cube. Finally, we write a backend that displaces each particle randomly over a cube of prescribed side.
 </p>
-
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #483d8b;">import</span> numpy
 <span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">There are no particles at the beginning</span>
 <span style="color: #000000;">system</span> = System()
 <span style="color: #483d8b;">assert</span> <span style="color: #483d8b;">len</span>(system.particle) == 0
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Add particles</span>
 <span style="color: #483d8b;">from</span> atooms.system.particle <span style="color: #483d8b;">import</span> Particle
 <span style="color: #483d8b;">from</span> random <span style="color: #483d8b;">import</span> random
@@ -636,13 +550,10 @@ We start by building an empty system. Then we add a few particles and place them
 <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(1000):
     <span style="color: #000000;">p</span> = Particle(position=[L * random(), L * random(), L * random()])
     system.particle.append(p)
-
 <span style="color: #483d8b;">class</span> <span style="color: #483d8b; font-weight: bold;">RandomWalk</span>(<span style="color: #483d8b;">object</span>):
-
     <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">__init__</span>(<span style="color: #483d8b;">self</span>, system, delta=1.0):
         <span style="color: #483d8b;">self</span>.system = system
         <span style="color: #483d8b;">self</span>.delta = delta
-
     <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">run</span>(<span style="color: #483d8b;">self</span>, steps):
         <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(steps):
             <span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">self</span>.system.particle:
@@ -651,18 +562,15 @@ We start by building an empty system. Then we add a few particles and place them
                 <span style="color: #000000;">p.position</span> += dr
 </pre>
 </div>
-
 <p>
 The Simulation class provides a callback mechanism to allow execution of arbitrary code during the simulation. This can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
 </p>
-
 <p>
 Here we measure the mean square displacement (MSD) of the particles to make sure that the system displays a regular diffusive behavior \(MSD \sim t\)
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.simulation <span style="color: #483d8b;">import</span> Simulation
 <span style="color: #000000;">simulation</span> = Simulation(RandomWalk(system))
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">We add a callback that computes the MSD every 10 steps</span>
 <span style="color: #b22222;"># </span><span style="color: #b22222;">We store the result in a dictionary passed to the callback</span>
 <span style="color: #000000;">msd_db</span> = {}
@@ -673,16 +581,13 @@ Here we measure the mean square displacement (MSD) of the particles to make sure
         <span style="color: #000000;">msd</span> += numpy.<span style="color: #483d8b;">sum</span>(dr**2)
     <span style="color: #000000;">msd</span> /= <span style="color: #483d8b;">len</span>(sim.system.particle)
     <span style="color: #000000;">db</span>[sim.current_step] = msd
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">We will execute the callback every 10 steps</span>
 simulation.add(cbk, 10, initial_position=[p.position.copy() <span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span>
                                           system.particle], db=msd_db)
 simulation.run(50)
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">The MSD should increase linearly with time</span>
 <span style="color: #000000;">time</span> = <span style="color: #483d8b;">sorted</span>(msd_db.keys())
 <span style="color: #000000;">msd</span> = [msd_db[t] <span style="color: #483d8b;">for</span> t <span style="color: #483d8b;">in</span> time]
-
 <span style="color: #483d8b;">print</span>(time, msd)
 <span style="color: #483d8b;">import</span> matplotlib.pyplot <span style="color: #483d8b;">as</span> plt
 plt.cla()
@@ -692,14 +597,12 @@ plt.ylabel(<span style="color: #8b2252;">"MSD"</span>)
 plt.savefig(<span style="color: #8b2252;">'msd.png'</span>)
 </pre>
 </div>
-
 <p>
 The MSD as a function of time should look linear.
 <img src="msd.png" alt="msd.png">
 </p>
 </div>
 </div>
-
 <div id="outline-container-org474994d" class="outline-3">
 <h3 id="org474994d">Molecular dynamics with LAMMPS</h3>
 <div class="outline-text-3" id="text-org474994d">
@@ -715,14 +618,12 @@ The backend accepts a string variable containing regular LAMMPS commands and ini
 <p>
 In the last two cases, the last configuration will be used to start the simulation. 
 </p>
-
 <p>
 Here we we use the first configuration of an existing trajectory for a Lennard-Jones fluid
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #483d8b;">import</span> atooms.trajectory <span style="color: #483d8b;">as</span> trj
 <span style="color: #483d8b;">from</span> atooms.backends.lammps <span style="color: #483d8b;">import</span> LAMMPS
-
 <span style="color: #483d8b;">import</span> os
 <span style="color: #000000;">system</span> = trj.TrajectoryXYZ(<span style="color: #8b2252;">'../../data/lj_N1000_rho1.0.xyz'</span>)[0]
 <span style="color: #000000;">cmd</span> = <span style="color: #8b2252;">"""</span>
@@ -735,7 +636,6 @@ Here we we use the first configuration of an existing trajectory for a Lennard-J
 <span style="color: #000000;">backend</span> = LAMMPS(system, cmd)
 </pre>
 </div>
-
 <p>
 We now wrap the backend in a simulation instance. This way we can rely on atooms to write thermodynamic data and configurations to disk during the simulation: we just add the <code>write_config()</code> and <code>write_thermo()</code> functions as observers to the simulations.
 You can add your own functions as observers to perform arbitrary manipulations on the system during the simulation. Keep in mind that calling these functions causes some overhead, so avoid calling them at too short intervals.
@@ -744,7 +644,6 @@ You can add your own functions as observers to perform arbitrary manipulations o
 <pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.simulation <span style="color: #483d8b;">import</span> Simulation
 <span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> Thermostat
 <span style="color: #483d8b;">from</span> atooms.simulation.observers <span style="color: #483d8b;">import</span> write_thermo, write_config
-
 <span style="color: #b22222;"># </span><span style="color: #b22222;">We create the simulation instance and set the output path</span>
 <span style="color: #000000;">sim</span> = Simulation(backend, output_path=<span style="color: #8b2252;">'lammps.xyz'</span>)
 <span style="color: #b22222;"># </span><span style="color: #b22222;">Just store a reference to the trajectory class you want to use</span>
@@ -755,7 +654,6 @@ sim.add(write_config, 500)
 sim.add(write_thermo, 500)
 </pre>
 </div>
-
 <p>
 We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
 </p>
@@ -764,11 +662,9 @@ We add a thermostat to keep the system temperature at T=2.0 and run the simulati
 sim.run(10000)
 </pre>
 </div>
-
 <p>
 Note that we use atooms <code>Thermostat</code> object here: the backend will take care of adding appropriate commands to the LAMMPS script.
 </p>
-
 <p>
 We have a quick look at the kinetic temperature as function of time to make sure the thermostat is working
 </p>
@@ -781,13 +677,10 @@ We have a quick look at the kinetic temperature as function of time to make sure
   <span style="color: #483d8b;">plot</span> <span style="color: #8b2252;">'lammps.xyz.thermo'</span> u 1:2 noti w lp lc rgb <span style="color: #8b2252;">'red'</span> <span style="color: #483d8b; font-weight: bold;">pt</span> 7, 2 noti lc rgb <span style="color: #8b2252;">'black'</span>
 </pre>
 </div>
-
-
 <div class="figure">
 <p><img src="lammps.png" alt="lammps.png">
 </p>
 </div>
-
 <p>
 We can use the <a href="https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/">postprocessing</a> package to compute the radial distribution function
 </p>
@@ -796,7 +689,6 @@ We can use the <a href="https://gitlab.info-ufr.univ-montp2.fr/atooms/postproces
 api.gr(<span style="color: #8b2252;">'lammps.xyz'</span>)
 </pre>
 </div>
-
 <div class="org-src-container">
 <pre class="src src-gnuplot"><span style="color: #008b8b;">set</span> xl <span style="color: #8b2252;">'r'</span>
 <span style="color: #008b8b;">set</span> yl <span style="color: #8b2252;">'g(r)'</span>
@@ -806,15 +698,12 @@ api.gr(<span style="color: #8b2252;">'lammps.xyz'</span>)
 <span style="color: #483d8b;">plot</span> <span style="color: #8b2252;">'lammps.xyz.pp.gr'</span> u 1:2 noti w lp lc rgb <span style="color: #8b2252;">'red'</span> <span style="color: #483d8b; font-weight: bold;">pt</span> 7
 </pre>
 </div>
-
-
 <div class="figure">
 <p><img src="lammps_gr.png" alt="lammps_gr.png">
 </p>
 </div>
 </div>
 </div>
-
 <div id="outline-container-orgc80c922" class="outline-3">
 <h3 id="orgc80c922">Energy minimization with LAMMPS</h3>
 <div class="outline-text-3" id="text-orgc80c922">
@@ -840,7 +729,6 @@ is lower than a given <code>tolerance</code>.
 opt.run()
 </pre>
 </div>
-
 <p>
 We check that \(W\) is lower than the requested tolerance
 </p>
@@ -850,15 +738,12 @@ We check that \(W\) is lower than the requested tolerance
 <span style="color: #483d8b;">print</span>(<span style="color: #8b2252;">'Energy={}, mean square force={:.2g}'</span>.<span style="color: #483d8b;">format</span>(e_final, w_final))
 </pre>
 </div>
-
 <pre class="example">
 Energy=-6.8030584, mean square force=3.6e-11
-
 </pre>
 </div>
 </div>
 </div>
-
 <div id="outline-container-org697237e" class="outline-2">
 <h2 id="org697237e">Trajectories</h2>
 <div class="outline-text-2" id="text-org697237e">
@@ -869,7 +754,6 @@ Energy=-6.8030584, mean square force=3.6e-11
 <p>
 We can customize the format of trajectory files using the <code>fields</code> variable. It contains a list of the particle properties to be written to the trajectory. For this simple example we use again the xyz trajectory format.
 </p>
-
 <p>
 We add a <code>charge</code> property to each particle and then instruct the trajectory to write it along with the position
 </p>
@@ -877,27 +761,21 @@ We add a <code>charge</code> property to each particle and then instruct the tra
 <pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System, Cell, Particle
 <span style="color: #000000;">system</span> = System(particle=[Particle() <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(3)],
                 cell=Cell([10.0, 10.0, 10.0]))
-
 <span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span> system.particle:
     <span style="color: #000000;">p.charge</span> = -1.0
-
 <span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>, <span style="color: #8b2252;">'w'</span>, fields=[<span style="color: #8b2252;">'position'</span>, <span style="color: #8b2252;">'charge'</span>]) <span style="color: #483d8b;">as</span> th:
     th.write(system, step=0)
-
 <span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> fh:
     <span style="color: #483d8b;">print</span>(fh.read())
 </pre>
 </div>
-
 <pre class="example">
 3
 step:0 columns:position,charge dt:1 cell:10.0,10.0,10.0 
 0.000000 0.000000 0.000000 -1.0
 0.000000 0.000000 0.000000 -1.0
 0.000000 0.000000 0.000000 -1.0
-
 </pre>
-
 <p>
 The <code>fields</code> list can contain any particle property, even those defined dynamically at run time, such as the <code>charge</code> variable above which is not a predefined particle property!. When reading back the trajectory, the <code>charge</code> property is automatically recognized and added to the particle. 
 </p>
@@ -907,14 +785,11 @@ The <code>fields</code> list can contain any particle property, even those defin
   <span style="color: #483d8b;">print</span>(system.particle[0].charge)
 </pre>
 </div>
-
 <pre class="example">
 -1.0
-
 </pre>
 </div>
 </div>
-
 <div id="outline-container-org67e6d1b" class="outline-3">
 <h3 id="org67e6d1b">Conversion between trajectory formats</h3>
 <div class="outline-text-3" id="text-org67e6d1b">
@@ -929,7 +804,6 @@ Atooms provides means to convert between trajectory various formats. At a very b
         th_out.write(system, th_inp.steps[i])
 </pre>
 </div>
-
 <p>
 The <code>convert()</code> function wraps the conversion in a more convenient interface
 </p>
@@ -941,7 +815,6 @@ convert(TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>), Trajecto
 <p>
 There are several optional parameters that allows to customize the trajectory output, see the function signature for more details.
 </p>
-
 <p>
 Finally, the <code>trj.py</code> script installed by atooms allows to quickly convert trajectories on the command-line, which is actually the most frequent use case
 </p>
@@ -949,20 +822,17 @@ Finally, the <code>trj.py</code> script installed by atooms allows to quickly co
 <pre class="src src-sh">trj.py convert -i xyz -o lammps test.xyz test.lammps
 </pre>
 </div>
-
 <p>
 Although the script will do its best to guess the appropriate trajectory formats, it is best to provide the input and output trajectory formats via the <code>-i</code> and <code>-o</code> flags explicitly.
 </p>
 </div>
 </div>
-
 <div id="outline-container-org84863ea" class="outline-3">
 <h3 id="org84863ea">Add and modify trajectory properties on the fly with callbacks</h3>
 <div class="outline-text-3" id="text-org84863ea">
 <p>
 "Callbacks" are functions used to modify the properties of a trajectory on the fly. They accept a <code>System</code> instance as first positional argument, along with optional extra positional and keyword arguments, and return a modified <code>System</code>.
 </p>
-
 <p>
 As an example, suppose your trajectory did not provide any information about the cell side. You can add the information dynamically to all <code>System</code> objects read from the trajectory using the following callback
 </p>
@@ -973,7 +843,6 @@ As an example, suppose your trajectory did not provide any information about the
     <span style="color: #483d8b;">return</span> system
 </pre>
 </div>
-
 <p>
 Then we add the callback to the trajectory and provide the cell side (here L=10 along each dimensions) as argument. Reading the trajectory is then done as usual.
 </p>
@@ -985,11 +854,9 @@ Then we add the callback to the trajectory and provide the cell side (here L=10 
         <span style="color: #483d8b;">print</span>(system.cell.side)
 </pre>
 </div>
-
 <pre class="example">
 [10. 10. 10.]
 [10. 10. 10.]
-
 </pre>
 </div>
 </div>
@@ -999,40 +866,33 @@ Then we add the callback to the trajectory and provide the cell side (here L=10 
 <p>
 Suppose you have a trajectory that looks almost like xyz, but differs in some way. You may want to customize the xyz trajectory format, so that your code can process the trajectory without manual intervention.
 </p>
-
 <p>
 For instance, your xyz file is <code>test.xyz</code> but the cell side information is stored in a separate file <code>test.xyz.cell</code>. We can proceed as before
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> Cell
-
 <span style="color: #000000;">file_inp</span> = <span style="color: #8b2252;">'test.xyz'</span>
 <span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(file_inp + <span style="color: #8b2252;">'.cell'</span>) <span style="color: #483d8b;">as</span> fh:
     <span style="color: #b22222;"># </span><span style="color: #b22222;">Assume the cell file contains a string Lx Ly Lz</span>
     <span style="color: #b22222;"># </span><span style="color: #b22222;">where Lx, Ly, Lz are the sides of the orthorombic cell</span>
     <span style="color: #000000;">side</span> = [<span style="color: #483d8b;">float</span>(L) <span style="color: #483d8b;">for</span> L <span style="color: #483d8b;">in</span> fh.read().split()]
-
 <span style="color: #483d8b;">with</span> TrajectoryXYZ(file_inp) <span style="color: #483d8b;">as</span> th:
     th.add_callback(fix_missing_cell, side)
 </pre>
 </div>
-
 <p>
 As a more permanent solution, you can define your own custom trajectory by subclassing <code>TrajectoryXYZ</code>. First, parse the cell information during the initialization stage (<code>read_init()</code>).
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> Cell
 <span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> TrajectoryXYZ
-
 <span style="color: #483d8b;">class</span> <span style="color: #483d8b; font-weight: bold;">TrajectoryCustomXYZ</span>(TrajectoryXYZ):
-
     <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">read_init</span>(<span style="color: #483d8b;">self</span>):
         <span style="color: #483d8b;">super</span>().read_init()
         <span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(<span style="color: #483d8b;">self</span>.filename + <span style="color: #8b2252;">'.cell'</span>) <span style="color: #483d8b;">as</span> fh:
             <span style="color: #483d8b;">self</span>._side = [<span style="color: #483d8b;">float</span>(L) <span style="color: #483d8b;">for</span> L <span style="color: #483d8b;">in</span> fh.read().split()]
 </pre>
 </div>
-
 <p>
 Then modify the <code>read_sample()</code> method, which reads a given frame of the trajectory.
 </p>
@@ -1043,7 +903,6 @@ Then modify the <code>read_sample()</code> method, which reads a given frame of 
         <span style="color: #483d8b;">return</span> system
 </pre>
 </div>
-
 <p>
 Here we have assumed that the cell side is the same for all frames. The code would have to be adjusted to the more general case of a fluctuating cell.
 </p>
