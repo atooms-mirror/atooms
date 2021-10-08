@@ -75,7 +75,8 @@ pages:
     - pip install pdoc3
     - make docs
     - mkdir -p public
-    - mv docs/api public/api
+    - mv docs/api public/
+    - mv docs/tutorial public/
   artifacts:
     paths:
       - public
