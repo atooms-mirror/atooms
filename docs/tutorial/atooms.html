@@ -5,12 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Atooms tutorial</title>
 <meta name="generator" content="Org mode">
-<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/htmlize.css"/>
-<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/readtheorg.css"/>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/lib/js/jquery.stickytableheaders.min.js"></script>
-<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/js/readtheorg.js"></script>
 <link rel="stylesheet" type="text/css" href="https://framagit.org/coslo/org-html-themes/-/raw/master/src/readtheorg_theme/css/htmlize.css"/>
 <link rel="stylesheet" type="text/css" href="https://framagit.org/coslo/org-html-themes/-/raw/master/src/readtheorg_theme/css/readtheorg.css"/>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
@@ -92,39 +86,39 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org2bd258b">Basics</a>
+<li><a href="#org7f5fe6c">Basics</a>
 <ul>
-<li><a href="#org76f06c8">Particles' properties</a></li>
-<li><a href="#orgd7e8b8a">Dealing with velocities</a></li>
-<li><a href="#org7a3c86b">Boundary conditions</a></li>
-<li><a href="#org454e8b2">The system object</a></li>
-<li><a href="#org9c227f1">Interaction and backends</a></li>
-<li><a href="#orgc60c762">Trajectory files</a></li>
-<li><a href="#org17b6254">Particles on a lattice</a></li>
+<li><a href="#org1c0a1c2">Particles' properties</a></li>
+<li><a href="#orgba8f337">Dealing with velocities</a></li>
+<li><a href="#org139ed04">Boundary conditions</a></li>
+<li><a href="#orgb35c713">The system object</a></li>
+<li><a href="#org717e832">Interaction and backends</a></li>
+<li><a href="#org5171c5f">Trajectory files</a></li>
+<li><a href="#orge316dd7">Particles on a lattice</a></li>
 </ul>
 </li>
-<li><a href="#orgf34c7f5">Simulations</a>
+<li><a href="#orgc3f890e">Simulations</a>
 <ul>
-<li><a href="#orgd2bdf93">A minimal simulation backend</a></li>
-<li><a href="#orgc799823">Simple random walk</a></li>
-<li><a href="#org123df08">Molecular dynamics with LAMMPS</a></li>
-<li><a href="#org756369c">Energy minimization with LAMMPS</a></li>
+<li><a href="#orgb7ca6cd">A minimal simulation backend</a></li>
+<li><a href="#orgb0283b4">Simple random walk</a></li>
+<li><a href="#orga4c2f43">Molecular dynamics with LAMMPS</a></li>
+<li><a href="#org99627de">Energy minimization with LAMMPS</a></li>
 </ul>
 </li>
-<li><a href="#org7eff7ab">Trajectories</a>
+<li><a href="#orge34ca69">Trajectories</a>
 <ul>
-<li><a href="#org09df454">Custom trajectory output</a></li>
-<li><a href="#org5ddb1c0">Conversion between trajectory formats</a></li>
-<li><a href="#orge9f68af">Add and modify trajectory properties on the fly with callbacks</a></li>
-<li><a href="#orga48f937">Extend trajectory classes</a></li>
+<li><a href="#org3c20498">Custom trajectory output</a></li>
+<li><a href="#org259669b">Conversion between trajectory formats</a></li>
+<li><a href="#org53092ad">Add and modify trajectory properties on the fly with callbacks</a></li>
+<li><a href="#org218f993">Extend trajectory classes</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org2bd258b" class="outline-2">
-<h2 id="org2bd258b">Basics</h2>
-<div class="outline-text-2" id="text-org2bd258b">
+<div id="outline-container-org7f5fe6c" class="outline-2">
+<h2 id="org7f5fe6c">Basics</h2>
+<div class="outline-text-2" id="text-org7f5fe6c">
 <p>
 Atooms provides a high-level interface to the main objects of particle-based simulations. It mostly focuses on classical molecular dynamics and Monte Carlo simulations, but it is not limited to that. It can be used to simulate and analyze lattice models such as TASEP or kinetically constrained models.
 </p>
@@ -134,9 +128,9 @@ We will start by having a look at the basic objects of particle-based simulation
 </p>
 </div>
 
-<div id="outline-container-org76f06c8" class="outline-3">
-<h3 id="org76f06c8">Particles' properties</h3>
-<div class="outline-text-3" id="text-org76f06c8">
+<div id="outline-container-org1c0a1c2" class="outline-3">
+<h3 id="org1c0a1c2">Particles' properties</h3>
+<div class="outline-text-3" id="text-org1c0a1c2">
 <p>
 Particles' positions are stored as numpy arrays, but we can pass a simple list with x, y, z coordinates when we create them
 </p>
@@ -148,11 +142,7 @@ Particles' positions are stored as numpy arrays, but we can pass a simple list w
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-p0tVaI", line 1, in &lt;module&gt;
-    from atooms.system.particle import Particle
-ModuleNotFoundError: No module named 'atooms'
+[ 1.  0.  0.] &lt;class 'numpy.ndarray'&gt;
 
 </pre>
 
@@ -166,11 +156,7 @@ Particles can live in an arbitrary number of spatial dimensions
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-enlZxS", line 1, in &lt;module&gt;
-    particle = Particle(position=[1.0, 0.0, 0.0, 0.0, 0.0])
-NameError: name 'Particle' is not defined
+5
 
 </pre>
 
@@ -189,11 +175,7 @@ By default, particles have a few more properties such as velocity, chemical spec
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-zCsLI4", line 2, in &lt;module&gt;
-    particle = Particle(position=[1.0, 0.0, 0.0], velocity=[1.0, 0.0, 0.0])
-NameError: name 'Particle' is not defined
+Particle(species=Na, mass=1.0, position=[ 1.  1.  1.], velocity=[ 2.  0.  0.], radius=None)
 
 </pre>
 
@@ -211,9 +193,9 @@ This won't break anything!
 </div>
 </div>
 
-<div id="outline-container-orgd7e8b8a" class="outline-3">
-<h3 id="orgd7e8b8a">Dealing with velocities</h3>
-<div class="outline-text-3" id="text-orgd7e8b8a">
+<div id="outline-container-orgba8f337" class="outline-3">
+<h3 id="orgba8f337">Dealing with velocities</h3>
+<div class="outline-text-3" id="text-orgba8f337">
 <p>
 You may not need velocities at all (for instance because you are working with Monte Carlo simulations) but if you do, atooms provides a few useful methods and functions. For instance, you can assign velocity from a Maxwell-Boltzmann distribution at a temperature T.
 </p>
@@ -230,13 +212,7 @@ You may not need velocities at all (for instance because you are working with Mo
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-FwdxaG", line 1, in &lt;module&gt;
-    particle = [Particle() for i in range(1000)]
-  File "/tmp/babel-AXaw5Y/python-FwdxaG", line 1, in &lt;listcomp&gt;
-    particle = [Particle() for i in range(1000)]
-NameError: name 'Particle' is not defined
+0.944755026085
 
 </pre>
 
@@ -252,19 +228,16 @@ fix_total_momentum(particle)
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-0jeBu1", line 1, in &lt;module&gt;
-    from atooms.system.particle import fix_total_momentum, cm_velocity
-ModuleNotFoundError: No module named 'atooms'
+[-0.03078045  0.05653126  0.01857607]
+[  1.31006317e-17   7.77156117e-18  -2.07056594e-17]
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org7a3c86b" class="outline-3">
-<h3 id="org7a3c86b">Boundary conditions</h3>
-<div class="outline-text-3" id="text-org7a3c86b">
+<div id="outline-container-org139ed04" class="outline-3">
+<h3 id="org139ed04">Boundary conditions</h3>
+<div class="outline-text-3" id="text-org139ed04">
 <p>
 To avoid major finite size effects, we enclose particles in a cell with periodic boundary conditions. By convention, the cell origin is at the origin of the reference frame.
 </p>
@@ -277,11 +250,7 @@ To avoid major finite size effects, we enclose particles in a cell with periodic
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-PQs8Tr", line 1, in &lt;module&gt;
-    from atooms.system.cell import Cell
-ModuleNotFoundError: No module named 'atooms'
+[ 2.  2.  2.] 8.0
 
 </pre>
 
@@ -297,11 +266,7 @@ particle.fold(cell)
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-wFEg8U", line 1, in &lt;module&gt;
-    cell = Cell(side=1.0)
-NameError: name 'Cell' is not defined
+0.0
 
 </pre>
 
@@ -321,19 +286,15 @@ A related method returns the nearest periodic image of a given particle with res
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-9LyIbu", line 1, in &lt;module&gt;
-    particle_1 = Particle(position=-0.45)
-NameError: name 'Particle' is not defined
+Particle(species=A, mass=1.0, position=0.55, velocity=[ 0.  0.  0.], radius=0.5)
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org454e8b2" class="outline-3">
-<h3 id="org454e8b2">The system object</h3>
-<div class="outline-text-3" id="text-org454e8b2">
+<div id="outline-container-orgb35c713" class="outline-3">
+<h3 id="orgb35c713">The system object</h3>
+<div class="outline-text-3" id="text-orgb35c713">
 <p>
 Objects like particles and the simulation cell can be gathered in an instance of a god-like class called System. The system contains all the relevant physical objects of your simulation. Reservoirs like thermostats, barostats and particle reservoirs can be added as well. These objects are placeholders for thermodynamic state variables like temperature, pressure or chemical potential. Any class meant to describe the interaction between particles also belongs to the system.
 </p>
@@ -352,11 +313,7 @@ Let us build a system with a few particles in a cell and use the system methods 
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-e3O8v3", line 1, in &lt;module&gt;
-    from atooms.system import System
-ModuleNotFoundError: No module named 'atooms'
+1.2 1.5
 
 </pre>
 
@@ -372,21 +329,17 @@ Note that the system temperature is the kinetic one and need not coincide with t
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-J3ddzI", line 1, in &lt;module&gt;
-    from atooms.system import Thermostat
-ModuleNotFoundError: No module named 'atooms'
+1.5 1.0
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org9c227f1" class="outline-3">
-<h3 id="org9c227f1">Interaction and backends</h3>
-<div class="outline-text-3" id="text-org9c227f1">
+<div id="outline-container-org717e832" class="outline-3">
+<h3 id="org717e832">Interaction and backends</h3>
+<div class="outline-text-3" id="text-org717e832">
 <p>
-Classical particles interact with each other via a potential \(u(\{r_i\})\), where \(\{r_i\}\) is the set of particles' coordinates. Atooms relies on third-party efficient <b>backends</b> written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see <a href="#org123df08">Molecular dynamics with LAMMPS</a> for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see <a href="https://lammps.sandia.gov/doc/pair_style.html">https://lammps.sandia.gov/doc/pair_style.html</a>, and stores a reference to the system object of which we want to compute the energy.
+Classical particles interact with each other via a potential \(u(\{r_i\})\), where \(\{r_i\}\) is the set of particles' coordinates. Atooms relies on third-party efficient <b>backends</b> written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see <a href="#orga4c2f43">Molecular dynamics with LAMMPS</a> for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see <a href="https://lammps.sandia.gov/doc/pair_style.html">https://lammps.sandia.gov/doc/pair_style.html</a>, and stores a reference to the system object of which we want to compute the energy.
 </p>
 
 <p>
@@ -413,15 +366,20 @@ As proof of principle, we compute the interaction energy between two Lennard-Jon
 </pre>
 </div>
 
+<pre class="example">
+-0.99999388 -0.99999388
+
+</pre>
+
 <p>
 The energy and forces are stored in <code>system.interaction.energy</code> and <code>system.interaction.forces</code>.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgc60c762" class="outline-3">
-<h3 id="orgc60c762">Trajectory files</h3>
-<div class="outline-text-3" id="text-orgc60c762">
+<div id="outline-container-org5171c5f" class="outline-3">
+<h3 id="org5171c5f">Trajectory files</h3>
+<div class="outline-text-3" id="text-org5171c5f">
 <p>
 To write the state of the system to a file, we use a <code>Trajectory</code> class. Trajectories are composed of multiple frames, each one holding the state of the system at a given step during the simulation. We use a basic xyz format to write the state of the system and then parse the trajectory file we produced to see how it looks like.
 </p>
@@ -443,11 +401,12 @@ To write the state of the system to a file, we use a <code>Trajectory</code> cla
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-NfwomI", line 1, in &lt;module&gt;
-    from atooms.trajectory import TrajectoryXYZ
-ModuleNotFoundError: No module named 'atooms'
+4
+step:0 columns:id,pos dt:1 cell:10.0,10.0,10.0 
+A 0.000000 0.000000 0.000000
+A 0.000000 0.000000 0.000000
+A 0.000000 0.000000 0.000000
+A 0.000000 0.000000 0.000000
 
 </pre>
 
@@ -464,15 +423,6 @@ Of course, we can write multiple frames by calling <code>write()</code> repeated
 <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   th.write(system, step=i*10)
 </pre>
 </div>
-
-<pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-qy6m3F", line 1, in &lt;module&gt;
-    with TrajectoryXYZ('test.xyz', 'w') as th:
-NameError: name 'TrajectoryXYZ' is not defined
-
-</pre>
 
 <p>
 To get the system back we read the trajectory. Trajectories support iteration and indexing, just like lists.
@@ -494,19 +444,19 @@ To get the system back we read the trajectory. Trajectories support iteration an
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-z9hkgF", line 1, in &lt;module&gt;
-    with TrajectoryXYZ('test.xyz') as th:
-NameError: name 'TrajectoryXYZ' is not defined
+[ 0.  0.  0.] [ 10.  10.  10.]
+[ 0.  0.  0.] [ 10.  10.  10.]
+0 [ 0.  0.  0.]
+10 [ 0.  0.  0.]
+20 [ 0.  0.  0.]
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org17b6254" class="outline-3">
-<h3 id="org17b6254">Particles on a lattice</h3>
-<div class="outline-text-3" id="text-org17b6254">
+<div id="outline-container-orge316dd7" class="outline-3">
+<h3 id="orge316dd7">Particles on a lattice</h3>
+<div class="outline-text-3" id="text-orge316dd7">
 <p>
 Suppose we want to simulate a system where particles can only be located at discrete sites, say a one-dimensional lattice or perhaps a network with a complex topology. Particle positions can then be described as plain integers, holding the index of the site on which a particle is located. We create such a system and then write it to a file in xyz format
 </p>
@@ -533,11 +483,11 @@ particle[2]<span style="color: #000000;">.position</span> = 2
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-I60GUK", line 2, in &lt;module&gt;
-    from atooms.system import System, Particle
-ModuleNotFoundError: No module named 'atooms'
+3
+step:0 columns:id,pos dt:1 
+A 0
+A 1
+A 2
 
 </pre>
 
@@ -562,15 +512,6 @@ Everything went fine. However, we have to tweak things a bit when reading the pa
 </pre>
 </div>
 
-<pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-fGH3wR", line 2, in &lt;module&gt;
-    with TrajectoryXYZ('test.xyz') as th:
-NameError: name 'TrajectoryXYZ' is not defined
-
-</pre>
-
 <p>
 Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.
 </p>
@@ -578,9 +519,9 @@ Our particles have now integer coordinates. Note that, on passing, we have set t
 </div>
 </div>
 
-<div id="outline-container-orgf34c7f5" class="outline-2">
-<h2 id="orgf34c7f5">Simulations</h2>
-<div class="outline-text-2" id="text-orgf34c7f5">
+<div id="outline-container-orgc3f890e" class="outline-2">
+<h2 id="orgc3f890e">Simulations</h2>
+<div class="outline-text-2" id="text-orgc3f890e">
 <p>
 Within atooms, a <b>simulation</b> is a high-level class that encapsulates some common tasks and provides a consistent interface to the user, while <b>backends</b> are classes that actually make the system evolve. Here, we implement a minimal backend to run a simulation.
 </p>
@@ -599,9 +540,9 @@ Optionally, the backend may hold a reference to a trajectory class, which can be
 </p>
 </div>
 
-<div id="outline-container-orgd2bdf93" class="outline-3">
-<h3 id="orgd2bdf93">A minimal simulation backend</h3>
-<div class="outline-text-3" id="text-orgd2bdf93">
+<div id="outline-container-orgb7ca6cd" class="outline-3">
+<h3 id="orgb7ca6cd">A minimal simulation backend</h3>
+<div class="outline-text-3" id="text-orgb7ca6cd">
 <p>
 We set up a bare-bones simulation backend building on the native System class
 </p>
@@ -639,12 +580,36 @@ setup_logging(level=20)
 simulation.run(10)  
 </pre>
 </div>
+
+<pre class="example">
+# 
+# atooms simulation via &lt;__main__.BareBonesBackend object at 0x7ff54d0527f0&gt;
+# 
+# version: 1.9.1+1.5.0-132-gfe9bc7-dirty (2019-04-12)
+# atooms version: 1.9.1+1.5.0-132-gfe9bc7-dirty (2019-04-12)
+# simulation started on: 2019-05-17 at 17:36
+# output path: None
+# backend: &lt;__main__.BareBonesBackend object at 0x7ff54d0527f0&gt;
+# 
+# target target_steps: 10
+# 
+# 
+# starting at step: 0
+# 
+# simulation ended successfully: reached target steps 10
+# 
+# final steps: 10
+# final rmsd: 0.00
+# wall time [s]: 0.00
+# average TSP [s/step/particle]: nan
+# simulation ended on: 2019-05-17 at 17:36
+</pre>
 </div>
 </div>
 
-<div id="outline-container-orgc799823" class="outline-3">
-<h3 id="orgc799823">Simple random walk</h3>
-<div class="outline-text-3" id="text-orgc799823">
+<div id="outline-container-orgb0283b4" class="outline-3">
+<h3 id="orgb0283b4">Simple random walk</h3>
+<div class="outline-text-3" id="text-orgb0283b4">
 <p>
 We implement a simple random walk in 3d. This requires adding code to the backend <code>run()</code> method to actually move the particles around.
 </p>
@@ -683,15 +648,6 @@ We start by building an empty system. Then we add a few particles and place them
 <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">p.position</span> += dr
 </pre>
 </div>
-
-<pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-dNRNl6", line 2, in &lt;module&gt;
-    from atooms.system import System
-ModuleNotFoundError: No module named 'atooms'
-
-</pre>
 
 <p>
 The Simulation class provides a callback mechanism to allow execution of arbitrary code during the simulation. This can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
@@ -734,15 +690,6 @@ plt.savefig(<span style="color: #8b2252;">'msd.png'</span>)
 </pre>
 </div>
 
-<pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-dATBCl", line 1, in &lt;module&gt;
-    from atooms.simulation import Simulation
-ModuleNotFoundError: No module named 'atooms'
-
-</pre>
-
 <p>
 The MSD as a function of time should look linear.
 <img src="msd.png" alt="msd.png">
@@ -750,9 +697,9 @@ The MSD as a function of time should look linear.
 </div>
 </div>
 
-<div id="outline-container-org123df08" class="outline-3">
-<h3 id="org123df08">Molecular dynamics with LAMMPS</h3>
-<div class="outline-text-3" id="text-org123df08">
+<div id="outline-container-orga4c2f43" class="outline-3">
+<h3 id="orga4c2f43">Molecular dynamics with LAMMPS</h3>
+<div class="outline-text-3" id="text-orga4c2f43">
 <p>
 Atooms provides a simulation backend for <code>LAMMPS</code>, an efficient and feature-rich molecular dynamics simulation package.
 The backend accepts a string variable containing regular LAMMPS commands and initial configuration to start the simulation. The latter can be provided in any of the following forms:
@@ -786,15 +733,6 @@ Here we we use the first configuration of an existing trajectory for a Lennard-J
 </pre>
 </div>
 
-<pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-TWItCC", line 1, in &lt;module&gt;
-    import atooms.trajectory as trj
-ModuleNotFoundError: No module named 'atooms'
-
-</pre>
-
 <p>
 We now wrap the backend in a simulation instance. This way we can rely on atooms to write thermodynamic data and configurations to disk during the simulation: we just add the <code>write_config()</code> and <code>write_thermo()</code> functions as observers to the simulations.
 You can add your own functions as observers to perform arbitrary manipulations on the system during the simulation. Keep in mind that calling these functions causes some overhead, so avoid calling them at too short intervals.
@@ -815,15 +753,6 @@ sim.add(write_thermo, 500)
 </pre>
 </div>
 
-<pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-vrzBzV", line 1, in &lt;module&gt;
-    from atooms.simulation import Simulation
-ModuleNotFoundError: No module named 'atooms'
-
-</pre>
-
 <p>
 We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
 </p>
@@ -833,15 +762,6 @@ sim.run(10000)
 </pre>
 </div>
 
-<pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-xNwgtk", line 1, in &lt;module&gt;
-    backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=0.1)
-NameError: name 'Thermostat' is not defined
-
-</pre>
-
 <p>
 Note that we use atooms <code>Thermostat</code> object here: the backend will take care of adding appropriate commands to the LAMMPS script.
 </p>
@@ -849,6 +769,16 @@ Note that we use atooms <code>Thermostat</code> object here: the backend will ta
 <p>
 We have a quick look at the kinetic temperature as function of time to make sure the thermostat is working
 </p>
+<div class="org-src-container">
+<pre class="src src-gnuplot">  <span style="color: #008b8b;">set</span> xl <span style="color: #8b2252;">'Steps'</span>
+  <span style="color: #008b8b;">set</span> yl <span style="color: #8b2252;">'Temperature'</span>
+  <span style="color: #008b8b;">set</span> border 3
+  <span style="color: #008b8b;">set</span> xtics nomirror
+  <span style="color: #008b8b;">set</span> ytics nomirror
+  <span style="color: #483d8b;">plot</span> <span style="color: #8b2252;">'lammps.xyz.thermo'</span> u 1:2 noti w lp lc rgb <span style="color: #8b2252;">'red'</span> <span style="color: #483d8b; font-weight: bold;">pt</span> 7, 2 noti lc rgb <span style="color: #8b2252;">'black'</span>
+</pre>
+</div>
+
 
 <div class="figure">
 <p><img src="lammps.png" alt="lammps.png">
@@ -864,6 +794,16 @@ api.gr(<span style="color: #8b2252;">'lammps.xyz'</span>)
 </pre>
 </div>
 
+<div class="org-src-container">
+<pre class="src src-gnuplot"><span style="color: #008b8b;">set</span> xl <span style="color: #8b2252;">'r'</span>
+<span style="color: #008b8b;">set</span> yl <span style="color: #8b2252;">'g(r)'</span>
+<span style="color: #008b8b;">set</span> border 3
+<span style="color: #008b8b;">set</span> xtics nomirror
+<span style="color: #008b8b;">set</span> ytics nomirror
+<span style="color: #483d8b;">plot</span> <span style="color: #8b2252;">'lammps.xyz.pp.gr'</span> u 1:2 noti w lp lc rgb <span style="color: #8b2252;">'red'</span> <span style="color: #483d8b; font-weight: bold;">pt</span> 7
+</pre>
+</div>
+
 
 <div class="figure">
 <p><img src="lammps_gr.png" alt="lammps_gr.png">
@@ -872,9 +812,9 @@ api.gr(<span style="color: #8b2252;">'lammps.xyz'</span>)
 </div>
 </div>
 
-<div id="outline-container-org756369c" class="outline-3">
-<h3 id="org756369c">Energy minimization with LAMMPS</h3>
-<div class="outline-text-3" id="text-org756369c">
+<div id="outline-container-org99627de" class="outline-3">
+<h3 id="org99627de">Energy minimization with LAMMPS</h3>
+<div class="outline-text-3" id="text-org99627de">
 <p>
 It is possible to minimize the energy of a system to determine its so-called inherent structure using LAMMPS as a backend. To achieve this, atooms defines an <code>Optimization</code> class, which behaves mostly as <code>Simulation</code> except that it stops when the mean square total force
 \[
@@ -907,17 +847,22 @@ We check that \(W\) is lower than the requested tolerance
 <span style="color: #483d8b;">print</span>(<span style="color: #8b2252;">'Energy={}, mean square force={:.2g}'</span>.<span style="color: #483d8b;">format</span>(e_final, w_final))
 </pre>
 </div>
+
+<pre class="example">
+Energy=-6.8030584, mean square force=3.6e-11
+
+</pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org7eff7ab" class="outline-2">
-<h2 id="org7eff7ab">Trajectories</h2>
-<div class="outline-text-2" id="text-org7eff7ab">
+<div id="outline-container-orge34ca69" class="outline-2">
+<h2 id="orge34ca69">Trajectories</h2>
+<div class="outline-text-2" id="text-orge34ca69">
 </div>
-<div id="outline-container-org09df454" class="outline-3">
-<h3 id="org09df454">Custom trajectory output</h3>
-<div class="outline-text-3" id="text-org09df454">
+<div id="outline-container-org3c20498" class="outline-3">
+<h3 id="org3c20498">Custom trajectory output</h3>
+<div class="outline-text-3" id="text-org3c20498">
 <p>
 We can customize the format of trajectory files using the <code>fields</code> variable. It contains a list of the particle properties to be written to the trajectory. For this simple example we use again the xyz trajectory format.
 </p>
@@ -942,11 +887,11 @@ We add a <code>charge</code> property to each particle and then instruct the tra
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-ABZNSM", line 1, in &lt;module&gt;
-    from atooms.system import System, Cell, Particle
-ModuleNotFoundError: No module named 'atooms'
+3
+step:0 columns:position,charge dt:1 cell:10.0,10.0,10.0 
+0.000000 0.000000 0.000000 -1.0
+0.000000 0.000000 0.000000 -1.0
+0.000000 0.000000 0.000000 -1.0
 
 </pre>
 
@@ -961,19 +906,15 @@ The <code>fields</code> list can contain any particle property, even those defin
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-XUltqm", line 1, in &lt;module&gt;
-    with TrajectoryXYZ('test.xyz') as th:
-NameError: name 'TrajectoryXYZ' is not defined
+-1.0
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org5ddb1c0" class="outline-3">
-<h3 id="org5ddb1c0">Conversion between trajectory formats</h3>
-<div class="outline-text-3" id="text-org5ddb1c0">
+<div id="outline-container-org259669b" class="outline-3">
+<h3 id="org259669b">Conversion between trajectory formats</h3>
+<div class="outline-text-3" id="text-org259669b">
 <p>
 Atooms provides means to convert between trajectory various formats. At a very basic level, this requires opening the original trajectory for reading and the new one for writing using the desired trajectory class. Here we convert an xyz trajectory in a format suitable for the LAMMPS package
 </p>
@@ -994,16 +935,6 @@ The <code>convert()</code> function wraps the conversion in a more convenient in
 convert(TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>), TrajectoryLAMMPS, <span style="color: #8b2252;">'test.lammps'</span>)
 </pre>
 </div>
-
-<pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-XXd0JL", line 1, in &lt;module&gt;
-    from atooms.trajectory import convert
-ModuleNotFoundError: No module named 'atooms'
-
-</pre>
-
 <p>
 There are several optional parameters that allows to customize the trajectory output, see the function signature for more details.
 </p>
@@ -1022,9 +953,9 @@ Although the script will do its best to guess the appropriate trajectory formats
 </div>
 </div>
 
-<div id="outline-container-orge9f68af" class="outline-3">
-<h3 id="orge9f68af">Add and modify trajectory properties on the fly with callbacks</h3>
-<div class="outline-text-3" id="text-orge9f68af">
+<div id="outline-container-org53092ad" class="outline-3">
+<h3 id="org53092ad">Add and modify trajectory properties on the fly with callbacks</h3>
+<div class="outline-text-3" id="text-org53092ad">
 <p>
 "Callbacks" are functions used to modify the properties of a trajectory on the fly. They accept a <code>System</code> instance as first positional argument, along with optional extra positional and keyword arguments, and return a modified <code>System</code>.
 </p>
@@ -1053,18 +984,15 @@ Then we add the callback to the trajectory and provide the cell side (here L=10 
 </div>
 
 <pre class="example">
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/tmp/babel-AXaw5Y/python-HqxUEt", line 1, in &lt;module&gt;
-    from atooms.trajectory import TrajectoryXYZ
-ModuleNotFoundError: No module named 'atooms'
+[10. 10. 10.]
+[10. 10. 10.]
 
 </pre>
 </div>
 </div>
-<div id="outline-container-orga48f937" class="outline-3">
-<h3 id="orga48f937">Extend trajectory classes</h3>
-<div class="outline-text-3" id="text-orga48f937">
+<div id="outline-container-org218f993" class="outline-3">
+<h3 id="org218f993">Extend trajectory classes</h3>
+<div class="outline-text-3" id="text-org218f993">
 <p>
 Suppose you have a trajectory that looks almost like xyz, but differs in some way. You may want to customize the xyz trajectory format, so that your code can process the trajectory without manual intervention.
 </p>
