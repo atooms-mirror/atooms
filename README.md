@@ -57,7 +57,7 @@ print('Final temperature and density', sim.system.temperature, sim.system.densit
 
 Documentation
 -------------
-See the [tutorial](https://www-dft.ts.infn.it/~coslovich/atooms/) for a step-by-step introduction to atooms objects and the [public API documentation](https://www-dft.ts.infn.it/~coslovich/docs/api/atooms/) for full details. 
+See the [tutorial](https://atooms.frama.io/atooms/tutorial/atooms.html) for a step-by-step introduction to atooms objects and the [public API documentation](https://atooms.frama.io/atooms/api/atooms/) for full details. 
 
 Installation
 ------------
