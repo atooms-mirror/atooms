@@ -1,184 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Atooms tutorial</title>
-<meta name="generator" content="Org mode" />
-<style type="text/css">
- <!--/*--><![CDATA[/*><!--*/
-  .title  { text-align: center;
-             margin-bottom: .2em; }
-  .subtitle { text-align: center;
-              font-size: medium;
-              font-weight: bold;
-              margin-top:0; }
-  .todo   { font-family: monospace; color: red; }
-  .done   { font-family: monospace; color: green; }
-  .priority { font-family: monospace; color: orange; }
-  .tag    { background-color: #eee; font-family: monospace;
-            padding: 2px; font-size: 80%; font-weight: normal; }
-  .timestamp { color: #bebebe; }
-  .timestamp-kwd { color: #5f9ea0; }
-  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
-  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
-  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
-  .underline { text-decoration: underline; }
-  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
-  p.verse { margin-left: 3%; }
-  pre {
-    border: 1px solid #ccc;
-    box-shadow: 3px 3px 3px #eee;
-    padding: 8pt;
-    font-family: monospace;
-    overflow: auto;
-    margin: 1.2em;
-  }
-  pre.src {
-    position: relative;
-    overflow: visible;
-    padding-top: 1.2em;
-  }
-  pre.src:before {
-    display: none;
-    position: absolute;
-    background-color: white;
-    top: -10px;
-    right: 10px;
-    padding: 3px;
-    border: 1px solid black;
-  }
-  pre.src:hover:before { display: inline;}
-  /* Languages per Org manual */
-  pre.src-asymptote:before { content: 'Asymptote'; }
-  pre.src-awk:before { content: 'Awk'; }
-  pre.src-C:before { content: 'C'; }
-  /* pre.src-C++ doesn't work in CSS */
-  pre.src-clojure:before { content: 'Clojure'; }
-  pre.src-css:before { content: 'CSS'; }
-  pre.src-D:before { content: 'D'; }
-  pre.src-ditaa:before { content: 'ditaa'; }
-  pre.src-dot:before { content: 'Graphviz'; }
-  pre.src-calc:before { content: 'Emacs Calc'; }
-  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
-  pre.src-fortran:before { content: 'Fortran'; }
-  pre.src-gnuplot:before { content: 'gnuplot'; }
-  pre.src-haskell:before { content: 'Haskell'; }
-  pre.src-hledger:before { content: 'hledger'; }
-  pre.src-java:before { content: 'Java'; }
-  pre.src-js:before { content: 'Javascript'; }
-  pre.src-latex:before { content: 'LaTeX'; }
-  pre.src-ledger:before { content: 'Ledger'; }
-  pre.src-lisp:before { content: 'Lisp'; }
-  pre.src-lilypond:before { content: 'Lilypond'; }
-  pre.src-lua:before { content: 'Lua'; }
-  pre.src-matlab:before { content: 'MATLAB'; }
-  pre.src-mscgen:before { content: 'Mscgen'; }
-  pre.src-ocaml:before { content: 'Objective Caml'; }
-  pre.src-octave:before { content: 'Octave'; }
-  pre.src-org:before { content: 'Org mode'; }
-  pre.src-oz:before { content: 'OZ'; }
-  pre.src-plantuml:before { content: 'Plantuml'; }
-  pre.src-processing:before { content: 'Processing.js'; }
-  pre.src-python:before { content: 'Python'; }
-  pre.src-R:before { content: 'R'; }
-  pre.src-ruby:before { content: 'Ruby'; }
-  pre.src-sass:before { content: 'Sass'; }
-  pre.src-scheme:before { content: 'Scheme'; }
-  pre.src-screen:before { content: 'Gnu Screen'; }
-  pre.src-sed:before { content: 'Sed'; }
-  pre.src-sh:before { content: 'shell'; }
-  pre.src-sql:before { content: 'SQL'; }
-  pre.src-sqlite:before { content: 'SQLite'; }
-  /* additional languages in org.el's org-babel-load-languages alist */
-  pre.src-forth:before { content: 'Forth'; }
-  pre.src-io:before { content: 'IO'; }
-  pre.src-J:before { content: 'J'; }
-  pre.src-makefile:before { content: 'Makefile'; }
-  pre.src-maxima:before { content: 'Maxima'; }
-  pre.src-perl:before { content: 'Perl'; }
-  pre.src-picolisp:before { content: 'Pico Lisp'; }
-  pre.src-scala:before { content: 'Scala'; }
-  pre.src-shell:before { content: 'Shell Script'; }
-  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
-  /* additional language identifiers per "defun org-babel-execute"
-       in ob-*.el */
-  pre.src-cpp:before  { content: 'C++'; }
-  pre.src-abc:before  { content: 'ABC'; }
-  pre.src-coq:before  { content: 'Coq'; }
-  pre.src-groovy:before  { content: 'Groovy'; }
-  /* additional language identifiers from org-babel-shell-names in
-     ob-shell.el: ob-shell is the only babel language using a lambda to put
-     the execution function name together. */
-  pre.src-bash:before  { content: 'bash'; }
-  pre.src-csh:before  { content: 'csh'; }
-  pre.src-ash:before  { content: 'ash'; }
-  pre.src-dash:before  { content: 'dash'; }
-  pre.src-ksh:before  { content: 'ksh'; }
-  pre.src-mksh:before  { content: 'mksh'; }
-  pre.src-posh:before  { content: 'posh'; }
-  /* Additional Emacs modes also supported by the LaTeX listings package */
-  pre.src-ada:before { content: 'Ada'; }
-  pre.src-asm:before { content: 'Assembler'; }
-  pre.src-caml:before { content: 'Caml'; }
-  pre.src-delphi:before { content: 'Delphi'; }
-  pre.src-html:before { content: 'HTML'; }
-  pre.src-idl:before { content: 'IDL'; }
-  pre.src-mercury:before { content: 'Mercury'; }
-  pre.src-metapost:before { content: 'MetaPost'; }
-  pre.src-modula-2:before { content: 'Modula-2'; }
-  pre.src-pascal:before { content: 'Pascal'; }
-  pre.src-ps:before { content: 'PostScript'; }
-  pre.src-prolog:before { content: 'Prolog'; }
-  pre.src-simula:before { content: 'Simula'; }
-  pre.src-tcl:before { content: 'tcl'; }
-  pre.src-tex:before { content: 'TeX'; }
-  pre.src-plain-tex:before { content: 'Plain TeX'; }
-  pre.src-verilog:before { content: 'Verilog'; }
-  pre.src-vhdl:before { content: 'VHDL'; }
-  pre.src-xml:before { content: 'XML'; }
-  pre.src-nxml:before { content: 'XML'; }
-  /* add a generic configuration mode; LaTeX export needs an additional
-     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
-  pre.src-conf:before { content: 'Configuration File'; }
-
-  table { border-collapse:collapse; }
-  caption.t-above { caption-side: top; }
-  caption.t-bottom { caption-side: bottom; }
-  td, th { vertical-align:top;  }
-  th.org-right  { text-align: center;  }
-  th.org-left   { text-align: center;   }
-  th.org-center { text-align: center; }
-  td.org-right  { text-align: right;  }
-  td.org-left   { text-align: left;   }
-  td.org-center { text-align: center; }
-  dt { font-weight: bold; }
-  .footpara { display: inline; }
-  .footdef  { margin-bottom: 1em; }
-  .figure { padding: 1em; }
-  .figure p { text-align: center; }
-  .inlinetask {
-    padding: 10px;
-    border: 2px solid gray;
-    margin: 10px;
-    background: #ffffcc;
-  }
-  #org-div-home-and-up
-   { text-align: right; font-size: 70%; white-space: nowrap; }
-  textarea { overflow-x: auto; }
-  .linenr { font-size: smaller }
-  .code-highlighted { background-color: #ffff00; }
-  .org-info-js_info-navigation { border-style: none; }
-  #org-info-js_console-label
-    { font-size: 10px; font-weight: bold; white-space: nowrap; }
-  .org-info-js_search-highlight
-    { background-color: #ffff00; color: #000000; font-weight: bold; }
-  .org-svg { width: 90%; }
-  /*]]>*/-->
-</style>
-<link rel="stylesheet" type="text/css" href="style.css" />
+<meta name="generator" content="Org mode">
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/readtheorg.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/lib/js/jquery.stickytableheaders.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/js/readtheorg.js"></script>
+<link rel="stylesheet" type="text/css" href="https://framagit.org/coslo/org-html-themes/-/raw/master/src/readtheorg_theme/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="https://framagit.org/coslo/org-html-themes/-/raw/master/src/readtheorg_theme/css/readtheorg.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://framagit.org/coslo/org-html-themes/-/raw/master/src/lib/js/jquery.stickytableheaders.min.js"></script>
+<script type="text/javascript" src="https://framagit.org/coslo/org-html-themes/-/raw/master/src/readtheorg_theme/js/readtheorg.js"></script>
 <script type="text/javascript">
 /*
 @licstart  The following is the entire license notice for the
@@ -254,37 +92,39 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orgcf3a017">Basics</a>
+<li><a href="#org2bd258b">Basics</a>
 <ul>
-<li><a href="#orgbd7f1bb">Particles' properties</a></li>
-<li><a href="#org9fc80d9">Dealing with velocities</a></li>
-<li><a href="#org6249772">Boundary conditions</a></li>
-<li><a href="#org7d2b7bd">The system object</a></li>
-<li><a href="#org6d26d7a">Interaction and backends</a></li>
-<li><a href="#orga84ab01">Trajectory files</a></li>
-<li><a href="#org283b53b">Particles on a lattice</a></li>
+<li><a href="#org76f06c8">Particles' properties</a></li>
+<li><a href="#orgd7e8b8a">Dealing with velocities</a></li>
+<li><a href="#org7a3c86b">Boundary conditions</a></li>
+<li><a href="#org454e8b2">The system object</a></li>
+<li><a href="#org9c227f1">Interaction and backends</a></li>
+<li><a href="#orgc60c762">Trajectory files</a></li>
+<li><a href="#org17b6254">Particles on a lattice</a></li>
 </ul>
 </li>
-<li><a href="#org6aebd56">Simulations</a>
+<li><a href="#orgf34c7f5">Simulations</a>
 <ul>
-<li><a href="#orgbfd8eb0">A minimal simulation backend</a></li>
-<li><a href="#org57887f4">Simple random walk</a></li>
-<li><a href="#org44dfb74">Molecular dynamics with LAMMPS</a></li>
-<li><a href="#org3618609">Energy minimization with LAMMPS</a></li>
+<li><a href="#orgd2bdf93">A minimal simulation backend</a></li>
+<li><a href="#orgc799823">Simple random walk</a></li>
+<li><a href="#org123df08">Molecular dynamics with LAMMPS</a></li>
+<li><a href="#org756369c">Energy minimization with LAMMPS</a></li>
 </ul>
 </li>
-<li><a href="#org744cc20">Trajectories</a>
+<li><a href="#org7eff7ab">Trajectories</a>
 <ul>
-<li><a href="#orgc62d143">Flexible trajectory output</a></li>
-<li><a href="#orgb7ba7dc">Conversion between trajectory formats</a></li>
+<li><a href="#org09df454">Custom trajectory output</a></li>
+<li><a href="#org5ddb1c0">Conversion between trajectory formats</a></li>
+<li><a href="#orge9f68af">Add and modify trajectory properties on the fly with callbacks</a></li>
+<li><a href="#orga48f937">Extend trajectory classes</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-orgcf3a017" class="outline-2">
-<h2 id="orgcf3a017">Basics</h2>
-<div class="outline-text-2" id="text-orgcf3a017">
+<div id="outline-container-org2bd258b" class="outline-2">
+<h2 id="org2bd258b">Basics</h2>
+<div class="outline-text-2" id="text-org2bd258b">
 <p>
 Atooms provides a high-level interface to the main objects of particle-based simulations. It mostly focuses on classical molecular dynamics and Monte Carlo simulations, but it is not limited to that. It can be used to simulate and analyze lattice models such as TASEP or kinetically constrained models.
 </p>
@@ -294,21 +134,25 @@ We will start by having a look at the basic objects of particle-based simulation
 </p>
 </div>
 
-<div id="outline-container-orgbd7f1bb" class="outline-3">
-<h3 id="orgbd7f1bb">Particles' properties</h3>
-<div class="outline-text-3" id="text-orgbd7f1bb">
+<div id="outline-container-org76f06c8" class="outline-3">
+<h3 id="org76f06c8">Particles' properties</h3>
+<div class="outline-text-3" id="text-org76f06c8">
 <p>
 Particles' positions are stored as numpy arrays, but we can pass a simple list with x, y, z coordinates when we create them
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.system.particle <span style="color: #5f5f87;">import</span> Particle
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system.particle <span style="color: #483d8b;">import</span> Particle
 <span style="color: #000000;">particle</span> = Particle(position=[1.0, 0.0, 0.0])
-<span style="color: #5f5f87;">print</span>(particle.position, <span style="color: #5f5f87;">type</span>(particle.position))
+<span style="color: #483d8b;">print</span>(particle.position, <span style="color: #483d8b;">type</span>(particle.position))
 </pre>
 </div>
 
 <pre class="example">
-[ 1.  0.  0.] &lt;class 'numpy.ndarray'&gt;
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-p0tVaI", line 1, in &lt;module&gt;
+    from atooms.system.particle import Particle
+ModuleNotFoundError: No module named 'atooms'
 
 </pre>
 
@@ -317,12 +161,16 @@ Particles can live in an arbitrary number of spatial dimensions
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #000000;">particle</span> = Particle(position=[1.0, 0.0, 0.0, 0.0, 0.0])
-<span style="color: #5f5f87;">print</span>(<span style="color: #5f5f87;">len</span>(particle.position))
+<span style="color: #483d8b;">print</span>(<span style="color: #483d8b;">len</span>(particle.position))
 </pre>
 </div>
 
 <pre class="example">
-5
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-enlZxS", line 1, in &lt;module&gt;
+    particle = Particle(position=[1.0, 0.0, 0.0, 0.0, 0.0])
+NameError: name 'Particle' is not defined
 
 </pre>
 
@@ -330,18 +178,22 @@ Particles can live in an arbitrary number of spatial dimensions
 By default, particles have a few more properties such as velocity, chemical species, mass and radius. They can all be altered at will or even set to None.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">import</span> numpy
+<pre class="src src-python"><span style="color: #483d8b;">import</span> numpy
 <span style="color: #000000;">particle</span> = Particle(position=[1.0, 0.0, 0.0], velocity=[1.0, 0.0, 0.0])
-<span style="color: #000000;">particle.species</span> = <span style="color: #87005f;">'Na'</span>
+<span style="color: #000000;">particle.species</span> = <span style="color: #8b2252;">'Na'</span>
 <span style="color: #000000;">particle.position</span> += numpy.array([0.0, 1.0, 1.0])
 <span style="color: #000000;">particle.velocity</span> *= 2
-<span style="color: #000000;">particle.radius</span> = <span style="color: #008787;">None</span>  <span style="color: #af0000;"># </span><span style="color: #af0000;">point particles have no radius</span>
-<span style="color: #5f5f87;">print</span>(particle)
+<span style="color: #000000;">particle.radius</span> = <span style="color: #008b8b;">None</span>  <span style="color: #b22222;"># </span><span style="color: #b22222;">point particles have no radius</span>
+<span style="color: #483d8b;">print</span>(particle)
 </pre>
 </div>
 
 <pre class="example">
-Particle(species=Na, mass=1.0, position=[ 1.  1.  1.], velocity=[ 2.  0.  0.], radius=None)
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-zCsLI4", line 2, in &lt;module&gt;
+    particle = Particle(position=[1.0, 0.0, 0.0], velocity=[1.0, 0.0, 0.0])
+NameError: name 'Particle' is not defined
 
 </pre>
 
@@ -359,26 +211,32 @@ This won't break anything!
 </div>
 </div>
 
-<div id="outline-container-org9fc80d9" class="outline-3">
-<h3 id="org9fc80d9">Dealing with velocities</h3>
-<div class="outline-text-3" id="text-org9fc80d9">
+<div id="outline-container-orgd7e8b8a" class="outline-3">
+<h3 id="orgd7e8b8a">Dealing with velocities</h3>
+<div class="outline-text-3" id="text-orgd7e8b8a">
 <p>
 You may not need velocities at all (for instance because you are working with Monte Carlo simulations) but if you do, atooms provides a few useful methods and functions. For instance, you can assign velocity from a Maxwell-Boltzmann distribution at a temperature T.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #000000;">particle</span> = [Particle() <span style="color: #5f5f87;">for</span> i <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">range</span>(1000)]
-<span style="color: #5f5f87;">for</span> p <span style="color: #5f5f87;">in</span> particle:
-    p.maxwellian(T=1.0)
-<span style="color: #000000;">ekin</span> = <span style="color: #5f5f87;">sum</span>([p.kinetic_energy <span style="color: #5f5f87;">for</span> p <span style="color: #5f5f87;">in</span> particle])
+<pre class="src src-python"><span style="color: #000000;">particle</span> = [Particle() <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(1000)]
+<span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span> particle:
+<span style="background-color: #f2f2f2;"> </span>   p.maxwellian(T=1.0)
+<span style="color: #000000;">ekin</span> = <span style="color: #483d8b;">sum</span>([p.kinetic_energy <span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span> particle])
 <span style="color: #000000;">ndim</span> = 3
-<span style="color: #000000;">ndof</span> = <span style="color: #5f5f87;">len</span>(particle) * ndim
+<span style="color: #000000;">ndof</span> = <span style="color: #483d8b;">len</span>(particle) * ndim
 <span style="color: #000000;">T</span> = 2.0 / ndof * ekin
-<span style="color: #5f5f87;">print</span>(T)
+<span style="color: #483d8b;">print</span>(T)
 </pre>
 </div>
 
 <pre class="example">
-0.944755026085
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-FwdxaG", line 1, in &lt;module&gt;
+    particle = [Particle() for i in range(1000)]
+  File "/tmp/babel-AXaw5Y/python-FwdxaG", line 1, in &lt;listcomp&gt;
+    particle = [Particle() for i in range(1000)]
+NameError: name 'Particle' is not defined
 
 </pre>
 
@@ -386,37 +244,44 @@ You may not need velocities at all (for instance because you are working with Mo
 Doing so will leave a non-zero total momentum, but we can fix it (note that all masses are equal)
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.system.particle <span style="color: #5f5f87;">import</span> fix_total_momentum, cm_velocity
-<span style="color: #5f5f87;">print</span>(cm_velocity(particle))
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system.particle <span style="color: #483d8b;">import</span> fix_total_momentum, cm_velocity
+<span style="color: #483d8b;">print</span>(cm_velocity(particle))
 fix_total_momentum(particle)
-<span style="color: #5f5f87;">print</span>(cm_velocity(particle))
+<span style="color: #483d8b;">print</span>(cm_velocity(particle))
 </pre>
 </div>
 
 <pre class="example">
-[-0.03078045  0.05653126  0.01857607]
-[  1.31006317e-17   7.77156117e-18  -2.07056594e-17]
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-0jeBu1", line 1, in &lt;module&gt;
+    from atooms.system.particle import fix_total_momentum, cm_velocity
+ModuleNotFoundError: No module named 'atooms'
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org6249772" class="outline-3">
-<h3 id="org6249772">Boundary conditions</h3>
-<div class="outline-text-3" id="text-org6249772">
+<div id="outline-container-org7a3c86b" class="outline-3">
+<h3 id="org7a3c86b">Boundary conditions</h3>
+<div class="outline-text-3" id="text-org7a3c86b">
 <p>
 To avoid major finite size effects, we enclose particles in a cell with periodic boundary conditions. By convention, the cell origin is at the origin of the reference frame.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.system.cell <span style="color: #5f5f87;">import</span> Cell
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system.cell <span style="color: #483d8b;">import</span> Cell
 <span style="color: #000000;">L</span> = 2.0
 <span style="color: #000000;">cell</span> = Cell(side=[L, L, L])
-<span style="color: #5f5f87;">print</span>(cell.side, cell.volume)
+<span style="color: #483d8b;">print</span>(cell.side, cell.volume)
 </pre>
 </div>
 
 <pre class="example">
-[ 2.  2.  2.] 8.0
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-PQs8Tr", line 1, in &lt;module&gt;
+    from atooms.system.cell import Cell
+ModuleNotFoundError: No module named 'atooms'
 
 </pre>
 
@@ -425,14 +290,18 @@ Atooms provides means to fold particles back in the "central" simulation cell, i
 </p>
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #000000;">cell</span> = Cell(side=1.0)
-<span style="color: #000000;">particle</span> = Particle(position=2.0)  <span style="color: #af0000;"># </span><span style="color: #af0000;">particle outside the central cell</span>
+<span style="color: #000000;">particle</span> = Particle(position=2.0)  <span style="color: #b22222;"># </span><span style="color: #b22222;">particle outside the central cell</span>
 particle.fold(cell)
-<span style="color: #5f5f87;">print</span>(particle.position)
+<span style="color: #483d8b;">print</span>(particle.position)
 </pre>
 </div>
 
 <pre class="example">
-0.0
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-wFEg8U", line 1, in &lt;module&gt;
+    cell = Cell(side=1.0)
+NameError: name 'Cell' is not defined
 
 </pre>
 
@@ -446,21 +315,25 @@ A related method returns the nearest periodic image of a given particle with res
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #000000;">particle_1</span> = Particle(position=-0.45)
 <span style="color: #000000;">particle_2</span> = Particle(position=+0.45)
-<span style="color: #000000;">image</span> = particle_1.nearest_image(particle_2, cell, copy=<span style="color: #008787;">True</span>)
-<span style="color: #5f5f87;">print</span>(image)
+<span style="color: #000000;">image</span> = particle_1.nearest_image(particle_2, cell, copy=<span style="color: #008b8b;">True</span>)
+<span style="color: #483d8b;">print</span>(image)
 </pre>
 </div>
 
 <pre class="example">
-Particle(species=A, mass=1.0, position=0.55, velocity=[ 0.  0.  0.], radius=0.5)
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-9LyIbu", line 1, in &lt;module&gt;
+    particle_1 = Particle(position=-0.45)
+NameError: name 'Particle' is not defined
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org7d2b7bd" class="outline-3">
-<h3 id="org7d2b7bd">The system object</h3>
-<div class="outline-text-3" id="text-org7d2b7bd">
+<div id="outline-container-org454e8b2" class="outline-3">
+<h3 id="org454e8b2">The system object</h3>
+<div class="outline-text-3" id="text-org454e8b2">
 <p>
 Objects like particles and the simulation cell can be gathered in an instance of a god-like class called System. The system contains all the relevant physical objects of your simulation. Reservoirs like thermostats, barostats and particle reservoirs can be added as well. These objects are placeholders for thermodynamic state variables like temperature, pressure or chemical potential. Any class meant to describe the interaction between particles also belongs to the system.
 </p>
@@ -469,17 +342,21 @@ Objects like particles and the simulation cell can be gathered in an instance of
 Let us build a system with a few particles in a cell and use the system methods to modify the system density and temperature. Note that density and temperature are python properties and thus modify the attributes of particles and cell under the hoods using the <code>set_density</code> and <code>set_temperature</code> methods respectively
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.system <span style="color: #5f5f87;">import</span> System
-<span style="color: #000000;">system</span> = System(particle=[Particle() <span style="color: #5f5f87;">for</span> i <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">range</span>(100)],
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System
+<span style="color: #000000;">system</span> = System(particle=[Particle() <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(100)],
                 cell=Cell([10.0, 10.0, 10.0]))
-<span style="color: #000000;">system.density</span> = 1.2  <span style="color: #af0000;"># </span><span style="color: #af0000;">equivalent to system.set_density(1.2)</span>
-<span style="color: #000000;">system.temperature</span> = 1.5  <span style="color: #af0000;"># </span><span style="color: #af0000;">equivalent to system.set_temperature(1.2)</span>
-<span style="color: #5f5f87;">print</span>(system.density, system.temperature)
+<span style="color: #000000;">system.density</span> = 1.2  <span style="color: #b22222;"># </span><span style="color: #b22222;">equivalent to system.set_density(1.2)</span>
+<span style="color: #000000;">system.temperature</span> = 1.5  <span style="color: #b22222;"># </span><span style="color: #b22222;">equivalent to system.set_temperature(1.2)</span>
+<span style="color: #483d8b;">print</span>(system.density, system.temperature)
 </pre>
 </div>
 
 <pre class="example">
-1.2 1.5
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-e3O8v3", line 1, in &lt;module&gt;
+    from atooms.system import System
+ModuleNotFoundError: No module named 'atooms'
 
 </pre>
 
@@ -487,55 +364,54 @@ Let us build a system with a few particles in a cell and use the system methods 
 Note that the system temperature is the kinetic one and need not coincide with the one of the thermostat.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.system <span style="color: #5f5f87;">import</span> Thermostat
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> Thermostat
 <span style="color: #000000;">system.thermostat</span> = Thermostat(temperature=1.0)
-<span style="color: #000000;">system.temperature</span> = 1.5  <span style="color: #af0000;"># </span><span style="color: #af0000;">equivalent to system.set_temperature(1.2)</span>
-<span style="color: #5f5f87;">print</span>(system.temperature, system.thermostat.temperature)
+<span style="color: #000000;">system.temperature</span> = 1.5  <span style="color: #b22222;"># </span><span style="color: #b22222;">equivalent to system.set_temperature(1.2)</span>
+<span style="color: #483d8b;">print</span>(system.temperature, system.thermostat.temperature)
 </pre>
 </div>
 
 <pre class="example">
-1.5 1.0
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-J3ddzI", line 1, in &lt;module&gt;
+    from atooms.system import Thermostat
+ModuleNotFoundError: No module named 'atooms'
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org6d26d7a" class="outline-3">
-<h3 id="org6d26d7a">Interaction and backends</h3>
-<div class="outline-text-3" id="text-org6d26d7a">
+<div id="outline-container-org9c227f1" class="outline-3">
+<h3 id="org9c227f1">Interaction and backends</h3>
+<div class="outline-text-3" id="text-org9c227f1">
 <p>
-Classical particles interact with each other via a potential \(u(\{r_i\})\), where \(\{r_i\}\) is the set of particles' coordinates. Atooms relies on third-party efficient <b>backends</b> written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see <a href="#org44dfb74">Molecular dynamics with LAMMPS</a> for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see <a href="https://lammps.sandia.gov/doc/pair_style.html">https://lammps.sandia.gov/doc/pair_style.html</a>, and stores a reference to the system object of which we want to compute the energy.
+Classical particles interact with each other via a potential \(u(\{r_i\})\), where \(\{r_i\}\) is the set of particles' coordinates. Atooms relies on third-party efficient <b>backends</b> written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see <a href="#org123df08">Molecular dynamics with LAMMPS</a> for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see <a href="https://lammps.sandia.gov/doc/pair_style.html">https://lammps.sandia.gov/doc/pair_style.html</a>, and stores a reference to the system object of which we want to compute the energy.
 </p>
 
 <p>
 As proof of principle, we compute the interaction energy between two Lennard-Jones particles
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.system <span style="color: #5f5f87;">import</span> System, Particle, Cell
-<span style="color: #5f5f87;">from</span> atooms.backends.lammps <span style="color: #5f5f87;">import</span> LAMMPS
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System, Particle, Cell
+<span style="color: #483d8b;">from</span> atooms.backends.lammps <span style="color: #483d8b;">import</span> LAMMPS
 
-<span style="color: #000000;">x</span> = 1.122  <span style="color: #af0000;"># </span><span style="color: #af0000;">Minimum of the potential</span>
+<span style="color: #000000;">x</span> = 1.122  <span style="color: #b22222;"># </span><span style="color: #b22222;">Minimum of the potential</span>
 <span style="color: #000000;">system</span> = System(particle=[Particle(position=[0.0, 0.0, 0.0]),
                           Particle(position=[x, 0.0, 0.0])],
                 cell=Cell([10.0, 10.0, 10.0]))
-<span style="color: #000000;">cmd</span> = <span style="color: #87005f;">"""</span>
-<span style="color: #87005f;">pair_style      lj/cut 2.5</span>
-<span style="color: #87005f;">pair_coeff      1 1 1.0 1.0  2.5</span>
-<span style="color: #87005f;">"""</span>
-<span style="color: #af0000;"># </span><span style="color: #af0000;">The backend will add an interaction to the system</span>
+<span style="color: #000000;">cmd</span> = <span style="color: #8b2252;">"""</span>
+<span style="color: #8b2252;">pair_style      lj/cut 2.5</span>
+<span style="color: #8b2252;">pair_coeff      1 1 1.0 1.0  2.5</span>
+<span style="color: #8b2252;">"""</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">The backend will add an interaction to the system</span>
 <span style="color: #000000;">backend</span> = LAMMPS(system, cmd)
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Compute and get the potential energy</span>
-<span style="color: #af0000;"># </span><span style="color: #af0000;">The cache option allows to get the potential energy without recalculating it</span>
-<span style="color: #5f5f87;">print</span>(system.potential_energy(), system.potential_energy(cache=<span style="color: #008787;">True</span>))
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Compute and get the potential energy</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">The cache option allows to get the potential energy without recalculating it</span>
+<span style="color: #483d8b;">print</span>(system.potential_energy(), system.potential_energy(cache=<span style="color: #008b8b;">True</span>))
 </pre>
 </div>
-
-<pre class="example">
--0.99999388 -0.99999388
-
-</pre>
 
 <p>
 The energy and forces are stored in <code>system.interaction.energy</code> and <code>system.interaction.forces</code>.
@@ -543,36 +419,35 @@ The energy and forces are stored in <code>system.interaction.energy</code> and <
 </div>
 </div>
 
-<div id="outline-container-orga84ab01" class="outline-3">
-<h3 id="orga84ab01">Trajectory files</h3>
-<div class="outline-text-3" id="text-orga84ab01">
+<div id="outline-container-orgc60c762" class="outline-3">
+<h3 id="orgc60c762">Trajectory files</h3>
+<div class="outline-text-3" id="text-orgc60c762">
 <p>
 To write the state of the system to a file, we use a <code>Trajectory</code> class. Trajectories are composed of multiple frames, each one holding the state of the system at a given step during the simulation. We use a basic xyz format to write the state of the system and then parse the trajectory file we produced to see how it looks like.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.trajectory <span style="color: #5f5f87;">import</span> TrajectoryXYZ
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> TrajectoryXYZ
 
-<span style="color: #000000;">system</span> = System(particle=[Particle() <span style="color: #5f5f87;">for</span> i <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">range</span>(4)],
-                cell=Cell([10.0, 10.0, 10.0]))
+<span style="color: #000000;">system</span> = System(particle=[Particle() <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(4)],
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   cell=Cell([10.0, 10.0, 10.0]))
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Open the trajectory in write mode and write the state of the system</span>
-<span style="color: #af0000;"># </span><span style="color: #af0000;">at step 0</span>
-<span style="color: #5f5f87;">with</span> TrajectoryXYZ(<span style="color: #87005f;">'test.xyz'</span>, <span style="color: #87005f;">'w'</span>) <span style="color: #5f5f87;">as</span> th:
-  th.write(system, step=0)
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Open the trajectory in write mode and write the state of the system</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">at step 0</span>
+<span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>, <span style="color: #8b2252;">'w'</span>) <span style="color: #483d8b;">as</span> th:
+<span style="background-color: #f2f2f2;"> </span>   th.write(system, step=0)
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Read the xyz file back as plain text</span>
-<span style="color: #5f5f87;">with</span> <span style="color: #5f5f87;">open</span>(<span style="color: #87005f;">'test.xyz'</span>) <span style="color: #5f5f87;">as</span> fh:
-  <span style="color: #5f5f87;">print</span>(fh.read())
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Read the xyz file back as plain text</span>
+<span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> fh:
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">print</span>(fh.read())
 </pre>
 </div>
 
 <pre class="example">
-4
-step:0 columns:id,pos dt:1 cell:10.0,10.0,10.0 
-A 0.000000 0.000000 0.000000
-A 0.000000 0.000000 0.000000
-A 0.000000 0.000000 0.000000
-A 0.000000 0.000000 0.000000
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-NfwomI", line 1, in &lt;module&gt;
+    from atooms.trajectory import TrajectoryXYZ
+ModuleNotFoundError: No module named 'atooms'
 
 </pre>
 
@@ -584,76 +459,85 @@ Note that trajectories are file-like objects: they must be opened and closed, pr
 Of course, we can write multiple frames by calling <code>write()</code> repeatedly.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">with</span> TrajectoryXYZ(<span style="color: #87005f;">'test.xyz'</span>, <span style="color: #87005f;">'w'</span>) <span style="color: #5f5f87;">as</span> th:
-  <span style="color: #5f5f87;">for</span> i <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">range</span>(3):
-    th.write(system, step=i*10)
+<pre class="src src-python"><span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>, <span style="color: #8b2252;">'w'</span>) <span style="color: #483d8b;">as</span> th:
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(3):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   th.write(system, step=i*10)
 </pre>
 </div>
+
+<pre class="example">
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-qy6m3F", line 1, in &lt;module&gt;
+    with TrajectoryXYZ('test.xyz', 'w') as th:
+NameError: name 'TrajectoryXYZ' is not defined
+
+</pre>
 
 <p>
 To get the system back we read the trajectory. Trajectories support iteration and indexing, just like lists.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">with</span> TrajectoryXYZ(<span style="color: #87005f;">'test.xyz'</span>) <span style="color: #5f5f87;">as</span> th:
-  <span style="color: #af0000;"># </span><span style="color: #af0000;">First frame</span>
-  <span style="color: #000000;">system</span> = th[0]
-  <span style="color: #5f5f87;">print</span>(system.particle[0].position, system.cell.side)
+<pre class="src src-python"><span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> th:
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #b22222;"># </span><span style="color: #b22222;">First frame</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">system</span> = th[0]
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">print</span>(system.particle[0].position, system.cell.side)
 
-  <span style="color: #af0000;"># </span><span style="color: #af0000;">Last frame</span>
-  <span style="color: #000000;">system</span> = th[-1]
-  <span style="color: #5f5f87;">print</span>(system.particle[0].position, system.cell.side)
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #b22222;"># </span><span style="color: #b22222;">Last frame</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">system</span> = th[-1]
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">print</span>(system.particle[0].position, system.cell.side)
 
-  <span style="color: #af0000;"># </span><span style="color: #af0000;">Iterate over all frames</span>
-  <span style="color: #5f5f87;">for</span> i, system <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">enumerate</span>(th):
-    <span style="color: #5f5f87;">print</span>(th.steps[i], system.particle[0].position)
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #b22222;"># </span><span style="color: #b22222;">Iterate over all frames</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> i, system <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">enumerate</span>(th):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">print</span>(th.steps[i], system.particle[0].position)
 </pre>
 </div>
 
 <pre class="example">
-[ 0.  0.  0.] [ 10.  10.  10.]
-[ 0.  0.  0.] [ 10.  10.  10.]
-0 [ 0.  0.  0.]
-10 [ 0.  0.  0.]
-20 [ 0.  0.  0.]
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-z9hkgF", line 1, in &lt;module&gt;
+    with TrajectoryXYZ('test.xyz') as th:
+NameError: name 'TrajectoryXYZ' is not defined
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-org283b53b" class="outline-3">
-<h3 id="org283b53b">Particles on a lattice</h3>
-<div class="outline-text-3" id="text-org283b53b">
+<div id="outline-container-org17b6254" class="outline-3">
+<h3 id="org17b6254">Particles on a lattice</h3>
+<div class="outline-text-3" id="text-org17b6254">
 <p>
 Suppose we want to simulate a system where particles can only be located at discrete sites, say a one-dimensional lattice or perhaps a network with a complex topology. Particle positions can then be described as plain integers, holding the index of the site on which a particle is located. We create such a system and then write it to a file in xyz format
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">import</span> numpy
-<span style="color: #5f5f87;">from</span> atooms.system <span style="color: #5f5f87;">import</span> System, Particle
+<pre class="src src-python"><span style="color: #483d8b;">import</span> numpy
+<span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System, Particle
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Build model system with integer coordinates</span>
-<span style="color: #000000;">particle</span> = [Particle() <span style="color: #5f5f87;">for</span> i <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">range</span>(3)]
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Build model system with integer coordinates</span>
+<span style="color: #000000;">particle</span> = [Particle() <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(3)]
 particle[0]<span style="color: #000000;">.position</span> = 0
 particle[1]<span style="color: #000000;">.position</span> = 1
 particle[2]<span style="color: #000000;">.position</span> = 2
 <span style="color: #000000;">system</span> = System(particle=particle)
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Write xyz trajectory</span>
-<span style="color: #5f5f87;">from</span> atooms.trajectory <span style="color: #5f5f87;">import</span> TrajectoryXYZ
-<span style="color: #5f5f87;">with</span> TrajectoryXYZ(<span style="color: #87005f;">'test.xyz'</span>, <span style="color: #87005f;">'w'</span>) <span style="color: #5f5f87;">as</span> th:
-  th.write(system, 0)
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Write xyz trajectory</span>
+<span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> TrajectoryXYZ
+<span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>, <span style="color: #8b2252;">'w'</span>) <span style="color: #483d8b;">as</span> th:
+<span style="background-color: #f2f2f2;"> </span>   th.write(system, 0)
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Read the xyz file back as plain text</span>
-<span style="color: #5f5f87;">with</span> <span style="color: #5f5f87;">open</span>(<span style="color: #87005f;">'test.xyz'</span>) <span style="color: #5f5f87;">as</span> fh:
-  <span style="color: #5f5f87;">print</span>(fh.read())
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Read the xyz file back as plain text</span>
+<span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> fh:
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">print</span>(fh.read())
 </pre>
 </div>
 
 <pre class="example">
-3
-step:0 columns:id,pos dt:1 
-A 0
-A 1
-A 2
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-I60GUK", line 2, in &lt;module&gt;
+    from atooms.system import System, Particle
+ModuleNotFoundError: No module named 'atooms'
 
 </pre>
 
@@ -661,28 +545,29 @@ A 2
 Everything went fine. However, we have to tweak things a bit when reading the particles back, to avoid positions being transformed to arrays of floats instead of integers. This can be done with the help of a callback that transforms the system accordingly as we read the trajectory.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #af0000;"># </span><span style="color: #af0000;">Read file as an xyz trajectory </span>
-<span style="color: #5f5f87;">with</span> TrajectoryXYZ(<span style="color: #87005f;">'test.xyz'</span>) <span style="color: #5f5f87;">as</span> th:
+<pre class="src src-python"><span style="color: #b22222;"># </span><span style="color: #b22222;">Read file as an xyz trajectory </span>
+<span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> th:
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #b22222;"># </span><span style="color: #b22222;">We add a callback to read positions as simple integers</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #b22222;"># </span><span style="color: #b22222;">Otherwise they are read as numpy arrays of floats.</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">modify</span>(system):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span> system.particle:
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">p.position</span> = <span style="color: #483d8b;">int</span>(p.position[0])
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">p.velocity</span> = <span style="color: #008b8b;">None</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">p.radius</span> = <span style="color: #008b8b;">None</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">return</span> system
+<span style="background-color: #f2f2f2;"> </span>   th.add_callback(modify)
 
-  <span style="color: #af0000;"># </span><span style="color: #af0000;">We add a callback to read positions as simple integers</span>
-  <span style="color: #af0000;"># </span><span style="color: #af0000;">Otherwise they are read as numpy arrays of floats.</span>
-  <span style="color: #5f5f87;">def</span> <span style="color: #5f5f87; font-weight: bold;">modify</span>(system):      
-    <span style="color: #5f5f87;">for</span> p <span style="color: #5f5f87;">in</span> system.particle:
-      <span style="color: #000000;">p.position</span> = <span style="color: #5f5f87;">int</span>(p.position[0])
-      <span style="color: #000000;">p.velocity</span> = <span style="color: #008787;">None</span>
-      <span style="color: #000000;">p.radius</span> = <span style="color: #008787;">None</span>
-    <span style="color: #5f5f87;">return</span> system
-  th.add_callback(modify)
-
-  <span style="color: #5f5f87;">for</span> p <span style="color: #5f5f87;">in</span> th[0].particle:
-    <span style="color: #5f5f87;">print</span>(p)
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span> th[0].particle:
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">print</span>(p)
 </pre>
 </div>
 
 <pre class="example">
-Particle(species=A, mass=1.0, position=0, velocity=None, radius=None)
-Particle(species=A, mass=1.0, position=1, velocity=None, radius=None)
-Particle(species=A, mass=1.0, position=2, velocity=None, radius=None)
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-fGH3wR", line 2, in &lt;module&gt;
+    with TrajectoryXYZ('test.xyz') as th:
+NameError: name 'TrajectoryXYZ' is not defined
 
 </pre>
 
@@ -693,9 +578,9 @@ Our particles have now integer coordinates. Note that, on passing, we have set t
 </div>
 </div>
 
-<div id="outline-container-org6aebd56" class="outline-2">
-<h2 id="org6aebd56">Simulations</h2>
-<div class="outline-text-2" id="text-org6aebd56">
+<div id="outline-container-orgf34c7f5" class="outline-2">
+<h2 id="orgf34c7f5">Simulations</h2>
+<div class="outline-text-2" id="text-orgf34c7f5">
 <p>
 Within atooms, a <b>simulation</b> is a high-level class that encapsulates some common tasks and provides a consistent interface to the user, while <b>backends</b> are classes that actually make the system evolve. Here, we implement a minimal backend to run a simulation.
 </p>
@@ -714,76 +599,52 @@ Optionally, the backend may hold a reference to a trajectory class, which can be
 </p>
 </div>
 
-<div id="outline-container-orgbfd8eb0" class="outline-3">
-<h3 id="orgbfd8eb0">A minimal simulation backend</h3>
-<div class="outline-text-3" id="text-orgbfd8eb0">
+<div id="outline-container-orgd2bdf93" class="outline-3">
+<h3 id="orgd2bdf93">A minimal simulation backend</h3>
+<div class="outline-text-3" id="text-orgd2bdf93">
 <p>
 We set up a bare-bones simulation backend building on the native System class
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.system <span style="color: #5f5f87;">import</span> System
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System
 
-<span style="color: #5f5f87;">class</span> <span style="color: #5f5f87; font-weight: bold;">BareBonesBackend</span>(<span style="color: #5f5f87;">object</span>):
+<span style="color: #483d8b;">class</span> <span style="color: #483d8b; font-weight: bold;">BareBonesBackend</span>(<span style="color: #483d8b;">object</span>):
+<span style="background-color: #f2f2f2;"> </span>   
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">__init__</span>(<span style="color: #483d8b;">self</span>):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">self</span>.system = System()
 
-    <span style="color: #5f5f87;">def</span> <span style="color: #5f5f87; font-weight: bold;">__init__</span>(<span style="color: #5f5f87;">self</span>):
-        <span style="color: #5f5f87;">self</span>.system = System()
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">run</span>(<span style="color: #483d8b;">self</span>, steps):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(steps):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">pass</span>
 
-    <span style="color: #5f5f87;">def</span> <span style="color: #5f5f87; font-weight: bold;">run</span>(<span style="color: #5f5f87;">self</span>, steps):
-        <span style="color: #5f5f87;">for</span> i <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">range</span>(steps):
-            <span style="color: #5f5f87;">pass</span>
-
-<span style="color: #af0000;"># </span><span style="color: #af0000;">The backend is created and wrapped by a simulation object.</span>
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Here we first call the run() method then run_until()</span>
-<span style="color: #5f5f87;">from</span> atooms.simulation <span style="color: #5f5f87;">import</span> Simulation
+<span style="color: #b22222;"># </span><span style="color: #b22222;">The backend is created and wrapped by a simulation object.</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Here we first call the run() method then run_until()</span>
+<span style="color: #483d8b;">from</span> atooms.simulation <span style="color: #483d8b;">import</span> Simulation
 <span style="color: #000000;">backend</span> = BareBonesBackend()
 <span style="color: #000000;">simulation</span> = Simulation(backend)
 simulation.run(10)
 simulation.run_until(30)
-<span style="color: #5f5f87;">assert</span> simulation.current_step == 30
+<span style="color: #483d8b;">assert</span> simulation.current_step == 30
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">This time we call run() multiple times </span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">This time we call run() multiple times </span>
 <span style="color: #000000;">simulation</span> = Simulation(backend)
 simulation.run(10)
 simulation.run(20)
-<span style="color: #5f5f87;">assert</span> simulation.current_step == 30  
+<span style="color: #483d8b;">assert</span> simulation.current_step == 30  
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Increase verbosity to see a meaningful log</span>
-<span style="color: #5f5f87;">from</span> atooms.core.utils <span style="color: #5f5f87;">import</span> setup_logging
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Increase verbosity to see a meaningful log</span>
+<span style="color: #483d8b;">from</span> atooms.core.utils <span style="color: #483d8b;">import</span> setup_logging
 setup_logging(level=20)
 <span style="color: #000000;">simulation</span> = Simulation(backend)
 simulation.run(10)  
 </pre>
 </div>
-
-<pre class="example">
-# 
-# atooms simulation via &lt;__main__.BareBonesBackend object at 0x7ff54d0527f0&gt;
-# 
-# version: 1.9.1+1.5.0-132-gfe9bc7-dirty (2019-04-12)
-# atooms version: 1.9.1+1.5.0-132-gfe9bc7-dirty (2019-04-12)
-# simulation started on: 2019-05-17 at 17:36
-# output path: None
-# backend: &lt;__main__.BareBonesBackend object at 0x7ff54d0527f0&gt;
-# 
-# target target_steps: 10
-# 
-# 
-# starting at step: 0
-# 
-# simulation ended successfully: reached target steps 10
-# 
-# final steps: 10
-# final rmsd: 0.00
-# wall time [s]: 0.00
-# average TSP [s/step/particle]: nan
-# simulation ended on: 2019-05-17 at 17:36
-</pre>
 </div>
 </div>
 
-<div id="outline-container-org57887f4" class="outline-3">
-<h3 id="org57887f4">Simple random walk</h3>
-<div class="outline-text-3" id="text-org57887f4">
+<div id="outline-container-orgc799823" class="outline-3">
+<h3 id="orgc799823">Simple random walk</h3>
+<div class="outline-text-3" id="text-orgc799823">
 <p>
 We implement a simple random walk in 3d. This requires adding code to the backend <code>run()</code> method to actually move the particles around.
 </p>
@@ -793,35 +654,44 @@ We start by building an empty system. Then we add a few particles and place them
 </p>
 
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">import</span> numpy
-<span style="color: #5f5f87;">from</span> atooms.system <span style="color: #5f5f87;">import</span> System
+<pre class="src src-python"><span style="color: #483d8b;">import</span> numpy
+<span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">There are no particles at the beginning</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">There are no particles at the beginning</span>
 <span style="color: #000000;">system</span> = System()
-<span style="color: #5f5f87;">assert</span> <span style="color: #5f5f87;">len</span>(system.particle) == 0
+<span style="color: #483d8b;">assert</span> <span style="color: #483d8b;">len</span>(system.particle) == 0
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Add particles</span>
-<span style="color: #5f5f87;">from</span> atooms.system.particle <span style="color: #5f5f87;">import</span> Particle
-<span style="color: #5f5f87;">from</span> random <span style="color: #5f5f87;">import</span> random
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Add particles</span>
+<span style="color: #483d8b;">from</span> atooms.system.particle <span style="color: #483d8b;">import</span> Particle
+<span style="color: #483d8b;">from</span> random <span style="color: #483d8b;">import</span> random
 <span style="color: #000000;">L</span> = 10
-<span style="color: #5f5f87;">for</span> i <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">range</span>(1000):
-    <span style="color: #000000;">p</span> = Particle(position=[L * random(), L * random(), L * random()])
-    system.particle.append(p)
+<span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(1000):
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">p</span> = Particle(position=[L * random(), L * random(), L * random()])
+<span style="background-color: #f2f2f2;"> </span>   system.particle.append(p)
 
-<span style="color: #5f5f87;">class</span> <span style="color: #5f5f87; font-weight: bold;">RandomWalk</span>(<span style="color: #5f5f87;">object</span>):
+<span style="color: #483d8b;">class</span> <span style="color: #483d8b; font-weight: bold;">RandomWalk</span>(<span style="color: #483d8b;">object</span>):
 
-    <span style="color: #5f5f87;">def</span> <span style="color: #5f5f87; font-weight: bold;">__init__</span>(<span style="color: #5f5f87;">self</span>, system, delta=1.0):
-        <span style="color: #5f5f87;">self</span>.system = system
-        <span style="color: #5f5f87;">self</span>.delta = delta
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">__init__</span>(<span style="color: #483d8b;">self</span>, system, delta=1.0):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">self</span>.system = system
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">self</span>.delta = delta
 
-    <span style="color: #5f5f87;">def</span> <span style="color: #5f5f87; font-weight: bold;">run</span>(<span style="color: #5f5f87;">self</span>, steps):
-        <span style="color: #5f5f87;">for</span> i <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">range</span>(steps):
-            <span style="color: #5f5f87;">for</span> p <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">self</span>.system.particle:
-                <span style="color: #000000;">dr</span> = numpy.array([random()-0.5, random()-0.5, random()-0.5])
-                <span style="color: #000000;">dr</span> *= <span style="color: #5f5f87;">self</span>.delta
-                <span style="color: #000000;">p.position</span> += dr
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">run</span>(<span style="color: #483d8b;">self</span>, steps):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(steps):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">self</span>.system.particle:
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">dr</span> = numpy.array([random()-0.5, random()-0.5, random()-0.5])
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">dr</span> *= <span style="color: #483d8b;">self</span>.delta
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">p.position</span> += dr
 </pre>
 </div>
+
+<pre class="example">
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-dNRNl6", line 2, in &lt;module&gt;
+    from atooms.system import System
+ModuleNotFoundError: No module named 'atooms'
+
+</pre>
 
 <p>
 The Simulation class provides a callback mechanism to allow execution of arbitrary code during the simulation. This can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
@@ -831,58 +701,58 @@ The Simulation class provides a callback mechanism to allow execution of arbitra
 Here we measure the mean square displacement (MSD) of the particles to make sure that the system displays a regular diffusive behavior \(MSD \sim t\)
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.simulation <span style="color: #5f5f87;">import</span> Simulation
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.simulation <span style="color: #483d8b;">import</span> Simulation
 <span style="color: #000000;">simulation</span> = Simulation(RandomWalk(system))
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">We add a callback that computes the MSD every 10 steps</span>
-<span style="color: #af0000;"># </span><span style="color: #af0000;">We store the result in a dictionary passed to the callback</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">We add a callback that computes the MSD every 10 steps</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">We store the result in a dictionary passed to the callback</span>
 <span style="color: #000000;">msd_db</span> = {}
-<span style="color: #5f5f87;">def</span> <span style="color: #5f5f87; font-weight: bold;">cbk</span>(sim, initial_position, db):
-    <span style="color: #000000;">msd</span> = 0.0
-    <span style="color: #5f5f87;">for</span> i, p <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">enumerate</span>(sim.system.particle):
-        <span style="color: #000000;">dr</span> = p.position - initial_position[i]
-        <span style="color: #000000;">msd</span> += numpy.<span style="color: #5f5f87;">sum</span>(dr**2)
-    <span style="color: #000000;">msd</span> /= <span style="color: #5f5f87;">len</span>(sim.system.particle)
-    <span style="color: #000000;">db</span>[sim.current_step] = msd
+<span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">cbk</span>(sim, initial_position, db):
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">msd</span> = 0.0
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> i, p <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">enumerate</span>(sim.system.particle):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">dr</span> = p.position - initial_position[i]
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">msd</span> += numpy.<span style="color: #483d8b;">sum</span>(dr**2)
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">msd</span> /= <span style="color: #483d8b;">len</span>(sim.system.particle)
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">db</span>[sim.current_step] = msd
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">We will execute the callback every 10 steps</span>
-simulation.add(cbk, 10, initial_position=[p.position.copy() <span style="color: #5f5f87;">for</span> p <span style="color: #5f5f87;">in</span>
-                                          system.particle], db=msd_db)
+<span style="color: #b22222;"># </span><span style="color: #b22222;">We will execute the callback every 10 steps</span>
+simulation.add(cbk, 10, initial_position=[p.position.copy() <span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span> system.particle], db=msd_db)
 simulation.run(50)
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">The MSD should increase linearly with time</span>
-<span style="color: #000000;">time</span> = <span style="color: #5f5f87;">sorted</span>(msd_db.keys())
-<span style="color: #000000;">msd</span> = [msd_db[t] <span style="color: #5f5f87;">for</span> t <span style="color: #5f5f87;">in</span> time]
+<span style="color: #b22222;"># </span><span style="color: #b22222;">The MSD should increase linearly with time</span>
+<span style="color: #000000;">time</span> = <span style="color: #483d8b;">sorted</span>(msd_db.keys())
+<span style="color: #000000;">msd</span> = [msd_db[t] <span style="color: #483d8b;">for</span> t <span style="color: #483d8b;">in</span> time]
 
-<span style="color: #5f5f87;">print</span>(time, msd)
-<span style="color: #5f5f87;">import</span> matplotlib.pyplot <span style="color: #5f5f87;">as</span> plt
+<span style="color: #483d8b;">print</span>(time, msd)
+<span style="color: #483d8b;">import</span> matplotlib.pyplot <span style="color: #483d8b;">as</span> plt
 plt.cla()
-plt.plot(time, msd, <span style="color: #87005f;">'-o'</span>)
-plt.xlabel(<span style="color: #87005f;">"t"</span>)
-plt.ylabel(<span style="color: #87005f;">"MSD"</span>)
-plt.savefig(<span style="color: #87005f;">'msd.png'</span>)
+plt.plot(time, msd, <span style="color: #8b2252;">'-o'</span>)
+plt.xlabel(<span style="color: #8b2252;">"t"</span>)
+plt.ylabel(<span style="color: #8b2252;">"MSD"</span>)
+plt.savefig(<span style="color: #8b2252;">'msd.png'</span>)
 </pre>
 </div>
 
 <pre class="example">
-[0, 10, 20, 30, 40, 50] [0.0, 2.4646764004435413, 4.9302643884563624, 7.5967157934411889, 10.195445884554854, 12.668286408937636]
-/usr/lib/python3/dist-packages/matplotlib/font_manager.py:273: UserWarning: Matplotlib is building the font cache using fc-list. This may take a moment.
-  warnings.warn('Matplotlib is building the font cache using fc-list. This may take a moment.')
-/usr/lib/python3/dist-packages/matplotlib/font_manager.py:273: UserWarning: Matplotlib is building the font cache using fc-list. This may take a moment.
-  warnings.warn('Matplotlib is building the font cache using fc-list. This may take a moment.')
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-dATBCl", line 1, in &lt;module&gt;
+    from atooms.simulation import Simulation
+ModuleNotFoundError: No module named 'atooms'
 
 </pre>
 
 <p>
 The MSD as a function of time should look linear.
-<img src="msd.png" alt="msd.png" />
+<img src="msd.png" alt="msd.png">
 </p>
 </div>
 </div>
 
-<div id="outline-container-org44dfb74" class="outline-3">
-<h3 id="org44dfb74">Molecular dynamics with LAMMPS</h3>
-<div class="outline-text-3" id="text-org44dfb74">
+<div id="outline-container-org123df08" class="outline-3">
+<h3 id="org123df08">Molecular dynamics with LAMMPS</h3>
+<div class="outline-text-3" id="text-org123df08">
 <p>
 Atooms provides a simulation backend for <code>LAMMPS</code>, an efficient and feature-rich molecular dynamics simulation package.
 The backend accepts a string variable containing regular LAMMPS commands and initial configuration to start the simulation. The latter can be provided in any of the following forms:
@@ -900,41 +770,59 @@ In the last two cases, the last configuration will be used to start the simulati
 Here we we use the first configuration of an existing trajectory for a Lennard-Jones fluid
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">import</span> atooms.trajectory <span style="color: #5f5f87;">as</span> trj
-<span style="color: #5f5f87;">from</span> atooms.backends.lammps <span style="color: #5f5f87;">import</span> LAMMPS
+<pre class="src src-python"><span style="color: #483d8b;">import</span> atooms.trajectory <span style="color: #483d8b;">as</span> trj
+<span style="color: #483d8b;">from</span> atooms.backends.lammps <span style="color: #483d8b;">import</span> LAMMPS
 
-<span style="color: #5f5f87;">import</span> os
-<span style="color: #000000;">system</span> = trj.TrajectoryXYZ(<span style="color: #87005f;">'../../data/lj_N1000_rho1.0.xyz'</span>)[0]
-<span style="color: #000000;">cmd</span> = <span style="color: #87005f;">"""</span>
-<span style="color: #87005f;">pair_style      lj/cut 2.5</span>
-<span style="color: #87005f;">pair_coeff      1 1 1.0 1.0  2.5</span>
-<span style="color: #87005f;">neighbor        0.3 bin</span>
-<span style="color: #87005f;">neigh_modify    check yes</span>
-<span style="color: #87005f;">timestep        0.002</span>
-<span style="color: #87005f;">"""</span>
-<span style="color: #000000;">backend</span> = LAMMPS(inp, system)
+<span style="color: #483d8b;">import</span> os
+<span style="color: #000000;">system</span> = trj.TrajectoryXYZ(<span style="color: #8b2252;">'../../data/lj_N1000_rho1.0.xyz'</span>)[0]
+<span style="color: #000000;">cmd</span> = <span style="color: #8b2252;">"""</span>
+<span style="color: #8b2252;">pair_style      lj/cut 2.5</span>
+<span style="color: #8b2252;">pair_coeff      1 1 1.0 1.0  2.5</span>
+<span style="color: #8b2252;">neighbor        0.3 bin</span>
+<span style="color: #8b2252;">neigh_modify    check yes</span>
+<span style="color: #8b2252;">timestep        0.002</span>
+<span style="color: #8b2252;">"""</span>
+<span style="color: #000000;">backend</span> = LAMMPS(system, cmd)
 </pre>
 </div>
+
+<pre class="example">
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-TWItCC", line 1, in &lt;module&gt;
+    import atooms.trajectory as trj
+ModuleNotFoundError: No module named 'atooms'
+
+</pre>
 
 <p>
 We now wrap the backend in a simulation instance. This way we can rely on atooms to write thermodynamic data and configurations to disk during the simulation: we just add the <code>write_config()</code> and <code>write_thermo()</code> functions as observers to the simulations.
 You can add your own functions as observers to perform arbitrary manipulations on the system during the simulation. Keep in mind that calling these functions causes some overhead, so avoid calling them at too short intervals.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.simulation <span style="color: #5f5f87;">import</span> Simulation
-<span style="color: #5f5f87;">from</span> atooms.system <span style="color: #5f5f87;">import</span> Thermostat
-<span style="color: #5f5f87;">from</span> atooms.simulation.observers <span style="color: #5f5f87;">import</span> write_thermo, write_config
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.simulation <span style="color: #483d8b;">import</span> Simulation
+<span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> Thermostat
+<span style="color: #483d8b;">from</span> atooms.simulation.observers <span style="color: #483d8b;">import</span> write_thermo, write_config
 
-<span style="color: #af0000;"># </span><span style="color: #af0000;">We create the simulation instance and set the output path</span>
-<span style="color: #000000;">sim</span> = Simulation(backend, output_path=<span style="color: #87005f;">'lammps.xyz'</span>)
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Just store a reference to the trajectory class you want to use</span>
-<span style="color: #000000;">sim.trajectory</span> = trj.TrajectoryXYZ
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Write configurations every 500 steps in xyz format</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">We create the simulation instance and set the output path</span>
+<span style="color: #000000;">sim</span> = Simulation(backend, output_path=<span style="color: #8b2252;">'lammps.xyz'</span>)
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Just store a reference to the trajectory class you want to use</span>
+<span style="color: #000000;">sim.trajectory_class</span> = trj.TrajectoryXYZ
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Write configurations every 500 steps in xyz format</span>
 sim.add(write_config, 500)
-<span style="color: #af0000;"># </span><span style="color: #af0000;">Write thermodynamic properties every 500 steps</span>
+<span style="color: #b22222;"># </span><span style="color: #b22222;">Write thermodynamic properties every 500 steps</span>
 sim.add(write_thermo, 500)
 </pre>
 </div>
+
+<pre class="example">
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-vrzBzV", line 1, in &lt;module&gt;
+    from atooms.simulation import Simulation
+ModuleNotFoundError: No module named 'atooms'
+
+</pre>
 
 <p>
 We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
@@ -945,6 +833,15 @@ sim.run(10000)
 </pre>
 </div>
 
+<pre class="example">
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-xNwgtk", line 1, in &lt;module&gt;
+    backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=0.1)
+NameError: name 'Thermostat' is not defined
+
+</pre>
+
 <p>
 Note that we use atooms <code>Thermostat</code> object here: the backend will take care of adding appropriate commands to the LAMMPS script.
 </p>
@@ -954,7 +851,7 @@ We have a quick look at the kinetic temperature as function of time to make sure
 </p>
 
 <div class="figure">
-<p><img src="lammps.png" alt="lammps.png" />
+<p><img src="lammps.png" alt="lammps.png">
 </p>
 </div>
 
@@ -962,22 +859,22 @@ We have a quick look at the kinetic temperature as function of time to make sure
 We can use the <a href="https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/">postprocessing</a> package to compute the radial distribution function
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.postprocessing <span style="color: #5f5f87;">import</span> api
-api.gr(<span style="color: #87005f;">'lammps.xyz'</span>)
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.postprocessing <span style="color: #483d8b;">import</span> api
+api.gr(<span style="color: #8b2252;">'lammps.xyz'</span>)
 </pre>
 </div>
 
 
 <div class="figure">
-<p><img src="lammps_gr.png" alt="lammps_gr.png" />
+<p><img src="lammps_gr.png" alt="lammps_gr.png">
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org3618609" class="outline-3">
-<h3 id="org3618609">Energy minimization with LAMMPS</h3>
-<div class="outline-text-3" id="text-org3618609">
+<div id="outline-container-org756369c" class="outline-3">
+<h3 id="org756369c">Energy minimization with LAMMPS</h3>
+<div class="outline-text-3" id="text-org756369c">
 <p>
 It is possible to minimize the energy of a system to determine its so-called inherent structure using LAMMPS as a backend. To achieve this, atooms defines an <code>Optimization</code> class, which behaves mostly as <code>Simulation</code> except that it stops when the mean square total force
 \[
@@ -986,15 +883,15 @@ W=\frac{1}{N}\sum_i |f_i|^2
 is lower than a given <code>tolerance</code>.
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.trajectory <span style="color: #5f5f87;">import</span> TrajectoryXYZ
-<span style="color: #5f5f87;">from</span> atooms.optimization <span style="color: #5f5f87;">import</span> Optimization
-<span style="color: #5f5f87;">from</span> atooms.backends.lammps <span style="color: #5f5f87;">import</span> EnergyMinimization
-<span style="color: #000000;">cmd</span> = <span style="color: #87005f;">"""</span>
-<span style="color: #87005f;">pair_style      lj/cut 2.5</span>
-<span style="color: #87005f;">pair_modify     shift yes</span>
-<span style="color: #87005f;">pair_coeff      1 1 1.0 1.0 2.5</span>
-<span style="color: #87005f;">"""</span>
-<span style="color: #000000;">system</span> = TrajectoryXYZ(<span style="color: #87005f;">'../../data/lj_N256_rho1.0.xyz'</span>)[0]
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> TrajectoryXYZ
+<span style="color: #483d8b;">from</span> atooms.optimization <span style="color: #483d8b;">import</span> Optimization
+<span style="color: #483d8b;">from</span> atooms.backends.lammps <span style="color: #483d8b;">import</span> EnergyMinimization
+<span style="color: #000000;">cmd</span> = <span style="color: #8b2252;">"""</span>
+<span style="color: #8b2252;">pair_style      lj/cut 2.5</span>
+<span style="color: #8b2252;">pair_modify     shift yes</span>
+<span style="color: #8b2252;">pair_coeff      1 1 1.0 1.0 2.5</span>
+<span style="color: #8b2252;">"""</span>
+<span style="color: #000000;">system</span> = TrajectoryXYZ(<span style="color: #8b2252;">'../../data/lj_N256_rho1.0.xyz'</span>)[0]
 <span style="color: #000000;">bck</span> = EnergyMinimization(system, cmd)
 <span style="color: #000000;">opt</span> = Optimization(bck, tolerance=1e-10)
 opt.run()
@@ -1005,27 +902,22 @@ opt.run()
 We check that \(W\) is lower than the requested tolerance
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #000000;">e_final</span> = system.potential_energy(per_particle=<span style="color: #008787;">True</span>)
-<span style="color: #000000;">w_final</span> = system.force_norm_square(per_particle=<span style="color: #008787;">True</span>)
-<span style="color: #5f5f87;">print</span>(<span style="color: #87005f;">'Energy={}, mean square force={:.2g}'</span>.<span style="color: #5f5f87;">format</span>(e_final, w_final))
-</pre>
-</div>
-
-<pre class="example">
-Energy=-6.8030584, mean square force=3.6e-11
-
+<pre class="src src-python"><span style="color: #000000;">e_final</span> = system.potential_energy(per_particle=<span style="color: #008b8b;">True</span>)
+<span style="color: #000000;">w_final</span> = system.force_norm_square(per_particle=<span style="color: #008b8b;">True</span>)
+<span style="color: #483d8b;">print</span>(<span style="color: #8b2252;">'Energy={}, mean square force={:.2g}'</span>.<span style="color: #483d8b;">format</span>(e_final, w_final))
 </pre>
 </div>
 </div>
 </div>
-
-<div id="outline-container-org744cc20" class="outline-2">
-<h2 id="org744cc20">Trajectories</h2>
-<div class="outline-text-2" id="text-org744cc20">
 </div>
-<div id="outline-container-orgc62d143" class="outline-3">
-<h3 id="orgc62d143">Flexible trajectory output</h3>
-<div class="outline-text-3" id="text-orgc62d143">
+
+<div id="outline-container-org7eff7ab" class="outline-2">
+<h2 id="org7eff7ab">Trajectories</h2>
+<div class="outline-text-2" id="text-org7eff7ab">
+</div>
+<div id="outline-container-org09df454" class="outline-3">
+<h3 id="org09df454">Custom trajectory output</h3>
+<div class="outline-text-3" id="text-org09df454">
 <p>
 We can customize the format of trajectory files using the <code>fields</code> variable. It contains a list of the particle properties to be written to the trajectory. For this simple example we use again the xyz trajectory format.
 </p>
@@ -1034,27 +926,27 @@ We can customize the format of trajectory files using the <code>fields</code> va
 We add a <code>charge</code> property to each particle and then instruct the trajectory to write it along with the position
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.system <span style="color: #5f5f87;">import</span> System, Cell, Particle
-<span style="color: #000000;">system</span> = System(particle=[Particle() <span style="color: #5f5f87;">for</span> i <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">range</span>(3)],
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> System, Cell, Particle
+<span style="color: #000000;">system</span> = System(particle=[Particle() <span style="color: #483d8b;">for</span> i <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">range</span>(3)],
                 cell=Cell([10.0, 10.0, 10.0]))
 
-<span style="color: #5f5f87;">for</span> p <span style="color: #5f5f87;">in</span> system.particle:
-  <span style="color: #000000;">p.charge</span> = -1.0
+<span style="color: #483d8b;">for</span> p <span style="color: #483d8b;">in</span> system.particle:
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">p.charge</span> = -1.0
 
-<span style="color: #5f5f87;">with</span> TrajectoryXYZ(<span style="color: #87005f;">'test.xyz'</span>, <span style="color: #87005f;">'w'</span>, fields=[<span style="color: #87005f;">'position'</span>, <span style="color: #87005f;">'charge'</span>]) <span style="color: #5f5f87;">as</span> th:
-  th.write(system, step=0)
+<span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>, <span style="color: #8b2252;">'w'</span>, fields=[<span style="color: #8b2252;">'position'</span>, <span style="color: #8b2252;">'charge'</span>]) <span style="color: #483d8b;">as</span> th:
+<span style="background-color: #f2f2f2;"> </span>   th.write(system, step=0)
 
-<span style="color: #5f5f87;">with</span> <span style="color: #5f5f87;">open</span>(<span style="color: #87005f;">'test.xyz'</span>) <span style="color: #5f5f87;">as</span> fh:
-  <span style="color: #5f5f87;">print</span>(fh.read())
+<span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> fh:
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">print</span>(fh.read())
 </pre>
 </div>
 
 <pre class="example">
-3
-step:0 columns:position,charge dt:1 cell:10.0,10.0,10.0 
-0.000000 0.000000 0.000000 -1.0
-0.000000 0.000000 0.000000 -1.0
-0.000000 0.000000 0.000000 -1.0
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-ABZNSM", line 1, in &lt;module&gt;
+    from atooms.system import System, Cell, Particle
+ModuleNotFoundError: No module named 'atooms'
 
 </pre>
 
@@ -1062,31 +954,35 @@ step:0 columns:position,charge dt:1 cell:10.0,10.0,10.0
 The <code>fields</code> list can contain any particle property, even those defined dynamically at run time, such as the <code>charge</code> variable above which is not a predefined particle property!. When reading back the trajectory, the <code>charge</code> property is automatically recognized and added to the particle. 
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">with</span> TrajectoryXYZ(<span style="color: #87005f;">'test.xyz'</span>) <span style="color: #5f5f87;">as</span> th:
-  <span style="color: #000000;">system</span> = th[0]
-  <span style="color: #5f5f87;">print</span>(system.particle[0].charge)
+<pre class="src src-python"><span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> th:
+<span style="background-color: #f2f2f2;"> </span> <span style="color: #000000;">system</span> = th[0]
+<span style="background-color: #f2f2f2;"> </span> <span style="color: #483d8b;">print</span>(system.particle[0].charge)
 </pre>
 </div>
 
 <pre class="example">
--1.0
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-XUltqm", line 1, in &lt;module&gt;
+    with TrajectoryXYZ('test.xyz') as th:
+NameError: name 'TrajectoryXYZ' is not defined
 
 </pre>
 </div>
 </div>
 
-<div id="outline-container-orgb7ba7dc" class="outline-3">
-<h3 id="orgb7ba7dc">Conversion between trajectory formats</h3>
-<div class="outline-text-3" id="text-orgb7ba7dc">
+<div id="outline-container-org5ddb1c0" class="outline-3">
+<h3 id="org5ddb1c0">Conversion between trajectory formats</h3>
+<div class="outline-text-3" id="text-org5ddb1c0">
 <p>
 Atooms provides means to convert between trajectory various formats. At a very basic level, this requires opening the original trajectory for reading and the new one for writing using the desired trajectory class. Here we convert an xyz trajectory in a format suitable for the LAMMPS package
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.trajectory <span style="color: #5f5f87;">import</span> TrajectoryLAMMPS
-<span style="color: #5f5f87;">with</span> TrajectoryXYZ(<span style="color: #87005f;">'test.xyz'</span>) <span style="color: #5f5f87;">as</span> th_inp,\
-     TrajectoryLAMMPS(<span style="color: #87005f;">'test.lammps'</span>, <span style="color: #87005f;">'w'</span>) <span style="color: #5f5f87;">as</span> th_out:
-    <span style="color: #5f5f87;">for</span> i, system <span style="color: #5f5f87;">in</span> <span style="color: #5f5f87;">enumerate</span>(th_inp):
-        th_out.write(system, th_inp.steps[i])
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> TrajectoryLAMMPS
+<span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> th_inp,\
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>TrajectoryLAMMPS(<span style="color: #8b2252;">'test.lammps'</span>, <span style="color: #8b2252;">'w'</span>) <span style="color: #483d8b;">as</span> th_out:
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> i, system <span style="color: #483d8b;">in</span> <span style="color: #483d8b;">enumerate</span>(th_inp):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   th_out.write(system, th_inp.steps[i])
 </pre>
 </div>
 
@@ -1094,10 +990,20 @@ Atooms provides means to convert between trajectory various formats. At a very b
 The <code>convert()</code> function wraps the conversion in a more convenient interface
 </p>
 <div class="org-src-container">
-<pre class="src src-python"><span style="color: #5f5f87;">from</span> atooms.trajectory <span style="color: #5f5f87;">import</span> convert
-convert(TrajectoryXYZ(<span style="color: #87005f;">'test.xyz'</span>), TrajectoryLAMMPS, <span style="color: #87005f;">'test.lammps'</span>)
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> convert
+convert(TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>), TrajectoryLAMMPS, <span style="color: #8b2252;">'test.lammps'</span>)
 </pre>
 </div>
+
+<pre class="example">
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-XXd0JL", line 1, in &lt;module&gt;
+    from atooms.trajectory import convert
+ModuleNotFoundError: No module named 'atooms'
+
+</pre>
+
 <p>
 There are several optional parameters that allows to customize the trajectory output, see the function signature for more details.
 </p>
@@ -1115,9 +1021,107 @@ Although the script will do its best to guess the appropriate trajectory formats
 </p>
 </div>
 </div>
+
+<div id="outline-container-orge9f68af" class="outline-3">
+<h3 id="orge9f68af">Add and modify trajectory properties on the fly with callbacks</h3>
+<div class="outline-text-3" id="text-orge9f68af">
+<p>
+"Callbacks" are functions used to modify the properties of a trajectory on the fly. They accept a <code>System</code> instance as first positional argument, along with optional extra positional and keyword arguments, and return a modified <code>System</code>.
+</p>
+
+<p>
+As an example, suppose your trajectory did not provide any information about the cell side. You can add the information dynamically to all <code>System</code> objects read from the trajectory using the following callback
+</p>
+<div class="org-src-container">
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> Cell
+<span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">fix_missing_cell</span>(system, side):
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">system.cell</span> = Cell(side)
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">return</span> system
+</pre>
+</div>
+
+<p>
+Then we add the callback to the trajectory and provide the cell side (here L=10 along each dimensions) as argument. Reading the trajectory is then done as usual.
+</p>
+<div class="org-src-container">
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> TrajectoryXYZ
+<span style="color: #483d8b;">with</span> TrajectoryXYZ(<span style="color: #8b2252;">'test.xyz'</span>) <span style="color: #483d8b;">as</span> th:
+<span style="background-color: #f2f2f2;"> </span>   th.add_callback(fix_missing_cell, [10., 10., 10.])
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">for</span> system <span style="color: #483d8b;">in</span> th:
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">print</span>(system.cell.side)
+</pre>
+</div>
+
+<pre class="example">
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/tmp/babel-AXaw5Y/python-HqxUEt", line 1, in &lt;module&gt;
+    from atooms.trajectory import TrajectoryXYZ
+ModuleNotFoundError: No module named 'atooms'
+
+</pre>
+</div>
+</div>
+<div id="outline-container-orga48f937" class="outline-3">
+<h3 id="orga48f937">Extend trajectory classes</h3>
+<div class="outline-text-3" id="text-orga48f937">
+<p>
+Suppose you have a trajectory that looks almost like xyz, but differs in some way. You may want to customize the xyz trajectory format, so that your code can process the trajectory without manual intervention.
+</p>
+
+<p>
+For instance, your xyz file is <code>test.xyz</code> but the cell side information is stored in a separate file <code>test.xyz.cell</code>. We can proceed as before
+</p>
+<div class="org-src-container">
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> Cell
+
+<span style="color: #000000;">file_inp</span> = <span style="color: #8b2252;">'test.xyz'</span>
+<span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(file_inp + <span style="color: #8b2252;">'.cell'</span>) <span style="color: #483d8b;">as</span> fh:
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #b22222;"># </span><span style="color: #b22222;">Assume the cell file contains a string Lx Ly Lz</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #b22222;"># </span><span style="color: #b22222;">where Lx, Ly, Lz are the sides of the orthorombic cell</span>
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">side</span> = [<span style="color: #483d8b;">float</span>(L) <span style="color: #483d8b;">for</span> L <span style="color: #483d8b;">in</span> fh.read().split()]
+
+<span style="color: #483d8b;">with</span> TrajectoryXYZ(file_inp) <span style="color: #483d8b;">as</span> th:
+<span style="background-color: #f2f2f2;"> </span>   th.add_callback(fix_missing_cell, side)
+</pre>
+</div>
+
+<p>
+As a more permanent solution, you can define your own custom trajectory by subclassing <code>TrajectoryXYZ</code>. First, parse the cell information during the initialization stage (<code>read_init()</code>).
+</p>
+<div class="org-src-container">
+<pre class="src src-python"><span style="color: #483d8b;">from</span> atooms.system <span style="color: #483d8b;">import</span> Cell
+<span style="color: #483d8b;">from</span> atooms.trajectory <span style="color: #483d8b;">import</span> TrajectoryXYZ
+
+<span style="color: #483d8b;">class</span> <span style="color: #483d8b; font-weight: bold;">TrajectoryCustomXYZ</span>(TrajectoryXYZ):
+
+<span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">read_init</span>(<span style="color: #483d8b;">self</span>):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">super</span>().read_init()
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">with</span> <span style="color: #483d8b;">open</span>(<span style="color: #483d8b;">self</span>.filename + <span style="color: #8b2252;">'.cell'</span>) <span style="color: #483d8b;">as</span> fh:
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">self</span>._side = [<span style="color: #483d8b;">float</span>(L) <span style="color: #483d8b;">for</span> L <span style="color: #483d8b;">in</span> fh.read().split()]
+</pre>
+</div>
+
+<p>
+Then modify the <code>read_sample()</code> method, which reads a given frame of the trajectory.
+</p>
+<div class="org-src-container">
+<pre class="src src-python"><span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">def</span> <span style="color: #483d8b; font-weight: bold;">read_sample</span>(<span style="color: #483d8b;">self</span>, frame):
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">system</span> = <span style="color: #483d8b;">super</span>().read_sample()
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #000000;">system.cell</span> = Cell(<span style="color: #483d8b;">self</span>._side)
+<span style="background-color: #f2f2f2;"> </span>   <span style="background-color: #f2f2f2;"> </span>   <span style="color: #483d8b;">return</span> system
+</pre>
+</div>
+
+<p>
+Here we have assumed that the cell side is the same for all frames. The code would have to be adjusted to the more general case of a fluctuating cell.
+</p>
+</div>
+</div>
 </div>
 </div>
 <div id="postamble" class="status">
+<p class="date">Date: 1.0.0</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

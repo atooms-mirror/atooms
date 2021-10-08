@@ -165,11 +165,12 @@ class Timer(object):
 
     """Timer class inspired by John Paulett's stopwatch class."""
 
-    def __init__(self):
+    def __init__(self, iterations=None):
         self.__start_cpu = None
         self.__start_wall = None
         self.cpu_time = 0.0
         self.wall_time = 0.0
+        self.iterations = iterations
         try:
             self._wall_time_func = MPI.Wtime
         except:
@@ -199,6 +200,13 @@ class Timer(object):
 
     def __now_wall(self):
         return self._wall_time_func()
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, *args):
+        self.stop()
+        print(self)
 
 
 def clockit(func):
