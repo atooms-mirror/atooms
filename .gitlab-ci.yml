@@ -81,4 +81,5 @@ pages:
     paths:
       - public
   only:
-    - tags
+     - master
+#    - tags
