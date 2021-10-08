@@ -1,7 +1,7 @@
 #+title: Atooms tutorial
 #+subtitle: A Python framework for interacting particles
 #+author: Daniele Coslovich
-#+date: 1.0.0
+#+date: Version: >= 3.0.0
 #+html_doctype: html5
 #+options: html-style:nil
 * Setup                                                    :noexport:ARCHIVE:
