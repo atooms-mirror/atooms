@@ -17,7 +17,7 @@ test:	version
 docs:
 	pdoc -o docs/api --force --html --skip-errors $(PROJECT)
 	sed -i '/^$$/d' docs/index.html
-	orgnb.py docs/index.org docs/postprocessing.ipynb
+	orgnb.py docs/index.org docs/atooms.ipynb
 
 version:
 	@echo __commit__ = \'$(COMMIT_DIRTY)\' > atooms/core/_commit.py
