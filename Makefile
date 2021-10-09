@@ -14,9 +14,10 @@ test:	version
 	coverage run --source atooms -m unittest discover -s tests
 	coverage report --omit=atooms/backends/*py
 
-docs: clean
-	pdoc -o docs/api --force --html --skip-errors atooms
-	# sed -i '/^$/d' docs/tutorial/atooms.html
+docs:
+	pdoc -o docs/api --force --html --skip-errors $(PROJECT)
+	sed -i '/^$$/d' docs/index.html
+	orgnb.py docs/index.org docs/postprocessing.ipynb
 
 version:
 	@echo __commit__ = \'$(COMMIT_DIRTY)\' > atooms/core/_commit.py
