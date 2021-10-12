@@ -256,6 +256,7 @@ if __name__ == '__main__':
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser = add_first_last_skip(parser)
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='verbose output')
+    parser.set_defaults(func=lambda args: parser.print_help())
     subparsers = parser.add_subparsers()
 
     parser_convert = subparsers.add_parser('convert')
@@ -302,6 +303,5 @@ if __name__ == '__main__':
 
     # parse argument lists
     args = parser.parse_args()
-
     args.func(args)
 
