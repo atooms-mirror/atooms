@@ -15,6 +15,7 @@ test:	version
 	coverage report --omit=atooms/backends/*py
 
 docs:
+	rm -rf docs/api
 	pdoc -o docs/api --force --html --skip-errors $(PROJECT)
 	sed -i '/^$$/d' docs/index.html
 	orgnb.py docs/index.org docs/atooms.ipynb
