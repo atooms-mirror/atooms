@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>atooms.trajectory.xyz API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>atooms.trajectory.xyz</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># This file is part of atooms
+# Copyright 2010-2017, Daniele Coslovich
+
+import warnings
+import numpy
+import re
+import logging
+from copy import copy
+from .simple import TrajectorySimpleXYZ
+from .base import TrajectoryBase
+from .utils import gopen
+from atooms.core.utils import tipify
+from atooms.system.particle import Particle, distinct_species
+from atooms.system.cell import Cell
+from atooms.system import System
+
+log = logging.getLogger(__name__)
+
+# Lock to avoid race conditions on numpy array formatting
+_numpy_fmt_lock = False
+
+# Format callbacks
+
+def _update_radius(particle, data, meta):
+    particle.radius = float(data[0])
+    return data[1:]
+
+def _update_diameter(particle, data, meta):
+    particle.radius = float(data[0]) / 2
+    return data[1:]
+
+def _update_tag(particle, data, meta):
+    # Kept for backward compatibility. We should rather rely on
+    # tipified properties.
+    particle.tag = data[0:]
+    return data[1:]
+
+def _update_species(particle, data, meta):
+    particle.species = data[0]
+    return data[1:]
+
+def _update_position(particle, data, meta):
+    ndim = meta[&#39;ndim&#39;]
+    # It is crucial to assing position, not to use the slice!
+    # Otherwise we get a reference, not a copy.
+    particle.position = numpy.array(data[0:ndim], dtype=float)
+    return data[ndim:]
+
+def _update_position_unfolded(particle, data, meta):
+    from atooms.system.particle import _periodic_vector_unfolded
+    ndim = meta[&#39;ndim&#39;]
+    r = numpy.array(data[0:ndim], dtype=float)
+    particle.position_unfolded = r
+    if not &#39;position&#39; in meta[&#39;columns&#39;]:
+        particle.position = _periodic_vector_unfolded(r, meta[&#39;cell&#39;])
+    return data[ndim:]
+
+def _update_velocity(particle, data, meta):
+    ndim = meta[&#39;ndim&#39;]
+    particle.velocity = numpy.array(data[0:ndim], dtype=float)
+    return data[ndim:]
+
+def _update_neighbors_consume(particle, data, meta):
+    # Consume all entries in data
+    particle.neighbors = numpy.array(data, dtype=int)
+    return []
+
+def _update_neighbors(particle, data, meta):
+    # Extract comma separated entries in the first element of data
+    if len(data) &gt; 0 and &#39;,&#39; in data[0]:
+        if data[0] == &#39;,&#39;:
+            particle.neighbors = numpy.array([], dtype=int)
+        else:
+            particle.neighbors = numpy.array(data[0].split(&#39;,&#39;), dtype=int)
+        return data[1:]
+    else:
+        particle.neighbors = numpy.array(data, dtype=int)
+        return []
+
+def _optimize_arrays(variables):
+    &#34;&#34;&#34;
+    Optimize a list of particles properties (`variables`) by
+    collapsing successive instances of array elements.
+
+    Example: [&#39;id&#39;, &#39;x[0]&#39;, &#39;x[1]&#39;, &#39;x[2]&#39;] -&gt; [&#39;id&#39;, &#39;x&#39;]
+
+    &gt; print(scalars_to_arrays([&#39;pos[0]&#39;, &#39;pos[1]&#39;, &#39;pos[2]&#39;]))
+    &gt; print(scalars_to_arrays([&#39;pos[0]&#39;, &#39;pos[1]&#39;, &#39;vel[0]&#39;, &#39;vel[1]&#39;]))
+    &gt; print(scalars_to_arrays([&#39;pos[0]&#39;, &#39;pos[1]&#39;, &#39;pos[2]&#39;, &#39;hello&#39;]))
+    &gt; print(scalars_to_arrays([&#39;hello&#39;, &#39;pos[0]&#39;, &#39;pos[1]&#39;, &#39;pos[2]&#39;]))
+    &#34;&#34;&#34;
+    import re
+
+    new_variables = []
+    last_var, last_idx = None, None
+    for variable in variables:
+        # This will match array expressions, like position[0] or particle.position[0]
+        all_matches = re.findall(r&#39;([\._\w]+)\[(\d+)\]&#39;, variable)
+
+        # This must be a single couple (variable, index) or nothing
+        if len(all_matches) == 1:
+            match = all_matches[0]
+        elif len(all_matches) == 0:
+            match = []
+        else:
+            raise ValueError(&#39;problem with variable {}&#39;.format(variable))
+
+        if len(match) == 2:
+            # This is an array element
+            # Extract variable name and array index
+            var, idx = match[0], int(match[1])
+            if last_var != var and last_idx is not None:
+                # We have two consecutive different arrays
+                new_variables.append(last_var)
+            last_var = var
+            last_idx = idx
+        elif len(match) == 0:
+            var = variable
+            if last_var != var and last_idx is not None:
+                # We just finished reading an array variable
+                # We store it and also the next
+                new_variables.append(last_var)
+            new_variables.append(var)
+            last_var = var
+            last_idx = None
+        else:
+            raise ValueError(&#39;problem with variable {}&#39;.format(variable))
+
+    if last_idx is not None:
+        # We get here if the last was an array element
+        new_variables.append(last_var)
+    return new_variables
+
+
+class TrajectoryXYZ(TrajectoryBase):
+
+    &#34;&#34;&#34;
+    Trajectory with XYZ layout using memory leightweight indexed
+    access.
+    &#34;&#34;&#34;
+
+    suffix = &#39;xyz&#39;
+    callback_read = {&#39;particle.species&#39;: _update_species,
+                     &#39;particle.radius&#39;: _update_radius,
+                     &#39;particle.position&#39;: _update_position,
+                     &#39;particle.velocity&#39;: _update_velocity,
+                     &#39;particle.position_unfolded&#39;: _update_position_unfolded,
+                     &#39;position_unfolded&#39;: _update_position_unfolded,
+                     &#39;diameter&#39;: _update_diameter,
+                     &#39;name&#39;: _update_species,
+                     &#39;tag&#39;: _update_tag,
+                     &#39;neighbors&#39;: _update_neighbors,
+                     &#39;neighbors*&#39;: _update_neighbors_consume}
+
+    def __init__(self, filename, mode=&#39;r&#39;, alias=None, fields=None):
+        super(TrajectoryXYZ, self).__init__(filename, mode)
+        self.variables = [
+            &#39;particle.species&#39;,
+            &#39;particle.position&#39;
+        ]
+        if fields is not None:
+            self.variables = fields
+            warnings.warn(&#39;fields is deprecated, set trajectory.variables instead&#39;, FutureWarning)
+
+        self.alias = {} if alias is None else alias
+        # Internal variables
+        self._cell = None
+        # Trajectory file handle
+        self._file = gopen(self.filename, self.mode)
+
+        if self.mode == &#39;r&#39;:
+            # Internal index of lines via seek and tell.
+            self._setup_index()
+            # Initialize metadata and variables
+            self.metadata = self._read_comment(0)
+            if &#39;columns&#39; in self.metadata:
+                self.variables = self.metadata[&#39;columns&#39;]
+            self._original_variables = copy(self.variables)
+            self._active_read_callbacks = None
+
+    def _setup_format(self):
+        _fmt_any = &#39;{}&#39;
+        _fmt_float = &#39;{:.&#39; + str(self.precision) + &#39;f}&#39;
+
+        def array_fmt(arr):
+            &#34;&#34;&#34;Remove commas and [] from numpy array repr.&#34;&#34;&#34;
+            # Passing a scalar will trigger an error (gotcha: even
+            # when casting numpy array to list, the elements remain of
+            # numpy type and this function gets called! (4% slowdown)
+            if arr.dtype == &#39;float&#39;:
+                _fmt = _fmt_float
+            else:
+                _fmt = _fmt_any
+            if len(arr.shape) == 1:
+                return &#39; &#39;.join([_fmt.format(x) for x in arr])
+            elif len(arr.shape) == 0:
+                return _fmt.format(arr)
+            else:
+                raise ValueError(&#39;cannot write multi-dimensional array&#39;)
+
+        # Note: numpy.array2string is MUCH slower
+        numpy.set_string_function(array_fmt, repr=False)
+
+    def _setup_index(self):
+        &#34;&#34;&#34;Sample indexing via tell / seek&#34;&#34;&#34;
+        self._index_frame = []
+        self._index_header = []
+        self._file.seek(0)
+        while True:
+            line = self._file.tell()
+            data = self._file.readline()
+
+            # We break if file is over or we found an empty line
+            if not data:
+                break
+
+            # The first line contains the number of particles
+            # If something goes wrong, this could be the last line
+            # with the cell side (Lx,Ly,Lz). We do not support this anymore
+            try:
+                npart = int(data)
+                self._index_header.append(line)
+            except ValueError:
+                break
+
+            # Skip npart+1 lines, making sure we have read precisely
+            # that number of lines
+            data = self._file.readline()
+            line = self._file.tell()
+            for _ in range(npart):
+                data = self._file.readline()
+            # Store first line /after/ we have read the frame
+            # making sure the last we read was not emtpy
+            # Note that readline() returns an empty string on EOF
+            if len(data) &gt; 0:
+                self._index_frame.append(line)
+            else:
+                raise IOError(&#39;malformed xyz file [%s]&#39;, self.filename)
+
+        # Sanity tests
+        assert len(self._index_frame) &gt; 0, &#39;empty file {}&#39;.format(self._file)
+        assert len(self._index_header) &gt; 0, &#39;empty file {}&#39;.format(self._file)
+
+    # Overwrite the variables setter to optimize the variables
+    @TrajectoryBase.variables.setter
+    def variables(self, value):
+        from atooms.core.utils import canonicalize
+
+        self._variables = canonicalize(value, self.thesaurus)
+        self._variables = _optimize_arrays(self._variables)
+
+    def read_steps(self):
+        &#34;&#34;&#34;Find steps list.&#34;&#34;&#34;
+        steps = []
+        for frame in range(len(self._index_frame)):
+            meta = self._read_comment(frame)
+            try:
+                steps.append(meta[&#39;step&#39;])
+            except KeyError:
+                # If no step info is found, we add steps sequentially
+                steps.append(frame+1)
+        return steps
+
+    def _read_comment(self, frame):
+        &#34;&#34;&#34;
+        Internal xyz method to get header metadata from comment line of
+        given `frame`.
+
+        We assume metadata fmt is a space-separated sequence of comma
+        separated entries such as:
+
+        columns:id,x,y,z step:10
+        columns=id,x,y,z step=10
+        &#34;&#34;&#34;
+        # Go to line and skip Npart info
+        self._file.seek(self._index_header[frame])
+        npart = int(self._file.readline())
+        data = self._file.readline()
+        meta = {}
+        meta[&#39;npart&#39;] = npart
+
+        # Read metadata line
+        if not (&#39;=&#39; in data or &#39;:&#39; in data):
+            # The comment line contains a list of unspecified fields
+            # We add them to the dict using a sequential integer key
+            for i, value in enumerate(data.split()):
+                meta[i] = tipify(value)
+
+        else:
+            # The comment line contains self descriptive fields
+            # Remove spaces around : or = and replace = by :
+            data = re.sub(r&#39;\s*[=:]\s*&#39;, &#39;:&#39;, data)
+            # Tolerate spaces between entries of vectors
+            data = re.sub(r&#39;\s*,\s*&#39;, &#39;,&#39;, data)
+
+            # Fill metadata dictionary
+            for e in data.split():
+                s = re.search(r&#39;(\S+):(\S+)&#39;, e)
+                if s is not None:
+                    tag, data = s.group(1), s.group(2)
+                    # Remove dangling commas
+                    data = data.strip(&#39;,&#39;)
+                    # If there are commas, this is a list, else a scalar.
+                    # We convert the string to appropriate types
+                    if &#39;,&#39; in data:
+                        meta[tag] = [tipify(_) for _ in data.split(&#39;,&#39;)]
+                    else:
+                        meta[tag] = tipify(data)
+
+        # Apply an alias dict to tags, e.g. to add step if Cfg was found instead
+        for alias, tag in self.alias.items():
+            try:
+                meta[tag] = meta[alias]
+            except KeyError:
+                pass
+
+        # Fix dimensions based on side of cell.
+        # Fallback to ndim metadata or 3.
+        try:
+            if &#39;ndim&#39; not in meta:
+                meta[&#39;ndim&#39;] = len(meta[&#39;cell&#39;])
+        except TypeError:
+            meta[&#39;ndim&#39;] = 1  # it is a scalar
+        except KeyError:
+            meta[&#39;ndim&#39;] = 3  # default
+
+        # Make sure columns is a list
+        if &#39;columns&#39; in meta:
+            if not isinstance(meta[&#39;columns&#39;], list):
+                meta[&#39;columns&#39;] = [meta[&#39;columns&#39;]]
+
+        return meta
+
+    def _setup_read_callbacks(self):
+        &#34;&#34;&#34;
+        Return a list of callbacks to read the variables given in self.variables
+        &#34;&#34;&#34;
+        # We only call this method once, when the we read the first sample
+        # If self.variables change after setup, we ignore the change
+        # Similarly, we assume that columns do not change
+        if self._active_read_callbacks is not None:
+            return self._active_read_callbacks
+
+        # Define active callbacks before reading the sample. We
+        # handle the case in which the user removed some variables,
+        # and self.variables is a subset of variables_in_files
+        callbacks = []
+        test_particle = Particle()
+        for key in self._original_variables:
+            if key not in self.variables:
+                # If the key is not the in original list of variables
+                # the user has removed it from the list and we skip it
+                nsafe = 20
+                cbk = self.callback_read[key]
+                consumed_entries = nsafe - len(cbk(test_particle, range(nsafe), self.metadata))
+                # Trick. We instantiate dynamically a skip function
+                # with the right number of consumed entries
+                namespace = {}
+                exec(&#34;&#34;&#34;
+def skip(p, data, meta):
+    return data[{}:]
+&#34;&#34;&#34;.format(consumed_entries), namespace)
+                callbacks.append(namespace[&#39;skip&#39;])
+            elif key in self.callback_read:
+                # The key is associated to a explicit callback
+                callbacks.append(self.callback_read[key])
+            else:
+                # We throw the field in an particle.
+                # Trick. We instantiate dynamically a fallback function
+                # to avoid adding `key` to the other callbacks&#39; interface
+                namespace = {}
+                exec(&#34;&#34;&#34;
+from atooms.core.utils import tipify
+def fallback(p, data, meta):
+    p.__dict__[&#39;%s&#39;] = tipify(data[0])
+    return data[1:]
+&#34;&#34;&#34; % key, namespace)
+                callbacks.append(namespace[&#39;fallback&#39;])
+
+        self._active_read_callbacks = callbacks
+
+    def read_system(self, frame):
+        # Define actual list of callbacks
+        self._setup_read_callbacks()
+        callbacks = self._active_read_callbacks
+        # Read metadata of this frame
+        db = self._read_comment(frame)
+
+        # Read frame now
+        self._file.seek(self._index_frame[frame])
+        particle = []
+        for _ in range(db[&#39;npart&#39;]):
+            p = Particle()
+            # Note: we cannot optimize by shifting an index instead of
+            # cropping lists all the time
+            data = self._file.readline().split()
+            for cbk in callbacks:
+                data = cbk(p, data, db)
+            particle.append(p)
+
+        # Fix the masses.
+        # We assume masses read from the header are sorted by species name.
+        # The mass dbdata must be adjusted to the given frame.
+        if &#39;mass&#39; in db:
+            if isinstance(db[&#39;mass&#39;], list) or isinstance(db[&#39;mass&#39;], tuple):
+                species = distinct_species(particle)
+                # We must have as many mass entries as species
+                if len(species) != len(db[&#39;mass&#39;]):
+                    raise ValueError(&#39;mass metadata issue %s, %s&#39; %
+                                     (species, db[&#39;mass&#39;]))
+                db_species = {}
+                for key, value in zip(species, db[&#39;mass&#39;]):
+                    db_species[key] = value
+                for p in particle:
+                    p.mass = float(db_species[p.species])
+            else:
+                for p in particle:
+                    p.mass = float(db[&#39;mass&#39;])
+
+        # Add cell info
+        if &#39;cell&#39; in db:
+            cell = Cell(db[&#39;cell&#39;])
+        else:
+            cell = None
+
+        return System(particle, cell)
+
+    def read_timestep(self):
+        if &#39;dt&#39; in self.metadata:
+            return self.metadata[&#39;dt&#39;]
+        elif &#39;timestep&#39; in self.metadata:
+            return self.metadata[&#39;timestep&#39;]
+        else:
+            return 1.0
+
+    def _comment(self, step, system):
+        # Concatenate metadata in comment line
+        line = &#39;step:{} &#39;.format(step)
+        line += &#39;columns:{} &#39;.format(&#39;,&#39;.join(self.variables))
+        if self.timestep is not None:
+            line += &#39;dt:{:g} &#39;.format(self.timestep)
+        if system.cell is not None:
+            line += &#39;cell:{} &#39;.format(&#39;,&#39;.join([str(x) for x in system.cell.side]))
+        for entry in self.metadata:
+            line += &#39;{}:{} &#39;.format(entry, self.metadata[entry])
+        return line
+
+    def write_system(self, system, step):
+        # Make sure fields are expanded
+        global _numpy_fmt_lock
+        _numpy_fmt_lock = True
+        self._setup_format()
+        self._file.write(&#39;%d\n&#39; % len(system.particle))
+        # column in comment used to have non-canonical variables
+        # we could restore it by adding a de_canonicalize() function
+        # or by storing a copy of the non-canonical variables
+        self._file.write(self._comment(step, system) + &#39;\n&#39;)
+        fmt = &#39; &#39;.join([&#39;{0.&#39; + variable.split(&#39;particle.&#39;)[-1] + &#39;}&#39; for variable in self.variables]) + &#39;\n&#39;
+        for i, p in enumerate(system.particle):
+            p._index = i
+            p._step = step
+            self._file.write(fmt.format(p))
+        _numpy_fmt_lock = False
+
+    def close(self):
+        self._file.close()
+        # Restore numpy formatting defaults
+        if not _numpy_fmt_lock:
+            numpy.set_string_function(None, False)
+            numpy.set_string_function(None, True)
+
+
+def _add_neighbors_to_system(system, offset):
+    for p in system.particle:
+        p.neighbors -= offset
+    system.neighbors = [p.neighbors for p in system.particle]
+    return system
+
+
+class TrajectoryNeighbors(TrajectoryXYZ):
+
+    &#34;&#34;&#34;
+    Neighbors trajectory.
+
+    By default, for reading we assume an xyz file with space-separated
+    integers indicating the particles indices. For writing, we use
+    comma-separated entries (no space).
+    &#34;&#34;&#34;
+
+    def __init__(self, filename, mode=&#39;r&#39;, fields=None, offset=1):
+        super(TrajectoryNeighbors, self).__init__(filename, mode=mode,
+                                                  alias={&#39;time&#39;: &#39;step&#39;})
+        self._offset = offset
+        self.thesaurus = {&#39;neighbors&#39;: &#39;particle.neighbors&#39;,
+                          &#39;neighbors*&#39;: &#39;particle.neighbors*&#39;, }
+        if mode == &#39;w&#39;:
+            self.variables = [&#39;neighbors&#39;] if fields is None else fields
+        if mode == &#39;r&#39; and &#39;columns&#39; not in self.metadata:
+            self.variables = [&#39;neighbors*&#39;]
+        self.callback_read[&#39;particle.neighbors&#39;] = _update_neighbors
+        self.callback_read[&#39;particle.neighbors*&#39;] = _update_neighbors_consume
+        self.add_callback(_add_neighbors_to_system, self._offset)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="atooms.trajectory.xyz.TrajectoryNeighbors"><code class="flex name class">
+<span>class <span class="ident">TrajectoryNeighbors</span></span>
+<span>(</span><span>filename, mode='r', fields=None, offset=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Neighbors trajectory.</p>
+<p>By default, for reading we assume an xyz file with space-separated
+integers indicating the particles indices. For writing, we use
+comma-separated entries (no space).</p>
+<p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TrajectoryNeighbors(TrajectoryXYZ):
+
+    &#34;&#34;&#34;
+    Neighbors trajectory.
+
+    By default, for reading we assume an xyz file with space-separated
+    integers indicating the particles indices. For writing, we use
+    comma-separated entries (no space).
+    &#34;&#34;&#34;
+
+    def __init__(self, filename, mode=&#39;r&#39;, fields=None, offset=1):
+        super(TrajectoryNeighbors, self).__init__(filename, mode=mode,
+                                                  alias={&#39;time&#39;: &#39;step&#39;})
+        self._offset = offset
+        self.thesaurus = {&#39;neighbors&#39;: &#39;particle.neighbors&#39;,
+                          &#39;neighbors*&#39;: &#39;particle.neighbors*&#39;, }
+        if mode == &#39;w&#39;:
+            self.variables = [&#39;neighbors&#39;] if fields is None else fields
+        if mode == &#39;r&#39; and &#39;columns&#39; not in self.metadata:
+            self.variables = [&#39;neighbors*&#39;]
+        self.callback_read[&#39;particle.neighbors&#39;] = _update_neighbors
+        self.callback_read[&#39;particle.neighbors*&#39;] = _update_neighbors_consume
+        self.add_callback(_add_neighbors_to_system, self._offset)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="atooms.trajectory.xyz.TrajectoryXYZ" href="#atooms.trajectory.xyz.TrajectoryXYZ">TrajectoryXYZ</a></li>
+<li><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="atooms.trajectory.xyz.TrajectoryXYZ" href="#atooms.trajectory.xyz.TrajectoryXYZ">TrajectoryXYZ</a></b></code>:
+<ul class="hlist">
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_steps" href="#atooms.trajectory.xyz.TrajectoryXYZ.read_steps">read_steps</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="atooms.trajectory.xyz.TrajectoryXYZ"><code class="flex name class">
+<span>class <span class="ident">TrajectoryXYZ</span></span>
+<span>(</span><span>filename, mode='r', alias=None, fields=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Trajectory with XYZ layout using memory leightweight indexed
+access.</p>
+<p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TrajectoryXYZ(TrajectoryBase):
+
+    &#34;&#34;&#34;
+    Trajectory with XYZ layout using memory leightweight indexed
+    access.
+    &#34;&#34;&#34;
+
+    suffix = &#39;xyz&#39;
+    callback_read = {&#39;particle.species&#39;: _update_species,
+                     &#39;particle.radius&#39;: _update_radius,
+                     &#39;particle.position&#39;: _update_position,
+                     &#39;particle.velocity&#39;: _update_velocity,
+                     &#39;particle.position_unfolded&#39;: _update_position_unfolded,
+                     &#39;position_unfolded&#39;: _update_position_unfolded,
+                     &#39;diameter&#39;: _update_diameter,
+                     &#39;name&#39;: _update_species,
+                     &#39;tag&#39;: _update_tag,
+                     &#39;neighbors&#39;: _update_neighbors,
+                     &#39;neighbors*&#39;: _update_neighbors_consume}
+
+    def __init__(self, filename, mode=&#39;r&#39;, alias=None, fields=None):
+        super(TrajectoryXYZ, self).__init__(filename, mode)
+        self.variables = [
+            &#39;particle.species&#39;,
+            &#39;particle.position&#39;
+        ]
+        if fields is not None:
+            self.variables = fields
+            warnings.warn(&#39;fields is deprecated, set trajectory.variables instead&#39;, FutureWarning)
+
+        self.alias = {} if alias is None else alias
+        # Internal variables
+        self._cell = None
+        # Trajectory file handle
+        self._file = gopen(self.filename, self.mode)
+
+        if self.mode == &#39;r&#39;:
+            # Internal index of lines via seek and tell.
+            self._setup_index()
+            # Initialize metadata and variables
+            self.metadata = self._read_comment(0)
+            if &#39;columns&#39; in self.metadata:
+                self.variables = self.metadata[&#39;columns&#39;]
+            self._original_variables = copy(self.variables)
+            self._active_read_callbacks = None
+
+    def _setup_format(self):
+        _fmt_any = &#39;{}&#39;
+        _fmt_float = &#39;{:.&#39; + str(self.precision) + &#39;f}&#39;
+
+        def array_fmt(arr):
+            &#34;&#34;&#34;Remove commas and [] from numpy array repr.&#34;&#34;&#34;
+            # Passing a scalar will trigger an error (gotcha: even
+            # when casting numpy array to list, the elements remain of
+            # numpy type and this function gets called! (4% slowdown)
+            if arr.dtype == &#39;float&#39;:
+                _fmt = _fmt_float
+            else:
+                _fmt = _fmt_any
+            if len(arr.shape) == 1:
+                return &#39; &#39;.join([_fmt.format(x) for x in arr])
+            elif len(arr.shape) == 0:
+                return _fmt.format(arr)
+            else:
+                raise ValueError(&#39;cannot write multi-dimensional array&#39;)
+
+        # Note: numpy.array2string is MUCH slower
+        numpy.set_string_function(array_fmt, repr=False)
+
+    def _setup_index(self):
+        &#34;&#34;&#34;Sample indexing via tell / seek&#34;&#34;&#34;
+        self._index_frame = []
+        self._index_header = []
+        self._file.seek(0)
+        while True:
+            line = self._file.tell()
+            data = self._file.readline()
+
+            # We break if file is over or we found an empty line
+            if not data:
+                break
+
+            # The first line contains the number of particles
+            # If something goes wrong, this could be the last line
+            # with the cell side (Lx,Ly,Lz). We do not support this anymore
+            try:
+                npart = int(data)
+                self._index_header.append(line)
+            except ValueError:
+                break
+
+            # Skip npart+1 lines, making sure we have read precisely
+            # that number of lines
+            data = self._file.readline()
+            line = self._file.tell()
+            for _ in range(npart):
+                data = self._file.readline()
+            # Store first line /after/ we have read the frame
+            # making sure the last we read was not emtpy
+            # Note that readline() returns an empty string on EOF
+            if len(data) &gt; 0:
+                self._index_frame.append(line)
+            else:
+                raise IOError(&#39;malformed xyz file [%s]&#39;, self.filename)
+
+        # Sanity tests
+        assert len(self._index_frame) &gt; 0, &#39;empty file {}&#39;.format(self._file)
+        assert len(self._index_header) &gt; 0, &#39;empty file {}&#39;.format(self._file)
+
+    # Overwrite the variables setter to optimize the variables
+    @TrajectoryBase.variables.setter
+    def variables(self, value):
+        from atooms.core.utils import canonicalize
+
+        self._variables = canonicalize(value, self.thesaurus)
+        self._variables = _optimize_arrays(self._variables)
+
+    def read_steps(self):
+        &#34;&#34;&#34;Find steps list.&#34;&#34;&#34;
+        steps = []
+        for frame in range(len(self._index_frame)):
+            meta = self._read_comment(frame)
+            try:
+                steps.append(meta[&#39;step&#39;])
+            except KeyError:
+                # If no step info is found, we add steps sequentially
+                steps.append(frame+1)
+        return steps
+
+    def _read_comment(self, frame):
+        &#34;&#34;&#34;
+        Internal xyz method to get header metadata from comment line of
+        given `frame`.
+
+        We assume metadata fmt is a space-separated sequence of comma
+        separated entries such as:
+
+        columns:id,x,y,z step:10
+        columns=id,x,y,z step=10
+        &#34;&#34;&#34;
+        # Go to line and skip Npart info
+        self._file.seek(self._index_header[frame])
+        npart = int(self._file.readline())
+        data = self._file.readline()
+        meta = {}
+        meta[&#39;npart&#39;] = npart
+
+        # Read metadata line
+        if not (&#39;=&#39; in data or &#39;:&#39; in data):
+            # The comment line contains a list of unspecified fields
+            # We add them to the dict using a sequential integer key
+            for i, value in enumerate(data.split()):
+                meta[i] = tipify(value)
+
+        else:
+            # The comment line contains self descriptive fields
+            # Remove spaces around : or = and replace = by :
+            data = re.sub(r&#39;\s*[=:]\s*&#39;, &#39;:&#39;, data)
+            # Tolerate spaces between entries of vectors
+            data = re.sub(r&#39;\s*,\s*&#39;, &#39;,&#39;, data)
+
+            # Fill metadata dictionary
+            for e in data.split():
+                s = re.search(r&#39;(\S+):(\S+)&#39;, e)
+                if s is not None:
+                    tag, data = s.group(1), s.group(2)
+                    # Remove dangling commas
+                    data = data.strip(&#39;,&#39;)
+                    # If there are commas, this is a list, else a scalar.
+                    # We convert the string to appropriate types
+                    if &#39;,&#39; in data:
+                        meta[tag] = [tipify(_) for _ in data.split(&#39;,&#39;)]
+                    else:
+                        meta[tag] = tipify(data)
+
+        # Apply an alias dict to tags, e.g. to add step if Cfg was found instead
+        for alias, tag in self.alias.items():
+            try:
+                meta[tag] = meta[alias]
+            except KeyError:
+                pass
+
+        # Fix dimensions based on side of cell.
+        # Fallback to ndim metadata or 3.
+        try:
+            if &#39;ndim&#39; not in meta:
+                meta[&#39;ndim&#39;] = len(meta[&#39;cell&#39;])
+        except TypeError:
+            meta[&#39;ndim&#39;] = 1  # it is a scalar
+        except KeyError:
+            meta[&#39;ndim&#39;] = 3  # default
+
+        # Make sure columns is a list
+        if &#39;columns&#39; in meta:
+            if not isinstance(meta[&#39;columns&#39;], list):
+                meta[&#39;columns&#39;] = [meta[&#39;columns&#39;]]
+
+        return meta
+
+    def _setup_read_callbacks(self):
+        &#34;&#34;&#34;
+        Return a list of callbacks to read the variables given in self.variables
+        &#34;&#34;&#34;
+        # We only call this method once, when the we read the first sample
+        # If self.variables change after setup, we ignore the change
+        # Similarly, we assume that columns do not change
+        if self._active_read_callbacks is not None:
+            return self._active_read_callbacks
+
+        # Define active callbacks before reading the sample. We
+        # handle the case in which the user removed some variables,
+        # and self.variables is a subset of variables_in_files
+        callbacks = []
+        test_particle = Particle()
+        for key in self._original_variables:
+            if key not in self.variables:
+                # If the key is not the in original list of variables
+                # the user has removed it from the list and we skip it
+                nsafe = 20
+                cbk = self.callback_read[key]
+                consumed_entries = nsafe - len(cbk(test_particle, range(nsafe), self.metadata))
+                # Trick. We instantiate dynamically a skip function
+                # with the right number of consumed entries
+                namespace = {}
+                exec(&#34;&#34;&#34;
+def skip(p, data, meta):
+    return data[{}:]
+&#34;&#34;&#34;.format(consumed_entries), namespace)
+                callbacks.append(namespace[&#39;skip&#39;])
+            elif key in self.callback_read:
+                # The key is associated to a explicit callback
+                callbacks.append(self.callback_read[key])
+            else:
+                # We throw the field in an particle.
+                # Trick. We instantiate dynamically a fallback function
+                # to avoid adding `key` to the other callbacks&#39; interface
+                namespace = {}
+                exec(&#34;&#34;&#34;
+from atooms.core.utils import tipify
+def fallback(p, data, meta):
+    p.__dict__[&#39;%s&#39;] = tipify(data[0])
+    return data[1:]
+&#34;&#34;&#34; % key, namespace)
+                callbacks.append(namespace[&#39;fallback&#39;])
+
+        self._active_read_callbacks = callbacks
+
+    def read_system(self, frame):
+        # Define actual list of callbacks
+        self._setup_read_callbacks()
+        callbacks = self._active_read_callbacks
+        # Read metadata of this frame
+        db = self._read_comment(frame)
+
+        # Read frame now
+        self._file.seek(self._index_frame[frame])
+        particle = []
+        for _ in range(db[&#39;npart&#39;]):
+            p = Particle()
+            # Note: we cannot optimize by shifting an index instead of
+            # cropping lists all the time
+            data = self._file.readline().split()
+            for cbk in callbacks:
+                data = cbk(p, data, db)
+            particle.append(p)
+
+        # Fix the masses.
+        # We assume masses read from the header are sorted by species name.
+        # The mass dbdata must be adjusted to the given frame.
+        if &#39;mass&#39; in db:
+            if isinstance(db[&#39;mass&#39;], list) or isinstance(db[&#39;mass&#39;], tuple):
+                species = distinct_species(particle)
+                # We must have as many mass entries as species
+                if len(species) != len(db[&#39;mass&#39;]):
+                    raise ValueError(&#39;mass metadata issue %s, %s&#39; %
+                                     (species, db[&#39;mass&#39;]))
+                db_species = {}
+                for key, value in zip(species, db[&#39;mass&#39;]):
+                    db_species[key] = value
+                for p in particle:
+                    p.mass = float(db_species[p.species])
+            else:
+                for p in particle:
+                    p.mass = float(db[&#39;mass&#39;])
+
+        # Add cell info
+        if &#39;cell&#39; in db:
+            cell = Cell(db[&#39;cell&#39;])
+        else:
+            cell = None
+
+        return System(particle, cell)
+
+    def read_timestep(self):
+        if &#39;dt&#39; in self.metadata:
+            return self.metadata[&#39;dt&#39;]
+        elif &#39;timestep&#39; in self.metadata:
+            return self.metadata[&#39;timestep&#39;]
+        else:
+            return 1.0
+
+    def _comment(self, step, system):
+        # Concatenate metadata in comment line
+        line = &#39;step:{} &#39;.format(step)
+        line += &#39;columns:{} &#39;.format(&#39;,&#39;.join(self.variables))
+        if self.timestep is not None:
+            line += &#39;dt:{:g} &#39;.format(self.timestep)
+        if system.cell is not None:
+            line += &#39;cell:{} &#39;.format(&#39;,&#39;.join([str(x) for x in system.cell.side]))
+        for entry in self.metadata:
+            line += &#39;{}:{} &#39;.format(entry, self.metadata[entry])
+        return line
+
+    def write_system(self, system, step):
+        # Make sure fields are expanded
+        global _numpy_fmt_lock
+        _numpy_fmt_lock = True
+        self._setup_format()
+        self._file.write(&#39;%d\n&#39; % len(system.particle))
+        # column in comment used to have non-canonical variables
+        # we could restore it by adding a de_canonicalize() function
+        # or by storing a copy of the non-canonical variables
+        self._file.write(self._comment(step, system) + &#39;\n&#39;)
+        fmt = &#39; &#39;.join([&#39;{0.&#39; + variable.split(&#39;particle.&#39;)[-1] + &#39;}&#39; for variable in self.variables]) + &#39;\n&#39;
+        for i, p in enumerate(system.particle):
+            p._index = i
+            p._step = step
+            self._file.write(fmt.format(p))
+        _numpy_fmt_lock = False
+
+    def close(self):
+        self._file.close()
+        # Restore numpy formatting defaults
+        if not _numpy_fmt_lock:
+            numpy.set_string_function(None, False)
+            numpy.set_string_function(None, True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="atooms.trajectory.exyz.TrajectoryEXYZ" href="exyz.html#atooms.trajectory.exyz.TrajectoryEXYZ">TrajectoryEXYZ</a></li>
+<li><a title="atooms.trajectory.rumd.TrajectoryRUMD" href="rumd.html#atooms.trajectory.rumd.TrajectoryRUMD">TrajectoryRUMD</a></li>
+<li><a title="atooms.trajectory.xyz.TrajectoryNeighbors" href="#atooms.trajectory.xyz.TrajectoryNeighbors">TrajectoryNeighbors</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="atooms.trajectory.xyz.TrajectoryXYZ.callback_read"><code class="name">var <span class="ident">callback_read</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="atooms.trajectory.xyz.TrajectoryXYZ.suffix"><code class="name">var <span class="ident">suffix</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="atooms.trajectory.xyz.TrajectoryXYZ.variables"><code class="name">var <span class="ident">variables</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def variables(self):
+    return self._variables</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="atooms.trajectory.xyz.TrajectoryXYZ.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    self._file.close()
+    # Restore numpy formatting defaults
+    if not _numpy_fmt_lock:
+        numpy.set_string_function(None, False)
+        numpy.set_string_function(None, True)</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.xyz.TrajectoryXYZ.read_steps"><code class="name flex">
+<span>def <span class="ident">read_steps</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Find steps list.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_steps(self):
+    &#34;&#34;&#34;Find steps list.&#34;&#34;&#34;
+    steps = []
+    for frame in range(len(self._index_frame)):
+        meta = self._read_comment(frame)
+        try:
+            steps.append(meta[&#39;step&#39;])
+        except KeyError:
+            # If no step info is found, we add steps sequentially
+            steps.append(frame+1)
+    return steps</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.xyz.TrajectoryXYZ.read_timestep"><code class="name flex">
+<span>def <span class="ident">read_timestep</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_timestep(self):
+    if &#39;dt&#39; in self.metadata:
+        return self.metadata[&#39;dt&#39;]
+    elif &#39;timestep&#39; in self.metadata:
+        return self.metadata[&#39;timestep&#39;]
+    else:
+        return 1.0</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="atooms.trajectory" href="index.html">atooms.trajectory</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="atooms.trajectory.xyz.TrajectoryNeighbors" href="#atooms.trajectory.xyz.TrajectoryNeighbors">TrajectoryNeighbors</a></code></h4>
+</li>
+<li>
+<h4><code><a title="atooms.trajectory.xyz.TrajectoryXYZ" href="#atooms.trajectory.xyz.TrajectoryXYZ">TrajectoryXYZ</a></code></h4>
+<ul class="two-column">
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.callback_read" href="#atooms.trajectory.xyz.TrajectoryXYZ.callback_read">callback_read</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.close" href="#atooms.trajectory.xyz.TrajectoryXYZ.close">close</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_steps" href="#atooms.trajectory.xyz.TrajectoryXYZ.read_steps">read_steps</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_timestep" href="#atooms.trajectory.xyz.TrajectoryXYZ.read_timestep">read_timestep</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.suffix" href="#atooms.trajectory.xyz.TrajectoryXYZ.suffix">suffix</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.variables" href="#atooms.trajectory.xyz.TrajectoryXYZ.variables">variables</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

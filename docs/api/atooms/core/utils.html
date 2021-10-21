@@ -1,0 +1,1291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>atooms.core.utils API documentation</title>
+<meta name="description" content="Helper functions" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>atooms.core.utils</code></h1>
+</header>
+<section id="section-intro">
+<p>Helper functions</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Helper functions&#34;&#34;&#34;
+
+import os
+import sys
+import shutil
+import time
+import logging
+
+
+# Logging facilities
+
+LOGGER_NAME = &#39;atooms&#39;
+DEFAULT_LOGGING_FORMAT = &#39;[%(levelname)s/%(processName)s] %(message)s&#39;
+
+_logger = None
+
+# We define the logging handler here to avoid &#34;No handler found&#34; warnings.
+# Client classes should use this instead of logging.NullHandler
+try:
+    from logging import NullHandler
+except ImportError:
+    # Python &lt;= 2.6
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
+
+def log_to_stderr(level=None):
+    &#34;&#34;&#34;
+    Turn on logging and add a handler which prints to stderr
+    &#34;&#34;&#34;
+    logger = logging.getLogger(LOGGER_NAME)
+    formatter = logging.Formatter(DEFAULT_LOGGING_FORMAT)
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    if level:
+        logger.setLevel(level)
+    return _logger
+
+
+# Parallel environment
+
+try:
+    from mpi4py import MPI
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
+    sys_excepthook = sys.excepthook
+
+    def mpi_excepthook(v, t, tb):
+        sys_excepthook(v, t, tb)
+        MPI.COMM_WORLD.Abort(1)
+
+    sys.excepthook = mpi_excepthook
+except:
+    comm = None
+    rank = 0
+    size = 1
+
+
+def barrier():
+    &#34;&#34;&#34;Syncronize processes in parallel.&#34;&#34;&#34;
+    if size &gt; 1:
+        comm.barrier()
+
+
+# Utility functions to mimic bash directory / file handling
+
+def mkdir(dirname):
+    &#34;&#34;&#34;
+    Create a directory `dirname` or a list `dirname` of directories,
+    silently ignoring existing directories.
+
+    This is just a wrapper to `os.makedirs`. All intermediate
+    subdirectories are created as needed.
+    &#34;&#34;&#34;
+    if dirname is None:
+        return
+    if isinstance(dirname, str):
+        dirs = [dirname]
+    else:
+        dirs = dirname
+
+    for dd in dirs:
+        try:
+            os.makedirs(dd)
+        except OSError:
+            pass
+
+
+def rmd(files):
+    &#34;&#34;&#34;Totally silent wrapper to shutil.rmtree.&#34;&#34;&#34;
+    try:
+        shutil.rmtree(files)
+    except:
+        pass
+
+
+def rmf(files):
+    &#34;&#34;&#34;
+    Remove `files` without complaining.
+
+    The variable `files` can be a list or tuple of paths or a single
+    string parseable by glob.glob().
+    &#34;&#34;&#34;
+    import glob
+    try:
+        # This a single pattern
+        for pathname in glob.glob(files):
+            try:
+                os.remove(pathname)
+            except OSError:
+                # File does not exists or it is a folder
+                pass
+    except (TypeError, AttributeError):
+        # This is a list
+        for pathname in files:
+            try:
+                os.remove(pathname)
+            except OSError:
+                # File does not exists or it is a folder
+                pass
+
+
+def cp(finp, fout):
+    &#34;&#34;&#34;
+    Copy `finp` to `fout`.
+
+    Wrapper to shutil.copy().
+    &#34;&#34;&#34;
+    # Avoid overwriting file
+    if finp == fout:
+        return
+    shutil.copy(finp, fout)
+
+
+def wget(url, output_dir):
+    &#34;&#34;&#34;
+    Python implementation of bash wget
+    &#34;&#34;&#34;
+    import os
+    import shutil
+    try:
+        from urllib.request import urlopen  # Python 3
+    except ImportError:
+        from urllib2 import urlopen  # Python 2
+
+    basename = os.path.basename(url)
+    output_file = os.path.join(output_dir, basename)
+    response = urlopen(url)
+    length = 16*1024
+    with open(output_file, &#39;wb&#39;) as fh:
+        shutil.copyfileobj(response, fh, length)
+
+
+# Alias of wget
+download = wget
+
+
+# Timings
+
+class Timer(object):
+
+    &#34;&#34;&#34;Timer class inspired by John Paulett&#39;s stopwatch class.&#34;&#34;&#34;
+
+    def __init__(self, iterations=None):
+        self.__start_cpu = None
+        self.__start_wall = None
+        self.cpu_time = 0.0
+        self.wall_time = 0.0
+        self.iterations = iterations
+        try:
+            self._wall_time_func = MPI.Wtime
+        except:
+            self._wall_time_func = time.time
+
+    def __str__(self):
+        return &#39;timer wall time [s]: {:.2f}, cpu time [s]: {:.2f}&#39;.format(self.wall_time, self.cpu_time)
+
+    def __repr__(self):
+        return &#39;timer wall time [s]: {:.2f}, cpu time [s]: {:.2f}&#39;.format(self.wall_time, self.cpu_time)
+
+    def start(self):
+        self.__start_cpu = self.__now_cpu()
+        self.__start_wall = self.__now_wall()
+
+    def stop(self):
+        if self.__start_cpu is None:
+            raise ValueError(&#34;Timer not started&#34;)
+        self.cpu_time += self.__now_cpu() - self.__start_cpu
+        self.wall_time += self.__now_wall() - self.__start_wall
+
+    def __now_cpu(self):
+        try:
+            return time.clock()
+        except AttributeError:
+            return time.process_time()
+
+    def __now_wall(self):
+        return self._wall_time_func()
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, *args):
+        self.stop()
+        print(self)
+
+
+def clockit(func):
+    &#34;&#34;&#34;
+    Function decorator that times the evaluation of `func` and prints
+    the execution time.
+    &#34;&#34;&#34;
+    def new(*args, **kw):
+        t = Timer()
+        t.start()
+        retval = func(*args, **kw)
+        t.stop()
+        print(&#39;%s in %s&#39; % (func.__name__, t))
+        del t
+        return retval
+    return new
+
+
+def fractional_slice(first, last, skip, n):
+    &#34;&#34;&#34;
+    Return a slice assuming `first` or `last` are fractions of `n`,
+    the length of the iterable, if `first` or `last` are in (0,1)
+    &#34;&#34;&#34;
+    # We use an implicit convention here:
+    # If first or last are in (0,1) then they are considered as fractions of the iterable
+    # otherwise they are integer indexes. Note the explicit int() cast in the latter case.
+    if first is not None:
+        if first &gt; 0 and first &lt; 1:
+            first = int(first * n)
+        else:
+            first = int(first)
+
+    if last is not None:
+        if last &gt; 0 and last &lt; 1:
+            last = int(last * n)
+        else:
+            last = int(last)
+
+    return slice(first, last, skip)
+
+
+def add_first_last_skip(parser, what=None):
+    &#34;&#34;&#34;
+    Add first, last, skip arguments to ArgumentParser object.
+
+    Compatible with fractional_slice(). Convenience function for
+    analysis scripts.
+    &#34;&#34;&#34;
+    if what is None:
+        what = [&#39;first&#39;, &#39;last&#39;, &#39;skip&#39;]
+    if &#39;first&#39; in what:
+        parser.add_argument(&#39;-f&#39;, &#39;--first&#39;, dest=&#39;first&#39;, type=float, default=None, help=&#39;first cfg (accepts fractions)&#39;)
+    if &#39;last&#39; in what:
+        parser.add_argument(&#39;-l&#39;, &#39;--last&#39;, dest=&#39;last&#39;, type=float, default=None, help=&#39;last cfg (accepts fractions)&#39;)
+    if &#39;skip&#39; in what:
+        parser.add_argument(&#39;-s&#39;, &#39;--skip&#39;, dest=&#39;skip&#39;, type=int, default=1, help=&#39;interval between cfg&#39;)
+    return parser
+
+
+# Logging facilities
+
+class _ParallelFilter(logging.Filter):
+    def filter(self, rec):
+        if hasattr(rec, &#39;rank&#39;):
+            if rec.rank == &#39;all&#39;:
+                return True
+            else:
+                return rank == rec.rank
+        else:
+            return rank == 0
+
+
+class _MyFormatter(logging.Formatter):
+    def format(self, record):
+        if record.levelname in [&#39;WARNING&#39;, &#39;ERROR&#39;]:
+            return &#39;# &#39; + record.levelname + &#39; &#39; + record.msg % record.args
+        else:
+            return &#39;# &#39; + record.msg % record.args
+
+
+def setup_logging(name=None, level=40, filename=None, update=False):
+    &#34;&#34;&#34;Logging API.&#34;&#34;&#34;
+    if name is None:
+        log = logging.getLogger()
+    else:
+        log = logging.getLogger(name)
+
+    if update:
+        # We only update the level of the logger
+        log.setLevel(level)
+        return
+    else:
+        # The logger should always pass messages to all handlers
+        current_level = log.getEffectiveLevel()
+        log.setLevel(min(level, current_level))
+
+    formatter = _MyFormatter()
+    if filename is None:
+        handler = logging.StreamHandler(sys.stdout)
+    else:
+        handler = logging.FileHandler(filename)
+
+    handler.setFormatter(formatter)
+    # From the doc: &#34;Note that filters attached to handlers are
+    # consulted before an event is emitted by the handler, whereas
+    # filters attached to loggers are consulted whenever an event is
+    # logged (using debug(), info(), etc.), before sending an event to
+    # handlers. This means that events which have been generated by
+    # descendant loggers will not be filtered by a logger filter
+    # setting, unless the filter has also been applied to those
+    # descendant loggers.&#34;
+    handler.addFilter(_ParallelFilter())
+    handler.setLevel(level)
+    if update:
+        log.handlers(handler)
+    else:
+        log.addHandler(handler)
+
+    return log
+
+
+def tipify(s):
+    &#34;&#34;&#34;
+    Convert a string into the best matching type.
+
+    Example:
+    -------
+        2 -&gt; int
+        2.32 -&gt; float
+        text -&gt; str
+
+    The only risk is if a variable is required to be float,
+    but is passed without dot.
+
+    Tests:
+    -----
+        print type(tipify(&#34;2.0&#34;)) is float
+        print type(tipify(&#34;2&#34;)) is int
+        print type(tipify(&#34;t2&#34;)) is str
+        print map(tipify, [&#34;2.0&#34;, &#34;2&#34;])
+    &#34;&#34;&#34;
+    try:
+        return int(s)
+    except ValueError:
+        try:
+            return float(s)
+        except ValueError:
+            return s
+
+
+# Miscellaneous
+
+def __header_dict(line):
+    # Array entry have comma separated elements, split them into lists
+    params = {}
+    for key, value in [d.split(&#39;=&#39;) for d in line.split()]:
+        params[key] = value
+    return params
+
+
+def report_parameters(params, fileout, version, comment=&#39;&#39;):
+    &#34;&#34;&#34;Report parameters.&#34;&#34;&#34;
+    maxlen = max([len(key) for key in params])
+    fmt = comment + &#39;%-&#39; + str(maxlen) + &#39;s = %s\n&#39;
+    txt = &#34;&#34;
+    txt += fmt % (&#39;version&#39;, version)
+    for key in sorted(params.keys()):
+        txt += fmt % (key, params[key])
+    if fileout is not None:
+        with open(fileout, &#39;w&#39;) as fh:
+            fh.write(txt)
+    return txt
+
+def report_command(cmd, params, main, fileout):
+    &#34;&#34;&#34;Report command line options.&#34;&#34;&#34;
+    txt = cmd + &#39; \\\n&#39;
+    for key in sorted(params.keys()):
+        if key in main:
+            continue
+        flag = key.replace(&#39;_&#39;, &#39;-&#39;)
+        value = params[key]
+        if value is None or value is False:
+            continue
+        if value is True:
+            value = &#39;&#39;
+        txt += &#39; --%s %s \\\n&#39; % (flag, value)
+    txt += &#39; &#39;.join([params[key] for key in main])
+    if fileout is not None:
+        with open(fileout, &#39;w&#39;) as fh:
+            fh.write(txt)
+    return txt
+
+
+class OrderedSet(object):
+
+    &#34;&#34;&#34;
+    Simple class to store an ordered set of items.
+
+    It does not try to reproduce either set or list interface. It just
+    provides a simple interface to deal with the set of distinct
+    chemical species in a system as it gets populated e.g. when
+    reading a trajectory. This covers the use case of grand-canonical
+    simulations.
+
+    Example:
+    -------
+
+        particle = [Particle(species=&#39;A&#39;), Particle(species=&#39;C&#39;)]
+        periodic_table = OrderedSet()
+        periodic_table.update([p.species for p in particle])
+        particle = [Particle(species=&#39;A&#39;), Particle(species=&#39;D&#39;)]
+        periodic_table.update([p.species for p in particle])
+        print periodic_table.index(&#39;C&#39;)
+        print periodic_table[0]
+        print periodic_table
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        self.items = []
+
+    def __repr__(self):
+        return repr(self.items)
+
+    def __iter__(self):
+        return self.items.__iter__()
+
+    def __getitem__(self, key):
+        return self.items[key]
+
+    def __setitem__(self, key, item):
+        self.items.__setitem__
+        return self.items[key]
+
+    def update(self, items):
+        sort_needed = False
+        for item in items:
+            if item not in self.items:
+                self.items.append(item)
+                sort_needed = True
+        if sort_needed:
+            self.items.sort()
+
+    def index(self, item):
+        try:
+            return self.items.index(item)
+        except ValueError:
+            raise ValueError(&#39;item %s not in %s&#39; % (item, self))
+
+
+def is_array(arg):
+    &#34;&#34;&#34;
+    Non-pythonic guess whether argument is an array.
+
+    It will match list, tuple and numpy array but fail with iterators / generators.
+    For a full fledged alternative, see https://stackoverflow.com/questions/1055360/how-to-tell-a-variable-is-iterable-but-not-a-string/44328500#44328500
+    &#34;&#34;&#34;
+    import numpy
+    return isinstance(arg, numpy.ndarray) or \
+        isinstance(arg, list) or \
+        isinstance(arg, tuple)
+
+
+def canonicalize(fields, thesaurus):
+    &#34;&#34;&#34;
+    Replace entries in `fields` list with those found in `thesaurus`
+    &#34;&#34;&#34;
+    if fields is None:
+        return []
+    _fields = []
+    for field in fields:
+        try:
+            _fields.append(thesaurus[field])
+        except KeyError:
+            _fields.append(field)
+    return _fields</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="atooms.core.utils.add_first_last_skip"><code class="name flex">
+<span>def <span class="ident">add_first_last_skip</span></span>(<span>parser, what=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add first, last, skip arguments to ArgumentParser object.</p>
+<p>Compatible with fractional_slice(). Convenience function for
+analysis scripts.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_first_last_skip(parser, what=None):
+    &#34;&#34;&#34;
+    Add first, last, skip arguments to ArgumentParser object.
+
+    Compatible with fractional_slice(). Convenience function for
+    analysis scripts.
+    &#34;&#34;&#34;
+    if what is None:
+        what = [&#39;first&#39;, &#39;last&#39;, &#39;skip&#39;]
+    if &#39;first&#39; in what:
+        parser.add_argument(&#39;-f&#39;, &#39;--first&#39;, dest=&#39;first&#39;, type=float, default=None, help=&#39;first cfg (accepts fractions)&#39;)
+    if &#39;last&#39; in what:
+        parser.add_argument(&#39;-l&#39;, &#39;--last&#39;, dest=&#39;last&#39;, type=float, default=None, help=&#39;last cfg (accepts fractions)&#39;)
+    if &#39;skip&#39; in what:
+        parser.add_argument(&#39;-s&#39;, &#39;--skip&#39;, dest=&#39;skip&#39;, type=int, default=1, help=&#39;interval between cfg&#39;)
+    return parser</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.barrier"><code class="name flex">
+<span>def <span class="ident">barrier</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Syncronize processes in parallel.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def barrier():
+    &#34;&#34;&#34;Syncronize processes in parallel.&#34;&#34;&#34;
+    if size &gt; 1:
+        comm.barrier()</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.canonicalize"><code class="name flex">
+<span>def <span class="ident">canonicalize</span></span>(<span>fields, thesaurus)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Replace entries in <code>fields</code> list with those found in <code>thesaurus</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def canonicalize(fields, thesaurus):
+    &#34;&#34;&#34;
+    Replace entries in `fields` list with those found in `thesaurus`
+    &#34;&#34;&#34;
+    if fields is None:
+        return []
+    _fields = []
+    for field in fields:
+        try:
+            _fields.append(thesaurus[field])
+        except KeyError:
+            _fields.append(field)
+    return _fields</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.clockit"><code class="name flex">
+<span>def <span class="ident">clockit</span></span>(<span>func)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Function decorator that times the evaluation of <code>func</code> and prints
+the execution time.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clockit(func):
+    &#34;&#34;&#34;
+    Function decorator that times the evaluation of `func` and prints
+    the execution time.
+    &#34;&#34;&#34;
+    def new(*args, **kw):
+        t = Timer()
+        t.start()
+        retval = func(*args, **kw)
+        t.stop()
+        print(&#39;%s in %s&#39; % (func.__name__, t))
+        del t
+        return retval
+    return new</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.cp"><code class="name flex">
+<span>def <span class="ident">cp</span></span>(<span>finp, fout)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Copy <code>finp</code> to <code>fout</code>.</p>
+<p>Wrapper to shutil.copy().</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cp(finp, fout):
+    &#34;&#34;&#34;
+    Copy `finp` to `fout`.
+
+    Wrapper to shutil.copy().
+    &#34;&#34;&#34;
+    # Avoid overwriting file
+    if finp == fout:
+        return
+    shutil.copy(finp, fout)</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.download"><code class="name flex">
+<span>def <span class="ident">download</span></span>(<span>url, output_dir)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Python implementation of bash wget</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wget(url, output_dir):
+    &#34;&#34;&#34;
+    Python implementation of bash wget
+    &#34;&#34;&#34;
+    import os
+    import shutil
+    try:
+        from urllib.request import urlopen  # Python 3
+    except ImportError:
+        from urllib2 import urlopen  # Python 2
+
+    basename = os.path.basename(url)
+    output_file = os.path.join(output_dir, basename)
+    response = urlopen(url)
+    length = 16*1024
+    with open(output_file, &#39;wb&#39;) as fh:
+        shutil.copyfileobj(response, fh, length)</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.fractional_slice"><code class="name flex">
+<span>def <span class="ident">fractional_slice</span></span>(<span>first, last, skip, n)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return a slice assuming <code>first</code> or <code>last</code> are fractions of <code>n</code>,
+the length of the iterable, if <code>first</code> or <code>last</code> are in (0,1)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fractional_slice(first, last, skip, n):
+    &#34;&#34;&#34;
+    Return a slice assuming `first` or `last` are fractions of `n`,
+    the length of the iterable, if `first` or `last` are in (0,1)
+    &#34;&#34;&#34;
+    # We use an implicit convention here:
+    # If first or last are in (0,1) then they are considered as fractions of the iterable
+    # otherwise they are integer indexes. Note the explicit int() cast in the latter case.
+    if first is not None:
+        if first &gt; 0 and first &lt; 1:
+            first = int(first * n)
+        else:
+            first = int(first)
+
+    if last is not None:
+        if last &gt; 0 and last &lt; 1:
+            last = int(last * n)
+        else:
+            last = int(last)
+
+    return slice(first, last, skip)</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.is_array"><code class="name flex">
+<span>def <span class="ident">is_array</span></span>(<span>arg)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Non-pythonic guess whether argument is an array.</p>
+<p>It will match list, tuple and numpy array but fail with iterators / generators.
+For a full fledged alternative, see <a href="https://stackoverflow.com/questions/1055360/how-to-tell-a-variable-is-iterable-but-not-a-string/44328500#44328500">https://stackoverflow.com/questions/1055360/how-to-tell-a-variable-is-iterable-but-not-a-string/44328500#44328500</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_array(arg):
+    &#34;&#34;&#34;
+    Non-pythonic guess whether argument is an array.
+
+    It will match list, tuple and numpy array but fail with iterators / generators.
+    For a full fledged alternative, see https://stackoverflow.com/questions/1055360/how-to-tell-a-variable-is-iterable-but-not-a-string/44328500#44328500
+    &#34;&#34;&#34;
+    import numpy
+    return isinstance(arg, numpy.ndarray) or \
+        isinstance(arg, list) or \
+        isinstance(arg, tuple)</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.log_to_stderr"><code class="name flex">
+<span>def <span class="ident">log_to_stderr</span></span>(<span>level=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Turn on logging and add a handler which prints to stderr</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def log_to_stderr(level=None):
+    &#34;&#34;&#34;
+    Turn on logging and add a handler which prints to stderr
+    &#34;&#34;&#34;
+    logger = logging.getLogger(LOGGER_NAME)
+    formatter = logging.Formatter(DEFAULT_LOGGING_FORMAT)
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    if level:
+        logger.setLevel(level)
+    return _logger</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.mkdir"><code class="name flex">
+<span>def <span class="ident">mkdir</span></span>(<span>dirname)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a directory <code>dirname</code> or a list <code>dirname</code> of directories,
+silently ignoring existing directories.</p>
+<p>This is just a wrapper to <code>os.makedirs</code>. All intermediate
+subdirectories are created as needed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mkdir(dirname):
+    &#34;&#34;&#34;
+    Create a directory `dirname` or a list `dirname` of directories,
+    silently ignoring existing directories.
+
+    This is just a wrapper to `os.makedirs`. All intermediate
+    subdirectories are created as needed.
+    &#34;&#34;&#34;
+    if dirname is None:
+        return
+    if isinstance(dirname, str):
+        dirs = [dirname]
+    else:
+        dirs = dirname
+
+    for dd in dirs:
+        try:
+            os.makedirs(dd)
+        except OSError:
+            pass</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.report_command"><code class="name flex">
+<span>def <span class="ident">report_command</span></span>(<span>cmd, params, main, fileout)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Report command line options.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def report_command(cmd, params, main, fileout):
+    &#34;&#34;&#34;Report command line options.&#34;&#34;&#34;
+    txt = cmd + &#39; \\\n&#39;
+    for key in sorted(params.keys()):
+        if key in main:
+            continue
+        flag = key.replace(&#39;_&#39;, &#39;-&#39;)
+        value = params[key]
+        if value is None or value is False:
+            continue
+        if value is True:
+            value = &#39;&#39;
+        txt += &#39; --%s %s \\\n&#39; % (flag, value)
+    txt += &#39; &#39;.join([params[key] for key in main])
+    if fileout is not None:
+        with open(fileout, &#39;w&#39;) as fh:
+            fh.write(txt)
+    return txt</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.report_parameters"><code class="name flex">
+<span>def <span class="ident">report_parameters</span></span>(<span>params, fileout, version, comment='')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Report parameters.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def report_parameters(params, fileout, version, comment=&#39;&#39;):
+    &#34;&#34;&#34;Report parameters.&#34;&#34;&#34;
+    maxlen = max([len(key) for key in params])
+    fmt = comment + &#39;%-&#39; + str(maxlen) + &#39;s = %s\n&#39;
+    txt = &#34;&#34;
+    txt += fmt % (&#39;version&#39;, version)
+    for key in sorted(params.keys()):
+        txt += fmt % (key, params[key])
+    if fileout is not None:
+        with open(fileout, &#39;w&#39;) as fh:
+            fh.write(txt)
+    return txt</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.rmd"><code class="name flex">
+<span>def <span class="ident">rmd</span></span>(<span>files)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Totally silent wrapper to shutil.rmtree.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rmd(files):
+    &#34;&#34;&#34;Totally silent wrapper to shutil.rmtree.&#34;&#34;&#34;
+    try:
+        shutil.rmtree(files)
+    except:
+        pass</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.rmf"><code class="name flex">
+<span>def <span class="ident">rmf</span></span>(<span>files)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove <code>files</code> without complaining.</p>
+<p>The variable <code>files</code> can be a list or tuple of paths or a single
+string parseable by glob.glob().</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rmf(files):
+    &#34;&#34;&#34;
+    Remove `files` without complaining.
+
+    The variable `files` can be a list or tuple of paths or a single
+    string parseable by glob.glob().
+    &#34;&#34;&#34;
+    import glob
+    try:
+        # This a single pattern
+        for pathname in glob.glob(files):
+            try:
+                os.remove(pathname)
+            except OSError:
+                # File does not exists or it is a folder
+                pass
+    except (TypeError, AttributeError):
+        # This is a list
+        for pathname in files:
+            try:
+                os.remove(pathname)
+            except OSError:
+                # File does not exists or it is a folder
+                pass</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.setup_logging"><code class="name flex">
+<span>def <span class="ident">setup_logging</span></span>(<span>name=None, level=40, filename=None, update=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Logging API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup_logging(name=None, level=40, filename=None, update=False):
+    &#34;&#34;&#34;Logging API.&#34;&#34;&#34;
+    if name is None:
+        log = logging.getLogger()
+    else:
+        log = logging.getLogger(name)
+
+    if update:
+        # We only update the level of the logger
+        log.setLevel(level)
+        return
+    else:
+        # The logger should always pass messages to all handlers
+        current_level = log.getEffectiveLevel()
+        log.setLevel(min(level, current_level))
+
+    formatter = _MyFormatter()
+    if filename is None:
+        handler = logging.StreamHandler(sys.stdout)
+    else:
+        handler = logging.FileHandler(filename)
+
+    handler.setFormatter(formatter)
+    # From the doc: &#34;Note that filters attached to handlers are
+    # consulted before an event is emitted by the handler, whereas
+    # filters attached to loggers are consulted whenever an event is
+    # logged (using debug(), info(), etc.), before sending an event to
+    # handlers. This means that events which have been generated by
+    # descendant loggers will not be filtered by a logger filter
+    # setting, unless the filter has also been applied to those
+    # descendant loggers.&#34;
+    handler.addFilter(_ParallelFilter())
+    handler.setLevel(level)
+    if update:
+        log.handlers(handler)
+    else:
+        log.addHandler(handler)
+
+    return log</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.tipify"><code class="name flex">
+<span>def <span class="ident">tipify</span></span>(<span>s)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a string into the best matching type.</p>
+<h2 id="example">Example:</h2>
+<pre><code>2 -&gt; int
+2.32 -&gt; float
+text -&gt; str
+</code></pre>
+<p>The only risk is if a variable is required to be float,
+but is passed without dot.</p>
+<h2 id="tests">Tests:</h2>
+<pre><code>print type(tipify("2.0")) is float
+print type(tipify("2")) is int
+print type(tipify("t2")) is str
+print map(tipify, ["2.0", "2"])
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tipify(s):
+    &#34;&#34;&#34;
+    Convert a string into the best matching type.
+
+    Example:
+    -------
+        2 -&gt; int
+        2.32 -&gt; float
+        text -&gt; str
+
+    The only risk is if a variable is required to be float,
+    but is passed without dot.
+
+    Tests:
+    -----
+        print type(tipify(&#34;2.0&#34;)) is float
+        print type(tipify(&#34;2&#34;)) is int
+        print type(tipify(&#34;t2&#34;)) is str
+        print map(tipify, [&#34;2.0&#34;, &#34;2&#34;])
+    &#34;&#34;&#34;
+    try:
+        return int(s)
+    except ValueError:
+        try:
+            return float(s)
+        except ValueError:
+            return s</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.wget"><code class="name flex">
+<span>def <span class="ident">wget</span></span>(<span>url, output_dir)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Python implementation of bash wget</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wget(url, output_dir):
+    &#34;&#34;&#34;
+    Python implementation of bash wget
+    &#34;&#34;&#34;
+    import os
+    import shutil
+    try:
+        from urllib.request import urlopen  # Python 3
+    except ImportError:
+        from urllib2 import urlopen  # Python 2
+
+    basename = os.path.basename(url)
+    output_file = os.path.join(output_dir, basename)
+    response = urlopen(url)
+    length = 16*1024
+    with open(output_file, &#39;wb&#39;) as fh:
+        shutil.copyfileobj(response, fh, length)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="atooms.core.utils.OrderedSet"><code class="flex name class">
+<span>class <span class="ident">OrderedSet</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple class to store an ordered set of items.</p>
+<p>It does not try to reproduce either set or list interface. It just
+provides a simple interface to deal with the set of distinct
+chemical species in a system as it gets populated e.g. when
+reading a trajectory. This covers the use case of grand-canonical
+simulations.</p>
+<h2 id="example">Example:</h2>
+<pre><code>particle = [Particle(species='A'), Particle(species='C')]
+periodic_table = OrderedSet()
+periodic_table.update([p.species for p in particle])
+particle = [Particle(species='A'), Particle(species='D')]
+periodic_table.update([p.species for p in particle])
+print periodic_table.index('C')
+print periodic_table[0]
+print periodic_table
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OrderedSet(object):
+
+    &#34;&#34;&#34;
+    Simple class to store an ordered set of items.
+
+    It does not try to reproduce either set or list interface. It just
+    provides a simple interface to deal with the set of distinct
+    chemical species in a system as it gets populated e.g. when
+    reading a trajectory. This covers the use case of grand-canonical
+    simulations.
+
+    Example:
+    -------
+
+        particle = [Particle(species=&#39;A&#39;), Particle(species=&#39;C&#39;)]
+        periodic_table = OrderedSet()
+        periodic_table.update([p.species for p in particle])
+        particle = [Particle(species=&#39;A&#39;), Particle(species=&#39;D&#39;)]
+        periodic_table.update([p.species for p in particle])
+        print periodic_table.index(&#39;C&#39;)
+        print periodic_table[0]
+        print periodic_table
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        self.items = []
+
+    def __repr__(self):
+        return repr(self.items)
+
+    def __iter__(self):
+        return self.items.__iter__()
+
+    def __getitem__(self, key):
+        return self.items[key]
+
+    def __setitem__(self, key, item):
+        self.items.__setitem__
+        return self.items[key]
+
+    def update(self, items):
+        sort_needed = False
+        for item in items:
+            if item not in self.items:
+                self.items.append(item)
+                sort_needed = True
+        if sort_needed:
+            self.items.sort()
+
+    def index(self, item):
+        try:
+            return self.items.index(item)
+        except ValueError:
+            raise ValueError(&#39;item %s not in %s&#39; % (item, self))</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="atooms.core.utils.OrderedSet.index"><code class="name flex">
+<span>def <span class="ident">index</span></span>(<span>self, item)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def index(self, item):
+    try:
+        return self.items.index(item)
+    except ValueError:
+        raise ValueError(&#39;item %s not in %s&#39; % (item, self))</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.OrderedSet.update"><code class="name flex">
+<span>def <span class="ident">update</span></span>(<span>self, items)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update(self, items):
+    sort_needed = False
+    for item in items:
+        if item not in self.items:
+            self.items.append(item)
+            sort_needed = True
+    if sort_needed:
+        self.items.sort()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="atooms.core.utils.Timer"><code class="flex name class">
+<span>class <span class="ident">Timer</span></span>
+<span>(</span><span>iterations=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Timer class inspired by John Paulett's stopwatch class.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Timer(object):
+
+    &#34;&#34;&#34;Timer class inspired by John Paulett&#39;s stopwatch class.&#34;&#34;&#34;
+
+    def __init__(self, iterations=None):
+        self.__start_cpu = None
+        self.__start_wall = None
+        self.cpu_time = 0.0
+        self.wall_time = 0.0
+        self.iterations = iterations
+        try:
+            self._wall_time_func = MPI.Wtime
+        except:
+            self._wall_time_func = time.time
+
+    def __str__(self):
+        return &#39;timer wall time [s]: {:.2f}, cpu time [s]: {:.2f}&#39;.format(self.wall_time, self.cpu_time)
+
+    def __repr__(self):
+        return &#39;timer wall time [s]: {:.2f}, cpu time [s]: {:.2f}&#39;.format(self.wall_time, self.cpu_time)
+
+    def start(self):
+        self.__start_cpu = self.__now_cpu()
+        self.__start_wall = self.__now_wall()
+
+    def stop(self):
+        if self.__start_cpu is None:
+            raise ValueError(&#34;Timer not started&#34;)
+        self.cpu_time += self.__now_cpu() - self.__start_cpu
+        self.wall_time += self.__now_wall() - self.__start_wall
+
+    def __now_cpu(self):
+        try:
+            return time.clock()
+        except AttributeError:
+            return time.process_time()
+
+    def __now_wall(self):
+        return self._wall_time_func()
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, *args):
+        self.stop()
+        print(self)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="atooms.core.utils.Timer.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start(self):
+    self.__start_cpu = self.__now_cpu()
+    self.__start_wall = self.__now_wall()</code></pre>
+</details>
+</dd>
+<dt id="atooms.core.utils.Timer.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stop(self):
+    if self.__start_cpu is None:
+        raise ValueError(&#34;Timer not started&#34;)
+    self.cpu_time += self.__now_cpu() - self.__start_cpu
+    self.wall_time += self.__now_wall() - self.__start_wall</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="atooms.core" href="index.html">atooms.core</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="atooms.core.utils.add_first_last_skip" href="#atooms.core.utils.add_first_last_skip">add_first_last_skip</a></code></li>
+<li><code><a title="atooms.core.utils.barrier" href="#atooms.core.utils.barrier">barrier</a></code></li>
+<li><code><a title="atooms.core.utils.canonicalize" href="#atooms.core.utils.canonicalize">canonicalize</a></code></li>
+<li><code><a title="atooms.core.utils.clockit" href="#atooms.core.utils.clockit">clockit</a></code></li>
+<li><code><a title="atooms.core.utils.cp" href="#atooms.core.utils.cp">cp</a></code></li>
+<li><code><a title="atooms.core.utils.download" href="#atooms.core.utils.download">download</a></code></li>
+<li><code><a title="atooms.core.utils.fractional_slice" href="#atooms.core.utils.fractional_slice">fractional_slice</a></code></li>
+<li><code><a title="atooms.core.utils.is_array" href="#atooms.core.utils.is_array">is_array</a></code></li>
+<li><code><a title="atooms.core.utils.log_to_stderr" href="#atooms.core.utils.log_to_stderr">log_to_stderr</a></code></li>
+<li><code><a title="atooms.core.utils.mkdir" href="#atooms.core.utils.mkdir">mkdir</a></code></li>
+<li><code><a title="atooms.core.utils.report_command" href="#atooms.core.utils.report_command">report_command</a></code></li>
+<li><code><a title="atooms.core.utils.report_parameters" href="#atooms.core.utils.report_parameters">report_parameters</a></code></li>
+<li><code><a title="atooms.core.utils.rmd" href="#atooms.core.utils.rmd">rmd</a></code></li>
+<li><code><a title="atooms.core.utils.rmf" href="#atooms.core.utils.rmf">rmf</a></code></li>
+<li><code><a title="atooms.core.utils.setup_logging" href="#atooms.core.utils.setup_logging">setup_logging</a></code></li>
+<li><code><a title="atooms.core.utils.tipify" href="#atooms.core.utils.tipify">tipify</a></code></li>
+<li><code><a title="atooms.core.utils.wget" href="#atooms.core.utils.wget">wget</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="atooms.core.utils.OrderedSet" href="#atooms.core.utils.OrderedSet">OrderedSet</a></code></h4>
+<ul class="">
+<li><code><a title="atooms.core.utils.OrderedSet.index" href="#atooms.core.utils.OrderedSet.index">index</a></code></li>
+<li><code><a title="atooms.core.utils.OrderedSet.update" href="#atooms.core.utils.OrderedSet.update">update</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="atooms.core.utils.Timer" href="#atooms.core.utils.Timer">Timer</a></code></h4>
+<ul class="">
+<li><code><a title="atooms.core.utils.Timer.start" href="#atooms.core.utils.Timer.start">start</a></code></li>
+<li><code><a title="atooms.core.utils.Timer.stop" href="#atooms.core.utils.Timer.stop">stop</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

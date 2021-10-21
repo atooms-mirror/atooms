@@ -1,0 +1,1306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>atooms.simulation.observers API documentation</title>
+<meta name="description" content="Scheduler and callbacks (aka observers) to be called during a simulation …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>atooms.simulation.observers</code></h1>
+</header>
+<section id="section-intro">
+<p>Scheduler and callbacks (aka observers) to be called during a simulation.</p>
+<p>To add a callback <code>func</code> to a <code>Simulation</code> instance <code>sim</code> and have it
+called every 100 steps</p>
+<pre><code>#!python
+sim.add(func, Scheduler(100))
+</code></pre>
+<p>There are two ways to set them up and add them to a simulation:</p>
+<ol>
+<li>callable classes</li>
+</ol>
+<p>Example of client code:
+sim.add(simulation.WriterThermo(), 100)
+sim.add(simulation.TargetRMSD(5.0))</p>
+<ol>
+<li>use functions passing optional <em>args and </em>*kwargs.</li>
+</ol>
+<p>Example of client code:
+sim.add(simulation.writer_thermo, 100)
+sim.add(simulation.target_rmsd, 100, rmsd=5.0)</p>
+<p>To differentiate different types of callbacks, we following a naming
+convention (for classes and function). If they contain</p>
+<ul>
+<li>target : these callbacks raise a SimulationEnd when it's over</li>
+<li>writer : these callbacks dump useful stuff to file</li>
+</ul>
+<p>Of course, general purpose callback can be passed to do whatever.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># This file is part of atooms
+# Copyright 2010-2017, Daniele Coslovich
+
+&#34;&#34;&#34;
+Scheduler and callbacks (aka observers) to be called during a simulation.
+
+To add a callback `func` to a `Simulation` instance `sim` and have it
+called every 100 steps
+
+    #!python
+    sim.add(func, Scheduler(100))
+
+There are two ways to set them up and add them to a simulation:
+
+1. callable classes
+
+   Example of client code:
+     sim.add(simulation.WriterThermo(), 100)
+     sim.add(simulation.TargetRMSD(5.0))
+
+2. use functions passing optional *args and **kwargs.
+
+   Example of client code:
+     sim.add(simulation.writer_thermo, 100)
+     sim.add(simulation.target_rmsd, 100, rmsd=5.0)
+
+To differentiate different types of callbacks, we following a naming
+convention (for classes and function). If they contain
+
+- target : these callbacks raise a SimulationEnd when it&#39;s over
+- writer : these callbacks dump useful stuff to file
+
+Of course, general purpose callback can be passed to do whatever.
+&#34;&#34;&#34;
+
+import sys
+import os
+import time
+import datetime
+import logging
+from atooms.core.utils import rmd, rmf
+
+__all__ = [&#39;SimulationEnd&#39;, &#39;WallTimeLimit&#39;, &#39;SimulationKill&#39;,
+           &#39;Scheduler&#39;, &#39;write_config&#39;, &#39;write_thermo&#39;, &#39;write&#39;,
+           &#39;target&#39;, &#39;target_rmsd&#39;, &#39;target_steps&#39;, &#39;target_walltime&#39;,
+           &#39;user_stop&#39;, &#39;target_user_stop&#39;, &#39;Speedometer&#39;,
+           &#39;shell_stop&#39;, &#39;target_shell_stop&#39;, &#39;target_python_stop&#39;]
+
+_log = logging.getLogger(__name__)
+
+
+# Helper functions
+
+def _sec2time(time_interval):
+    &#34;&#34;&#34;
+    Convert a time interval in seconds to (day, hours, minutes,
+    seconds) format.
+    &#34;&#34;&#34;
+    eta_d = time_interval / (24.0 * 3600)
+    eta_h = (eta_d - int(eta_d)) * 24
+    eta_m = (eta_h - int(eta_h)) * 60.0
+    eta_s = (eta_m - int(eta_m)) * 60.0
+    return &#39;%dd:%02dh:%02dm:%02ds&#39; % (eta_d, eta_h, eta_m, eta_s)
+
+
+# Default exceptions
+
+class SimulationEnd(Exception):
+    &#34;&#34;&#34;Raised when an targeter reaches its target.&#34;&#34;&#34;
+    pass
+
+class SimulationKill(Exception):
+    &#34;&#34;&#34;Raised when a simulation is terminated by SIGTERM.&#34;&#34;&#34;
+    pass
+
+class WallTimeLimit(Exception):
+    &#34;&#34;&#34;Raised when the wall time limit is reached.&#34;&#34;&#34;
+    pass
+
+
+# Scheduler classes
+
+class Scheduler(object):
+
+    &#34;&#34;&#34;
+    Schedule observer calls during the simulation.
+
+    This is nothing but a callable that takes a simulation instance
+    and returns the next step at which an observer has to to notified.
+    &#34;&#34;&#34;
+
+    def __init__(self, interval=None, calls=None, steps=None,
+                 block=None, seconds=None):
+        &#34;&#34;&#34;
+        Only one of the arguments can be different from None.
+
+        - `interval`: notify at a fixed steps interval
+        - `calls`: fixed number of notification
+        - `steps`: list of steps at which the observer will be notified
+        - `block`: as steps, but will be called periodically
+        - `seconds`: notify every `seconds`
+        &#34;&#34;&#34;
+        self.interval = interval
+        self.calls = calls
+        self.steps = steps
+        self.block = block
+        self.seconds = seconds
+
+        # Normalize non-positive intervals and n. of calls
+        if self.interval is not None and self.interval &lt;= 0:
+            self.interval = None
+        if self.calls is not None and self.calls &lt;= 0:
+            self.calls = None
+
+    def __call__(self, sim):
+        &#34;&#34;&#34;
+        Given a simulation instance `sim`, return the next step at which
+        the observer will be called.
+        &#34;&#34;&#34;
+        if self.interval is not None and self.calls is None:
+            # Regular interval
+            return (sim.current_step // self.interval + 1) * self.interval
+
+        elif self.calls is not None:
+            # Fixed number of calls
+            interval = max(1, sim.steps // self.calls)
+            return (sim.current_step // interval + 1) * interval
+
+        elif self.steps is not None:
+            # List of selected steps
+            inext = sys.maxsize
+            for i, step in enumerate(self.steps):
+                if step &gt; sim.current_step:
+                    inext = self.steps[i]
+                    break
+            return inext
+
+        elif self.block is not None:
+            # Periodic block of steps
+            step_of_last_block = (sim.current_step // self.block[-1]) * self.block[-1]
+            inext = sys.maxsize
+            for i, step in enumerate(self.block):
+                if step &gt; sim.current_step % self.block[-1]:
+                    inext = self.block[i] + step_of_last_block
+                    break
+            return inext
+
+        elif self.seconds is not None:
+            pass
+        else:
+            return sys.maxsize
+
+
+# Writer callbacks
+# Callbacks as pure function to distinguish their role we adopt a naming convention:
+# if the callback contains write (target) in its __name__ then it is a writer (targeter).
+
+def write_to_ram(sim, trajectory_ram):
+    &#34;&#34;&#34;
+    Write configurations to a trajectory in ram.
+    &#34;&#34;&#34;
+    trajectory_ram.write(sim.system, sim.current_step)
+
+
+def write_config(sim, fields=None, precision=None):
+    &#34;&#34;&#34;
+    Write configurations to a trajectory file.
+
+    The trajectory format is taken from the passed Simulation
+    instance.
+    &#34;&#34;&#34;
+    # Initialize
+    # This will clear the variable in a new run
+    if sim.current_step == 0 or not hasattr(sim, &#39;__init_write_config&#39;):
+        sim.__init_write_config = False
+    if sim.restart:
+        sim.__init_write_config = True
+
+    # Header
+    if not sim.__init_write_config:
+        sim.__init_write_config = True
+        # TODO: folder-based trajectories should ensure that mode=&#39;w&#39; clears up the folder
+        rmd(sim.output_path)
+        rmf(sim.output_path)
+
+    with sim.trajectory_class(sim.output_path, &#39;a&#39;) as t:
+        if precision is not None:
+            t.precision = precision
+        if fields is not None:
+            t.fields = fields
+        t.write(sim.system, sim.current_step)
+
+
+def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
+    &#34;&#34;&#34;
+    Write thermodynamic properties to a file.
+
+    By default, available fields are:
+    - steps
+    - temperature
+    - potential energy per particle
+    - kinetic energy per particle
+    - total energy
+    - pressure
+    - rmsd
+
+    The set of available `fields` can be augmented by passing an extra
+    `functions` dictionary.
+
+    The `fmt` dictionary can be used to provide custom formatting
+    options for fields.
+
+    The `precision` parameter controls the default precision of
+    floating point fields.
+    &#34;&#34;&#34;
+
+    # By default write minimal info
+    if fields is None:
+        fields = [&#39;steps&#39;,
+                  &#39;temperature&#39;,
+                  &#39;potential energy per particle&#39;,
+                  &#39;kinetic energy per particle&#39;,
+                  &#39;total energy per particle&#39;,
+                  &#39;rmsd&#39;]
+
+    # Internal function database.
+    # It can be augmented via functions parameter
+    _db_func = {
+        &#39;steps&#39;: lambda x: x.current_step,
+        &#39;potential energy per particle&#39;: lambda x: x.system.potential_energy(True),
+        &#39;kinetic energy per particle&#39;: lambda x: x.system.kinetic_energy(True),
+        &#39;total energy per particle&#39;: lambda x: x.system.total_energy(True, cache=True),
+        &#39;temperature&#39;: lambda x: x.system.temperature,
+        &#39;density&#39;: lambda x: x.system.density,
+        &#39;pressure&#39;: lambda x: x.system.pressure,
+        &#39;rmsd&#39;: lambda x: x.rmsd,
+    }
+
+    # Update db with extra functions
+    if functions is not None:
+        _db_func.update(functions)
+
+    # Internal database for formats
+    _db_fmt = {}
+    for key in _db_func:
+        # Default to float formatting
+        _db_fmt[key] = &#39;{{:.{precision}{form}}}&#39;.format(precision=precision, form=&#39;g&#39;)
+    # Steps are integer
+    _db_fmt[&#39;steps&#39;] = &#39;{:d}&#39;
+
+    # Update db with extra formats
+    if fmt is not None:
+        _db_fmt.update(fmt)
+
+    # TODO: make it possible to have multiple write_thermo callbacks. At present they interfere
+    # Initialize
+    # This will clear the variable in a new run
+    if sim.current_step == 0 or not hasattr(sim, &#39;__init_write_thermo&#39;):
+        sim.__init_write_thermo = False
+    if sim.restart:
+        sim.__init_write_thermo = True
+
+    # Header
+    if not sim.__init_write_thermo:
+        sim.__init_write_thermo = True
+        with open(sim.output_path + &#39;.thermo&#39;, &#39;w&#39;) as fh:
+            txt = &#39;, &#39;.join(fields)
+            fh.write(&#39;# columns: {}\n&#39;.format(txt))
+
+    # Line
+    with open(sim.output_path + &#39;.thermo&#39;, &#39;a&#39;) as fh:
+        values = [_db_func[field](sim) for field in fields]
+        result = &#39; &#39;.join([_db_fmt[field].format(value) for value, field in zip(values, fields)])
+        fh.write(&#39;{}\n&#39;.format(result))
+
+
+def write(sim, name, attributes):
+    &#34;&#34;&#34;
+    Write generic attributes of simulation and system to a file.
+
+    `name` is a tag appended to `sim.base_path` to define the output
+    file path.
+
+    `attributes` must be a list of valid properties of the Simulation
+    instance `sim` or of its System instance `sim.system`.
+    &#34;&#34;&#34;
+    f = sim.output_path + &#39;.&#39; + name
+    if sim.current_step == 0:
+        with open(f, &#39;w&#39;) as fh:
+            fh.write(&#39;# columns: %s\n&#39; % &#39;, &#39;.join(attributes))
+    else:
+        # Extract the requested attributes
+        values = []
+        for attr in attributes:
+            level = len(attr.split(&#39;.&#39;))
+            if level == 1:
+                values.append(getattr(sim, attr))
+            elif level == 2:
+                system_attr = attr.split(&#39;.&#39;)[-1]
+                if attr.startswith(&#39;system&#39;):
+                    values.append(getattr(sim.system, system_attr))
+            else:
+                raise ValueError(&#39;attribute is too deep&#39;)
+        # Format output string
+        fmt = (&#39;%s &#39; * len(attributes)) + &#39;\n&#39;
+        with open(f, &#39;a&#39;) as fh:
+            fh.write(fmt % tuple(values))
+
+
+# Target callbacks.
+# They should return a fractional measure of completion
+
+def target(sim, attribute, value):
+    &#34;&#34;&#34;
+    An observer that raises a `SimulationEnd` exception when a given
+    target `value` of a property is reached during a simulation. The
+    property is `attribute` and is assumed to be an attribute of
+    simulation.
+
+    Return: the ratio between current and target values of the attribute.
+    &#34;&#34;&#34;
+    x = float(getattr(sim, attribute))
+    if value &gt; 0:
+        frac = float(x) / value
+        _log.debug(&#39;target %s now at %g [%d]&#39;, attribute, x, int(frac * 100))
+    if x &gt;= value:
+        raise SimulationEnd(&#39;reached target %s: %s&#39;, attribute, value)
+    return frac
+
+def target_rmsd(sim, value):
+    &#34;&#34;&#34;Target the root mean squared displacement.&#34;&#34;&#34;
+    return target(sim, &#39;rmsd&#39;, value)
+
+def target_steps(sim, value):
+    &#34;&#34;&#34;Target the number of steps.&#34;&#34;&#34;
+    if sim.current_step &gt;= value:
+        raise SimulationEnd(&#39;reached target steps %d&#39; % value)
+    return float(sim.current_step) / value
+
+def target_walltime(sim, value):
+    &#34;&#34;&#34;
+    Target a value of the elapsed wall time in seconds from the
+    beginning of the simulation.
+
+    Useful to self restarting jobs in a queining system with time
+    limits.
+    &#34;&#34;&#34;
+    wtime_limit = value
+    if sim.wall_time() &gt; wtime_limit:
+        raise SimulationEnd(&#39;target wall time reached&#39;)
+    else:
+        t = sim.wall_time()
+        dt = wtime_limit - t
+        _log.debug(&#39;elapsed time %g, reamining time %g&#39;, t, dt)
+
+
+def target_python_stop(sim, condition):
+    &#34;&#34;&#34;
+    Stop the simulation if `condition` is True.
+
+    `condition` will interpolate attributes of the passed `sim`
+    instance. For instance, the condition
+
+        #!python
+        {current_step} &gt; 1000 and {rmsd} &gt; 1.0
+
+    will stop the simulation when the step is &gt; 1000 and the rmsd &gt; 1.
+    &#34;&#34;&#34;
+    # We do nothing on the first step
+    if sim.current_step == 0:
+        return
+    # Interpolate the command string
+    cmd = condition.replace(&#39;{&#39;, &#39;{0.&#39;)
+    cmd = cmd.format(sim)
+    if eval(cmd):
+        raise SimulationEnd(&#39;condition &#34;{}&#34; satisfied&#39;.format(condition))
+
+def shell_stop(sim, cmd, exit_code=1):
+    &#34;&#34;&#34;
+    Execute the shell command `cmd` and stop the simulation if the
+    command returns an exit value equal to `exit_code`.
+
+    `cmd` is actually a format string that may contain references to
+    the passed `sim` instance. For instance, a valid command is
+
+        #!python
+        echo {sim.current_step} {sim.rmsd} &gt;&gt; {sim.output_path}.out
+
+    which will append the step and rmsd to {sim.output_path}.out.
+    &#34;&#34;&#34;
+    import subprocess
+    # We do nothing on the first step
+    if sim.current_step == 0:
+        return
+    try:
+        # Interpolate the command string
+        wrap_cmd = cmd.format(sim=sim)
+        # Run the shell command
+        output = subprocess.check_output(wrap_cmd, shell=True,
+                                         stderr=subprocess.STDOUT, executable=&#34;/bin/bash&#34;)
+        if len(output) &gt; 0:
+            _log.info(&#39;shell command &#34;{}&#34; returned: {}&#39;.format(cmd, output.strip()))
+
+    except subprocess.CalledProcessError as e:
+        # We stop the simulation
+        if e.returncode == exit_code:
+            raise SimulationEnd(&#39;shell command &#34;{}&#34; returned &#34;{}&#34;&#39;.format(cmd, e.output.strip()))
+        else:
+            _log.error(&#39;shell command {} failed with output {}&#39;.format(cmd, e.output))
+            raise
+
+def user_stop(sim):
+    &#34;&#34;&#34;
+    Allows a user to stop the simulation smoothly by touching a STOP
+    file in the output root directory.  Currently the file is not
+    deleted to allow parallel jobs to all exit.
+    &#34;&#34;&#34;
+    # To make it work in parallel we should broadcast and then rm
+    # or subclass userstop in classes that use parallel execution
+    if sim.output_path is not None:
+        if os.path.isdir(sim.output_path):
+            dirpath = sim.output_path
+        else:
+            dirpath = os.path.dirname(sim.output_path)
+        if os.path.exists(&#39;%s/STOP&#39; % dirpath):
+            raise SimulationEnd(&#39;user has stopped the simulation&#39;)
+
+# Aliases
+
+
+target_user_stop = user_stop
+target_shell_stop = shell_stop
+
+
+class Speedometer(object):
+
+    &#34;&#34;&#34;Display speed of simulation and remaining time to reach target.&#34;&#34;&#34;
+
+    def __init__(self):
+        self._init = False
+
+    def __str__(self):
+        return &#39;speedometer&#39;
+
+    def __call__(self, sim):
+        if not self._init:
+            # We could store all this in __init__() but this
+            # way we allow targeters added to simulation via add()
+            for c in sim._callback:
+                if c is self:
+                    continue
+                if &#39;target&#39; in c.__name__.lower():
+                    self._callback = c
+                    args = sim._cbk_params[c][&#39;args&#39;]
+                    kwargs = sim._cbk_params[c][&#39;kwargs&#39;]
+                    self.x_last = c(sim, *args, **kwargs)
+                    self.t_last = time.time()
+                    self._init = True
+                    return
+
+        t_now = time.time()
+        args = sim._cbk_params[self._callback][&#39;args&#39;]
+        kwargs = sim._cbk_params[self._callback][&#39;kwargs&#39;]
+        x_now = self._callback(sim, *args, **kwargs)
+        # Get the speed at which the simulation advances
+        speed = (x_now - self.x_last) / (t_now - self.t_last)
+        # Report fraction of target achieved and ETA
+        frac = float(x_now) / 1
+        try:
+            eta = (1.0 - x_now) / speed
+            d_now = datetime.datetime.now()
+            d_delta = datetime.timedelta(seconds=eta)
+            d_eta = d_now + d_delta
+            # self._callback.__name__,
+            _log.info(&#39;%2d%% ETA: %s S/T: %.1f T/SP: %.2e&#39;,
+                      int(frac * 100),
+                      d_eta.strftime(&#39;%Y-%m-%d %H.%M&#39;),
+                      1./sim.wall_time(per_step=True),
+                      sim.wall_time(per_step=True, per_particle=True))
+        except ZeroDivisionError:
+            print(x_now, self.x_last)
+            raise
+
+        self.t_last = t_now
+        self.x_last = x_now</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="atooms.simulation.observers.shell_stop"><code class="name flex">
+<span>def <span class="ident">shell_stop</span></span>(<span>sim, cmd, exit_code=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Execute the shell command <code>cmd</code> and stop the simulation if the
+command returns an exit value equal to <code>exit_code</code>.</p>
+<p><code>cmd</code> is actually a format string that may contain references to
+the passed <code>sim</code> instance. For instance, a valid command is</p>
+<pre><code>#!python
+echo {sim.current_step} {sim.rmsd} &gt;&gt; {sim.output_path}.out
+</code></pre>
+<p>which will append the step and rmsd to {sim.output_path}.out.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shell_stop(sim, cmd, exit_code=1):
+    &#34;&#34;&#34;
+    Execute the shell command `cmd` and stop the simulation if the
+    command returns an exit value equal to `exit_code`.
+
+    `cmd` is actually a format string that may contain references to
+    the passed `sim` instance. For instance, a valid command is
+
+        #!python
+        echo {sim.current_step} {sim.rmsd} &gt;&gt; {sim.output_path}.out
+
+    which will append the step and rmsd to {sim.output_path}.out.
+    &#34;&#34;&#34;
+    import subprocess
+    # We do nothing on the first step
+    if sim.current_step == 0:
+        return
+    try:
+        # Interpolate the command string
+        wrap_cmd = cmd.format(sim=sim)
+        # Run the shell command
+        output = subprocess.check_output(wrap_cmd, shell=True,
+                                         stderr=subprocess.STDOUT, executable=&#34;/bin/bash&#34;)
+        if len(output) &gt; 0:
+            _log.info(&#39;shell command &#34;{}&#34; returned: {}&#39;.format(cmd, output.strip()))
+
+    except subprocess.CalledProcessError as e:
+        # We stop the simulation
+        if e.returncode == exit_code:
+            raise SimulationEnd(&#39;shell command &#34;{}&#34; returned &#34;{}&#34;&#39;.format(cmd, e.output.strip()))
+        else:
+            _log.error(&#39;shell command {} failed with output {}&#39;.format(cmd, e.output))
+            raise</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.target"><code class="name flex">
+<span>def <span class="ident">target</span></span>(<span>sim, attribute, value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An observer that raises a <code><a title="atooms.simulation.observers.SimulationEnd" href="#atooms.simulation.observers.SimulationEnd">SimulationEnd</a></code> exception when a given
+target <code>value</code> of a property is reached during a simulation. The
+property is <code>attribute</code> and is assumed to be an attribute of
+simulation.</p>
+<p>Return: the ratio between current and target values of the attribute.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def target(sim, attribute, value):
+    &#34;&#34;&#34;
+    An observer that raises a `SimulationEnd` exception when a given
+    target `value` of a property is reached during a simulation. The
+    property is `attribute` and is assumed to be an attribute of
+    simulation.
+
+    Return: the ratio between current and target values of the attribute.
+    &#34;&#34;&#34;
+    x = float(getattr(sim, attribute))
+    if value &gt; 0:
+        frac = float(x) / value
+        _log.debug(&#39;target %s now at %g [%d]&#39;, attribute, x, int(frac * 100))
+    if x &gt;= value:
+        raise SimulationEnd(&#39;reached target %s: %s&#39;, attribute, value)
+    return frac</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.target_python_stop"><code class="name flex">
+<span>def <span class="ident">target_python_stop</span></span>(<span>sim, condition)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stop the simulation if <code>condition</code> is True.</p>
+<p><code>condition</code> will interpolate attributes of the passed <code>sim</code>
+instance. For instance, the condition</p>
+<pre><code>#!python
+{current_step} &gt; 1000 and {rmsd} &gt; 1.0
+</code></pre>
+<p>will stop the simulation when the step is &gt; 1000 and the rmsd &gt; 1.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def target_python_stop(sim, condition):
+    &#34;&#34;&#34;
+    Stop the simulation if `condition` is True.
+
+    `condition` will interpolate attributes of the passed `sim`
+    instance. For instance, the condition
+
+        #!python
+        {current_step} &gt; 1000 and {rmsd} &gt; 1.0
+
+    will stop the simulation when the step is &gt; 1000 and the rmsd &gt; 1.
+    &#34;&#34;&#34;
+    # We do nothing on the first step
+    if sim.current_step == 0:
+        return
+    # Interpolate the command string
+    cmd = condition.replace(&#39;{&#39;, &#39;{0.&#39;)
+    cmd = cmd.format(sim)
+    if eval(cmd):
+        raise SimulationEnd(&#39;condition &#34;{}&#34; satisfied&#39;.format(condition))</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.target_rmsd"><code class="name flex">
+<span>def <span class="ident">target_rmsd</span></span>(<span>sim, value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Target the root mean squared displacement.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def target_rmsd(sim, value):
+    &#34;&#34;&#34;Target the root mean squared displacement.&#34;&#34;&#34;
+    return target(sim, &#39;rmsd&#39;, value)</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.target_shell_stop"><code class="name flex">
+<span>def <span class="ident">target_shell_stop</span></span>(<span>sim, cmd, exit_code=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Execute the shell command <code>cmd</code> and stop the simulation if the
+command returns an exit value equal to <code>exit_code</code>.</p>
+<p><code>cmd</code> is actually a format string that may contain references to
+the passed <code>sim</code> instance. For instance, a valid command is</p>
+<pre><code>#!python
+echo {sim.current_step} {sim.rmsd} &gt;&gt; {sim.output_path}.out
+</code></pre>
+<p>which will append the step and rmsd to {sim.output_path}.out.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shell_stop(sim, cmd, exit_code=1):
+    &#34;&#34;&#34;
+    Execute the shell command `cmd` and stop the simulation if the
+    command returns an exit value equal to `exit_code`.
+
+    `cmd` is actually a format string that may contain references to
+    the passed `sim` instance. For instance, a valid command is
+
+        #!python
+        echo {sim.current_step} {sim.rmsd} &gt;&gt; {sim.output_path}.out
+
+    which will append the step and rmsd to {sim.output_path}.out.
+    &#34;&#34;&#34;
+    import subprocess
+    # We do nothing on the first step
+    if sim.current_step == 0:
+        return
+    try:
+        # Interpolate the command string
+        wrap_cmd = cmd.format(sim=sim)
+        # Run the shell command
+        output = subprocess.check_output(wrap_cmd, shell=True,
+                                         stderr=subprocess.STDOUT, executable=&#34;/bin/bash&#34;)
+        if len(output) &gt; 0:
+            _log.info(&#39;shell command &#34;{}&#34; returned: {}&#39;.format(cmd, output.strip()))
+
+    except subprocess.CalledProcessError as e:
+        # We stop the simulation
+        if e.returncode == exit_code:
+            raise SimulationEnd(&#39;shell command &#34;{}&#34; returned &#34;{}&#34;&#39;.format(cmd, e.output.strip()))
+        else:
+            _log.error(&#39;shell command {} failed with output {}&#39;.format(cmd, e.output))
+            raise</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.target_steps"><code class="name flex">
+<span>def <span class="ident">target_steps</span></span>(<span>sim, value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Target the number of steps.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def target_steps(sim, value):
+    &#34;&#34;&#34;Target the number of steps.&#34;&#34;&#34;
+    if sim.current_step &gt;= value:
+        raise SimulationEnd(&#39;reached target steps %d&#39; % value)
+    return float(sim.current_step) / value</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.target_user_stop"><code class="name flex">
+<span>def <span class="ident">target_user_stop</span></span>(<span>sim)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Allows a user to stop the simulation smoothly by touching a STOP
+file in the output root directory.
+Currently the file is not
+deleted to allow parallel jobs to all exit.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def user_stop(sim):
+    &#34;&#34;&#34;
+    Allows a user to stop the simulation smoothly by touching a STOP
+    file in the output root directory.  Currently the file is not
+    deleted to allow parallel jobs to all exit.
+    &#34;&#34;&#34;
+    # To make it work in parallel we should broadcast and then rm
+    # or subclass userstop in classes that use parallel execution
+    if sim.output_path is not None:
+        if os.path.isdir(sim.output_path):
+            dirpath = sim.output_path
+        else:
+            dirpath = os.path.dirname(sim.output_path)
+        if os.path.exists(&#39;%s/STOP&#39; % dirpath):
+            raise SimulationEnd(&#39;user has stopped the simulation&#39;)</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.target_walltime"><code class="name flex">
+<span>def <span class="ident">target_walltime</span></span>(<span>sim, value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Target a value of the elapsed wall time in seconds from the
+beginning of the simulation.</p>
+<p>Useful to self restarting jobs in a queining system with time
+limits.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def target_walltime(sim, value):
+    &#34;&#34;&#34;
+    Target a value of the elapsed wall time in seconds from the
+    beginning of the simulation.
+
+    Useful to self restarting jobs in a queining system with time
+    limits.
+    &#34;&#34;&#34;
+    wtime_limit = value
+    if sim.wall_time() &gt; wtime_limit:
+        raise SimulationEnd(&#39;target wall time reached&#39;)
+    else:
+        t = sim.wall_time()
+        dt = wtime_limit - t
+        _log.debug(&#39;elapsed time %g, reamining time %g&#39;, t, dt)</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.user_stop"><code class="name flex">
+<span>def <span class="ident">user_stop</span></span>(<span>sim)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Allows a user to stop the simulation smoothly by touching a STOP
+file in the output root directory.
+Currently the file is not
+deleted to allow parallel jobs to all exit.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def user_stop(sim):
+    &#34;&#34;&#34;
+    Allows a user to stop the simulation smoothly by touching a STOP
+    file in the output root directory.  Currently the file is not
+    deleted to allow parallel jobs to all exit.
+    &#34;&#34;&#34;
+    # To make it work in parallel we should broadcast and then rm
+    # or subclass userstop in classes that use parallel execution
+    if sim.output_path is not None:
+        if os.path.isdir(sim.output_path):
+            dirpath = sim.output_path
+        else:
+            dirpath = os.path.dirname(sim.output_path)
+        if os.path.exists(&#39;%s/STOP&#39; % dirpath):
+            raise SimulationEnd(&#39;user has stopped the simulation&#39;)</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.write"><code class="name flex">
+<span>def <span class="ident">write</span></span>(<span>sim, name, attributes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write generic attributes of simulation and system to a file.</p>
+<p><code>name</code> is a tag appended to <code>sim.base_path</code> to define the output
+file path.</p>
+<p><code>attributes</code> must be a list of valid properties of the Simulation
+instance <code>sim</code> or of its System instance <code>sim.system</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write(sim, name, attributes):
+    &#34;&#34;&#34;
+    Write generic attributes of simulation and system to a file.
+
+    `name` is a tag appended to `sim.base_path` to define the output
+    file path.
+
+    `attributes` must be a list of valid properties of the Simulation
+    instance `sim` or of its System instance `sim.system`.
+    &#34;&#34;&#34;
+    f = sim.output_path + &#39;.&#39; + name
+    if sim.current_step == 0:
+        with open(f, &#39;w&#39;) as fh:
+            fh.write(&#39;# columns: %s\n&#39; % &#39;, &#39;.join(attributes))
+    else:
+        # Extract the requested attributes
+        values = []
+        for attr in attributes:
+            level = len(attr.split(&#39;.&#39;))
+            if level == 1:
+                values.append(getattr(sim, attr))
+            elif level == 2:
+                system_attr = attr.split(&#39;.&#39;)[-1]
+                if attr.startswith(&#39;system&#39;):
+                    values.append(getattr(sim.system, system_attr))
+            else:
+                raise ValueError(&#39;attribute is too deep&#39;)
+        # Format output string
+        fmt = (&#39;%s &#39; * len(attributes)) + &#39;\n&#39;
+        with open(f, &#39;a&#39;) as fh:
+            fh.write(fmt % tuple(values))</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.write_config"><code class="name flex">
+<span>def <span class="ident">write_config</span></span>(<span>sim, fields=None, precision=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write configurations to a trajectory file.</p>
+<p>The trajectory format is taken from the passed Simulation
+instance.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_config(sim, fields=None, precision=None):
+    &#34;&#34;&#34;
+    Write configurations to a trajectory file.
+
+    The trajectory format is taken from the passed Simulation
+    instance.
+    &#34;&#34;&#34;
+    # Initialize
+    # This will clear the variable in a new run
+    if sim.current_step == 0 or not hasattr(sim, &#39;__init_write_config&#39;):
+        sim.__init_write_config = False
+    if sim.restart:
+        sim.__init_write_config = True
+
+    # Header
+    if not sim.__init_write_config:
+        sim.__init_write_config = True
+        # TODO: folder-based trajectories should ensure that mode=&#39;w&#39; clears up the folder
+        rmd(sim.output_path)
+        rmf(sim.output_path)
+
+    with sim.trajectory_class(sim.output_path, &#39;a&#39;) as t:
+        if precision is not None:
+            t.precision = precision
+        if fields is not None:
+            t.fields = fields
+        t.write(sim.system, sim.current_step)</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.write_thermo"><code class="name flex">
+<span>def <span class="ident">write_thermo</span></span>(<span>sim, fields=None, fmt=None, precision=6, functions=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write thermodynamic properties to a file.</p>
+<p>By default, available fields are:
+- steps
+- temperature
+- potential energy per particle
+- kinetic energy per particle
+- total energy
+- pressure
+- rmsd</p>
+<p>The set of available <code>fields</code> can be augmented by passing an extra
+<code>functions</code> dictionary.</p>
+<p>The <code>fmt</code> dictionary can be used to provide custom formatting
+options for fields.</p>
+<p>The <code>precision</code> parameter controls the default precision of
+floating point fields.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
+    &#34;&#34;&#34;
+    Write thermodynamic properties to a file.
+
+    By default, available fields are:
+    - steps
+    - temperature
+    - potential energy per particle
+    - kinetic energy per particle
+    - total energy
+    - pressure
+    - rmsd
+
+    The set of available `fields` can be augmented by passing an extra
+    `functions` dictionary.
+
+    The `fmt` dictionary can be used to provide custom formatting
+    options for fields.
+
+    The `precision` parameter controls the default precision of
+    floating point fields.
+    &#34;&#34;&#34;
+
+    # By default write minimal info
+    if fields is None:
+        fields = [&#39;steps&#39;,
+                  &#39;temperature&#39;,
+                  &#39;potential energy per particle&#39;,
+                  &#39;kinetic energy per particle&#39;,
+                  &#39;total energy per particle&#39;,
+                  &#39;rmsd&#39;]
+
+    # Internal function database.
+    # It can be augmented via functions parameter
+    _db_func = {
+        &#39;steps&#39;: lambda x: x.current_step,
+        &#39;potential energy per particle&#39;: lambda x: x.system.potential_energy(True),
+        &#39;kinetic energy per particle&#39;: lambda x: x.system.kinetic_energy(True),
+        &#39;total energy per particle&#39;: lambda x: x.system.total_energy(True, cache=True),
+        &#39;temperature&#39;: lambda x: x.system.temperature,
+        &#39;density&#39;: lambda x: x.system.density,
+        &#39;pressure&#39;: lambda x: x.system.pressure,
+        &#39;rmsd&#39;: lambda x: x.rmsd,
+    }
+
+    # Update db with extra functions
+    if functions is not None:
+        _db_func.update(functions)
+
+    # Internal database for formats
+    _db_fmt = {}
+    for key in _db_func:
+        # Default to float formatting
+        _db_fmt[key] = &#39;{{:.{precision}{form}}}&#39;.format(precision=precision, form=&#39;g&#39;)
+    # Steps are integer
+    _db_fmt[&#39;steps&#39;] = &#39;{:d}&#39;
+
+    # Update db with extra formats
+    if fmt is not None:
+        _db_fmt.update(fmt)
+
+    # TODO: make it possible to have multiple write_thermo callbacks. At present they interfere
+    # Initialize
+    # This will clear the variable in a new run
+    if sim.current_step == 0 or not hasattr(sim, &#39;__init_write_thermo&#39;):
+        sim.__init_write_thermo = False
+    if sim.restart:
+        sim.__init_write_thermo = True
+
+    # Header
+    if not sim.__init_write_thermo:
+        sim.__init_write_thermo = True
+        with open(sim.output_path + &#39;.thermo&#39;, &#39;w&#39;) as fh:
+            txt = &#39;, &#39;.join(fields)
+            fh.write(&#39;# columns: {}\n&#39;.format(txt))
+
+    # Line
+    with open(sim.output_path + &#39;.thermo&#39;, &#39;a&#39;) as fh:
+        values = [_db_func[field](sim) for field in fields]
+        result = &#39; &#39;.join([_db_fmt[field].format(value) for value, field in zip(values, fields)])
+        fh.write(&#39;{}\n&#39;.format(result))</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="atooms.simulation.observers.Scheduler"><code class="flex name class">
+<span>class <span class="ident">Scheduler</span></span>
+<span>(</span><span>interval=None, calls=None, steps=None, block=None, seconds=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Schedule observer calls during the simulation.</p>
+<p>This is nothing but a callable that takes a simulation instance
+and returns the next step at which an observer has to to notified.</p>
+<p>Only one of the arguments can be different from None.</p>
+<ul>
+<li><code>interval</code>: notify at a fixed steps interval</li>
+<li><code>calls</code>: fixed number of notification</li>
+<li><code>steps</code>: list of steps at which the observer will be notified</li>
+<li><code>block</code>: as steps, but will be called periodically</li>
+<li><code>seconds</code>: notify every <code>seconds</code></li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Scheduler(object):
+
+    &#34;&#34;&#34;
+    Schedule observer calls during the simulation.
+
+    This is nothing but a callable that takes a simulation instance
+    and returns the next step at which an observer has to to notified.
+    &#34;&#34;&#34;
+
+    def __init__(self, interval=None, calls=None, steps=None,
+                 block=None, seconds=None):
+        &#34;&#34;&#34;
+        Only one of the arguments can be different from None.
+
+        - `interval`: notify at a fixed steps interval
+        - `calls`: fixed number of notification
+        - `steps`: list of steps at which the observer will be notified
+        - `block`: as steps, but will be called periodically
+        - `seconds`: notify every `seconds`
+        &#34;&#34;&#34;
+        self.interval = interval
+        self.calls = calls
+        self.steps = steps
+        self.block = block
+        self.seconds = seconds
+
+        # Normalize non-positive intervals and n. of calls
+        if self.interval is not None and self.interval &lt;= 0:
+            self.interval = None
+        if self.calls is not None and self.calls &lt;= 0:
+            self.calls = None
+
+    def __call__(self, sim):
+        &#34;&#34;&#34;
+        Given a simulation instance `sim`, return the next step at which
+        the observer will be called.
+        &#34;&#34;&#34;
+        if self.interval is not None and self.calls is None:
+            # Regular interval
+            return (sim.current_step // self.interval + 1) * self.interval
+
+        elif self.calls is not None:
+            # Fixed number of calls
+            interval = max(1, sim.steps // self.calls)
+            return (sim.current_step // interval + 1) * interval
+
+        elif self.steps is not None:
+            # List of selected steps
+            inext = sys.maxsize
+            for i, step in enumerate(self.steps):
+                if step &gt; sim.current_step:
+                    inext = self.steps[i]
+                    break
+            return inext
+
+        elif self.block is not None:
+            # Periodic block of steps
+            step_of_last_block = (sim.current_step // self.block[-1]) * self.block[-1]
+            inext = sys.maxsize
+            for i, step in enumerate(self.block):
+                if step &gt; sim.current_step % self.block[-1]:
+                    inext = self.block[i] + step_of_last_block
+                    break
+            return inext
+
+        elif self.seconds is not None:
+            pass
+        else:
+            return sys.maxsize</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.SimulationEnd"><code class="flex name class">
+<span>class <span class="ident">SimulationEnd</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Raised when an targeter reaches its target.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SimulationEnd(Exception):
+    &#34;&#34;&#34;Raised when an targeter reaches its target.&#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="atooms.optimization.core.OptimizationEnd" href="../optimization/core.html#atooms.optimization.core.OptimizationEnd">OptimizationEnd</a></li>
+</ul>
+</dd>
+<dt id="atooms.simulation.observers.SimulationKill"><code class="flex name class">
+<span>class <span class="ident">SimulationKill</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Raised when a simulation is terminated by SIGTERM.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SimulationKill(Exception):
+    &#34;&#34;&#34;Raised when a simulation is terminated by SIGTERM.&#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="atooms.simulation.observers.Speedometer"><code class="flex name class">
+<span>class <span class="ident">Speedometer</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Display speed of simulation and remaining time to reach target.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Speedometer(object):
+
+    &#34;&#34;&#34;Display speed of simulation and remaining time to reach target.&#34;&#34;&#34;
+
+    def __init__(self):
+        self._init = False
+
+    def __str__(self):
+        return &#39;speedometer&#39;
+
+    def __call__(self, sim):
+        if not self._init:
+            # We could store all this in __init__() but this
+            # way we allow targeters added to simulation via add()
+            for c in sim._callback:
+                if c is self:
+                    continue
+                if &#39;target&#39; in c.__name__.lower():
+                    self._callback = c
+                    args = sim._cbk_params[c][&#39;args&#39;]
+                    kwargs = sim._cbk_params[c][&#39;kwargs&#39;]
+                    self.x_last = c(sim, *args, **kwargs)
+                    self.t_last = time.time()
+                    self._init = True
+                    return
+
+        t_now = time.time()
+        args = sim._cbk_params[self._callback][&#39;args&#39;]
+        kwargs = sim._cbk_params[self._callback][&#39;kwargs&#39;]
+        x_now = self._callback(sim, *args, **kwargs)
+        # Get the speed at which the simulation advances
+        speed = (x_now - self.x_last) / (t_now - self.t_last)
+        # Report fraction of target achieved and ETA
+        frac = float(x_now) / 1
+        try:
+            eta = (1.0 - x_now) / speed
+            d_now = datetime.datetime.now()
+            d_delta = datetime.timedelta(seconds=eta)
+            d_eta = d_now + d_delta
+            # self._callback.__name__,
+            _log.info(&#39;%2d%% ETA: %s S/T: %.1f T/SP: %.2e&#39;,
+                      int(frac * 100),
+                      d_eta.strftime(&#39;%Y-%m-%d %H.%M&#39;),
+                      1./sim.wall_time(per_step=True),
+                      sim.wall_time(per_step=True, per_particle=True))
+        except ZeroDivisionError:
+            print(x_now, self.x_last)
+            raise
+
+        self.t_last = t_now
+        self.x_last = x_now</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.WallTimeLimit"><code class="flex name class">
+<span>class <span class="ident">WallTimeLimit</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Raised when the wall time limit is reached.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class WallTimeLimit(Exception):
+    &#34;&#34;&#34;Raised when the wall time limit is reached.&#34;&#34;&#34;
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="atooms.simulation" href="index.html">atooms.simulation</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="atooms.simulation.observers.shell_stop" href="#atooms.simulation.observers.shell_stop">shell_stop</a></code></li>
+<li><code><a title="atooms.simulation.observers.target" href="#atooms.simulation.observers.target">target</a></code></li>
+<li><code><a title="atooms.simulation.observers.target_python_stop" href="#atooms.simulation.observers.target_python_stop">target_python_stop</a></code></li>
+<li><code><a title="atooms.simulation.observers.target_rmsd" href="#atooms.simulation.observers.target_rmsd">target_rmsd</a></code></li>
+<li><code><a title="atooms.simulation.observers.target_shell_stop" href="#atooms.simulation.observers.target_shell_stop">target_shell_stop</a></code></li>
+<li><code><a title="atooms.simulation.observers.target_steps" href="#atooms.simulation.observers.target_steps">target_steps</a></code></li>
+<li><code><a title="atooms.simulation.observers.target_user_stop" href="#atooms.simulation.observers.target_user_stop">target_user_stop</a></code></li>
+<li><code><a title="atooms.simulation.observers.target_walltime" href="#atooms.simulation.observers.target_walltime">target_walltime</a></code></li>
+<li><code><a title="atooms.simulation.observers.user_stop" href="#atooms.simulation.observers.user_stop">user_stop</a></code></li>
+<li><code><a title="atooms.simulation.observers.write" href="#atooms.simulation.observers.write">write</a></code></li>
+<li><code><a title="atooms.simulation.observers.write_config" href="#atooms.simulation.observers.write_config">write_config</a></code></li>
+<li><code><a title="atooms.simulation.observers.write_thermo" href="#atooms.simulation.observers.write_thermo">write_thermo</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="atooms.simulation.observers.Scheduler" href="#atooms.simulation.observers.Scheduler">Scheduler</a></code></h4>
+</li>
+<li>
+<h4><code><a title="atooms.simulation.observers.SimulationEnd" href="#atooms.simulation.observers.SimulationEnd">SimulationEnd</a></code></h4>
+</li>
+<li>
+<h4><code><a title="atooms.simulation.observers.SimulationKill" href="#atooms.simulation.observers.SimulationKill">SimulationKill</a></code></h4>
+</li>
+<li>
+<h4><code><a title="atooms.simulation.observers.Speedometer" href="#atooms.simulation.observers.Speedometer">Speedometer</a></code></h4>
+</li>
+<li>
+<h4><code><a title="atooms.simulation.observers.WallTimeLimit" href="#atooms.simulation.observers.WallTimeLimit">WallTimeLimit</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

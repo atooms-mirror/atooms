@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>atooms.backends.lammps API documentation</title>
+<meta name="description" content="Minimal simulation backend for LAMMPS (http://lammps.sandia.gov)." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>atooms.backends.lammps</code></h1>
+</header>
+<section id="section-intro">
+<p>Minimal simulation backend for LAMMPS (<a href="http://lammps.sandia.gov">http://lammps.sandia.gov</a>).</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># This file is part of atooms
+# Copyright 2010-2017, Daniele Coslovich
+
+&#34;&#34;&#34;
+Minimal simulation backend for LAMMPS (http://lammps.sandia.gov).
+&#34;&#34;&#34;
+
+import os
+import subprocess
+import tempfile
+from atooms import trajectory
+from atooms import system
+from atooms.system import interaction
+from atooms.trajectory import TrajectoryLAMMPS
+from atooms.trajectory.decorators import change_species
+from atooms.core.utils import rmd
+
+# Lammps command
+lammps_command = &#39;lammps&#39;
+
+# MPI environment
+try:
+    lammps_mpi_tasks = 1
+    lammps_mpi = &#39;mpirun&#39;
+    cmd = &#39;{} --version&#39;.format(lammps_mpi)
+    _ = subprocess.check_output(cmd, shell=True,
+                                stderr=subprocess.STDOUT, executable=&#39;/bin/bash&#39;)
+except subprocess.CalledProcessError:
+    lammps_mpi_tasks = 1
+    lammps_mpi = &#39;&#39;
+
+
+def installed():
+    &#34;&#34;&#34;Return `True` if `lammps_command` can be executed&#34;&#34;&#34;
+    try:
+        cmd = &#39;echo | {} {}&#39;.format(lammps_mpi, lammps_command)
+        _ = subprocess.check_output(cmd, shell=True,
+                                    stderr=subprocess.STDOUT, executable=&#39;/bin/bash&#39;)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def _get_lammps_version():
+    &#34;&#34;&#34;Return lammps version and raise an exception if lammps is not installed&#34;&#34;&#34;
+    try:
+        cmd = &#39;echo | {} {}&#39;.format(lammps_mpi, lammps_command)
+        _ = subprocess.check_output(cmd, shell=True,
+                                    stderr=subprocess.STDOUT, executable=&#39;/bin/bash&#39;)
+        version = _.decode().split(&#39;\n&#39;)[0][8:-1]
+    except subprocess.CalledProcessError:
+        raise ImportError(&#39;lammps not installed (command is {})&#39;.format(lammps_command))
+    return version
+
+def _run_lammps_command(cmd):
+    &#34;&#34;&#34;Run a lammps script from the command line&#34;&#34;&#34;
+    dirout = tempfile.mkdtemp()
+    file_tmp = os.path.join(dirout, &#39;cmd.lammps&#39;)
+    with open(file_tmp, &#39;w&#39;) as fh:
+        fh.write(cmd)
+    opt = &#39;-n {}&#39;.format(lammps_mpi_tasks) if lammps_mpi else &#39;&#39;
+    shell_cmd = &#39;{} {} {} -in {}&#39;.format(lammps_mpi, opt, lammps_command, file_tmp)
+    try:
+        stdout = subprocess.check_output(shell_cmd,
+                                         executable=&#39;/bin/bash&#39;,
+                                         stderr=subprocess.STDOUT,
+                                         shell=True)
+    except subprocess.CalledProcessError as exception:
+        if isinstance(exception.output, bytes):
+            print(exception.output.decode())
+        else:
+            print(&#39;&#39;.join(exception.output))
+        raise
+
+    # Clean up
+    rmd(dirout)
+    return stdout.decode()
+
+
+class Interaction(interaction.Interaction):
+    &#34;&#34;&#34;
+    Interaction wrapper for LAMMPS.
+
+    For the time being, it assumes `self.potential` is a string
+    containing appropriate lammps commands that define the
+    interaction.
+    &#34;&#34;&#34;
+    # TODO: assign interaction to system based on pair_style entries in cmd
+
+    def __init__(self, potential):
+        interaction.Interaction.__init__(self)
+        self.potential = potential
+        self.variables = {&#39;particle&#39;: &#39;particle&#39;,
+                          &#39;cell&#39;: &#39;cell&#39;}
+
+    def compute(self, observable, particle, cell):
+        # We use self.potential as lammps commands
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, &#39;lammps.atom&#39;)
+        file_inp = os.path.join(dirout, &#39;lammps.atom.inp&#39;)
+        # Update lammps startup file using self.system
+        # This will write the .inp startup file
+        with TrajectoryLAMMPS(file_tmp, &#39;w&#39;) as th:
+            th.write(system.System(particle, cell), 0)
+
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
+        cmd = &#34;&#34;&#34;\
+units           lj
+atom_style      atomic
+read_data {}
+{}
+run 0
+write_dump all custom {} fx fy fz modify format line &#34;%.15g %.15g %.15g&#34;
+&#34;&#34;&#34;.format(file_inp, self.potential, file_tmp)
+
+        stdout = _run_lammps_command(cmd)
+
+        found = False
+        for line in stdout.split(&#39;\n&#39;):
+            if &#39;Step&#39; in line:
+                found = True
+            elif found:
+                if &#39;MPI&#39; in line:
+                    continue
+                _, T, U, _, _, P = [float(x) for x in line.split()]
+                rho = len(particle) / cell.volume
+                ndim = len(cell.side)
+                self.energy = U * len(particle)
+                self.virial = (P - rho*T) * ndim * cell.volume
+                break
+
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+            self.forces = new_system.interaction.forces
+
+        # Clean up
+        rmd(dirout)
+
+
+# We use the base system class
+System = system.System
+
+
+class LAMMPS(object):
+
+    &#34;&#34;&#34;LAMMPS simulation backend.&#34;&#34;&#34;
+
+    def __init__(self, inp, commands, restart=False):
+        &#34;&#34;&#34;
+        We initialize the backend from `inp`, which can be a `System`, a
+        `Trajectory` or path to a trajectory. LAMMPS `commands` must
+        be a string or a file and should not contain dump or run
+        commands.
+        &#34;&#34;&#34;
+        self.version = _get_lammps_version()
+        self.verbose = False
+
+        # Initialize commands
+        self.commands = commands
+        if os.path.exists(commands):
+            with open(commands) as fh:
+                self.commands = fh.read()
+
+        # Define the initial system
+        if isinstance(inp, system.System):
+            # If we pass a system there is nothing to do
+            self.system = inp
+
+        elif isinstance(inp, trajectory.base.TrajectoryBase):
+            # It is trajectory, we get the last frame
+            self.system = inp[-1]
+
+        elif os.path.exists(inp):
+            # We accept any trajectory format, but if the format is
+            # not recognized we force lammps native (atom) format
+            try:
+                with trajectory.Trajectory(inp) as t:
+                    # We enforce fortran species layout
+                    t.add_callback(change_species, &#39;F&#39;)
+                    s = t[-1]
+            except ValueError:
+                with trajectory.TrajectoryLAMMPS(inp) as t:
+                    s = t[-1]
+            self.system = s
+
+        else:
+            raise ValueError(&#39;could not initialize system from {}&#39;.format(inp))
+
+        # Default trajectory format
+        self.trajectory_class = TrajectoryLAMMPS
+
+        # Assign commands as potentials, they should be stripped
+        self.system.interaction = Interaction(commands)
+
+        # Tmp directory for restart files
+        # TODO: clean this somehow
+        self.restart = restart
+        if self.restart:
+            self.tmpdir = tempfile.mkdtemp()
+
+    def __str__(self):
+        return &#39;LAMMPS&#39;
+
+    @property
+    def rmsd(self):
+        return 0.0
+
+    def read_checkpoint(self, output_path):
+        pass
+
+    def write_checkpoint(self, output_path):
+        pass
+
+    def run(self, steps):
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, &#39;lammps.atom&#39;)
+        file_inp = os.path.join(dirout, &#39;lammps.atom.inp&#39;)
+        if self.restart:
+            file_res = os.path.join(self.tmpdir, &#39;lammps.restart&#39;)
+        # Update lammps startup file using self.system
+        # This will write the .inp startup file
+        with TrajectoryLAMMPS(file_tmp, &#39;w&#39;) as th:
+            th.write(self.system, 0)
+
+        # Set fixes from the system if we find thermostat / barostat
+        if self.system.thermostat is not None and self.system.barostat is not None:
+            # NPT ensemble
+            fix = &#39;fix 1 all npt temp {0.temperature} {0.temperature} {0.relaxation_time} iso {1.pressure} {1.pressure} {1.relaxation_time}&#39;.format(
+                self.system.thermostat, self.system.barostat)
+        elif self.system.thermostat is not None:
+            # NVT ensemble
+            fix = &#39;fix 1 all nvt temp {0.temperature} {0.temperature} {0.relaxation_time}&#39;.format(self.system.thermostat)
+        elif &#39;fix&#39; not in self.commands:
+            # NVE ensemble
+            fix = &#39;fix 1 all nve&#39;
+        else:
+            # The integrator is already contained in the commands
+            fix = &#39;&#39;
+
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
+        cmd = &#34;&#34;&#34;\
+units           lj
+atom_style      atomic
+&#34;&#34;&#34;
+        # Read restart file if it exists
+        if self.restart and os.path.exists(file_res):
+            cmd += &#34;&#34;&#34;
+read_restart {}
+&#34;&#34;&#34;.format(file_res)
+        else:
+            cmd += &#34;&#34;&#34;
+read_data {}
+&#34;&#34;&#34;.format(file_inp)
+
+        # Rest of commands
+        cmd += &#34;&#34;&#34;
+{commands}
+{fix}
+run {steps}
+write_dump all custom {file_tmp} id type x y z vx vy vz modify sort id format line &#34;%d %d %.15g %.15g %.15g %.15g %.15g %.15g&#34;
+&#34;&#34;&#34;.format(commands=self.commands, fix=fix, steps=steps, file_tmp=file_tmp)
+
+        if self.restart:
+            cmd += &#34;&#34;&#34;
+write_restart {}
+&#34;&#34;&#34;.format(file_res)
+
+        # Execute LAMMPS command
+        stdout = _run_lammps_command(cmd)
+
+        if self.verbose:
+            print(stdout)
+
+        # Update internal reference to self.system
+        # Note that the thermostat and barostat are not touched
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+            for i in range(len(self.system.particle)):
+                self.system.particle[i] = new_system.particle[i]
+
+        # Clean up
+        rmd(dirout)
+
+
+class EnergyMinimization(LAMMPS):
+
+    &#34;&#34;&#34;LAMMPS minimization backend.&#34;&#34;&#34;
+
+    def __init__(self, inp, commands, method=&#39;cg&#39;, ftol=1e-4, steps=100000):
+        &#34;&#34;&#34;
+        We initialize the backend from `inp`, which can be a `System`, a
+        `Trajectory` or path to a trajectory. LAMMPS `commands` must
+        be a string or a file and should not contain dump or minimize
+        commands.
+        &#34;&#34;&#34;
+        LAMMPS.__init__(self, inp, commands)
+        self.steps = steps
+        self.ftol = ftol
+        self.method = method
+        self.max_evaluations = 100000
+        # Optimization backends must set a boolean reached_steps
+        # attribute. It is True at the beginning.
+        self.reached_steps = True
+
+    def __str__(self):
+        return &#39;LAMMPS energy minimization&#39;
+
+    def run(self, steps=None):
+        if steps is not None:
+            self.steps = steps
+
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, &#39;lammps.atom&#39;)
+        file_inp = os.path.join(dirout, &#39;lammps.atom.inp&#39;)
+
+        # Update lammps startup file using self.system
+        # This will write the .inp startup file
+        with TrajectoryLAMMPS(file_tmp, &#39;w&#39;) as th:
+            th.write(self.system, 0)
+
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
+        cmd = &#34;&#34;&#34;\
+units           lj
+atom_style      atomic
+read_data {file_inp}
+{commands}
+min_style {method}
+minimize 0.0 {tolerance} {steps} {max_evaluations}
+write_dump all custom {file_tmp} id type x y z modify sort id format line &#34;%d %d %.15g %.15g %.15g&#34;
+&#34;&#34;&#34;.format(file_tmp=file_tmp, file_inp=file_inp,
+           commands=self.commands, method=self.method,
+           tolerance=self.ftol,
+           steps=min(100000000, self.steps),
+           max_evaluations=min(100000000, self.max_evaluations))
+
+        stdout = _run_lammps_command(cmd)
+
+        if self.verbose:
+            print(stdout)
+
+        # Check if we have reached the number of maximum number of steps
+        if &#39;Stopping criterion = max iterations&#39; in stdout:
+            self.reached_steps = True
+        else:
+            self.reached_steps = False
+
+        # Update internal reference to self.system
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+        for i in range(len(self.system.particle)):
+            self.system.particle[i] = new_system.particle[i]
+
+        # Clean up
+        rmd(dirout)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="atooms.backends.lammps.installed"><code class="name flex">
+<span>def <span class="ident">installed</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return <code>True</code> if <code>lammps_command</code> can be executed</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def installed():
+    &#34;&#34;&#34;Return `True` if `lammps_command` can be executed&#34;&#34;&#34;
+    try:
+        cmd = &#39;echo | {} {}&#39;.format(lammps_mpi, lammps_command)
+        _ = subprocess.check_output(cmd, shell=True,
+                                    stderr=subprocess.STDOUT, executable=&#39;/bin/bash&#39;)
+        return True
+    except subprocess.CalledProcessError:
+        return False</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="atooms.backends.lammps.EnergyMinimization"><code class="flex name class">
+<span>class <span class="ident">EnergyMinimization</span></span>
+<span>(</span><span>inp, commands, method='cg', ftol=0.0001, steps=100000)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>LAMMPS minimization backend.</p>
+<p>We initialize the backend from <code>inp</code>, which can be a <code>System</code>, a
+<code>Trajectory</code> or path to a trajectory. LAMMPS <code>commands</code> must
+be a string or a file and should not contain dump or minimize
+commands.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class EnergyMinimization(LAMMPS):
+
+    &#34;&#34;&#34;LAMMPS minimization backend.&#34;&#34;&#34;
+
+    def __init__(self, inp, commands, method=&#39;cg&#39;, ftol=1e-4, steps=100000):
+        &#34;&#34;&#34;
+        We initialize the backend from `inp`, which can be a `System`, a
+        `Trajectory` or path to a trajectory. LAMMPS `commands` must
+        be a string or a file and should not contain dump or minimize
+        commands.
+        &#34;&#34;&#34;
+        LAMMPS.__init__(self, inp, commands)
+        self.steps = steps
+        self.ftol = ftol
+        self.method = method
+        self.max_evaluations = 100000
+        # Optimization backends must set a boolean reached_steps
+        # attribute. It is True at the beginning.
+        self.reached_steps = True
+
+    def __str__(self):
+        return &#39;LAMMPS energy minimization&#39;
+
+    def run(self, steps=None):
+        if steps is not None:
+            self.steps = steps
+
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, &#39;lammps.atom&#39;)
+        file_inp = os.path.join(dirout, &#39;lammps.atom.inp&#39;)
+
+        # Update lammps startup file using self.system
+        # This will write the .inp startup file
+        with TrajectoryLAMMPS(file_tmp, &#39;w&#39;) as th:
+            th.write(self.system, 0)
+
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
+        cmd = &#34;&#34;&#34;\
+units           lj
+atom_style      atomic
+read_data {file_inp}
+{commands}
+min_style {method}
+minimize 0.0 {tolerance} {steps} {max_evaluations}
+write_dump all custom {file_tmp} id type x y z modify sort id format line &#34;%d %d %.15g %.15g %.15g&#34;
+&#34;&#34;&#34;.format(file_tmp=file_tmp, file_inp=file_inp,
+           commands=self.commands, method=self.method,
+           tolerance=self.ftol,
+           steps=min(100000000, self.steps),
+           max_evaluations=min(100000000, self.max_evaluations))
+
+        stdout = _run_lammps_command(cmd)
+
+        if self.verbose:
+            print(stdout)
+
+        # Check if we have reached the number of maximum number of steps
+        if &#39;Stopping criterion = max iterations&#39; in stdout:
+            self.reached_steps = True
+        else:
+            self.reached_steps = False
+
+        # Update internal reference to self.system
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+        for i in range(len(self.system.particle)):
+            self.system.particle[i] = new_system.particle[i]
+
+        # Clean up
+        rmd(dirout)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="atooms.backends.lammps.LAMMPS" href="#atooms.backends.lammps.LAMMPS">LAMMPS</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="atooms.backends.lammps.EnergyMinimization.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self, steps=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">    def run(self, steps=None):
+        if steps is not None:
+            self.steps = steps
+
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, &#39;lammps.atom&#39;)
+        file_inp = os.path.join(dirout, &#39;lammps.atom.inp&#39;)
+
+        # Update lammps startup file using self.system
+        # This will write the .inp startup file
+        with TrajectoryLAMMPS(file_tmp, &#39;w&#39;) as th:
+            th.write(self.system, 0)
+
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
+        cmd = &#34;&#34;&#34;\
+units           lj
+atom_style      atomic
+read_data {file_inp}
+{commands}
+min_style {method}
+minimize 0.0 {tolerance} {steps} {max_evaluations}
+write_dump all custom {file_tmp} id type x y z modify sort id format line &#34;%d %d %.15g %.15g %.15g&#34;
+&#34;&#34;&#34;.format(file_tmp=file_tmp, file_inp=file_inp,
+           commands=self.commands, method=self.method,
+           tolerance=self.ftol,
+           steps=min(100000000, self.steps),
+           max_evaluations=min(100000000, self.max_evaluations))
+
+        stdout = _run_lammps_command(cmd)
+
+        if self.verbose:
+            print(stdout)
+
+        # Check if we have reached the number of maximum number of steps
+        if &#39;Stopping criterion = max iterations&#39; in stdout:
+            self.reached_steps = True
+        else:
+            self.reached_steps = False
+
+        # Update internal reference to self.system
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+        for i in range(len(self.system.particle)):
+            self.system.particle[i] = new_system.particle[i]
+
+        # Clean up
+        rmd(dirout)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="atooms.backends.lammps.Interaction"><code class="flex name class">
+<span>class <span class="ident">Interaction</span></span>
+<span>(</span><span>potential)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Interaction wrapper for LAMMPS.</p>
+<p>For the time being, it assumes <code>self.potential</code> is a string
+containing appropriate lammps commands that define the
+interaction.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Interaction(interaction.Interaction):
+    &#34;&#34;&#34;
+    Interaction wrapper for LAMMPS.
+
+    For the time being, it assumes `self.potential` is a string
+    containing appropriate lammps commands that define the
+    interaction.
+    &#34;&#34;&#34;
+    # TODO: assign interaction to system based on pair_style entries in cmd
+
+    def __init__(self, potential):
+        interaction.Interaction.__init__(self)
+        self.potential = potential
+        self.variables = {&#39;particle&#39;: &#39;particle&#39;,
+                          &#39;cell&#39;: &#39;cell&#39;}
+
+    def compute(self, observable, particle, cell):
+        # We use self.potential as lammps commands
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, &#39;lammps.atom&#39;)
+        file_inp = os.path.join(dirout, &#39;lammps.atom.inp&#39;)
+        # Update lammps startup file using self.system
+        # This will write the .inp startup file
+        with TrajectoryLAMMPS(file_tmp, &#39;w&#39;) as th:
+            th.write(system.System(particle, cell), 0)
+
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
+        cmd = &#34;&#34;&#34;\
+units           lj
+atom_style      atomic
+read_data {}
+{}
+run 0
+write_dump all custom {} fx fy fz modify format line &#34;%.15g %.15g %.15g&#34;
+&#34;&#34;&#34;.format(file_inp, self.potential, file_tmp)
+
+        stdout = _run_lammps_command(cmd)
+
+        found = False
+        for line in stdout.split(&#39;\n&#39;):
+            if &#39;Step&#39; in line:
+                found = True
+            elif found:
+                if &#39;MPI&#39; in line:
+                    continue
+                _, T, U, _, _, P = [float(x) for x in line.split()]
+                rho = len(particle) / cell.volume
+                ndim = len(cell.side)
+                self.energy = U * len(particle)
+                self.virial = (P - rho*T) * ndim * cell.volume
+                break
+
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+            self.forces = new_system.interaction.forces
+
+        # Clean up
+        rmd(dirout)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="atooms.system.interaction.Interaction" href="../system/interaction.html#atooms.system.interaction.Interaction">Interaction</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="atooms.system.interaction.Interaction" href="../system/interaction.html#atooms.system.interaction.Interaction">Interaction</a></b></code>:
+<ul class="hlist">
+<li><code><a title="atooms.system.interaction.Interaction.compute" href="../system/interaction.html#atooms.system.interaction.Interaction.compute">compute</a></code></li>
+<li><code><a title="atooms.system.interaction.Interaction.variables" href="../system/interaction.html#atooms.system.interaction.Interaction.variables">variables</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="atooms.backends.lammps.LAMMPS"><code class="flex name class">
+<span>class <span class="ident">LAMMPS</span></span>
+<span>(</span><span>inp, commands, restart=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>LAMMPS simulation backend.</p>
+<p>We initialize the backend from <code>inp</code>, which can be a <code>System</code>, a
+<code>Trajectory</code> or path to a trajectory. LAMMPS <code>commands</code> must
+be a string or a file and should not contain dump or run
+commands.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LAMMPS(object):
+
+    &#34;&#34;&#34;LAMMPS simulation backend.&#34;&#34;&#34;
+
+    def __init__(self, inp, commands, restart=False):
+        &#34;&#34;&#34;
+        We initialize the backend from `inp`, which can be a `System`, a
+        `Trajectory` or path to a trajectory. LAMMPS `commands` must
+        be a string or a file and should not contain dump or run
+        commands.
+        &#34;&#34;&#34;
+        self.version = _get_lammps_version()
+        self.verbose = False
+
+        # Initialize commands
+        self.commands = commands
+        if os.path.exists(commands):
+            with open(commands) as fh:
+                self.commands = fh.read()
+
+        # Define the initial system
+        if isinstance(inp, system.System):
+            # If we pass a system there is nothing to do
+            self.system = inp
+
+        elif isinstance(inp, trajectory.base.TrajectoryBase):
+            # It is trajectory, we get the last frame
+            self.system = inp[-1]
+
+        elif os.path.exists(inp):
+            # We accept any trajectory format, but if the format is
+            # not recognized we force lammps native (atom) format
+            try:
+                with trajectory.Trajectory(inp) as t:
+                    # We enforce fortran species layout
+                    t.add_callback(change_species, &#39;F&#39;)
+                    s = t[-1]
+            except ValueError:
+                with trajectory.TrajectoryLAMMPS(inp) as t:
+                    s = t[-1]
+            self.system = s
+
+        else:
+            raise ValueError(&#39;could not initialize system from {}&#39;.format(inp))
+
+        # Default trajectory format
+        self.trajectory_class = TrajectoryLAMMPS
+
+        # Assign commands as potentials, they should be stripped
+        self.system.interaction = Interaction(commands)
+
+        # Tmp directory for restart files
+        # TODO: clean this somehow
+        self.restart = restart
+        if self.restart:
+            self.tmpdir = tempfile.mkdtemp()
+
+    def __str__(self):
+        return &#39;LAMMPS&#39;
+
+    @property
+    def rmsd(self):
+        return 0.0
+
+    def read_checkpoint(self, output_path):
+        pass
+
+    def write_checkpoint(self, output_path):
+        pass
+
+    def run(self, steps):
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, &#39;lammps.atom&#39;)
+        file_inp = os.path.join(dirout, &#39;lammps.atom.inp&#39;)
+        if self.restart:
+            file_res = os.path.join(self.tmpdir, &#39;lammps.restart&#39;)
+        # Update lammps startup file using self.system
+        # This will write the .inp startup file
+        with TrajectoryLAMMPS(file_tmp, &#39;w&#39;) as th:
+            th.write(self.system, 0)
+
+        # Set fixes from the system if we find thermostat / barostat
+        if self.system.thermostat is not None and self.system.barostat is not None:
+            # NPT ensemble
+            fix = &#39;fix 1 all npt temp {0.temperature} {0.temperature} {0.relaxation_time} iso {1.pressure} {1.pressure} {1.relaxation_time}&#39;.format(
+                self.system.thermostat, self.system.barostat)
+        elif self.system.thermostat is not None:
+            # NVT ensemble
+            fix = &#39;fix 1 all nvt temp {0.temperature} {0.temperature} {0.relaxation_time}&#39;.format(self.system.thermostat)
+        elif &#39;fix&#39; not in self.commands:
+            # NVE ensemble
+            fix = &#39;fix 1 all nve&#39;
+        else:
+            # The integrator is already contained in the commands
+            fix = &#39;&#39;
+
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
+        cmd = &#34;&#34;&#34;\
+units           lj
+atom_style      atomic
+&#34;&#34;&#34;
+        # Read restart file if it exists
+        if self.restart and os.path.exists(file_res):
+            cmd += &#34;&#34;&#34;
+read_restart {}
+&#34;&#34;&#34;.format(file_res)
+        else:
+            cmd += &#34;&#34;&#34;
+read_data {}
+&#34;&#34;&#34;.format(file_inp)
+
+        # Rest of commands
+        cmd += &#34;&#34;&#34;
+{commands}
+{fix}
+run {steps}
+write_dump all custom {file_tmp} id type x y z vx vy vz modify sort id format line &#34;%d %d %.15g %.15g %.15g %.15g %.15g %.15g&#34;
+&#34;&#34;&#34;.format(commands=self.commands, fix=fix, steps=steps, file_tmp=file_tmp)
+
+        if self.restart:
+            cmd += &#34;&#34;&#34;
+write_restart {}
+&#34;&#34;&#34;.format(file_res)
+
+        # Execute LAMMPS command
+        stdout = _run_lammps_command(cmd)
+
+        if self.verbose:
+            print(stdout)
+
+        # Update internal reference to self.system
+        # Note that the thermostat and barostat are not touched
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+            for i in range(len(self.system.particle)):
+                self.system.particle[i] = new_system.particle[i]
+
+        # Clean up
+        rmd(dirout)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="atooms.backends.lammps.EnergyMinimization" href="#atooms.backends.lammps.EnergyMinimization">EnergyMinimization</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="atooms.backends.lammps.LAMMPS.rmsd"><code class="name">var <span class="ident">rmsd</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def rmsd(self):
+    return 0.0</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="atooms.backends.lammps.LAMMPS.read_checkpoint"><code class="name flex">
+<span>def <span class="ident">read_checkpoint</span></span>(<span>self, output_path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_checkpoint(self, output_path):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="atooms.backends.lammps.LAMMPS.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self, steps)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">    def run(self, steps):
+        dirout = tempfile.mkdtemp()
+        file_tmp = os.path.join(dirout, &#39;lammps.atom&#39;)
+        file_inp = os.path.join(dirout, &#39;lammps.atom.inp&#39;)
+        if self.restart:
+            file_res = os.path.join(self.tmpdir, &#39;lammps.restart&#39;)
+        # Update lammps startup file using self.system
+        # This will write the .inp startup file
+        with TrajectoryLAMMPS(file_tmp, &#39;w&#39;) as th:
+            th.write(self.system, 0)
+
+        # Set fixes from the system if we find thermostat / barostat
+        if self.system.thermostat is not None and self.system.barostat is not None:
+            # NPT ensemble
+            fix = &#39;fix 1 all npt temp {0.temperature} {0.temperature} {0.relaxation_time} iso {1.pressure} {1.pressure} {1.relaxation_time}&#39;.format(
+                self.system.thermostat, self.system.barostat)
+        elif self.system.thermostat is not None:
+            # NVT ensemble
+            fix = &#39;fix 1 all nvt temp {0.temperature} {0.temperature} {0.relaxation_time}&#39;.format(self.system.thermostat)
+        elif &#39;fix&#39; not in self.commands:
+            # NVE ensemble
+            fix = &#39;fix 1 all nve&#39;
+        else:
+            # The integrator is already contained in the commands
+            fix = &#39;&#39;
+
+        # Do things in lammps order: units, read, commands, run. A
+        # better approach would be to parse commands and place
+        # read_data after units then pack commands again. Even better
+        # using PyLammps...
+        cmd = &#34;&#34;&#34;\
+units           lj
+atom_style      atomic
+&#34;&#34;&#34;
+        # Read restart file if it exists
+        if self.restart and os.path.exists(file_res):
+            cmd += &#34;&#34;&#34;
+read_restart {}
+&#34;&#34;&#34;.format(file_res)
+        else:
+            cmd += &#34;&#34;&#34;
+read_data {}
+&#34;&#34;&#34;.format(file_inp)
+
+        # Rest of commands
+        cmd += &#34;&#34;&#34;
+{commands}
+{fix}
+run {steps}
+write_dump all custom {file_tmp} id type x y z vx vy vz modify sort id format line &#34;%d %d %.15g %.15g %.15g %.15g %.15g %.15g&#34;
+&#34;&#34;&#34;.format(commands=self.commands, fix=fix, steps=steps, file_tmp=file_tmp)
+
+        if self.restart:
+            cmd += &#34;&#34;&#34;
+write_restart {}
+&#34;&#34;&#34;.format(file_res)
+
+        # Execute LAMMPS command
+        stdout = _run_lammps_command(cmd)
+
+        if self.verbose:
+            print(stdout)
+
+        # Update internal reference to self.system
+        # Note that the thermostat and barostat are not touched
+        with TrajectoryLAMMPS(file_tmp) as th:
+            new_system = th[-1]
+            for i in range(len(self.system.particle)):
+                self.system.particle[i] = new_system.particle[i]
+
+        # Clean up
+        rmd(dirout)</code></pre>
+</details>
+</dd>
+<dt id="atooms.backends.lammps.LAMMPS.write_checkpoint"><code class="name flex">
+<span>def <span class="ident">write_checkpoint</span></span>(<span>self, output_path)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_checkpoint(self, output_path):
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="atooms.backends" href="index.html">atooms.backends</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="atooms.backends.lammps.installed" href="#atooms.backends.lammps.installed">installed</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="atooms.backends.lammps.EnergyMinimization" href="#atooms.backends.lammps.EnergyMinimization">EnergyMinimization</a></code></h4>
+<ul class="">
+<li><code><a title="atooms.backends.lammps.EnergyMinimization.run" href="#atooms.backends.lammps.EnergyMinimization.run">run</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="atooms.backends.lammps.Interaction" href="#atooms.backends.lammps.Interaction">Interaction</a></code></h4>
+</li>
+<li>
+<h4><code><a title="atooms.backends.lammps.LAMMPS" href="#atooms.backends.lammps.LAMMPS">LAMMPS</a></code></h4>
+<ul class="">
+<li><code><a title="atooms.backends.lammps.LAMMPS.read_checkpoint" href="#atooms.backends.lammps.LAMMPS.read_checkpoint">read_checkpoint</a></code></li>
+<li><code><a title="atooms.backends.lammps.LAMMPS.rmsd" href="#atooms.backends.lammps.LAMMPS.rmsd">rmsd</a></code></li>
+<li><code><a title="atooms.backends.lammps.LAMMPS.run" href="#atooms.backends.lammps.LAMMPS.run">run</a></code></li>
+<li><code><a title="atooms.backends.lammps.LAMMPS.write_checkpoint" href="#atooms.backends.lammps.LAMMPS.write_checkpoint">write_checkpoint</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

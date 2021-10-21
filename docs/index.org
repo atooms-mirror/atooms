@@ -36,6 +36,7 @@
 #+options: toc:2 num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
 #+property: header-args:python :exports both
 #+property: header-args:gnuplot :exports results
+#+setupfile: /home/coslo/usr/org-config/latex.setup
 #+setupfile: https://coslo.frama.io/org-html-themes/org/theme-readtheorg.setup
 
 * Basics

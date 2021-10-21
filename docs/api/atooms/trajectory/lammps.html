@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>atooms.trajectory.lammps API documentation</title>
+<meta name="description" content="LAMMPS trajectory format." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>atooms.trajectory.lammps</code></h1>
+</header>
+<section id="section-intro">
+<p>LAMMPS trajectory format.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># This file is part of atooms
+# Copyright 2010-2017, Daniele Coslovich
+
+&#34;&#34;&#34;LAMMPS trajectory format.&#34;&#34;&#34;
+
+import numpy
+
+from .base import TrajectoryBase
+from .folder import TrajectoryFolder
+from atooms.system import System, Particle, Cell
+from atooms.system.particle import distinct_species
+from atooms.system.interaction import Interaction
+
+import sys
+
+# Redefine range for python
+if sys.version_info[0] == 2:
+    range = xrange
+
+# Formatting callbacks
+
+def _parse_type(data, idx, system):
+    system.particle[idx].species = data
+
+def _parse_x(data, idx, system):
+    system.particle[idx].position[0] = float(data)
+
+def _parse_y(data, idx, system):
+    system.particle[idx].position[1] = float(data)
+
+def _parse_z(data, idx, system):
+    system.particle[idx].position[2] = float(data)
+
+def _parse_xs(data, idx, system):
+    system.particle[idx].position[0] = (float(data) - 0.5) * system.cell.side[0]
+
+def _parse_ys(data, idx, system):
+    system.particle[idx].position[1] = (float(data) - 0.5) * system.cell.side[1]
+
+def _parse_zs(data, idx, system):
+    system.particle[idx].position[2] = (float(data) - 0.5) * system.cell.side[2]
+
+def _parse_vx(data, idx, system):
+    system.particle[idx].velocity[0] = float(data)
+
+def _parse_vy(data, idx, system):
+    system.particle[idx].velocity[1] = float(data)
+
+def _parse_vz(data, idx, system):
+    system.particle[idx].velocity[2] = float(data)
+
+def _parse_fx(data, idx, system):
+    system.interaction.forces[idx, 0] = float(data)
+
+def _parse_fy(data, idx, system):
+    system.interaction.forces[idx, 1] = float(data)
+
+def _parse_fz(data, idx, system):
+    system.interaction.forces[idx, 2] = float(data)
+
+
+class TrajectoryLAMMPS(TrajectoryBase):
+
+    &#34;&#34;&#34;
+    Trajectory layout for LAMMPS.
+
+    In write mode, an additional .inp file is used as startup file.
+    &#34;&#34;&#34;
+
+    suffix = &#39;atom&#39;
+    _cbk = {&#39;x&#39;: _parse_x, &#39;y&#39;: _parse_y, &#39;z&#39;: _parse_z,
+            &#39;xu&#39;: _parse_x, &#39;yu&#39;: _parse_y, &#39;zu&#39;: _parse_z,
+            &#39;xs&#39;: _parse_xs, &#39;ys&#39;: _parse_ys, &#39;zs&#39;: _parse_zs,
+            &#39;xsu&#39;: _parse_xs, &#39;ysu&#39;: _parse_ys, &#39;zsu&#39;: _parse_zs,
+            &#39;vx&#39;: _parse_vx, &#39;vy&#39;: _parse_vy, &#39;vz&#39;: _parse_vz,
+            &#39;fx&#39;: _parse_fx, &#39;fy&#39;: _parse_fy, &#39;fz&#39;: _parse_fz,
+            &#39;type&#39;: _parse_type}
+
+    def __init__(self, filename, mode=&#39;r&#39;, single_frame=False,
+                 first_particle=-1, last_particle=-1):
+        super(TrajectoryLAMMPS, self).__init__(filename, mode)
+        self.precision = 14  # default to double precision
+        self.single_frame = single_frame
+        self.first_particle = first_particle
+        self.last_particle = last_particle
+        self._file = open(self.filename, self.mode)
+        if mode == &#39;r&#39;:
+            self._setup_index()
+
+    def _setup_index(self):
+        &#34;&#34;&#34;Sample indexing via tell / seek&#34;&#34;&#34;
+        from collections import defaultdict
+        self._file.seek(0)
+        self._index_db = defaultdict(list)
+        while True:
+            line = self._file.tell()
+            data = self._file.readline()
+            # We break if file is over or we found an empty line
+            if not data:
+                break
+            if data.startswith(&#39;ITEM:&#39;):
+                for block in [&#39;TIMESTEP&#39;, &#39;NUMBER OF ATOMS&#39;,
+                              &#39;BOX BOUNDS&#39;, &#39;ATOMS&#39;]:
+                    if data[6:].startswith(block):
+                        # entry contains whatever is found after block
+                        entry = data[7+len(block):]
+                        self._index_db[block].append((line, entry))
+                        break
+                # Avoid reading after ATOOMS block has been found.
+                # We assume it is the last block in the file.
+                # The single_frame variable is a hint that there are
+                # no more frames in the file
+                if block == &#39;ATOMS&#39; and self.single_frame:
+                    break
+        self._file.seek(0)
+
+    def read_steps(self):
+        steps = []
+        for idx, _ in self._index_db[&#39;TIMESTEP&#39;]:
+            self._file.seek(idx)
+            self._file.readline()
+            step = int(self._file.readline())
+            steps.append(step)
+        self._file.seek(0)
+        return steps
+
+    def read_system(self, frame):
+        # Read number of particles
+        idx, _ = self._index_db[&#39;NUMBER OF ATOMS&#39;][frame]
+        self._file.seek(idx)
+        self._file.readline()
+        data = self._file.readline()
+        npart = int(data)
+
+        # Build the system
+        system = System()
+        system.particle = []
+        for i in range(npart):
+            if self.first_particle &gt; 0 and i &lt; self.first_particle:
+                continue
+            if self.last_particle &gt; 0 and i &gt;= self.last_particle:
+                break
+            system.particle.append(Particle())
+
+        # Add cell
+        idx, data = self._index_db[&#39;BOX BOUNDS&#39;][frame]
+        self._file.seek(idx)
+        self._file.readline()
+        ndim = len(data.split())  # line is ITEM: BOX BONDS pp pp pp
+        L, center = [], []
+        for _ in range(ndim):
+            data = [float(x) for x in self._file.readline().split()]
+            L.append(data[1] - data[0])
+            center.append((data[1] + data[0]) / 2)
+        system.cell = Cell(numpy.array(L), center=numpy.array(center))
+
+        # Read atoms data
+        idx, data = self._index_db[&#39;ATOMS&#39;][frame]
+        fields = data.split()  # fields on a line
+        _ = self._file.readline()
+
+        # Add interaction if forces are present
+        # In atooms, forces belong to the interaction, not to particles
+        if &#39;fx&#39; in fields or &#39;fy&#39; in fields or &#39;fz&#39; in fields:
+            # TODO: this won&#39;t work with first and last particles
+            system.interaction = Interaction()
+            system.interaction.forces = numpy.ndarray((npart, ndim))
+        else:
+            interaction = None
+
+        for i in range(npart):
+            # Limit reading the ATOMS section if requested
+            if self.first_particle &gt; 0 and i &lt; self.first_particle:
+                continue
+            if self.last_particle &gt; 0 and i &gt;= self.last_particle:
+                break
+            data = self._file.readline().split()
+            # Accept unsorted particles by parsing their id
+            if &#39;id&#39; in fields:
+                idx = int(data[0]) - 1
+            else:
+                idx = i
+            # Populate particle&#39;s attributes by reading fields
+            for j, field in enumerate(fields):
+                if field in self._cbk:
+                    self._cbk[field](data[j], idx, system)
+                else:
+                    # We should store these fields in particle anyway
+                    pass
+
+        return system
+
+    def write_init(self, system):
+        f = open(self.filename + &#39;.inp&#39;, &#39;w&#39;)
+        np = len(system.particle)
+        L = system.cell.side
+        species_db = distinct_species(system.particle)
+
+        # LAMMPS header
+        h = &#39;\n&#39;
+        h += &#34;{:d} atoms\n&#34;.format(np)
+        h += &#34;{:d} atom types\n&#34;.format(len(species_db))
+        h += &#34;{:.{prec}f} {:.{prec}f} xlo xhi\n&#34;.format(-L[0]/2, L[0]/2, prec=self.precision)
+        h += &#34;{:.{prec}f} {:.{prec}f} ylo yhi\n&#34;.format(-L[1]/2, L[1]/2, prec=self.precision)
+        h += &#34;{:.{prec}f} {:.{prec}f} zlo zhi\n&#34;.format(-L[2]/2, L[2]/2, prec=self.precision)
+
+        # LAMMPS body
+        # Masses of species
+        m = &#34;\nMasses\n\n&#34;
+        for isp in range(len(species_db)):
+            # Iterate over particles. Find instances of species and get masses
+            for p in system.particle:
+                if p.species == species_db[isp]:
+                    m += &#39;{:d} {:{prec}f}\n&#39;.format(isp + 1, p.mass, prec=self.precision)
+                    break
+
+        # Atom coordinates
+        r = &#34;\nAtoms\n\n&#34;
+        v = &#34;\nVelocities\n\n&#34;
+        for i, p in enumerate(system.particle):
+            isp = species_db.index(p.species) + 1
+            r += &#39;{:d} {:d} {:{prec}} {:{prec}} {:{prec}}\n&#39;.format(i+1, isp, *p.position, prec=self.precision)
+            v += &#39;{:d}      {:{prec}} {:{prec}} {:{prec}}\n&#39;.format(i+1, *p.velocity, prec=self.precision)
+
+        f.write(h)
+        f.write(m)
+        f.write(r)
+        f.write(v)
+        f.close()
+
+    def write_system(self, system, step):
+        pass
+
+    def close(self):
+        self._file.close()
+
+
+class TrajectoryFolderLAMMPS(TrajectoryFolder):
+
+    &#34;&#34;&#34;
+    Trajectory layout for LAMMPS.
+
+    In write mode, an additional .inp file is used as startup file.
+    &#34;&#34;&#34;
+
+    suffix = &#39;tgz&#39;
+
+    def __init__(self, filename, mode=&#39;r&#39;, file_pattern=&#39;*&#39;,
+                 step_pattern=r&#39;[a-zA-Z\.]*(\d*)&#39;, first_particle=-1, last_particle=-1):
+        super(TrajectoryFolderLAMMPS, self).__init__(filename, mode=mode,
+                                                     file_pattern=file_pattern,
+                                                     step_pattern=step_pattern)
+        self.first_particle = first_particle
+        self.last_particle = last_particle
+        # Small trick to force reading steps from lammps file
+        self._steps = None
+        # Sort frames according to step read in lammps file
+        sorted_steps = sorted(self.steps)
+        files_with_steps = [(x, y) for x, y in zip(self.files, self.steps)]
+        files_with_steps.sort(key=lambda x: sorted_steps.index(x[1]))
+        files = [_[0] for _ in files_with_steps]
+        self.files = files
+        self._steps = sorted_steps
+
+    def read_steps(self):
+        steps = []
+        for filename in self.files:
+            with TrajectoryLAMMPS(filename, &#39;r&#39;, single_frame=True,
+                                  first_particle=self.first_particle,
+                                  last_particle=self.last_particle) as th:
+                steps.append(th.steps[0])
+        return steps
+
+    def read_system(self, frame):
+        with TrajectoryLAMMPS(self.files[frame], &#39;r&#39;, single_frame=True,
+                              first_particle=self.first_particle,
+                              last_particle=self.last_particle) as th:
+            return th[0]
+
+    def write_system(self, system, step):
+        # We cannot write
+        raise NotImplementedError(&#39;cannot write lammps folder trajectory&#39;)
+
+# Note: to get the tabulated potential from a dump of potential.x do
+# &gt; { echo -e &#34;\nPOTENTIAL\nN 10000\n&#34;; grep -v &#39;#&#39; /tmp/kalj.ff.potential.1-1 | \
+#    awk &#39;{printf &#34;%i %g %12e %12e\n&#34;, NR, $1, $2, -$3}&#39; ; }</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="atooms.trajectory.lammps.TrajectoryFolderLAMMPS"><code class="flex name class">
+<span>class <span class="ident">TrajectoryFolderLAMMPS</span></span>
+<span>(</span><span>filename, mode='r', file_pattern='*', step_pattern='[a-zA-Z\\.]*(\\d*)', first_particle=-1, last_particle=-1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Trajectory layout for LAMMPS.</p>
+<p>In write mode, an additional .inp file is used as startup file.</p>
+<p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TrajectoryFolderLAMMPS(TrajectoryFolder):
+
+    &#34;&#34;&#34;
+    Trajectory layout for LAMMPS.
+
+    In write mode, an additional .inp file is used as startup file.
+    &#34;&#34;&#34;
+
+    suffix = &#39;tgz&#39;
+
+    def __init__(self, filename, mode=&#39;r&#39;, file_pattern=&#39;*&#39;,
+                 step_pattern=r&#39;[a-zA-Z\.]*(\d*)&#39;, first_particle=-1, last_particle=-1):
+        super(TrajectoryFolderLAMMPS, self).__init__(filename, mode=mode,
+                                                     file_pattern=file_pattern,
+                                                     step_pattern=step_pattern)
+        self.first_particle = first_particle
+        self.last_particle = last_particle
+        # Small trick to force reading steps from lammps file
+        self._steps = None
+        # Sort frames according to step read in lammps file
+        sorted_steps = sorted(self.steps)
+        files_with_steps = [(x, y) for x, y in zip(self.files, self.steps)]
+        files_with_steps.sort(key=lambda x: sorted_steps.index(x[1]))
+        files = [_[0] for _ in files_with_steps]
+        self.files = files
+        self._steps = sorted_steps
+
+    def read_steps(self):
+        steps = []
+        for filename in self.files:
+            with TrajectoryLAMMPS(filename, &#39;r&#39;, single_frame=True,
+                                  first_particle=self.first_particle,
+                                  last_particle=self.last_particle) as th:
+                steps.append(th.steps[0])
+        return steps
+
+    def read_system(self, frame):
+        with TrajectoryLAMMPS(self.files[frame], &#39;r&#39;, single_frame=True,
+                              first_particle=self.first_particle,
+                              last_particle=self.last_particle) as th:
+            return th[0]
+
+    def write_system(self, system, step):
+        # We cannot write
+        raise NotImplementedError(&#39;cannot write lammps folder trajectory&#39;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="atooms.trajectory.folder.TrajectoryFolder" href="folder.html#atooms.trajectory.folder.TrajectoryFolder">TrajectoryFolder</a></li>
+<li><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="atooms.trajectory.lammps.TrajectoryFolderLAMMPS.suffix"><code class="name">var <span class="ident">suffix</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="atooms.trajectory.folder.TrajectoryFolder" href="folder.html#atooms.trajectory.folder.TrajectoryFolder">TrajectoryFolder</a></b></code>:
+<ul class="hlist">
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_steps" href="base.html#atooms.trajectory.base.TrajectoryBase.read_steps">read_steps</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="atooms.trajectory.lammps.TrajectoryLAMMPS"><code class="flex name class">
+<span>class <span class="ident">TrajectoryLAMMPS</span></span>
+<span>(</span><span>filename, mode='r', single_frame=False, first_particle=-1, last_particle=-1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Trajectory layout for LAMMPS.</p>
+<p>In write mode, an additional .inp file is used as startup file.</p>
+<p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TrajectoryLAMMPS(TrajectoryBase):
+
+    &#34;&#34;&#34;
+    Trajectory layout for LAMMPS.
+
+    In write mode, an additional .inp file is used as startup file.
+    &#34;&#34;&#34;
+
+    suffix = &#39;atom&#39;
+    _cbk = {&#39;x&#39;: _parse_x, &#39;y&#39;: _parse_y, &#39;z&#39;: _parse_z,
+            &#39;xu&#39;: _parse_x, &#39;yu&#39;: _parse_y, &#39;zu&#39;: _parse_z,
+            &#39;xs&#39;: _parse_xs, &#39;ys&#39;: _parse_ys, &#39;zs&#39;: _parse_zs,
+            &#39;xsu&#39;: _parse_xs, &#39;ysu&#39;: _parse_ys, &#39;zsu&#39;: _parse_zs,
+            &#39;vx&#39;: _parse_vx, &#39;vy&#39;: _parse_vy, &#39;vz&#39;: _parse_vz,
+            &#39;fx&#39;: _parse_fx, &#39;fy&#39;: _parse_fy, &#39;fz&#39;: _parse_fz,
+            &#39;type&#39;: _parse_type}
+
+    def __init__(self, filename, mode=&#39;r&#39;, single_frame=False,
+                 first_particle=-1, last_particle=-1):
+        super(TrajectoryLAMMPS, self).__init__(filename, mode)
+        self.precision = 14  # default to double precision
+        self.single_frame = single_frame
+        self.first_particle = first_particle
+        self.last_particle = last_particle
+        self._file = open(self.filename, self.mode)
+        if mode == &#39;r&#39;:
+            self._setup_index()
+
+    def _setup_index(self):
+        &#34;&#34;&#34;Sample indexing via tell / seek&#34;&#34;&#34;
+        from collections import defaultdict
+        self._file.seek(0)
+        self._index_db = defaultdict(list)
+        while True:
+            line = self._file.tell()
+            data = self._file.readline()
+            # We break if file is over or we found an empty line
+            if not data:
+                break
+            if data.startswith(&#39;ITEM:&#39;):
+                for block in [&#39;TIMESTEP&#39;, &#39;NUMBER OF ATOMS&#39;,
+                              &#39;BOX BOUNDS&#39;, &#39;ATOMS&#39;]:
+                    if data[6:].startswith(block):
+                        # entry contains whatever is found after block
+                        entry = data[7+len(block):]
+                        self._index_db[block].append((line, entry))
+                        break
+                # Avoid reading after ATOOMS block has been found.
+                # We assume it is the last block in the file.
+                # The single_frame variable is a hint that there are
+                # no more frames in the file
+                if block == &#39;ATOMS&#39; and self.single_frame:
+                    break
+        self._file.seek(0)
+
+    def read_steps(self):
+        steps = []
+        for idx, _ in self._index_db[&#39;TIMESTEP&#39;]:
+            self._file.seek(idx)
+            self._file.readline()
+            step = int(self._file.readline())
+            steps.append(step)
+        self._file.seek(0)
+        return steps
+
+    def read_system(self, frame):
+        # Read number of particles
+        idx, _ = self._index_db[&#39;NUMBER OF ATOMS&#39;][frame]
+        self._file.seek(idx)
+        self._file.readline()
+        data = self._file.readline()
+        npart = int(data)
+
+        # Build the system
+        system = System()
+        system.particle = []
+        for i in range(npart):
+            if self.first_particle &gt; 0 and i &lt; self.first_particle:
+                continue
+            if self.last_particle &gt; 0 and i &gt;= self.last_particle:
+                break
+            system.particle.append(Particle())
+
+        # Add cell
+        idx, data = self._index_db[&#39;BOX BOUNDS&#39;][frame]
+        self._file.seek(idx)
+        self._file.readline()
+        ndim = len(data.split())  # line is ITEM: BOX BONDS pp pp pp
+        L, center = [], []
+        for _ in range(ndim):
+            data = [float(x) for x in self._file.readline().split()]
+            L.append(data[1] - data[0])
+            center.append((data[1] + data[0]) / 2)
+        system.cell = Cell(numpy.array(L), center=numpy.array(center))
+
+        # Read atoms data
+        idx, data = self._index_db[&#39;ATOMS&#39;][frame]
+        fields = data.split()  # fields on a line
+        _ = self._file.readline()
+
+        # Add interaction if forces are present
+        # In atooms, forces belong to the interaction, not to particles
+        if &#39;fx&#39; in fields or &#39;fy&#39; in fields or &#39;fz&#39; in fields:
+            # TODO: this won&#39;t work with first and last particles
+            system.interaction = Interaction()
+            system.interaction.forces = numpy.ndarray((npart, ndim))
+        else:
+            interaction = None
+
+        for i in range(npart):
+            # Limit reading the ATOMS section if requested
+            if self.first_particle &gt; 0 and i &lt; self.first_particle:
+                continue
+            if self.last_particle &gt; 0 and i &gt;= self.last_particle:
+                break
+            data = self._file.readline().split()
+            # Accept unsorted particles by parsing their id
+            if &#39;id&#39; in fields:
+                idx = int(data[0]) - 1
+            else:
+                idx = i
+            # Populate particle&#39;s attributes by reading fields
+            for j, field in enumerate(fields):
+                if field in self._cbk:
+                    self._cbk[field](data[j], idx, system)
+                else:
+                    # We should store these fields in particle anyway
+                    pass
+
+        return system
+
+    def write_init(self, system):
+        f = open(self.filename + &#39;.inp&#39;, &#39;w&#39;)
+        np = len(system.particle)
+        L = system.cell.side
+        species_db = distinct_species(system.particle)
+
+        # LAMMPS header
+        h = &#39;\n&#39;
+        h += &#34;{:d} atoms\n&#34;.format(np)
+        h += &#34;{:d} atom types\n&#34;.format(len(species_db))
+        h += &#34;{:.{prec}f} {:.{prec}f} xlo xhi\n&#34;.format(-L[0]/2, L[0]/2, prec=self.precision)
+        h += &#34;{:.{prec}f} {:.{prec}f} ylo yhi\n&#34;.format(-L[1]/2, L[1]/2, prec=self.precision)
+        h += &#34;{:.{prec}f} {:.{prec}f} zlo zhi\n&#34;.format(-L[2]/2, L[2]/2, prec=self.precision)
+
+        # LAMMPS body
+        # Masses of species
+        m = &#34;\nMasses\n\n&#34;
+        for isp in range(len(species_db)):
+            # Iterate over particles. Find instances of species and get masses
+            for p in system.particle:
+                if p.species == species_db[isp]:
+                    m += &#39;{:d} {:{prec}f}\n&#39;.format(isp + 1, p.mass, prec=self.precision)
+                    break
+
+        # Atom coordinates
+        r = &#34;\nAtoms\n\n&#34;
+        v = &#34;\nVelocities\n\n&#34;
+        for i, p in enumerate(system.particle):
+            isp = species_db.index(p.species) + 1
+            r += &#39;{:d} {:d} {:{prec}} {:{prec}} {:{prec}}\n&#39;.format(i+1, isp, *p.position, prec=self.precision)
+            v += &#39;{:d}      {:{prec}} {:{prec}} {:{prec}}\n&#39;.format(i+1, *p.velocity, prec=self.precision)
+
+        f.write(h)
+        f.write(m)
+        f.write(r)
+        f.write(v)
+        f.close()
+
+    def write_system(self, system, step):
+        pass
+
+    def close(self):
+        self._file.close()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="atooms.trajectory.lammps.TrajectoryLAMMPS.suffix"><code class="name">var <span class="ident">suffix</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="atooms.trajectory.lammps.TrajectoryLAMMPS.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    self._file.close()</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_steps" href="base.html#atooms.trajectory.base.TrajectoryBase.read_steps">read_steps</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="atooms.trajectory" href="index.html">atooms.trajectory</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="atooms.trajectory.lammps.TrajectoryFolderLAMMPS" href="#atooms.trajectory.lammps.TrajectoryFolderLAMMPS">TrajectoryFolderLAMMPS</a></code></h4>
+<ul class="">
+<li><code><a title="atooms.trajectory.lammps.TrajectoryFolderLAMMPS.suffix" href="#atooms.trajectory.lammps.TrajectoryFolderLAMMPS.suffix">suffix</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="atooms.trajectory.lammps.TrajectoryLAMMPS" href="#atooms.trajectory.lammps.TrajectoryLAMMPS">TrajectoryLAMMPS</a></code></h4>
+<ul class="">
+<li><code><a title="atooms.trajectory.lammps.TrajectoryLAMMPS.close" href="#atooms.trajectory.lammps.TrajectoryLAMMPS.close">close</a></code></li>
+<li><code><a title="atooms.trajectory.lammps.TrajectoryLAMMPS.suffix" href="#atooms.trajectory.lammps.TrajectoryLAMMPS.suffix">suffix</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

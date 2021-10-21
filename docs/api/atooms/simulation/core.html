@@ -1,0 +1,1333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>atooms.simulation.core API documentation</title>
+<meta name="description" content="Base simulation class with callback logic …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>atooms.simulation.core</code></h1>
+</header>
+<section id="section-intro">
+<p>Base simulation class with callback logic.</p>
+<p><code><a title="atooms" href="../index.html">atooms</a></code> provides a generic simulation interface that abstracts out
+most of the common parts of particle-based simulations.</p>
+<p><code><a title="atooms.simulation.core.Simulation" href="#atooms.simulation.core.Simulation">Simulation</a></code> uses callbacks to analyze and process simulation data on
+the fly. The module <code><a title="atooms.simulation.observers" href="observers.html">atooms.simulation.observers</a></code> provides basic
+callbacks to write data to disk, e.g. trajejectory files, and to stop
+the simulation when certain targets are reached, e.g. mean squared
+displacement larger than a threshold.</p>
+<p>The interval in steps at which callbacks are executed is controlled by
+a <code>Scheduler</code> instance.</p>
+<p>The actual simulation code is wrapped by a simulation "backend" that
+exposes a minimal but coherent interface.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># This file is part of atooms
+# Copyright 2010-2017, Daniele Coslovich
+
+&#34;&#34;&#34;
+Base simulation class with callback logic.
+
+`atooms` provides a generic simulation interface that abstracts out
+most of the common parts of particle-based simulations.
+
+`Simulation` uses callbacks to analyze and process simulation data on
+the fly. The module `atooms.simulation.observers` provides basic
+callbacks to write data to disk, e.g. trajejectory files, and to stop
+the simulation when certain targets are reached, e.g. mean squared
+displacement larger than a threshold.
+
+The interval in steps at which callbacks are executed is controlled by
+a `Scheduler` instance.
+
+The actual simulation code is wrapped by a simulation &#34;backend&#34; that
+exposes a minimal but coherent interface.
+&#34;&#34;&#34;
+
+import os
+import time
+import datetime
+import logging
+
+import atooms.core.progress
+from atooms.core import __version__
+from atooms.core.utils import mkdir, barrier
+from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, SimulationKill
+
+_log = logging.getLogger(__name__)
+
+
+def _report(info, file_handle=None, log_echo=True):
+    &#34;&#34;&#34;
+    Log `info` string to default logger at level info.
+
+    Optionally write `info` to `file_handle` if the latter is
+    given. Logging is disabled via `log_echo` is False.
+    &#34;&#34;&#34;
+    if info is None:
+        return
+
+    if log_echo:
+        for line in info.split(&#39;\n&#39;):
+            _log.info(line.strip())
+
+    if file_handle is not None:
+        file_handle.write(info)
+
+
+def _callable_name(callback):
+    try:
+        # This is a function
+        name = callback.__name__
+    except AttributeError:
+        # This is callable class
+        name = callback.__class__.__name__
+    return name.lower()
+
+
+class Simulation(object):
+
+    &#34;&#34;&#34;Simulation base class.&#34;&#34;&#34;
+
+    version = __version__
+
+    def __init__(self, backend, output_path=None, steps=0,
+                 checkpoint_interval=0, enable_speedometer=False,
+                 restart=False):
+        &#34;&#34;&#34;
+        Perform a simulation using the specified `backend` and optionally
+        write output to `output_path`. This can be a file or directory path.
+
+        Paths: to define output paths we rely on `output_path`, all
+        other paths are defined based on it and on its base_path.
+        &#34;&#34;&#34;
+        self.backend = backend
+        self.output_path = output_path
+        self.steps = steps
+        self._restart = restart
+        self.current_step = 0
+        self.initial_step = 0
+        # We expect subclasses to keep a ref to the trajectory class
+        # used to store configurations
+        if hasattr(self.backend, &#39;trajectory_class&#39;):
+            self.trajectory_class = self.backend.trajectory_class
+        else:
+            self.trajectory_class = None
+        # Make sure the dirname of output_path exists. For instance,
+        # if output_path is data/trajectory.xyz, then data/ should
+        # exist. This creates the data/ folder and its parents folders.
+        if self.output_path is not None:
+            mkdir(os.path.dirname(self.output_path))
+
+        # Internal variables
+        self._callback = []
+        self._start_time = time.time()
+        self._speedometer = None
+        self._checkpoint_scheduler = Scheduler(checkpoint_interval)
+        self._targeter_steps = target_steps
+        self._cbk_params = {}  # hold scheduler and parameters of callbacks
+        if enable_speedometer:
+            self._speedometer = Speedometer()
+            self.add(self._speedometer, Scheduler(self.steps, calls=20))
+
+    @property
+    def system(self):
+        # Note that setting system as a reference in the instance, like
+        #   self.system = self.backend.system
+        # is unsafe because this won&#39;t follow the backend&#39;s system when the
+        # latter is reassigned as in
+        #   self.backend.system = None
+        # So we defined it as a property.
+        return self.backend.system
+
+    @system.setter
+    def system(self, value):
+        self.backend.system = value
+
+    def __str__(self):
+        return &#39;atooms simulation via %s&#39; % self.backend
+
+    @property
+    def restart(self):
+        &#34;&#34;&#34;True is the simulation should be restarted. Read-only property.&#34;&#34;&#34;
+        return self._restart
+
+    @property
+    def base_path(self):
+        return os.path.splitext(self.output_path)[0]
+
+    def add_callback(self, callback, scheduler, *args, **kwargs):
+        self.add(callback, scheduler, *args, **kwargs)
+
+    def add(self, callback, scheduler, *args, **kwargs):
+        &#34;&#34;&#34;
+        Add an observer `callback` to be called along with a `scheduler`.
+
+        `scheduler` and `callback` must be callables accepting a
+        Simulation instance as unique argument. `scheduler` must
+        return the next step at which the observer has to be notified.
+
+        An integer value is allowed for `scheduler`. In this case, a
+        scheduler with fixed interval is generated internally and the
+        observer is notified every `scheduler` steps.
+        &#34;&#34;&#34;
+        # Accept an integer interval
+        if type(scheduler) is int:
+            scheduler = Scheduler(scheduler)
+
+        # Sanity check (prevent scheduler/callback inversion)
+        assert type(scheduler(self)) is int, \
+            &#34;probable swap between callback {} and scheduler {}&#34;.format(callback, scheduler)
+
+        # Store scheduler, callback and its arguments
+        # in a separate dict (NOT in the function object itself!)
+        self._cbk_params[callback] = {&#39;scheduler&#39;: scheduler,
+                                      &#39;args&#39;: args,
+                                      &#39;kwargs&#39;: kwargs}
+
+        # Keep targeters last
+        if &#39;target&#39; not in _callable_name(callback):
+            self._callback.insert(0, callback)
+        else:
+            self._callback.append(callback)
+
+    def remove(self, callback):
+        &#34;&#34;&#34;Remove the observer `callback`.&#34;&#34;&#34;
+        if callback in self._callback:
+            self._callback.remove(callback)
+            self._cbk_params.pop(callback)
+        else:
+            _log.debug(&#39;attempt to remove inexistent callback %s (dont worry)&#39;, callback)
+
+    def remove_callback(self, callback):
+        self.remove(callback)
+
+    def _notify(self, observers):
+        for observer in observers:
+            _log.debug(&#39;notify %s at step %d&#39;, observer, self.current_step)
+            args = self._cbk_params[observer][&#39;args&#39;]
+            kwargs = self._cbk_params[observer][&#39;kwargs&#39;]
+            observer(self, *args, **kwargs)
+
+    @property
+    def _targeters(self):
+        return [o for o in self._callback if &#39;target&#39; in _callable_name(o)]
+
+    @property
+    def _non_targeters(self):
+        return [o for o in self._callback if &#39;target&#39; not in _callable_name(o)]
+
+    @property
+    def _speedometers(self):
+        return [o for o in self._callback if isinstance(o, Speedometer)]
+
+    def write_checkpoint(self):
+        &#34;&#34;&#34;Write checkpoint to allow restarting a simulation.&#34;&#34;&#34;
+        if self.output_path is None:
+            return
+
+        # Checkpoint number of steps
+        with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
+            fh.write(&#39;%d&#39; % self.current_step)
+
+        if hasattr(self.backend, &#39;write_checkpoint&#39;):
+            # Use native backend checkpoint method
+            self.backend.write_checkpoint(self.output_path)
+        else:
+            # TODO: use pickle.dump
+            # Fallback to backend trajectory class with high precision
+            with self.trajectory_class(self.output_path + &#39;.chk&#39;, &#39;w&#39;,
+                                       fields=[&#39;species&#39;, &#39;position&#39;,
+                                               &#39;velocity&#39;, &#39;radius&#39;]) as t:
+                t.precision = 12
+                t.write(self.system, 0)
+
+    def read_checkpoint(self):
+        &#34;&#34;&#34;
+        Read the checkpoint to restart a simulation.
+
+        If the checkpoint file is not found, this method exits
+        gracefully.
+        &#34;&#34;&#34;
+        if self.output_path is None:
+            return
+
+        if os.path.exists(self.output_path + &#39;.chk.step&#39;):
+            with open(self.output_path + &#39;.chk.step&#39;) as fh:
+                self.current_step = int(fh.read())
+        else:
+            _log.debug(&#39;could not find steps checkpoint&#39;)
+
+        if hasattr(self.backend, &#39;read_checkpoint&#39;):
+            # Use native backend checkpoint method
+            self.backend.read_checkpoint(self.output_path)
+        else:
+            # Fallback to backend trajectory class with high precision
+            # TODO: use pickle.load
+            if os.path.exists(self.output_path + &#39;.chk&#39;):
+                with self.trajectory_class(self.output_path + &#39;.chk&#39;) as t:
+                    # Trajectory will not store the interaction,
+                    # thermostat, barostat, so we must preserve it
+                    self.system.update(t[0])
+
+    @property
+    def rmsd(self):
+        if hasattr(self.backend, &#39;rmsd&#39;):
+            return self.backend.rmsd
+        else:
+            return 0.0
+
+    def _elapsed_wall_time(self):
+        &#34;&#34;&#34;Elapsed wall time in seconds.&#34;&#34;&#34;
+        return time.time() - self._start_time
+
+    def wall_time(self, per_step=False, per_particle=False):
+        &#34;&#34;&#34;
+        Elapsed wall time in seconds.
+
+        Optionally normalized per step and or per particle. It can be
+        subclassed by more complex simulation classes.
+        &#34;&#34;&#34;
+        norm = 1.0
+        # Normalize per particle
+        if per_particle:
+            if len(self.system.particle) &gt; 0:
+                norm *= len(self.system.particle)
+            else:
+                return float(&#39;nan&#39;)
+        # Normalize per step
+        if per_step:
+            if self.current_step - self.initial_step &gt; 0:
+                norm *= (self.current_step - self.initial_step)
+            else:
+                return float(&#39;nan&#39;)
+        return self._elapsed_wall_time() / norm
+
+    def run_until(self, steps):
+        &#34;&#34;&#34;
+        Run the simulation up to `steps`.
+
+        Subclasses must set steps.
+        &#34;&#34;&#34;
+        self.backend.run(steps - self.current_step)
+        self.current_step = steps
+
+    def run(self, steps=None):
+        &#34;&#34;&#34;Run the simulation.&#34;&#34;&#34;
+        # If we are restaring we do not allow changing target steps on the fly.
+        # because it might have side effects like non constant writing interval.
+        if steps is not None:
+            if not self.restart or self.current_step == 0:
+                self.steps = steps
+
+        # Targeter for steps. We first replace the existing one
+        self.remove(self._targeter_steps)
+        self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
+                 self.current_step + self.steps)
+
+        # Targeter for progress bar
+        if atooms.core.progress.active:
+            intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._callback]
+            intervals = [intv for intv in intervals if intv is not None]
+            min_iters = 10
+            if min(intervals) &gt; (self.current_step + self.steps) / min_iters and \
+               (self.current_step + self.steps) / min_iters &gt; 10:
+                def flush(sim):
+                    pass
+                self.remove(flush)
+                self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
+
+        # Report
+        _report(self._info_start())
+        _report(self._info_backend())
+        _report(self._info_observers())
+        _report(str(self.system))
+        _report(str(self.backend))
+
+        # Read checkpoint if we restart
+        if self.restart:
+            self.read_checkpoint()
+        barrier()
+        self.initial_step = self.current_step
+        self._start_time = time.time()
+
+        import signal
+
+        def signal_term_handler(signal, frame):
+            raise SimulationKill(&#39;simulation terminated&#39;)
+
+        signal.signal(signal.SIGTERM, signal_term_handler)
+
+        # Reinitialize speedometers
+        for s in self._speedometers:
+            s._init = False
+        from atooms.core.progress import progress
+        bar = progress(total=self.steps)
+
+        try:
+            # Before entering the simulation, check if we can quit right away
+            # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
+            self._notify(self._targeters)
+
+            # Then notify non targeters unless we are restarting
+            if self.current_step == 0:
+                self._notify(self._non_targeters)
+            else:
+                self._notify(self._speedometers)
+            _log.info(&#39;starting at step: %d&#39;, self.current_step)
+            _log.info(&#39;&#39;)
+            while True:
+                # Run simulation until any of the observers need to be called
+                all_steps = [self._cbk_params[c][&#39;scheduler&#39;](self) for c in self._callback]
+                next_checkpoint = self._checkpoint_scheduler(self)
+                next_step = min(all_steps + [next_checkpoint])
+
+                self.run_until(next_step)
+
+                # Find observers indexes corresponding to minimum step
+                # then get all corresponding observers
+                next_step_ids = [i for i, step in enumerate(all_steps) if step == next_step]
+                next_observers = [self._callback[i] for i in next_step_ids]
+
+                # Observers should be sorted such that targeters are
+                # last to avoid cropping output files
+                self._notify(next_observers)
+                if self.current_step == next_checkpoint:
+                    self.write_checkpoint()
+
+                # Update progress bar
+                bar.update(self.current_step)
+
+        except SimulationEnd as end:
+            # Checkpoint configuration at last step
+            bar.update(self.current_step)
+            bar.close()
+            _log.info(&#39;simulation ended successfully: %s&#39;, end)
+            self.write_checkpoint()
+            _report(self._info_end())
+
+        except KeyboardInterrupt:
+            pass
+
+        except SimulationKill:
+            _log.info(&#39;simulation terminated&#39;)
+
+        except:
+            _log.error(&#39;simulation failed&#39;)
+            raise
+
+    def _info_start(self):
+        now = datetime.datetime.now().strftime(&#39;%Y-%m-%d at %H:%M&#39;)
+        txt = &#34;&#34;&#34;\
+
+        {}
+
+        version: {}
+        atooms version: {}
+        simulation started on: {}
+        output path: {}\
+        &#34;&#34;&#34;.format(self, self.version, __version__, now, self.output_path)
+        return txt
+
+    def _info_backend(self):
+        &#34;&#34;&#34;Subclasses may want to override this method.&#34;&#34;&#34;
+        txt = &#39;backend: {}\n&#39;.format(self.backend)
+        if hasattr(self.backend, &#39;version&#39;):
+            txt += &#39;backend version: %s\n&#39; % self.backend.version
+        return txt
+
+    def _info_observers(self):
+        txt = []
+        for f in self._callback:
+            params = self._cbk_params[f]
+            s = params[&#39;scheduler&#39;]
+            if &#39;target&#39; in _callable_name(f):
+                args = params[&#39;args&#39;]
+                txt.append(&#39;target %s: %s&#39; % (_callable_name(f), args[0]))
+            else:
+                txt.append(&#39;writer %s: interval=%s calls=%s&#39; %
+                           (_callable_name(f), s.interval, s.calls))
+        return &#39;\n&#39;.join(txt) + &#39;\n&#39;
+
+    def _info_end(self):
+        now = datetime.datetime.now().strftime(&#39;%Y-%m-%d at %H:%M&#39;)
+        txt = &#34;&#34;&#34;
+        final steps: {}
+        final rmsd: {:.2f}
+        wall time [s]: {:.2f}
+        average TSP [s/step/particle]: {:.2e}
+        simulation ended on: {}\
+        &#34;&#34;&#34;.format(self.current_step, self.rmsd, self.wall_time(),
+                   self.wall_time(per_step=True, per_particle=True),
+                   now)
+        return txt</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="atooms.simulation.core.Simulation"><code class="flex name class">
+<span>class <span class="ident">Simulation</span></span>
+<span>(</span><span>backend, output_path=None, steps=0, checkpoint_interval=0, enable_speedometer=False, restart=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simulation base class.</p>
+<p>Perform a simulation using the specified <code>backend</code> and optionally
+write output to <code>output_path</code>. This can be a file or directory path.</p>
+<p>Paths: to define output paths we rely on <code>output_path</code>, all
+other paths are defined based on it and on its base_path.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Simulation(object):
+
+    &#34;&#34;&#34;Simulation base class.&#34;&#34;&#34;
+
+    version = __version__
+
+    def __init__(self, backend, output_path=None, steps=0,
+                 checkpoint_interval=0, enable_speedometer=False,
+                 restart=False):
+        &#34;&#34;&#34;
+        Perform a simulation using the specified `backend` and optionally
+        write output to `output_path`. This can be a file or directory path.
+
+        Paths: to define output paths we rely on `output_path`, all
+        other paths are defined based on it and on its base_path.
+        &#34;&#34;&#34;
+        self.backend = backend
+        self.output_path = output_path
+        self.steps = steps
+        self._restart = restart
+        self.current_step = 0
+        self.initial_step = 0
+        # We expect subclasses to keep a ref to the trajectory class
+        # used to store configurations
+        if hasattr(self.backend, &#39;trajectory_class&#39;):
+            self.trajectory_class = self.backend.trajectory_class
+        else:
+            self.trajectory_class = None
+        # Make sure the dirname of output_path exists. For instance,
+        # if output_path is data/trajectory.xyz, then data/ should
+        # exist. This creates the data/ folder and its parents folders.
+        if self.output_path is not None:
+            mkdir(os.path.dirname(self.output_path))
+
+        # Internal variables
+        self._callback = []
+        self._start_time = time.time()
+        self._speedometer = None
+        self._checkpoint_scheduler = Scheduler(checkpoint_interval)
+        self._targeter_steps = target_steps
+        self._cbk_params = {}  # hold scheduler and parameters of callbacks
+        if enable_speedometer:
+            self._speedometer = Speedometer()
+            self.add(self._speedometer, Scheduler(self.steps, calls=20))
+
+    @property
+    def system(self):
+        # Note that setting system as a reference in the instance, like
+        #   self.system = self.backend.system
+        # is unsafe because this won&#39;t follow the backend&#39;s system when the
+        # latter is reassigned as in
+        #   self.backend.system = None
+        # So we defined it as a property.
+        return self.backend.system
+
+    @system.setter
+    def system(self, value):
+        self.backend.system = value
+
+    def __str__(self):
+        return &#39;atooms simulation via %s&#39; % self.backend
+
+    @property
+    def restart(self):
+        &#34;&#34;&#34;True is the simulation should be restarted. Read-only property.&#34;&#34;&#34;
+        return self._restart
+
+    @property
+    def base_path(self):
+        return os.path.splitext(self.output_path)[0]
+
+    def add_callback(self, callback, scheduler, *args, **kwargs):
+        self.add(callback, scheduler, *args, **kwargs)
+
+    def add(self, callback, scheduler, *args, **kwargs):
+        &#34;&#34;&#34;
+        Add an observer `callback` to be called along with a `scheduler`.
+
+        `scheduler` and `callback` must be callables accepting a
+        Simulation instance as unique argument. `scheduler` must
+        return the next step at which the observer has to be notified.
+
+        An integer value is allowed for `scheduler`. In this case, a
+        scheduler with fixed interval is generated internally and the
+        observer is notified every `scheduler` steps.
+        &#34;&#34;&#34;
+        # Accept an integer interval
+        if type(scheduler) is int:
+            scheduler = Scheduler(scheduler)
+
+        # Sanity check (prevent scheduler/callback inversion)
+        assert type(scheduler(self)) is int, \
+            &#34;probable swap between callback {} and scheduler {}&#34;.format(callback, scheduler)
+
+        # Store scheduler, callback and its arguments
+        # in a separate dict (NOT in the function object itself!)
+        self._cbk_params[callback] = {&#39;scheduler&#39;: scheduler,
+                                      &#39;args&#39;: args,
+                                      &#39;kwargs&#39;: kwargs}
+
+        # Keep targeters last
+        if &#39;target&#39; not in _callable_name(callback):
+            self._callback.insert(0, callback)
+        else:
+            self._callback.append(callback)
+
+    def remove(self, callback):
+        &#34;&#34;&#34;Remove the observer `callback`.&#34;&#34;&#34;
+        if callback in self._callback:
+            self._callback.remove(callback)
+            self._cbk_params.pop(callback)
+        else:
+            _log.debug(&#39;attempt to remove inexistent callback %s (dont worry)&#39;, callback)
+
+    def remove_callback(self, callback):
+        self.remove(callback)
+
+    def _notify(self, observers):
+        for observer in observers:
+            _log.debug(&#39;notify %s at step %d&#39;, observer, self.current_step)
+            args = self._cbk_params[observer][&#39;args&#39;]
+            kwargs = self._cbk_params[observer][&#39;kwargs&#39;]
+            observer(self, *args, **kwargs)
+
+    @property
+    def _targeters(self):
+        return [o for o in self._callback if &#39;target&#39; in _callable_name(o)]
+
+    @property
+    def _non_targeters(self):
+        return [o for o in self._callback if &#39;target&#39; not in _callable_name(o)]
+
+    @property
+    def _speedometers(self):
+        return [o for o in self._callback if isinstance(o, Speedometer)]
+
+    def write_checkpoint(self):
+        &#34;&#34;&#34;Write checkpoint to allow restarting a simulation.&#34;&#34;&#34;
+        if self.output_path is None:
+            return
+
+        # Checkpoint number of steps
+        with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
+            fh.write(&#39;%d&#39; % self.current_step)
+
+        if hasattr(self.backend, &#39;write_checkpoint&#39;):
+            # Use native backend checkpoint method
+            self.backend.write_checkpoint(self.output_path)
+        else:
+            # TODO: use pickle.dump
+            # Fallback to backend trajectory class with high precision
+            with self.trajectory_class(self.output_path + &#39;.chk&#39;, &#39;w&#39;,
+                                       fields=[&#39;species&#39;, &#39;position&#39;,
+                                               &#39;velocity&#39;, &#39;radius&#39;]) as t:
+                t.precision = 12
+                t.write(self.system, 0)
+
+    def read_checkpoint(self):
+        &#34;&#34;&#34;
+        Read the checkpoint to restart a simulation.
+
+        If the checkpoint file is not found, this method exits
+        gracefully.
+        &#34;&#34;&#34;
+        if self.output_path is None:
+            return
+
+        if os.path.exists(self.output_path + &#39;.chk.step&#39;):
+            with open(self.output_path + &#39;.chk.step&#39;) as fh:
+                self.current_step = int(fh.read())
+        else:
+            _log.debug(&#39;could not find steps checkpoint&#39;)
+
+        if hasattr(self.backend, &#39;read_checkpoint&#39;):
+            # Use native backend checkpoint method
+            self.backend.read_checkpoint(self.output_path)
+        else:
+            # Fallback to backend trajectory class with high precision
+            # TODO: use pickle.load
+            if os.path.exists(self.output_path + &#39;.chk&#39;):
+                with self.trajectory_class(self.output_path + &#39;.chk&#39;) as t:
+                    # Trajectory will not store the interaction,
+                    # thermostat, barostat, so we must preserve it
+                    self.system.update(t[0])
+
+    @property
+    def rmsd(self):
+        if hasattr(self.backend, &#39;rmsd&#39;):
+            return self.backend.rmsd
+        else:
+            return 0.0
+
+    def _elapsed_wall_time(self):
+        &#34;&#34;&#34;Elapsed wall time in seconds.&#34;&#34;&#34;
+        return time.time() - self._start_time
+
+    def wall_time(self, per_step=False, per_particle=False):
+        &#34;&#34;&#34;
+        Elapsed wall time in seconds.
+
+        Optionally normalized per step and or per particle. It can be
+        subclassed by more complex simulation classes.
+        &#34;&#34;&#34;
+        norm = 1.0
+        # Normalize per particle
+        if per_particle:
+            if len(self.system.particle) &gt; 0:
+                norm *= len(self.system.particle)
+            else:
+                return float(&#39;nan&#39;)
+        # Normalize per step
+        if per_step:
+            if self.current_step - self.initial_step &gt; 0:
+                norm *= (self.current_step - self.initial_step)
+            else:
+                return float(&#39;nan&#39;)
+        return self._elapsed_wall_time() / norm
+
+    def run_until(self, steps):
+        &#34;&#34;&#34;
+        Run the simulation up to `steps`.
+
+        Subclasses must set steps.
+        &#34;&#34;&#34;
+        self.backend.run(steps - self.current_step)
+        self.current_step = steps
+
+    def run(self, steps=None):
+        &#34;&#34;&#34;Run the simulation.&#34;&#34;&#34;
+        # If we are restaring we do not allow changing target steps on the fly.
+        # because it might have side effects like non constant writing interval.
+        if steps is not None:
+            if not self.restart or self.current_step == 0:
+                self.steps = steps
+
+        # Targeter for steps. We first replace the existing one
+        self.remove(self._targeter_steps)
+        self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
+                 self.current_step + self.steps)
+
+        # Targeter for progress bar
+        if atooms.core.progress.active:
+            intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._callback]
+            intervals = [intv for intv in intervals if intv is not None]
+            min_iters = 10
+            if min(intervals) &gt; (self.current_step + self.steps) / min_iters and \
+               (self.current_step + self.steps) / min_iters &gt; 10:
+                def flush(sim):
+                    pass
+                self.remove(flush)
+                self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
+
+        # Report
+        _report(self._info_start())
+        _report(self._info_backend())
+        _report(self._info_observers())
+        _report(str(self.system))
+        _report(str(self.backend))
+
+        # Read checkpoint if we restart
+        if self.restart:
+            self.read_checkpoint()
+        barrier()
+        self.initial_step = self.current_step
+        self._start_time = time.time()
+
+        import signal
+
+        def signal_term_handler(signal, frame):
+            raise SimulationKill(&#39;simulation terminated&#39;)
+
+        signal.signal(signal.SIGTERM, signal_term_handler)
+
+        # Reinitialize speedometers
+        for s in self._speedometers:
+            s._init = False
+        from atooms.core.progress import progress
+        bar = progress(total=self.steps)
+
+        try:
+            # Before entering the simulation, check if we can quit right away
+            # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
+            self._notify(self._targeters)
+
+            # Then notify non targeters unless we are restarting
+            if self.current_step == 0:
+                self._notify(self._non_targeters)
+            else:
+                self._notify(self._speedometers)
+            _log.info(&#39;starting at step: %d&#39;, self.current_step)
+            _log.info(&#39;&#39;)
+            while True:
+                # Run simulation until any of the observers need to be called
+                all_steps = [self._cbk_params[c][&#39;scheduler&#39;](self) for c in self._callback]
+                next_checkpoint = self._checkpoint_scheduler(self)
+                next_step = min(all_steps + [next_checkpoint])
+
+                self.run_until(next_step)
+
+                # Find observers indexes corresponding to minimum step
+                # then get all corresponding observers
+                next_step_ids = [i for i, step in enumerate(all_steps) if step == next_step]
+                next_observers = [self._callback[i] for i in next_step_ids]
+
+                # Observers should be sorted such that targeters are
+                # last to avoid cropping output files
+                self._notify(next_observers)
+                if self.current_step == next_checkpoint:
+                    self.write_checkpoint()
+
+                # Update progress bar
+                bar.update(self.current_step)
+
+        except SimulationEnd as end:
+            # Checkpoint configuration at last step
+            bar.update(self.current_step)
+            bar.close()
+            _log.info(&#39;simulation ended successfully: %s&#39;, end)
+            self.write_checkpoint()
+            _report(self._info_end())
+
+        except KeyboardInterrupt:
+            pass
+
+        except SimulationKill:
+            _log.info(&#39;simulation terminated&#39;)
+
+        except:
+            _log.error(&#39;simulation failed&#39;)
+            raise
+
+    def _info_start(self):
+        now = datetime.datetime.now().strftime(&#39;%Y-%m-%d at %H:%M&#39;)
+        txt = &#34;&#34;&#34;\
+
+        {}
+
+        version: {}
+        atooms version: {}
+        simulation started on: {}
+        output path: {}\
+        &#34;&#34;&#34;.format(self, self.version, __version__, now, self.output_path)
+        return txt
+
+    def _info_backend(self):
+        &#34;&#34;&#34;Subclasses may want to override this method.&#34;&#34;&#34;
+        txt = &#39;backend: {}\n&#39;.format(self.backend)
+        if hasattr(self.backend, &#39;version&#39;):
+            txt += &#39;backend version: %s\n&#39; % self.backend.version
+        return txt
+
+    def _info_observers(self):
+        txt = []
+        for f in self._callback:
+            params = self._cbk_params[f]
+            s = params[&#39;scheduler&#39;]
+            if &#39;target&#39; in _callable_name(f):
+                args = params[&#39;args&#39;]
+                txt.append(&#39;target %s: %s&#39; % (_callable_name(f), args[0]))
+            else:
+                txt.append(&#39;writer %s: interval=%s calls=%s&#39; %
+                           (_callable_name(f), s.interval, s.calls))
+        return &#39;\n&#39;.join(txt) + &#39;\n&#39;
+
+    def _info_end(self):
+        now = datetime.datetime.now().strftime(&#39;%Y-%m-%d at %H:%M&#39;)
+        txt = &#34;&#34;&#34;
+        final steps: {}
+        final rmsd: {:.2f}
+        wall time [s]: {:.2f}
+        average TSP [s/step/particle]: {:.2e}
+        simulation ended on: {}\
+        &#34;&#34;&#34;.format(self.current_step, self.rmsd, self.wall_time(),
+                   self.wall_time(per_step=True, per_particle=True),
+                   now)
+        return txt</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="atooms.optimization.core.Optimization" href="../optimization/core.html#atooms.optimization.core.Optimization">Optimization</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="atooms.simulation.core.Simulation.version"><code class="name">var <span class="ident">version</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="atooms.simulation.core.Simulation.base_path"><code class="name">var <span class="ident">base_path</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def base_path(self):
+    return os.path.splitext(self.output_path)[0]</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.restart"><code class="name">var <span class="ident">restart</span></code></dt>
+<dd>
+<div class="desc"><p>True is the simulation should be restarted. Read-only property.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def restart(self):
+    &#34;&#34;&#34;True is the simulation should be restarted. Read-only property.&#34;&#34;&#34;
+    return self._restart</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.rmsd"><code class="name">var <span class="ident">rmsd</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def rmsd(self):
+    if hasattr(self.backend, &#39;rmsd&#39;):
+        return self.backend.rmsd
+    else:
+        return 0.0</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.system"><code class="name">var <span class="ident">system</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def system(self):
+    # Note that setting system as a reference in the instance, like
+    #   self.system = self.backend.system
+    # is unsafe because this won&#39;t follow the backend&#39;s system when the
+    # latter is reassigned as in
+    #   self.backend.system = None
+    # So we defined it as a property.
+    return self.backend.system</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="atooms.simulation.core.Simulation.add"><code class="name flex">
+<span>def <span class="ident">add</span></span>(<span>self, callback, scheduler, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add an observer <code>callback</code> to be called along with a <code>scheduler</code>.</p>
+<p><code>scheduler</code> and <code>callback</code> must be callables accepting a
+Simulation instance as unique argument. <code>scheduler</code> must
+return the next step at which the observer has to be notified.</p>
+<p>An integer value is allowed for <code>scheduler</code>. In this case, a
+scheduler with fixed interval is generated internally and the
+observer is notified every <code>scheduler</code> steps.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add(self, callback, scheduler, *args, **kwargs):
+    &#34;&#34;&#34;
+    Add an observer `callback` to be called along with a `scheduler`.
+
+    `scheduler` and `callback` must be callables accepting a
+    Simulation instance as unique argument. `scheduler` must
+    return the next step at which the observer has to be notified.
+
+    An integer value is allowed for `scheduler`. In this case, a
+    scheduler with fixed interval is generated internally and the
+    observer is notified every `scheduler` steps.
+    &#34;&#34;&#34;
+    # Accept an integer interval
+    if type(scheduler) is int:
+        scheduler = Scheduler(scheduler)
+
+    # Sanity check (prevent scheduler/callback inversion)
+    assert type(scheduler(self)) is int, \
+        &#34;probable swap between callback {} and scheduler {}&#34;.format(callback, scheduler)
+
+    # Store scheduler, callback and its arguments
+    # in a separate dict (NOT in the function object itself!)
+    self._cbk_params[callback] = {&#39;scheduler&#39;: scheduler,
+                                  &#39;args&#39;: args,
+                                  &#39;kwargs&#39;: kwargs}
+
+    # Keep targeters last
+    if &#39;target&#39; not in _callable_name(callback):
+        self._callback.insert(0, callback)
+    else:
+        self._callback.append(callback)</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.add_callback"><code class="name flex">
+<span>def <span class="ident">add_callback</span></span>(<span>self, callback, scheduler, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_callback(self, callback, scheduler, *args, **kwargs):
+    self.add(callback, scheduler, *args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.read_checkpoint"><code class="name flex">
+<span>def <span class="ident">read_checkpoint</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read the checkpoint to restart a simulation.</p>
+<p>If the checkpoint file is not found, this method exits
+gracefully.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_checkpoint(self):
+    &#34;&#34;&#34;
+    Read the checkpoint to restart a simulation.
+
+    If the checkpoint file is not found, this method exits
+    gracefully.
+    &#34;&#34;&#34;
+    if self.output_path is None:
+        return
+
+    if os.path.exists(self.output_path + &#39;.chk.step&#39;):
+        with open(self.output_path + &#39;.chk.step&#39;) as fh:
+            self.current_step = int(fh.read())
+    else:
+        _log.debug(&#39;could not find steps checkpoint&#39;)
+
+    if hasattr(self.backend, &#39;read_checkpoint&#39;):
+        # Use native backend checkpoint method
+        self.backend.read_checkpoint(self.output_path)
+    else:
+        # Fallback to backend trajectory class with high precision
+        # TODO: use pickle.load
+        if os.path.exists(self.output_path + &#39;.chk&#39;):
+            with self.trajectory_class(self.output_path + &#39;.chk&#39;) as t:
+                # Trajectory will not store the interaction,
+                # thermostat, barostat, so we must preserve it
+                self.system.update(t[0])</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.remove"><code class="name flex">
+<span>def <span class="ident">remove</span></span>(<span>self, callback)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove the observer <code>callback</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove(self, callback):
+    &#34;&#34;&#34;Remove the observer `callback`.&#34;&#34;&#34;
+    if callback in self._callback:
+        self._callback.remove(callback)
+        self._cbk_params.pop(callback)
+    else:
+        _log.debug(&#39;attempt to remove inexistent callback %s (dont worry)&#39;, callback)</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.remove_callback"><code class="name flex">
+<span>def <span class="ident">remove_callback</span></span>(<span>self, callback)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_callback(self, callback):
+    self.remove(callback)</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self, steps=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Run the simulation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run(self, steps=None):
+    &#34;&#34;&#34;Run the simulation.&#34;&#34;&#34;
+    # If we are restaring we do not allow changing target steps on the fly.
+    # because it might have side effects like non constant writing interval.
+    if steps is not None:
+        if not self.restart or self.current_step == 0:
+            self.steps = steps
+
+    # Targeter for steps. We first replace the existing one
+    self.remove(self._targeter_steps)
+    self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
+             self.current_step + self.steps)
+
+    # Targeter for progress bar
+    if atooms.core.progress.active:
+        intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._callback]
+        intervals = [intv for intv in intervals if intv is not None]
+        min_iters = 10
+        if min(intervals) &gt; (self.current_step + self.steps) / min_iters and \
+           (self.current_step + self.steps) / min_iters &gt; 10:
+            def flush(sim):
+                pass
+            self.remove(flush)
+            self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
+
+    # Report
+    _report(self._info_start())
+    _report(self._info_backend())
+    _report(self._info_observers())
+    _report(str(self.system))
+    _report(str(self.backend))
+
+    # Read checkpoint if we restart
+    if self.restart:
+        self.read_checkpoint()
+    barrier()
+    self.initial_step = self.current_step
+    self._start_time = time.time()
+
+    import signal
+
+    def signal_term_handler(signal, frame):
+        raise SimulationKill(&#39;simulation terminated&#39;)
+
+    signal.signal(signal.SIGTERM, signal_term_handler)
+
+    # Reinitialize speedometers
+    for s in self._speedometers:
+        s._init = False
+    from atooms.core.progress import progress
+    bar = progress(total=self.steps)
+
+    try:
+        # Before entering the simulation, check if we can quit right away
+        # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
+        self._notify(self._targeters)
+
+        # Then notify non targeters unless we are restarting
+        if self.current_step == 0:
+            self._notify(self._non_targeters)
+        else:
+            self._notify(self._speedometers)
+        _log.info(&#39;starting at step: %d&#39;, self.current_step)
+        _log.info(&#39;&#39;)
+        while True:
+            # Run simulation until any of the observers need to be called
+            all_steps = [self._cbk_params[c][&#39;scheduler&#39;](self) for c in self._callback]
+            next_checkpoint = self._checkpoint_scheduler(self)
+            next_step = min(all_steps + [next_checkpoint])
+
+            self.run_until(next_step)
+
+            # Find observers indexes corresponding to minimum step
+            # then get all corresponding observers
+            next_step_ids = [i for i, step in enumerate(all_steps) if step == next_step]
+            next_observers = [self._callback[i] for i in next_step_ids]
+
+            # Observers should be sorted such that targeters are
+            # last to avoid cropping output files
+            self._notify(next_observers)
+            if self.current_step == next_checkpoint:
+                self.write_checkpoint()
+
+            # Update progress bar
+            bar.update(self.current_step)
+
+    except SimulationEnd as end:
+        # Checkpoint configuration at last step
+        bar.update(self.current_step)
+        bar.close()
+        _log.info(&#39;simulation ended successfully: %s&#39;, end)
+        self.write_checkpoint()
+        _report(self._info_end())
+
+    except KeyboardInterrupt:
+        pass
+
+    except SimulationKill:
+        _log.info(&#39;simulation terminated&#39;)
+
+    except:
+        _log.error(&#39;simulation failed&#39;)
+        raise</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.run_until"><code class="name flex">
+<span>def <span class="ident">run_until</span></span>(<span>self, steps)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Run the simulation up to <code>steps</code>.</p>
+<p>Subclasses must set steps.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run_until(self, steps):
+    &#34;&#34;&#34;
+    Run the simulation up to `steps`.
+
+    Subclasses must set steps.
+    &#34;&#34;&#34;
+    self.backend.run(steps - self.current_step)
+    self.current_step = steps</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.wall_time"><code class="name flex">
+<span>def <span class="ident">wall_time</span></span>(<span>self, per_step=False, per_particle=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Elapsed wall time in seconds.</p>
+<p>Optionally normalized per step and or per particle. It can be
+subclassed by more complex simulation classes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wall_time(self, per_step=False, per_particle=False):
+    &#34;&#34;&#34;
+    Elapsed wall time in seconds.
+
+    Optionally normalized per step and or per particle. It can be
+    subclassed by more complex simulation classes.
+    &#34;&#34;&#34;
+    norm = 1.0
+    # Normalize per particle
+    if per_particle:
+        if len(self.system.particle) &gt; 0:
+            norm *= len(self.system.particle)
+        else:
+            return float(&#39;nan&#39;)
+    # Normalize per step
+    if per_step:
+        if self.current_step - self.initial_step &gt; 0:
+            norm *= (self.current_step - self.initial_step)
+        else:
+            return float(&#39;nan&#39;)
+    return self._elapsed_wall_time() / norm</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.core.Simulation.write_checkpoint"><code class="name flex">
+<span>def <span class="ident">write_checkpoint</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write checkpoint to allow restarting a simulation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_checkpoint(self):
+    &#34;&#34;&#34;Write checkpoint to allow restarting a simulation.&#34;&#34;&#34;
+    if self.output_path is None:
+        return
+
+    # Checkpoint number of steps
+    with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
+        fh.write(&#39;%d&#39; % self.current_step)
+
+    if hasattr(self.backend, &#39;write_checkpoint&#39;):
+        # Use native backend checkpoint method
+        self.backend.write_checkpoint(self.output_path)
+    else:
+        # TODO: use pickle.dump
+        # Fallback to backend trajectory class with high precision
+        with self.trajectory_class(self.output_path + &#39;.chk&#39;, &#39;w&#39;,
+                                   fields=[&#39;species&#39;, &#39;position&#39;,
+                                           &#39;velocity&#39;, &#39;radius&#39;]) as t:
+            t.precision = 12
+            t.write(self.system, 0)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="atooms.simulation" href="index.html">atooms.simulation</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="atooms.simulation.core.Simulation" href="#atooms.simulation.core.Simulation">Simulation</a></code></h4>
+<ul class="two-column">
+<li><code><a title="atooms.simulation.core.Simulation.add" href="#atooms.simulation.core.Simulation.add">add</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.add_callback" href="#atooms.simulation.core.Simulation.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.base_path" href="#atooms.simulation.core.Simulation.base_path">base_path</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.read_checkpoint" href="#atooms.simulation.core.Simulation.read_checkpoint">read_checkpoint</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.remove" href="#atooms.simulation.core.Simulation.remove">remove</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.remove_callback" href="#atooms.simulation.core.Simulation.remove_callback">remove_callback</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.restart" href="#atooms.simulation.core.Simulation.restart">restart</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.rmsd" href="#atooms.simulation.core.Simulation.rmsd">rmsd</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.run" href="#atooms.simulation.core.Simulation.run">run</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.run_until" href="#atooms.simulation.core.Simulation.run_until">run_until</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.system" href="#atooms.simulation.core.Simulation.system">system</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.version" href="#atooms.simulation.core.Simulation.version">version</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.wall_time" href="#atooms.simulation.core.Simulation.wall_time">wall_time</a></code></li>
+<li><code><a title="atooms.simulation.core.Simulation.write_checkpoint" href="#atooms.simulation.core.Simulation.write_checkpoint">write_checkpoint</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

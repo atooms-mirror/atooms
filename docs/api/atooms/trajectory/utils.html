@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>atooms.trajectory.utils API documentation</title>
+<meta name="description" content="Useful functions to manipulate trajectories." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>atooms.trajectory.utils</code></h1>
+</header>
+<section id="section-intro">
+<p>Useful functions to manipulate trajectories.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Useful functions to manipulate trajectories.&#34;&#34;&#34;
+
+import os
+import copy
+import tarfile
+import numpy
+import warnings
+
+def gopen(filename, mode):
+    &#34;&#34;&#34;Open a file recognizing gzipped and bzipped files by extension.&#34;&#34;&#34;
+    ext = os.path.splitext(filename)[1]
+    if ext == &#39;.gz&#39;:
+        import gzip
+        return gzip.open(filename, mode + &#39;t&#39;)
+    elif ext == &#39;.bz2&#39;:
+        import bz2
+        return bz2.BZ2File(filename, mode)
+    else:
+        return open(filename, mode)
+
+
+def file_index(fh, size=None):
+    &#34;&#34;&#34;Lightweight file indexing for trajectories via tell/seek&#34;&#34;&#34;
+    header = []
+    block = []
+    block_size = []
+    if size is None:
+        def size(fh, data, line):
+            npart = int(data)
+            return 1, npart
+
+    # Make sure we start from the beginning
+    fh.seek(0)
+    while True:
+        line = fh.tell()
+        data = fh.readline()
+        # We break if file is over or we found an empty line
+        if not data:
+            break
+
+        # Get size of header and block
+        try:
+            header_size, this_block_size = size(fh, data, line)
+            header.append(line)
+        except ValueError:
+            raise IOError(&#39;malformed file [{}]&#39;.format(fh.filename))
+
+        # Skip header_size lines (if zero none will be skipped)
+        for _ in range(header_size):
+            fh.readline()
+
+        # Skip block_size lines, making sure we have
+        # read precisely that number of lines
+        line = fh.tell()
+        for _ in range(this_block_size):
+            data = fh.readline()
+
+        # Store first line /after/ we have read the frame
+        # making sure the last we read was not emtpy
+        # Note that readline() returns an empty string on EOF
+        if len(data) &gt; 0:
+            block.append(line)
+            block_size.append(this_block_size)
+        else:
+            raise IOError(&#39;malformed file [%s]&#39;, fh.filename)
+
+    # TODO: leave fh as it was
+    return header, block, block_size
+
+
+def split(inp, index=&#39;step&#39;, archive=False):
+    &#34;&#34;&#34;
+    Split the trajectory into independent trajectory files, one per
+    sample.
+    &#34;&#34;&#34;
+    if archive:
+        tar = tarfile.open(inp.filename + &#39;.tar.gz&#39;, &#34;w:gz&#34;)
+    base, ext = os.path.splitext(inp.filename)
+
+    for frame, step in enumerate(inp.steps):
+        system = inp[frame]
+        if index == &#39;step&#39;:
+            filename = &#39;%s-%09i%s&#39; % (base, step, ext)
+        elif index == &#39;frame&#39; or index == &#39;sample&#39;:
+            filename = &#39;%s-%09i%s&#39; % (base, frame, ext)
+        else:
+            raise ValueError(&#39;unknown option %s&#39; % index)
+        with inp.__class__(filename, &#39;w&#39;) as t:
+            t.write(system, step)
+        if archive:
+            tar.add(filename)
+            os.remove(filename)
+
+    if archive:
+        tar.close()
+
+
+def get_block_size(data):
+    &#34;&#34;&#34;
+    Return the size of the periodic block after which entries in
+    `data` repeat. It is used to determine the block size in
+    trajectories with logarithmic time spacing.
+    &#34;&#34;&#34;
+    if len(data) &lt; 2:
+        return 1
+    delta_old = 0
+    delta_one = data[1] - data[0]
+    iold = data[0]
+    period = 1
+    for ii in range(1, len(data)):
+        i = data[ii]
+        delta = i-iold
+        # If we find that we repeat the increment between entries is
+        # smaller than the previous iteration and it gets back to the
+        # initial one (delat_one) then we found a block. We must
+        # correct the +1 overshoot thus we subtract -1 to period
+        if delta &lt; delta_old and delta == delta_one:
+            return period - 1
+        else:
+            period += 1
+            iold = i
+            delta_old = delta
+
+    # We got to the end of the trajectory
+    if len(data) != period:
+        raise ValueError(&#39;something went wrong in block analysis&#39;)
+    if data[1]-data[0] == data[-1]-data[-2]:
+        # If the difference between steps is constant (euristically)
+        # the period is one
+        return 1
+    else:
+        # There is no periodicity, the block size is the whole trajectory
+        return period
+
+
+def check_block_size(steps, block_size, prune=False):
+    &#34;&#34;&#34;
+    Perform some consistency checks on periodicity of non linear sampling.
+
+    `block_size` is the number of frames composing a periodic block.
+    If `prune` is True, the steps that do not match the first periodic
+    block will be removed.
+
+    Return a new list of steps that match the periodicity.
+
+    Example:
+    -------
+    steps = [0, 1, 2, 4, 8, 9, 10, 12, 16]
+    block_size = 4
+
+    Note that in this case, len(steps) % block_size == 1, which is tolerated.
+    &#34;&#34;&#34;
+    # Linear sampling
+    if block_size == 1:
+        return None
+
+    # This is a single non-linear block
+    if block_size == len(steps):
+        return None
+
+    steps_local = copy.copy(steps)
+
+    # Identify steps that do not match the first periodic block
+    block = steps_local[0: block_size]
+    ibl, jbl = 0, 0
+    prune_me = []
+    for _, step in enumerate(steps_local):
+        offset = block[0] if ibl &gt; 0 else 0
+        step_expected = ibl * (steps_local[block_size] - offset) + block[jbl]
+        if step == step_expected:
+            if jbl == block_size-1:
+                # We are done with this block, we start over
+                ibl += 1
+                jbl = 0
+            else:
+                # We increment the index within the block
+                jbl += 1
+        else:
+            prune_me.append(step)
+
+    # Remove samples that do not conform with first block
+    if prune and len(prune_me) &gt; 0:
+        for step in prune_me:
+            _ = steps_local.pop(steps_local.index(step))
+
+    # Check if the number of steps is an integer multiple of
+    # block period (we tolerate a rest of 1)
+    rest = len(steps_local) % block_size
+    if rest &gt; 1:
+        steps_local = steps_local[:-rest]
+        warning.warn(&#39;truncated block&#39;)
+
+    # Final test, after pruning spurious samples we should have a period
+    # sampling, otherwise there was some error
+    nbl = len(steps_local) // block_size
+    for i in range(nbl):
+        # We test that the difference between the finger print and the
+        # first sample in the block is constant
+        diff_last = None
+        for j in range(len(block)):
+            diff = steps_local[i*block_size + j] - block[j]
+            if diff_last is None:
+                diff_last = diff
+            if diff_last != diff:
+                raise IndexError(&#39;block does not match finger print {}&#39;.format(block))
+    return steps_local
+
+
+def dump(trajectory, what=&#39;pos&#39;):
+    &#34;&#34;&#34;
+    Dump coordinates as a list of (npart, ndim) numpy arrays if the
+    trajectory is grandcanonical or as (nsteps, npart, ndim) numpy
+    array if it is not grandcanonical.
+    &#34;&#34;&#34;
+    if trajectory.grandcanonical:
+        data = []
+        for i, s in enumerate(trajectory):
+            data[i].append(s.dump(what))
+    else:
+        data = numpy.zeros([len(trajectory.steps),
+                            len(trajectory[0].particle),
+                            len(trajectory[0].cell.side)])
+        for i, s in enumerate(trajectory):
+            data[i] = s.dump(what)
+
+    return data
+
+
+def field(trajectory, trajectory_field, field_name, frame, x_field=None):
+    &#34;&#34;&#34;
+    Return the field specified by particle attribute `field_name` at a
+    given `frame`.
+    &#34;&#34;&#34;
+    if x_field is not None:
+        raise DeprecationWarning(&#39;use field_name instead of x_field&#39;)
+        field_name = x_field
+    step = trajectory.steps[frame]
+    try:
+        index_field = trajectory_field.steps.index(step)
+    except ValueError:
+        return None
+    x = []
+    for pi in trajectory_field[index_field].particle:
+        fi = getattr(pi, field_name)
+        x.append(fi)
+    return x
+
+
+def paste(t1, t2):
+    &#34;&#34;&#34;
+    Iterate simultaneously on two trajectories. Skip samples that
+    exist in one trajectory and not in the other.
+
+    Example:
+    -------
+    t1 = Trajectory(f1)
+    t2 = Trajectory(f2)
+    for s1, s2 in paste(t1, t2):
+        pass
+    &#34;&#34;&#34;
+    steps_1 = set(t1.steps)
+    steps_2 = set(t2.steps)
+    steps = sorted(steps_1 &amp; steps_2)
+    for step in steps:
+        s1 = t1[t1.steps.index(step)]
+        s2 = t2[t2.steps.index(step)]
+        yield step, s1, s2
+
+
+def is_cell_variable(trajectory, tests=1):
+    &#34;&#34;&#34;
+    Simple test to check if cell changes.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    &#34;&#34;&#34;
+    is_variable = False
+    frames = len(trajectory)
+    if tests &gt; 0:
+        skip = max(1, int(frames / float(tests)))
+    else:
+        skip = 1
+    L0 = trajectory[0].cell.side
+    for sample in range(frames-1, -1, -skip):
+        L1 = trajectory[sample].cell.side
+        if numpy.any(L0 != L1):
+            is_variable = True
+            break
+    return is_variable
+
+
+def is_semigrandcanonical(trajectory, tests=1):
+    &#34;&#34;&#34;
+    Simple test to check if a trajectory is semigrandcanonical.
+    i.e. if the chemical concentrations fluctuate.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    &#34;&#34;&#34;
+    # This is adapted from is_cell_variable()
+    is_variable = False
+    if tests &gt; 0:
+        skip = max(1, int(len(trajectory) / float(tests)))
+    else:
+        skip = 1
+    from atooms.system.particle import composition
+    x0 = composition(trajectory[0].particle)
+    for sample in range(len(trajectory)-1, -1, -skip):
+        x1 = composition(trajectory[sample].particle)
+        is_variable = False
+        for sp in x0:
+            if x0[sp] != x1[sp]:
+                is_variable = True
+                break
+        if is_variable:
+            break
+    return is_variable
+
+
+def is_grandcanonical(trajectory, tests=1):
+    &#34;&#34;&#34;
+    Simple test to check if a trajectory is grandcanonical.
+    i.e. if the number of particles fluctuates.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    &#34;&#34;&#34;
+    # This is adapted from is_cell_variable()
+    # and basically the same code as is_semigrandcanonical()
+    is_variable = False
+    if tests &gt; 0:
+        skip = max(1, int(len(trajectory) / float(tests)))
+    else:
+        skip = 1
+    N0 = len(trajectory[0].particle)
+    for sample in range(len(trajectory)-1, 0, -skip):
+        N1 = len(trajectory[sample].particle)
+        is_variable = False
+        if N0 != N1:
+            is_variable = True
+            break
+    return is_variable
+
+
+def formats():
+    &#34;&#34;&#34;Return a string with the available trajectory formats.&#34;&#34;&#34;
+    from atooms import trajectory
+    txt = &#39;available trajectory formats:\n&#39;
+    fmts = trajectory.Trajectory.formats
+    maxlen = max([len(name) for name in fmts])
+    for name in sorted(fmts):
+        class_name = fmts[name]
+        if class_name.__doc__:
+            docline = class_name.__doc__.split(&#39;\n&#39;)[0].rstrip(&#39;.&#39;)
+        else:
+            docline = &#39;...no description...&#39;
+        fmt = &#39;  %-&#39; + str(maxlen) + &#39;s : %s\n&#39;
+        txt += fmt % (name, docline)
+    return txt
+
+
+def info(trajectory, keys=None):
+    &#34;&#34;&#34;Return a string with information about a `trajectory` instance.&#34;&#34;&#34;
+    from atooms.system.particle import distinct_species, composition
+    system = trajectory[0]
+    if keys is None:
+
+        # Default: full info
+        txt = &#39;&#39;
+        txt += &#39;path                 = %s\n&#39; % trajectory.filename
+        txt += &#39;format               = %s\n&#39; % trajectory.__class__
+        txt += &#39;frames               = %s\n&#39; % len(trajectory)
+        txt += &#39;megabytes            = %s\n&#39; % (os.path.getsize(trajectory.filename) / 1e6)
+        txt += &#39;particles            = %s\n&#39; % len(system.particle)
+        txt += &#39;species              = %s\n&#39; % &#39;, &#39;.join(distinct_species(system.particle))
+        txt += &#39;composition          = %s\n&#39; % dict(composition(system.particle))
+        txt += &#39;size dispersion      = {}\n&#39;.format((numpy.std([p.radius for p in system.particle]) / numpy.mean([p.radius for p in system.particle])))
+        txt += &#39;density              = %s\n&#39; % round(system.density, 10)
+        if system.cell is not None:
+            txt += &#39;cell side            = %s\n&#39; % str(list(system.cell.side))[1: -1]
+            txt += &#39;cell volume          = %s\n&#39; % system.cell.volume
+        if len(trajectory) &gt; 1:
+            txt += &#39;steps                = %s\n&#39; % trajectory.steps[-1]
+            txt += &#39;duration             = %s\n&#39; % trajectory.times[-1]
+            txt += &#39;timestep             = %s\n&#39; % trajectory.timestep
+            txt += &#39;block size           = %s\n&#39; % trajectory.block_size
+            if trajectory.block_size == 1:
+                txt += &#39;steps between frames = %s\n&#39; % (trajectory.steps[1]-trajectory.steps[0])
+                txt += &#39;time between frames  = %s\n&#39; % (trajectory.times[1]-trajectory.times[0])
+            else:
+                txt += &#39;block steps          = %s\n&#39; % trajectory.steps[trajectory.block_size-1]
+                txt += &#39;block                = %s\n&#39; % ([trajectory.steps[i] for i in range(trajectory.block_size)])
+            txt += &#39;grandcanonical       = %s&#39; % trajectory.grandcanonical
+        return txt
+
+    else:
+        # Selected infos.
+        # TODO: of course, it would be cleaner to have a little class for that
+        outs = []
+        for key in keys.split(&#39;,&#39;):
+            if key == &#39;path&#39;:
+                outs.append(trajectory.filename)
+            elif key == &#39;format&#39;:
+                outs.append(trajectory.__class__)
+            elif key == &#39;frames&#39;:
+                outs.append(len(trajectory))
+            elif key == &#39;megabytes&#39;:
+                outs.append(os.path.getsize(trajectory.filename) / 1e6)
+            elif key == &#39;particles&#39;:
+                outs.append(len(system.particle))
+            elif key == &#39;species&#39;:
+                outs.append(&#39;, &#39;.join(distinct_species(system.particle)))
+            elif key == &#39;composition&#39;:
+                outs.append(dict(composition(system.particle)))
+            elif key == &#39;cell density&#39;:
+                outs.append(round(system.density, 10))
+            elif key == &#39;cell side&#39;:
+                outs.append(str(list(system.cell.side))[1: -1])
+            elif key == &#39;cell volume&#39;:
+                outs.append(system.cell.volume)
+            elif key == &#39;steps&#39;:
+                outs.append(trajectory.steps[-1])
+            elif key == &#39;duration&#39;:
+                outs.append(trajectory.times[-1])
+            elif key == &#39;timestep&#39;:
+                outs.append(trajectory.timestep)
+            elif key == &#39;block size&#39;:
+                outs.append(trajectory.block_size)
+            elif key == &#39;steps between frames&#39;:
+                outs.append(trajectory.steps[1]-trajectory.steps[0])
+            elif key == &#39;time between frames&#39;:
+                outs.append(trajectory.times[1]-trajectory.times[0])
+            elif key == &#39;block steps&#39;:
+                outs.append(trajectory.steps[trajectory.block_size-1])
+            elif key == &#39;block&#39;:
+                outs.append([trajectory.steps[i] for i in range(trajectory.block_size)])
+            elif key == &#39;grandcanonical&#39;:
+                outs.append(trajectory.grandcanonical)
+
+        txt = &#39;&#39;
+        fmt = &#39;%%-%ds : %%s\n&#39; % (max([len(key) for key in keys.split(&#39;,&#39;)]))
+        for key, out in zip(keys.split(&#39;,&#39;), outs):
+            txt += fmt % (key, out)
+
+        return txt.strip(&#39;\n&#39;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="atooms.trajectory.utils.check_block_size"><code class="name flex">
+<span>def <span class="ident">check_block_size</span></span>(<span>steps, block_size, prune=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Perform some consistency checks on periodicity of non linear sampling.</p>
+<p><code>block_size</code> is the number of frames composing a periodic block.
+If <code>prune</code> is True, the steps that do not match the first periodic
+block will be removed.</p>
+<p>Return a new list of steps that match the periodicity.</p>
+<h2 id="example">Example:</h2>
+<p>steps = [0, 1, 2, 4, 8, 9, 10, 12, 16]
+block_size = 4</p>
+<p>Note that in this case, len(steps) % block_size == 1, which is tolerated.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_block_size(steps, block_size, prune=False):
+    &#34;&#34;&#34;
+    Perform some consistency checks on periodicity of non linear sampling.
+
+    `block_size` is the number of frames composing a periodic block.
+    If `prune` is True, the steps that do not match the first periodic
+    block will be removed.
+
+    Return a new list of steps that match the periodicity.
+
+    Example:
+    -------
+    steps = [0, 1, 2, 4, 8, 9, 10, 12, 16]
+    block_size = 4
+
+    Note that in this case, len(steps) % block_size == 1, which is tolerated.
+    &#34;&#34;&#34;
+    # Linear sampling
+    if block_size == 1:
+        return None
+
+    # This is a single non-linear block
+    if block_size == len(steps):
+        return None
+
+    steps_local = copy.copy(steps)
+
+    # Identify steps that do not match the first periodic block
+    block = steps_local[0: block_size]
+    ibl, jbl = 0, 0
+    prune_me = []
+    for _, step in enumerate(steps_local):
+        offset = block[0] if ibl &gt; 0 else 0
+        step_expected = ibl * (steps_local[block_size] - offset) + block[jbl]
+        if step == step_expected:
+            if jbl == block_size-1:
+                # We are done with this block, we start over
+                ibl += 1
+                jbl = 0
+            else:
+                # We increment the index within the block
+                jbl += 1
+        else:
+            prune_me.append(step)
+
+    # Remove samples that do not conform with first block
+    if prune and len(prune_me) &gt; 0:
+        for step in prune_me:
+            _ = steps_local.pop(steps_local.index(step))
+
+    # Check if the number of steps is an integer multiple of
+    # block period (we tolerate a rest of 1)
+    rest = len(steps_local) % block_size
+    if rest &gt; 1:
+        steps_local = steps_local[:-rest]
+        warning.warn(&#39;truncated block&#39;)
+
+    # Final test, after pruning spurious samples we should have a period
+    # sampling, otherwise there was some error
+    nbl = len(steps_local) // block_size
+    for i in range(nbl):
+        # We test that the difference between the finger print and the
+        # first sample in the block is constant
+        diff_last = None
+        for j in range(len(block)):
+            diff = steps_local[i*block_size + j] - block[j]
+            if diff_last is None:
+                diff_last = diff
+            if diff_last != diff:
+                raise IndexError(&#39;block does not match finger print {}&#39;.format(block))
+    return steps_local</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.dump"><code class="name flex">
+<span>def <span class="ident">dump</span></span>(<span>trajectory, what='pos')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Dump coordinates as a list of (npart, ndim) numpy arrays if the
+trajectory is grandcanonical or as (nsteps, npart, ndim) numpy
+array if it is not grandcanonical.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dump(trajectory, what=&#39;pos&#39;):
+    &#34;&#34;&#34;
+    Dump coordinates as a list of (npart, ndim) numpy arrays if the
+    trajectory is grandcanonical or as (nsteps, npart, ndim) numpy
+    array if it is not grandcanonical.
+    &#34;&#34;&#34;
+    if trajectory.grandcanonical:
+        data = []
+        for i, s in enumerate(trajectory):
+            data[i].append(s.dump(what))
+    else:
+        data = numpy.zeros([len(trajectory.steps),
+                            len(trajectory[0].particle),
+                            len(trajectory[0].cell.side)])
+        for i, s in enumerate(trajectory):
+            data[i] = s.dump(what)
+
+    return data</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.field"><code class="name flex">
+<span>def <span class="ident">field</span></span>(<span>trajectory, trajectory_field, field_name, frame, x_field=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the field specified by particle attribute <code>field_name</code> at a
+given <code>frame</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def field(trajectory, trajectory_field, field_name, frame, x_field=None):
+    &#34;&#34;&#34;
+    Return the field specified by particle attribute `field_name` at a
+    given `frame`.
+    &#34;&#34;&#34;
+    if x_field is not None:
+        raise DeprecationWarning(&#39;use field_name instead of x_field&#39;)
+        field_name = x_field
+    step = trajectory.steps[frame]
+    try:
+        index_field = trajectory_field.steps.index(step)
+    except ValueError:
+        return None
+    x = []
+    for pi in trajectory_field[index_field].particle:
+        fi = getattr(pi, field_name)
+        x.append(fi)
+    return x</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.file_index"><code class="name flex">
+<span>def <span class="ident">file_index</span></span>(<span>fh, size=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Lightweight file indexing for trajectories via tell/seek</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def file_index(fh, size=None):
+    &#34;&#34;&#34;Lightweight file indexing for trajectories via tell/seek&#34;&#34;&#34;
+    header = []
+    block = []
+    block_size = []
+    if size is None:
+        def size(fh, data, line):
+            npart = int(data)
+            return 1, npart
+
+    # Make sure we start from the beginning
+    fh.seek(0)
+    while True:
+        line = fh.tell()
+        data = fh.readline()
+        # We break if file is over or we found an empty line
+        if not data:
+            break
+
+        # Get size of header and block
+        try:
+            header_size, this_block_size = size(fh, data, line)
+            header.append(line)
+        except ValueError:
+            raise IOError(&#39;malformed file [{}]&#39;.format(fh.filename))
+
+        # Skip header_size lines (if zero none will be skipped)
+        for _ in range(header_size):
+            fh.readline()
+
+        # Skip block_size lines, making sure we have
+        # read precisely that number of lines
+        line = fh.tell()
+        for _ in range(this_block_size):
+            data = fh.readline()
+
+        # Store first line /after/ we have read the frame
+        # making sure the last we read was not emtpy
+        # Note that readline() returns an empty string on EOF
+        if len(data) &gt; 0:
+            block.append(line)
+            block_size.append(this_block_size)
+        else:
+            raise IOError(&#39;malformed file [%s]&#39;, fh.filename)
+
+    # TODO: leave fh as it was
+    return header, block, block_size</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.formats"><code class="name flex">
+<span>def <span class="ident">formats</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return a string with the available trajectory formats.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def formats():
+    &#34;&#34;&#34;Return a string with the available trajectory formats.&#34;&#34;&#34;
+    from atooms import trajectory
+    txt = &#39;available trajectory formats:\n&#39;
+    fmts = trajectory.Trajectory.formats
+    maxlen = max([len(name) for name in fmts])
+    for name in sorted(fmts):
+        class_name = fmts[name]
+        if class_name.__doc__:
+            docline = class_name.__doc__.split(&#39;\n&#39;)[0].rstrip(&#39;.&#39;)
+        else:
+            docline = &#39;...no description...&#39;
+        fmt = &#39;  %-&#39; + str(maxlen) + &#39;s : %s\n&#39;
+        txt += fmt % (name, docline)
+    return txt</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.get_block_size"><code class="name flex">
+<span>def <span class="ident">get_block_size</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the size of the periodic block after which entries in
+<code>data</code> repeat. It is used to determine the block size in
+trajectories with logarithmic time spacing.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_block_size(data):
+    &#34;&#34;&#34;
+    Return the size of the periodic block after which entries in
+    `data` repeat. It is used to determine the block size in
+    trajectories with logarithmic time spacing.
+    &#34;&#34;&#34;
+    if len(data) &lt; 2:
+        return 1
+    delta_old = 0
+    delta_one = data[1] - data[0]
+    iold = data[0]
+    period = 1
+    for ii in range(1, len(data)):
+        i = data[ii]
+        delta = i-iold
+        # If we find that we repeat the increment between entries is
+        # smaller than the previous iteration and it gets back to the
+        # initial one (delat_one) then we found a block. We must
+        # correct the +1 overshoot thus we subtract -1 to period
+        if delta &lt; delta_old and delta == delta_one:
+            return period - 1
+        else:
+            period += 1
+            iold = i
+            delta_old = delta
+
+    # We got to the end of the trajectory
+    if len(data) != period:
+        raise ValueError(&#39;something went wrong in block analysis&#39;)
+    if data[1]-data[0] == data[-1]-data[-2]:
+        # If the difference between steps is constant (euristically)
+        # the period is one
+        return 1
+    else:
+        # There is no periodicity, the block size is the whole trajectory
+        return period</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.gopen"><code class="name flex">
+<span>def <span class="ident">gopen</span></span>(<span>filename, mode)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Open a file recognizing gzipped and bzipped files by extension.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gopen(filename, mode):
+    &#34;&#34;&#34;Open a file recognizing gzipped and bzipped files by extension.&#34;&#34;&#34;
+    ext = os.path.splitext(filename)[1]
+    if ext == &#39;.gz&#39;:
+        import gzip
+        return gzip.open(filename, mode + &#39;t&#39;)
+    elif ext == &#39;.bz2&#39;:
+        import bz2
+        return bz2.BZ2File(filename, mode)
+    else:
+        return open(filename, mode)</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.info"><code class="name flex">
+<span>def <span class="ident">info</span></span>(<span>trajectory, keys=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return a string with information about a <code>trajectory</code> instance.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def info(trajectory, keys=None):
+    &#34;&#34;&#34;Return a string with information about a `trajectory` instance.&#34;&#34;&#34;
+    from atooms.system.particle import distinct_species, composition
+    system = trajectory[0]
+    if keys is None:
+
+        # Default: full info
+        txt = &#39;&#39;
+        txt += &#39;path                 = %s\n&#39; % trajectory.filename
+        txt += &#39;format               = %s\n&#39; % trajectory.__class__
+        txt += &#39;frames               = %s\n&#39; % len(trajectory)
+        txt += &#39;megabytes            = %s\n&#39; % (os.path.getsize(trajectory.filename) / 1e6)
+        txt += &#39;particles            = %s\n&#39; % len(system.particle)
+        txt += &#39;species              = %s\n&#39; % &#39;, &#39;.join(distinct_species(system.particle))
+        txt += &#39;composition          = %s\n&#39; % dict(composition(system.particle))
+        txt += &#39;size dispersion      = {}\n&#39;.format((numpy.std([p.radius for p in system.particle]) / numpy.mean([p.radius for p in system.particle])))
+        txt += &#39;density              = %s\n&#39; % round(system.density, 10)
+        if system.cell is not None:
+            txt += &#39;cell side            = %s\n&#39; % str(list(system.cell.side))[1: -1]
+            txt += &#39;cell volume          = %s\n&#39; % system.cell.volume
+        if len(trajectory) &gt; 1:
+            txt += &#39;steps                = %s\n&#39; % trajectory.steps[-1]
+            txt += &#39;duration             = %s\n&#39; % trajectory.times[-1]
+            txt += &#39;timestep             = %s\n&#39; % trajectory.timestep
+            txt += &#39;block size           = %s\n&#39; % trajectory.block_size
+            if trajectory.block_size == 1:
+                txt += &#39;steps between frames = %s\n&#39; % (trajectory.steps[1]-trajectory.steps[0])
+                txt += &#39;time between frames  = %s\n&#39; % (trajectory.times[1]-trajectory.times[0])
+            else:
+                txt += &#39;block steps          = %s\n&#39; % trajectory.steps[trajectory.block_size-1]
+                txt += &#39;block                = %s\n&#39; % ([trajectory.steps[i] for i in range(trajectory.block_size)])
+            txt += &#39;grandcanonical       = %s&#39; % trajectory.grandcanonical
+        return txt
+
+    else:
+        # Selected infos.
+        # TODO: of course, it would be cleaner to have a little class for that
+        outs = []
+        for key in keys.split(&#39;,&#39;):
+            if key == &#39;path&#39;:
+                outs.append(trajectory.filename)
+            elif key == &#39;format&#39;:
+                outs.append(trajectory.__class__)
+            elif key == &#39;frames&#39;:
+                outs.append(len(trajectory))
+            elif key == &#39;megabytes&#39;:
+                outs.append(os.path.getsize(trajectory.filename) / 1e6)
+            elif key == &#39;particles&#39;:
+                outs.append(len(system.particle))
+            elif key == &#39;species&#39;:
+                outs.append(&#39;, &#39;.join(distinct_species(system.particle)))
+            elif key == &#39;composition&#39;:
+                outs.append(dict(composition(system.particle)))
+            elif key == &#39;cell density&#39;:
+                outs.append(round(system.density, 10))
+            elif key == &#39;cell side&#39;:
+                outs.append(str(list(system.cell.side))[1: -1])
+            elif key == &#39;cell volume&#39;:
+                outs.append(system.cell.volume)
+            elif key == &#39;steps&#39;:
+                outs.append(trajectory.steps[-1])
+            elif key == &#39;duration&#39;:
+                outs.append(trajectory.times[-1])
+            elif key == &#39;timestep&#39;:
+                outs.append(trajectory.timestep)
+            elif key == &#39;block size&#39;:
+                outs.append(trajectory.block_size)
+            elif key == &#39;steps between frames&#39;:
+                outs.append(trajectory.steps[1]-trajectory.steps[0])
+            elif key == &#39;time between frames&#39;:
+                outs.append(trajectory.times[1]-trajectory.times[0])
+            elif key == &#39;block steps&#39;:
+                outs.append(trajectory.steps[trajectory.block_size-1])
+            elif key == &#39;block&#39;:
+                outs.append([trajectory.steps[i] for i in range(trajectory.block_size)])
+            elif key == &#39;grandcanonical&#39;:
+                outs.append(trajectory.grandcanonical)
+
+        txt = &#39;&#39;
+        fmt = &#39;%%-%ds : %%s\n&#39; % (max([len(key) for key in keys.split(&#39;,&#39;)]))
+        for key, out in zip(keys.split(&#39;,&#39;), outs):
+            txt += fmt % (key, out)
+
+        return txt.strip(&#39;\n&#39;)</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.is_cell_variable"><code class="name flex">
+<span>def <span class="ident">is_cell_variable</span></span>(<span>trajectory, tests=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple test to check if cell changes.</p>
+<p>We compare the first frame to an integer number <code>tests</code> of other
+frames starting from the end of <code>trajectory</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_cell_variable(trajectory, tests=1):
+    &#34;&#34;&#34;
+    Simple test to check if cell changes.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    &#34;&#34;&#34;
+    is_variable = False
+    frames = len(trajectory)
+    if tests &gt; 0:
+        skip = max(1, int(frames / float(tests)))
+    else:
+        skip = 1
+    L0 = trajectory[0].cell.side
+    for sample in range(frames-1, -1, -skip):
+        L1 = trajectory[sample].cell.side
+        if numpy.any(L0 != L1):
+            is_variable = True
+            break
+    return is_variable</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.is_grandcanonical"><code class="name flex">
+<span>def <span class="ident">is_grandcanonical</span></span>(<span>trajectory, tests=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple test to check if a trajectory is grandcanonical.
+i.e. if the number of particles fluctuates.</p>
+<p>We compare the first frame to an integer number <code>tests</code> of other
+frames starting from the end of <code>trajectory</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_grandcanonical(trajectory, tests=1):
+    &#34;&#34;&#34;
+    Simple test to check if a trajectory is grandcanonical.
+    i.e. if the number of particles fluctuates.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    &#34;&#34;&#34;
+    # This is adapted from is_cell_variable()
+    # and basically the same code as is_semigrandcanonical()
+    is_variable = False
+    if tests &gt; 0:
+        skip = max(1, int(len(trajectory) / float(tests)))
+    else:
+        skip = 1
+    N0 = len(trajectory[0].particle)
+    for sample in range(len(trajectory)-1, 0, -skip):
+        N1 = len(trajectory[sample].particle)
+        is_variable = False
+        if N0 != N1:
+            is_variable = True
+            break
+    return is_variable</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.is_semigrandcanonical"><code class="name flex">
+<span>def <span class="ident">is_semigrandcanonical</span></span>(<span>trajectory, tests=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple test to check if a trajectory is semigrandcanonical.
+i.e. if the chemical concentrations fluctuate.</p>
+<p>We compare the first frame to an integer number <code>tests</code> of other
+frames starting from the end of <code>trajectory</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_semigrandcanonical(trajectory, tests=1):
+    &#34;&#34;&#34;
+    Simple test to check if a trajectory is semigrandcanonical.
+    i.e. if the chemical concentrations fluctuate.
+
+    We compare the first frame to an integer number `tests` of other
+    frames starting from the end of `trajectory`.
+    &#34;&#34;&#34;
+    # This is adapted from is_cell_variable()
+    is_variable = False
+    if tests &gt; 0:
+        skip = max(1, int(len(trajectory) / float(tests)))
+    else:
+        skip = 1
+    from atooms.system.particle import composition
+    x0 = composition(trajectory[0].particle)
+    for sample in range(len(trajectory)-1, -1, -skip):
+        x1 = composition(trajectory[sample].particle)
+        is_variable = False
+        for sp in x0:
+            if x0[sp] != x1[sp]:
+                is_variable = True
+                break
+        if is_variable:
+            break
+    return is_variable</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.paste"><code class="name flex">
+<span>def <span class="ident">paste</span></span>(<span>t1, t2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Iterate simultaneously on two trajectories. Skip samples that
+exist in one trajectory and not in the other.</p>
+<h2 id="example">Example:</h2>
+<p>t1 = Trajectory(f1)
+t2 = Trajectory(f2)
+for s1, s2 in paste(t1, t2):
+pass</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def paste(t1, t2):
+    &#34;&#34;&#34;
+    Iterate simultaneously on two trajectories. Skip samples that
+    exist in one trajectory and not in the other.
+
+    Example:
+    -------
+    t1 = Trajectory(f1)
+    t2 = Trajectory(f2)
+    for s1, s2 in paste(t1, t2):
+        pass
+    &#34;&#34;&#34;
+    steps_1 = set(t1.steps)
+    steps_2 = set(t2.steps)
+    steps = sorted(steps_1 &amp; steps_2)
+    for step in steps:
+        s1 = t1[t1.steps.index(step)]
+        s2 = t2[t2.steps.index(step)]
+        yield step, s1, s2</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.utils.split"><code class="name flex">
+<span>def <span class="ident">split</span></span>(<span>inp, index='step', archive=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Split the trajectory into independent trajectory files, one per
+sample.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def split(inp, index=&#39;step&#39;, archive=False):
+    &#34;&#34;&#34;
+    Split the trajectory into independent trajectory files, one per
+    sample.
+    &#34;&#34;&#34;
+    if archive:
+        tar = tarfile.open(inp.filename + &#39;.tar.gz&#39;, &#34;w:gz&#34;)
+    base, ext = os.path.splitext(inp.filename)
+
+    for frame, step in enumerate(inp.steps):
+        system = inp[frame]
+        if index == &#39;step&#39;:
+            filename = &#39;%s-%09i%s&#39; % (base, step, ext)
+        elif index == &#39;frame&#39; or index == &#39;sample&#39;:
+            filename = &#39;%s-%09i%s&#39; % (base, frame, ext)
+        else:
+            raise ValueError(&#39;unknown option %s&#39; % index)
+        with inp.__class__(filename, &#39;w&#39;) as t:
+            t.write(system, step)
+        if archive:
+            tar.add(filename)
+            os.remove(filename)
+
+    if archive:
+        tar.close()</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="atooms.trajectory" href="index.html">atooms.trajectory</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="atooms.trajectory.utils.check_block_size" href="#atooms.trajectory.utils.check_block_size">check_block_size</a></code></li>
+<li><code><a title="atooms.trajectory.utils.dump" href="#atooms.trajectory.utils.dump">dump</a></code></li>
+<li><code><a title="atooms.trajectory.utils.field" href="#atooms.trajectory.utils.field">field</a></code></li>
+<li><code><a title="atooms.trajectory.utils.file_index" href="#atooms.trajectory.utils.file_index">file_index</a></code></li>
+<li><code><a title="atooms.trajectory.utils.formats" href="#atooms.trajectory.utils.formats">formats</a></code></li>
+<li><code><a title="atooms.trajectory.utils.get_block_size" href="#atooms.trajectory.utils.get_block_size">get_block_size</a></code></li>
+<li><code><a title="atooms.trajectory.utils.gopen" href="#atooms.trajectory.utils.gopen">gopen</a></code></li>
+<li><code><a title="atooms.trajectory.utils.info" href="#atooms.trajectory.utils.info">info</a></code></li>
+<li><code><a title="atooms.trajectory.utils.is_cell_variable" href="#atooms.trajectory.utils.is_cell_variable">is_cell_variable</a></code></li>
+<li><code><a title="atooms.trajectory.utils.is_grandcanonical" href="#atooms.trajectory.utils.is_grandcanonical">is_grandcanonical</a></code></li>
+<li><code><a title="atooms.trajectory.utils.is_semigrandcanonical" href="#atooms.trajectory.utils.is_semigrandcanonical">is_semigrandcanonical</a></code></li>
+<li><code><a title="atooms.trajectory.utils.paste" href="#atooms.trajectory.utils.paste">paste</a></code></li>
+<li><code><a title="atooms.trajectory.utils.split" href="#atooms.trajectory.utils.split">split</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

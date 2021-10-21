@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>atooms.interaction.potential API documentation</title>
+<meta name="description" content="Pair potential classes and factory." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>atooms.interaction.potential</code></h1>
+</header>
+<section id="section-intro">
+<p>Pair potential classes and factory.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># This file is part of atooms
+# Copyright 2010-2017, Daniele Coslovich
+
+&#34;&#34;&#34;Pair potential classes and factory.&#34;&#34;&#34;
+
+import warnings
+import numpy
+
+from atooms.interaction import library
+from atooms.interaction import decorators
+
+def tabulate(potential, parameters, cutoff=&#39;c&#39;, rc=2.5, npoints=10000,
+             rmin=0.5, fmt=&#39;lammps&#39;, metadata=&#39;&#39;, fileout=None, precision=14):
+
+    &#34;&#34;&#34;Tabulate a potential.&#34;&#34;&#34;
+
+    from atooms.core.utils import tipify
+    from atooms.interaction.potential import PairPotential
+    from atooms.interaction.cutoff import CutOff
+
+    if isinstance(parameters, dict):
+        param_dict = parameters
+    else:
+        param_dict = {}
+        for param in parameters.split(&#39;,&#39;):
+            key, value = param.split(&#39;=&#39;)
+            param_dict[key] = tipify(value)
+
+    potential = PairPotential(potential, param_dict, (1, 1))
+    if cutoff is not None:
+        potential.cutoff = CutOff(cutoff, rc)
+    rsq, u0, u1, u2 = potential.tabulate(npoints, rmin=rmin, what=&#39;uwh&#39;)
+    r = rsq**0.5
+    if fmt == &#39;lammps&#39;:
+        u1 *= r
+        txt = &#34;&#34;&#34;
+
+POTENTIAL
+N {}
+
+&#34;&#34;&#34;.format(len(rsq))
+        i = 1
+        for x, y, z in zip(r, u0, u1):
+            txt += &#39;{} {} {} {}\n&#39;.format(i, x, y, z)
+            i += 1
+
+    elif fmt == &#39;uwh&#39;:
+        txt = &#39;# {} columns: r, u, w, h\n&#39;.format(metadata)
+        for x, y, z, w in zip(r, u0, u1, u2):
+            txt += &#39;{:.14g} {:.14g} {:.14g} {:.14g}\n&#39;.format(x, y, z, w)
+
+    else:
+        u1 *= r
+        txt = &#39;# {} columns: r, u, f\n&#39;.format(metadata)
+        for x, y, z in zip(r, u0, u1):
+            txt += &#39;{} {} {}\n&#39;.format(x, y, z)
+
+    if fileout is None:
+        return txt
+    else:
+        with open(fileout, &#39;w&#39;) as fh:
+            fh.write(txt)
+
+
+class PairPotential(object):
+
+    &#34;&#34;&#34;Pair potential between two particles.&#34;&#34;&#34;
+
+    interacting_bodies = 2
+
+    def __init__(self, func, params, species, cutoff=None,
+                 hard_core=0.0, npoints=20000):
+        &#34;&#34;&#34;
+        If `func` is a function, it will be used it to compute the
+        potential u(r) and its derivatives. `func` takes the squared
+        distance between the particles as a first argument plus an
+        arbitrary number of keyword arguments. The `params` dict will
+        be passed to the function. It must return the tuple (u, w, h)
+        where
+
+        - u = u(r)
+        - w = - (du/dr)/r (w=-W/r^2 where W is the virial)
+        - h = - (dw/dr)/r (term for the Hessian matrix)
+
+        At present only u, w are used.
+
+        If `func` is a string, it will be looked up into a database of
+        pair potentials (the `_factory` dict). The database is loaded
+        with the functions found in the `pair_potentials` module.
+
+        `species` is a list or tuple of size 2 containing the
+        particles&#39; id associated to the potential.
+
+        Examples:
+        --------
+        The Lennard-Jones potential:
+
+        `PairPotential(&#39;lennard_jones&#39;, {&#39;epsilon&#39;: 1.0, &#39;sigma&#39;: 1.0}, [1, 1])`
+        &#34;&#34;&#34;
+        self.func = func
+        self.params = params
+        self.species = species
+        self.cutoff = cutoff
+        self.hard_core = hard_core
+        self.npoints = npoints
+        self._adjusted = False
+        self._can_compute = True
+
+        if not hasattr(self.func, &#39;__call__&#39;):
+            # If func is not callable, look up the potential in the
+            # potential library
+            if self.func in library.__all__:
+                self.func = getattr(library, self.func)
+            elif self.func in decorators.__all__:
+                # Decorate the potential
+                # Used to implement hard potentials
+                getattr(decorators, self.func)(self)
+            else:
+                # Unknown potential, cannot be computed
+                self._can_compute = False
+
+    def __str__(self):
+        if type(self.func) is str:
+            return self.func
+        else:
+            return self.func.__name__
+
+    def report(self):
+        txt = &#34;&#34;&#34;\
+potential {0.species}: {0.func.__name__}
+parameters: {0.params}
+cutoff: {0.cutoff} at {0.cutoff.radius}
+&#34;&#34;&#34;.format(self)
+        if self.hard_core &gt; 0:
+            txt += &#34;hardcore: {0.hard_core}\n&#34;.format(self)
+        return txt
+
+    def _adjust(self):
+        &#34;&#34;&#34;Adjust the cutoff to the potential.&#34;&#34;&#34;
+        self._adjusted = True
+        if self.cutoff is not None and self.cutoff.radius &gt; 0:
+            u = self.func(self.cutoff.radius**2, **self.params)
+            self.cutoff.tailor(self.cutoff.radius**2, u)
+
+    def tabulate(self, npoints=None, rmax=None, rmin=0.0, what=&#39;uw&#39;):
+        &#34;&#34;&#34;
+        Tabulate the potential from 0 to `rmax`.
+
+        The potential cutoff is only used to determine `rmax` if this
+        is not given. The full potential is tabulated, it is up to the
+        calling code to truncate it. We slightly overshoot the
+        tabulation, to avoid boundary effects at the cutoff or at
+        discontinuities.
+
+        The `what` parameters can be &#39;u&#39;, &#39;uw&#39;, &#39;uwh&#39;.
+        &#34;&#34;&#34;
+        if not self._adjusted:
+            self._adjust()
+
+        if npoints is None:
+            npoints = self.npoints
+        if self.cutoff is None:
+            if rmax is None:
+                raise ValueError(&#39;rmax is needed to tabulate a cutoff-less potential&#39;)
+        else:
+            rmax = self.cutoff.radius
+
+        rsq = numpy.ndarray(npoints)
+        u0 = numpy.ndarray(npoints)
+        u1 = numpy.ndarray(npoints)
+        u2 = numpy.ndarray(npoints)
+        # We overshoot 2 points beyond rmax (cutoff) to avoid
+        # smoothing discontinuous potentials.
+        # This is necessary also for the Allen Tildesley lookup table,
+        # which for any distance within the cutoff will look up two
+        # points forward in the table.
+        # Note that the cutoff is applied to the function only to smooth it
+        # not to cut it.
+        drsq = (rmax**2 - rmin**2) / (npoints - 3)
+        warnings.filterwarnings(&#34;ignore&#34;)
+        for i in range(npoints):
+            rsq[i] = rmin**2 + i * drsq
+            try:
+                u0[i], u1[i], u2[i] = self.compute(rsq[i])
+            except ZeroDivisionError:
+                u0[i], u1[i], u2[i] = float(&#39;nan&#39;), float(&#39;nan&#39;), float(&#39;nan&#39;)
+        warnings.resetwarnings()
+
+        # For potentials that diverge at zero, we remove the singularity by hand
+        import math
+        if math.isnan(u0[0]):
+            u0[0], u1[0], u2[0] = u0[1], u1[1], u2[0]
+        if &#39;h&#39; in what:
+            return rsq, u0, u1, u2
+        else:
+            return rsq, u0, u1
+
+    def compute(self, rsquare):
+        &#34;&#34;&#34;Compute the potential and its derivatives.&#34;&#34;&#34;
+        if not self._can_compute:
+            raise ValueError(&#39;cannot compute unknown potential %s&#39; % self.func)
+
+        if not self._adjusted:
+            self._adjust()
+        # Compute the potential and smooth it via the cutoff
+        u = self.func(rsquare, **self.params)
+        if self.cutoff is not None:
+            u = self.cutoff.smooth(rsquare, u)
+        # if rsquare &lt; self.hard_core**2:
+        #     u0, u1 = float(&#34;inf&#34;), float(&#34;inf&#34;)
+        return u
+
+    def is_zero(self, rsquare):
+        &#34;&#34;&#34;
+        Returns `True` if `rsquare` is beyond the squared cutoff distance.
+        &#34;&#34;&#34;
+        if self.cutoff is not None:
+            return self.cutoff.is_zero(rsquare)
+        else:
+            return False</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="atooms.interaction.potential.tabulate"><code class="name flex">
+<span>def <span class="ident">tabulate</span></span>(<span>potential, parameters, cutoff='c', rc=2.5, npoints=10000, rmin=0.5, fmt='lammps', metadata='', fileout=None, precision=14)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tabulate a potential.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tabulate(potential, parameters, cutoff=&#39;c&#39;, rc=2.5, npoints=10000,
+             rmin=0.5, fmt=&#39;lammps&#39;, metadata=&#39;&#39;, fileout=None, precision=14):
+
+    &#34;&#34;&#34;Tabulate a potential.&#34;&#34;&#34;
+
+    from atooms.core.utils import tipify
+    from atooms.interaction.potential import PairPotential
+    from atooms.interaction.cutoff import CutOff
+
+    if isinstance(parameters, dict):
+        param_dict = parameters
+    else:
+        param_dict = {}
+        for param in parameters.split(&#39;,&#39;):
+            key, value = param.split(&#39;=&#39;)
+            param_dict[key] = tipify(value)
+
+    potential = PairPotential(potential, param_dict, (1, 1))
+    if cutoff is not None:
+        potential.cutoff = CutOff(cutoff, rc)
+    rsq, u0, u1, u2 = potential.tabulate(npoints, rmin=rmin, what=&#39;uwh&#39;)
+    r = rsq**0.5
+    if fmt == &#39;lammps&#39;:
+        u1 *= r
+        txt = &#34;&#34;&#34;
+
+POTENTIAL
+N {}
+
+&#34;&#34;&#34;.format(len(rsq))
+        i = 1
+        for x, y, z in zip(r, u0, u1):
+            txt += &#39;{} {} {} {}\n&#39;.format(i, x, y, z)
+            i += 1
+
+    elif fmt == &#39;uwh&#39;:
+        txt = &#39;# {} columns: r, u, w, h\n&#39;.format(metadata)
+        for x, y, z, w in zip(r, u0, u1, u2):
+            txt += &#39;{:.14g} {:.14g} {:.14g} {:.14g}\n&#39;.format(x, y, z, w)
+
+    else:
+        u1 *= r
+        txt = &#39;# {} columns: r, u, f\n&#39;.format(metadata)
+        for x, y, z in zip(r, u0, u1):
+            txt += &#39;{} {} {}\n&#39;.format(x, y, z)
+
+    if fileout is None:
+        return txt
+    else:
+        with open(fileout, &#39;w&#39;) as fh:
+            fh.write(txt)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="atooms.interaction.potential.PairPotential"><code class="flex name class">
+<span>class <span class="ident">PairPotential</span></span>
+<span>(</span><span>func, params, species, cutoff=None, hard_core=0.0, npoints=20000)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pair potential between two particles.</p>
+<p>If <code>func</code> is a function, it will be used it to compute the
+potential u(r) and its derivatives. <code>func</code> takes the squared
+distance between the particles as a first argument plus an
+arbitrary number of keyword arguments. The <code>params</code> dict will
+be passed to the function. It must return the tuple (u, w, h)
+where</p>
+<ul>
+<li>u = u(r)</li>
+<li>w = - (du/dr)/r (w=-W/r^2 where W is the virial)</li>
+<li>h = - (dw/dr)/r (term for the Hessian matrix)</li>
+</ul>
+<p>At present only u, w are used.</p>
+<p>If <code>func</code> is a string, it will be looked up into a database of
+pair potentials (the <code>_factory</code> dict). The database is loaded
+with the functions found in the <code>pair_potentials</code> module.</p>
+<p><code>species</code> is a list or tuple of size 2 containing the
+particles' id associated to the potential.</p>
+<h2 id="examples">Examples:</h2>
+<p>The Lennard-Jones potential:</p>
+<p><code>PairPotential('lennard_jones', {'epsilon': 1.0, 'sigma': 1.0}, [1, 1])</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PairPotential(object):
+
+    &#34;&#34;&#34;Pair potential between two particles.&#34;&#34;&#34;
+
+    interacting_bodies = 2
+
+    def __init__(self, func, params, species, cutoff=None,
+                 hard_core=0.0, npoints=20000):
+        &#34;&#34;&#34;
+        If `func` is a function, it will be used it to compute the
+        potential u(r) and its derivatives. `func` takes the squared
+        distance between the particles as a first argument plus an
+        arbitrary number of keyword arguments. The `params` dict will
+        be passed to the function. It must return the tuple (u, w, h)
+        where
+
+        - u = u(r)
+        - w = - (du/dr)/r (w=-W/r^2 where W is the virial)
+        - h = - (dw/dr)/r (term for the Hessian matrix)
+
+        At present only u, w are used.
+
+        If `func` is a string, it will be looked up into a database of
+        pair potentials (the `_factory` dict). The database is loaded
+        with the functions found in the `pair_potentials` module.
+
+        `species` is a list or tuple of size 2 containing the
+        particles&#39; id associated to the potential.
+
+        Examples:
+        --------
+        The Lennard-Jones potential:
+
+        `PairPotential(&#39;lennard_jones&#39;, {&#39;epsilon&#39;: 1.0, &#39;sigma&#39;: 1.0}, [1, 1])`
+        &#34;&#34;&#34;
+        self.func = func
+        self.params = params
+        self.species = species
+        self.cutoff = cutoff
+        self.hard_core = hard_core
+        self.npoints = npoints
+        self._adjusted = False
+        self._can_compute = True
+
+        if not hasattr(self.func, &#39;__call__&#39;):
+            # If func is not callable, look up the potential in the
+            # potential library
+            if self.func in library.__all__:
+                self.func = getattr(library, self.func)
+            elif self.func in decorators.__all__:
+                # Decorate the potential
+                # Used to implement hard potentials
+                getattr(decorators, self.func)(self)
+            else:
+                # Unknown potential, cannot be computed
+                self._can_compute = False
+
+    def __str__(self):
+        if type(self.func) is str:
+            return self.func
+        else:
+            return self.func.__name__
+
+    def report(self):
+        txt = &#34;&#34;&#34;\
+potential {0.species}: {0.func.__name__}
+parameters: {0.params}
+cutoff: {0.cutoff} at {0.cutoff.radius}
+&#34;&#34;&#34;.format(self)
+        if self.hard_core &gt; 0:
+            txt += &#34;hardcore: {0.hard_core}\n&#34;.format(self)
+        return txt
+
+    def _adjust(self):
+        &#34;&#34;&#34;Adjust the cutoff to the potential.&#34;&#34;&#34;
+        self._adjusted = True
+        if self.cutoff is not None and self.cutoff.radius &gt; 0:
+            u = self.func(self.cutoff.radius**2, **self.params)
+            self.cutoff.tailor(self.cutoff.radius**2, u)
+
+    def tabulate(self, npoints=None, rmax=None, rmin=0.0, what=&#39;uw&#39;):
+        &#34;&#34;&#34;
+        Tabulate the potential from 0 to `rmax`.
+
+        The potential cutoff is only used to determine `rmax` if this
+        is not given. The full potential is tabulated, it is up to the
+        calling code to truncate it. We slightly overshoot the
+        tabulation, to avoid boundary effects at the cutoff or at
+        discontinuities.
+
+        The `what` parameters can be &#39;u&#39;, &#39;uw&#39;, &#39;uwh&#39;.
+        &#34;&#34;&#34;
+        if not self._adjusted:
+            self._adjust()
+
+        if npoints is None:
+            npoints = self.npoints
+        if self.cutoff is None:
+            if rmax is None:
+                raise ValueError(&#39;rmax is needed to tabulate a cutoff-less potential&#39;)
+        else:
+            rmax = self.cutoff.radius
+
+        rsq = numpy.ndarray(npoints)
+        u0 = numpy.ndarray(npoints)
+        u1 = numpy.ndarray(npoints)
+        u2 = numpy.ndarray(npoints)
+        # We overshoot 2 points beyond rmax (cutoff) to avoid
+        # smoothing discontinuous potentials.
+        # This is necessary also for the Allen Tildesley lookup table,
+        # which for any distance within the cutoff will look up two
+        # points forward in the table.
+        # Note that the cutoff is applied to the function only to smooth it
+        # not to cut it.
+        drsq = (rmax**2 - rmin**2) / (npoints - 3)
+        warnings.filterwarnings(&#34;ignore&#34;)
+        for i in range(npoints):
+            rsq[i] = rmin**2 + i * drsq
+            try:
+                u0[i], u1[i], u2[i] = self.compute(rsq[i])
+            except ZeroDivisionError:
+                u0[i], u1[i], u2[i] = float(&#39;nan&#39;), float(&#39;nan&#39;), float(&#39;nan&#39;)
+        warnings.resetwarnings()
+
+        # For potentials that diverge at zero, we remove the singularity by hand
+        import math
+        if math.isnan(u0[0]):
+            u0[0], u1[0], u2[0] = u0[1], u1[1], u2[0]
+        if &#39;h&#39; in what:
+            return rsq, u0, u1, u2
+        else:
+            return rsq, u0, u1
+
+    def compute(self, rsquare):
+        &#34;&#34;&#34;Compute the potential and its derivatives.&#34;&#34;&#34;
+        if not self._can_compute:
+            raise ValueError(&#39;cannot compute unknown potential %s&#39; % self.func)
+
+        if not self._adjusted:
+            self._adjust()
+        # Compute the potential and smooth it via the cutoff
+        u = self.func(rsquare, **self.params)
+        if self.cutoff is not None:
+            u = self.cutoff.smooth(rsquare, u)
+        # if rsquare &lt; self.hard_core**2:
+        #     u0, u1 = float(&#34;inf&#34;), float(&#34;inf&#34;)
+        return u
+
+    def is_zero(self, rsquare):
+        &#34;&#34;&#34;
+        Returns `True` if `rsquare` is beyond the squared cutoff distance.
+        &#34;&#34;&#34;
+        if self.cutoff is not None:
+            return self.cutoff.is_zero(rsquare)
+        else:
+            return False</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="atooms.interaction.potential.PairPotential.interacting_bodies"><code class="name">var <span class="ident">interacting_bodies</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="atooms.interaction.potential.PairPotential.compute"><code class="name flex">
+<span>def <span class="ident">compute</span></span>(<span>self, rsquare)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute the potential and its derivatives.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute(self, rsquare):
+    &#34;&#34;&#34;Compute the potential and its derivatives.&#34;&#34;&#34;
+    if not self._can_compute:
+        raise ValueError(&#39;cannot compute unknown potential %s&#39; % self.func)
+
+    if not self._adjusted:
+        self._adjust()
+    # Compute the potential and smooth it via the cutoff
+    u = self.func(rsquare, **self.params)
+    if self.cutoff is not None:
+        u = self.cutoff.smooth(rsquare, u)
+    # if rsquare &lt; self.hard_core**2:
+    #     u0, u1 = float(&#34;inf&#34;), float(&#34;inf&#34;)
+    return u</code></pre>
+</details>
+</dd>
+<dt id="atooms.interaction.potential.PairPotential.is_zero"><code class="name flex">
+<span>def <span class="ident">is_zero</span></span>(<span>self, rsquare)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns <code>True</code> if <code>rsquare</code> is beyond the squared cutoff distance.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_zero(self, rsquare):
+    &#34;&#34;&#34;
+    Returns `True` if `rsquare` is beyond the squared cutoff distance.
+    &#34;&#34;&#34;
+    if self.cutoff is not None:
+        return self.cutoff.is_zero(rsquare)
+    else:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="atooms.interaction.potential.PairPotential.report"><code class="name flex">
+<span>def <span class="ident">report</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">    def report(self):
+        txt = &#34;&#34;&#34;\
+potential {0.species}: {0.func.__name__}
+parameters: {0.params}
+cutoff: {0.cutoff} at {0.cutoff.radius}
+&#34;&#34;&#34;.format(self)
+        if self.hard_core &gt; 0:
+            txt += &#34;hardcore: {0.hard_core}\n&#34;.format(self)
+        return txt</code></pre>
+</details>
+</dd>
+<dt id="atooms.interaction.potential.PairPotential.tabulate"><code class="name flex">
+<span>def <span class="ident">tabulate</span></span>(<span>self, npoints=None, rmax=None, rmin=0.0, what='uw')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tabulate the potential from 0 to <code>rmax</code>.</p>
+<p>The potential cutoff is only used to determine <code>rmax</code> if this
+is not given. The full potential is tabulated, it is up to the
+calling code to truncate it. We slightly overshoot the
+tabulation, to avoid boundary effects at the cutoff or at
+discontinuities.</p>
+<p>The <code>what</code> parameters can be 'u', 'uw', 'uwh'.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tabulate(self, npoints=None, rmax=None, rmin=0.0, what=&#39;uw&#39;):
+    &#34;&#34;&#34;
+    Tabulate the potential from 0 to `rmax`.
+
+    The potential cutoff is only used to determine `rmax` if this
+    is not given. The full potential is tabulated, it is up to the
+    calling code to truncate it. We slightly overshoot the
+    tabulation, to avoid boundary effects at the cutoff or at
+    discontinuities.
+
+    The `what` parameters can be &#39;u&#39;, &#39;uw&#39;, &#39;uwh&#39;.
+    &#34;&#34;&#34;
+    if not self._adjusted:
+        self._adjust()
+
+    if npoints is None:
+        npoints = self.npoints
+    if self.cutoff is None:
+        if rmax is None:
+            raise ValueError(&#39;rmax is needed to tabulate a cutoff-less potential&#39;)
+    else:
+        rmax = self.cutoff.radius
+
+    rsq = numpy.ndarray(npoints)
+    u0 = numpy.ndarray(npoints)
+    u1 = numpy.ndarray(npoints)
+    u2 = numpy.ndarray(npoints)
+    # We overshoot 2 points beyond rmax (cutoff) to avoid
+    # smoothing discontinuous potentials.
+    # This is necessary also for the Allen Tildesley lookup table,
+    # which for any distance within the cutoff will look up two
+    # points forward in the table.
+    # Note that the cutoff is applied to the function only to smooth it
+    # not to cut it.
+    drsq = (rmax**2 - rmin**2) / (npoints - 3)
+    warnings.filterwarnings(&#34;ignore&#34;)
+    for i in range(npoints):
+        rsq[i] = rmin**2 + i * drsq
+        try:
+            u0[i], u1[i], u2[i] = self.compute(rsq[i])
+        except ZeroDivisionError:
+            u0[i], u1[i], u2[i] = float(&#39;nan&#39;), float(&#39;nan&#39;), float(&#39;nan&#39;)
+    warnings.resetwarnings()
+
+    # For potentials that diverge at zero, we remove the singularity by hand
+    import math
+    if math.isnan(u0[0]):
+        u0[0], u1[0], u2[0] = u0[1], u1[1], u2[0]
+    if &#39;h&#39; in what:
+        return rsq, u0, u1, u2
+    else:
+        return rsq, u0, u1</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="atooms.interaction" href="index.html">atooms.interaction</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="atooms.interaction.potential.tabulate" href="#atooms.interaction.potential.tabulate">tabulate</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="atooms.interaction.potential.PairPotential" href="#atooms.interaction.potential.PairPotential">PairPotential</a></code></h4>
+<ul class="">
+<li><code><a title="atooms.interaction.potential.PairPotential.compute" href="#atooms.interaction.potential.PairPotential.compute">compute</a></code></li>
+<li><code><a title="atooms.interaction.potential.PairPotential.interacting_bodies" href="#atooms.interaction.potential.PairPotential.interacting_bodies">interacting_bodies</a></code></li>
+<li><code><a title="atooms.interaction.potential.PairPotential.is_zero" href="#atooms.interaction.potential.PairPotential.is_zero">is_zero</a></code></li>
+<li><code><a title="atooms.interaction.potential.PairPotential.report" href="#atooms.interaction.potential.PairPotential.report">report</a></code></li>
+<li><code><a title="atooms.interaction.potential.PairPotential.tabulate" href="#atooms.interaction.potential.PairPotential.tabulate">tabulate</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
