@@ -78,5 +78,5 @@ pages:
     paths:
       - public
   only:
-     - master
-#    - tags
+#     - master
+      - tags
