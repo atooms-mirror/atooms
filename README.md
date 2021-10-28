@@ -137,4 +137,4 @@ import atooms.your_package
 
 Authors
 -------
-Daniele Coslovich: http://www-dft.ts.infn.it/~coslovich/
+Daniele Coslovich: https://www.units.it/daniele.coslovich/
