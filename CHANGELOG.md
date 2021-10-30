@@ -2,6 +2,15 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations.
 
+## 3.1.0 - 2021/10/30
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.0.0...3.1.0)
+
+### Added
+
+- Add `TrajectoryFactory.register_callback()`
+- Argument `what` in `System.compute_interaction()` is now optional
+
 ## 3.0.0 - 2021/10/03
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/2.8.1...3.0.0)
