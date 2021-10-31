@@ -463,3 +463,65 @@ class System(object):
         else:
             raise ValueError('unknown backend for visualization')
         return _show(self.particle, self.cell, *args, **kwargs)
+
+    @property
+    def species_layout(self):
+        """
+        Return species layout (A=alphabetical, C=C indexed, F=fortran indexed)
+        """
+        try:
+            species = [int(p.species) for p in self.particle]
+        except ValueError:
+            # The species cannot be converted to int, thus layout is
+            # alphabetical
+            # TODO: add periodic table layout 'P'?
+            layout = 'A'
+        else:
+            min_sp = numpy.min(species)
+            if min_sp == 0:
+                layout = 'C'
+            elif min_sp == 1:
+                layout = 'F'
+            else:
+                raise ValueError('Numeric species should start from 0 or 1')
+        return layout
+
+    @species_layout.setter
+    def species_layout(self, layout):
+        """
+        Set species layout
+        """
+        # Sanity checks
+        layouts = ['A', 'C', 'F']
+        assert layout[0] in layouts, 'layout must be A, C or F (not {})'.format(layout)
+
+        # Do nothing if the layout is already ok
+        current_layout = self.species_layout
+        if layout == current_layout:
+            return system
+
+        # Convert to new layout
+        import string
+        if layout[0] == 'A':
+            # We get the index of the species map:
+            # - if current layout is F (min_sp=1), we subtract one.
+            # - if current layout is C (min_sp=0), we do nothing
+            species = [int(p.species) for p in self.particle]
+            min_sp = numpy.min(species)
+            species_map = string.ascii_uppercase
+            for p in self.particle:
+                p.species = species_map[int(p.species) - min_sp]
+        else:
+            # Output layout is numerical (C or F)
+            offset = 1 if layout[0] == 'F' else 0
+            # Note that distinct_species is sorted alphabetically
+            species_list = self.distinct_species
+            if current_layout[0] == 'A':
+                for p in self.particle:
+                    p.species = str(species_list.index(p.species) + offset)
+            else:
+                # If layout=C, current_layout is F and we subtract 2*offset-1=-1
+                # If layout=F, current_layout is C and we add 2*offset-1=+1
+                for p in self.particle:
+                    p.species = str(int(p.species) + 2*offset - 1)
+    

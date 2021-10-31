@@ -144,6 +144,20 @@ class Test(unittest.TestCase):
             p.species = numpy.array(1)
         self.assertEqual(system.distinct_species, [1])
 
+    def test_species_layout(self):
+        system = copy.copy(self.ref)
+        for p in system.particle[0: 10]:
+            p.species = 'B'
+        for p in system.particle[10: 30]:
+            p.species = 'C'
+        self.assertTrue(system.species_layout == 'A')
+        system.species_layout = 'C'
+        self.assertTrue(system.species_layout == 'C')
+        system.species_layout = 'F'
+        self.assertTrue(system.species_layout == 'F')
+        system.species_layout = 'A'
+        self.assertTrue(system.species_layout == 'A')
+        
     def test_packing(self):
         import math
         system = copy.copy(self.ref)
