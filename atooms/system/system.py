@@ -193,7 +193,12 @@ class System(object):
         if self.interaction is not None:
             kwargs = {}
             for variable, variable_to_dump in self.interaction.variables.items():
-                kwargs[variable] = self.dump(variable_to_dump, view=True,
+                # Get the optional data type
+                dtype = None
+                if ':' in variable_to_dump:
+                    dtype = variable_to_dump.split(':')[1]                    
+                kwargs[variable] = self.dump(variable_to_dump,
+                                             view=True, dtype=dtype,
                                              order=self.interaction.order)
             self.interaction.compute(what, **kwargs)
 

@@ -14,12 +14,15 @@ class Interaction(object):
 
     def __init__(self):
         self.variables = {'position': 'particle.position',
-                          'species': 'particle.species',
+                          'species': 'particle.species:int32',
                           'side': 'cell.side'}
         """
         A list of variables needed to compute the interaction. The keys
         must match the interfaces of compute(), the fields are
-        variables accepted by System.dump().
+        variables accepted by System.dump(). It is possible to specify
+        the required data type using the optionl colon syntax
+        <property>[:<dtype>]. The dtype must a valid identifier for
+        numpy array creation.
         """
         self.order = 'F'        
         self.forces = None
