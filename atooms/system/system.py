@@ -196,7 +196,7 @@ class System(object):
                 # Get the optional data type
                 dtype = None
                 if ':' in variable_to_dump:
-                    dtype = variable_to_dump.split(':')[1]                    
+                    variable_to_dump, dtype = variable_to_dump.split(':')
                 kwargs[variable] = self.dump(variable_to_dump,
                                              view=True, dtype=dtype,
                                              order=self.interaction.order)
