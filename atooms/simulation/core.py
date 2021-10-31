@@ -407,9 +407,9 @@ class Simulation(object):
 
     def _info_backend(self):
         """Subclasses may want to override this method."""
-        txt = 'backend: {}\n'.format(self.backend)
+        txt = 'backend: {}\n'.format(self.backend.__class__)
         if hasattr(self.backend, 'version'):
-            txt += 'backend version: %s\n' % self.backend.version
+            txt += 'backend version: {}\n'.format(self.backend.version)
         return txt
 
     def _info_observers(self):
