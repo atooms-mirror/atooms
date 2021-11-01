@@ -2,7 +2,7 @@
 # Copyright 2010-2017, Daniele Coslovich
 
 """
-Base interaction class.
+Base and total interaction class.
 
 Actual interaction backends should implement this interface or
 subclass Interaction by implementing the compute() method and
@@ -13,7 +13,7 @@ dictionary.
 import numpy
 
 
-class Interaction(object):
+class InteractionBase(object):
 
     def __init__(self):
         self.variables = {'position': 'particle.position'}
@@ -28,22 +28,20 @@ class Interaction(object):
         optionl colon syntax <property>[:<dtype>]. The dtype must a
         valid identifier for numpy array creation.
         """
-        # TODO: order is not a good variable, we could expand the syntax using [:order]
-        self.order = 'F'        
-        self.forces = None
-        self.energy = None
-        self.virial = None
-        self.stress = None  # this will be (ndim,ndim) numpy array
-        self.hessian = None
+        # TODO: order is not a good variable, we should expand the syntax using [:order]
+        self.order = 'F'  # deprecated
+        self.observable = ['energy', 'forces', 'virial', 'stress', 'hessian']
+        for observable in self.observable:
+            setattr(self, observable, None)
 
     def __add__(self, other):
         total = Interaction()
-        for attr in ['energy', 'forces', 'virial', 'stress', 'hessian']:
+        for attr in self.observable:
             # Sanity check
             err = getattr(self, attr) is not None and getattr(other, attr) is None or \
                   getattr(self, attr) is None and getattr(other, attr) is not None
             assert not err, 'attribute {} not set in {} or {}'.format(attr, self, other)
-            
+
             # Store the sum of the properties in the total interaction
             if getattr(self, attr) is not None and getattr(other, attr) is not None:
                 setattr(total, attr, getattr(self, attr) + getattr(other, attr))
@@ -63,9 +61,9 @@ class Interaction(object):
         specified by the `Interaction.variables` dict.
         """
         # Sanity checks
-        assert observable in [None, 'energy', 'forces', 'stress', 'hessian'], \
+        assert observable in self.observable, \
             'unsupported observable %s'.format(observable)
-        
+
         # Zeroing observables
         ndim, N = position.shape
         self.energy = None
@@ -86,5 +84,36 @@ class Interaction(object):
         elif observable == 'hessian':
             self.hessian = numpy.zeros((ndim, N, ndim, N))
 
-    
 
+class Interaction(InteractionBase):
+
+    def __init__(self, *terms):
+        InteractionBase.__init__(self)
+        self.variables = {}
+        self.term = []
+        for term in terms:
+            self.add(term)
+
+    def add(self, term):
+        assert set(self.observable) == set(term.observable), 'observables differ'
+        self.term.append(term)
+        self.variables.update(term.variables)
+
+    def compute(self, observable, **kwargs):
+        """
+        Compute an `observable` from all terms of this interaction
+        """
+        if len(self.term) == 0:
+            return
+
+        for term in self.term:
+            # Extract the relevant variables for this term
+            term_kwargs = {}
+            for key, value in term.variables.items():
+                term_kwargs[key] = kwargs[key]
+            term.compute(observable, **term_kwargs)
+
+        # Sum all interaction terms
+        total = sum(self.term)
+        for attr in self.observable:
+            setattr(self, attr, getattr(total, attr))

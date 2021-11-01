@@ -199,18 +199,18 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rg3, 0.57735026919)
 
     def test_interaction(self):
-        from atooms.system.interaction import Interaction
+        from atooms.system.interaction import InteractionBase
         system = copy.copy(self.ref)
         self.assertAlmostEqual(system.potential_energy(), 0.0)
-        system.interaction = Interaction()
+        system.interaction = InteractionBase()
         system.interaction.compute('energy', system.dump('position'))
         self.assertAlmostEqual(system.potential_energy(), 0.0)
         self.assertAlmostEqual(system.potential_energy(normed=True), 0.0)
         self.assertAlmostEqual(system.total_energy(), system.kinetic_energy())
 
     def test_interaction_add(self):
-        from atooms.system.interaction import Interaction
-        x, y = Interaction(), Interaction()
+        from atooms.system.interaction import InteractionBase
+        x, y = InteractionBase(), InteractionBase()
         x.energy, y.energy = 1., 1.
         z = sum([x, y])        
         self.assertAlmostEqual(z.energy, 2.)
@@ -223,6 +223,24 @@ class Test(unittest.TestCase):
         except AssertionError:
             ok = True
         self.assertTrue(ok)
+
+    def test_interaction_terms(self):
+        from atooms.system.interaction import InteractionBase, Interaction
+        x, y = InteractionBase(), InteractionBase()
+        z = Interaction(x, y)
+        w = Interaction()
+        w.add(x)
+        w.add(y)
+        w.compute('forces', position=numpy.array([[1.]]))
+        self.assertAlmostEqual(w.energy, 0.0)
+        self.assertTrue(w.forces is not None)
+        
+    def test_interaction_terms_via_system(self):
+        from atooms.system.interaction import InteractionBase, Interaction
+        system = copy.copy(self.ref)
+        system.interaction = Interaction(InteractionBase())
+        system.compute_interaction('forces')
+        self.assertAlmostEqual(system.potential_energy(), 0.0)
         
     def test_overlap(self):
         from atooms.system.particle import self_overlap, collective_overlap
