@@ -438,6 +438,8 @@ class System(object):
             txt += 'system composed by {0} particles\n'.format(len(self.particle))
         if self.cell:
             txt += 'enclosed in a {0.shape} box at number density rho={1:.6f}\n'.format(self.cell, self.density)
+        if self.wall:
+            txt += 'surrounded by {} walls\n'.format(len(self.wall))
         if self.thermostat:
             txt += 'in contact with a thermostat at T={0.temperature}\n'.format(self.thermostat)
         if self.barostat:
