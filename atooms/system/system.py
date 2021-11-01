@@ -20,8 +20,7 @@ class System(object):
     """System class."""
 
     def __init__(self, particle=None, cell=None, interaction=None,
-                 thermostat=None, barostat=None, reservoir=None,
-                 wall=None):
+                 thermostat=None, barostat=None, reservoir=None):
         if particle is None:
             particle = []
         self.particle = particle
@@ -31,7 +30,6 @@ class System(object):
         self.thermostat = thermostat
         self.barostat = barostat
         self.reservoir = reservoir
-        self.wall = wall
         # Internal data dictionary for array dumps
         self._data = None
 
