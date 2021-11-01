@@ -11,11 +11,12 @@ class Wall:
     >>> w.distance(numpy.array([[-2.5, 2.0, 1.0], [1.0, 0.0, 0.0]]).transpose())
     """
     
-    def __init__(self, vector, point):
+    def __init__(self, vector, point, species='A'):
         """A plane specified by `point` and a `vector` orthogonal to the plane"""
         vec = numpy.array(vector)
         self.normal = vec / numpy.sum(vec**2)**0.5
         self.point = numpy.array(point)
+        self.species = species
         self._offset = numpy.dot(self.point, self.normal)
 
     def distance(self, point):
