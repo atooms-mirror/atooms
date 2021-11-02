@@ -311,7 +311,7 @@ class Simulation(object):
                 def flush(sim):
                     pass
                 self.remove(flush)
-                self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
+                self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
         # Report
         _report(self._info_start())
