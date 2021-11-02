@@ -271,7 +271,7 @@ class System(object):
         If `per_unit_volume` is `True`, return the virial per particle.
         """
         if self.interaction is not None:
-            if not cache  or self.interaction.virial is None:
+            if not cache or self.interaction.virial is None:
                 self.compute_interaction('forces')
             if per_particle:
                 return self.interaction.virial / len(self.particle)
@@ -357,11 +357,11 @@ class System(object):
 
         if isinstance(what, list):
             raise ValueError('list arguments to dump() are not supported, use dict comprehension instead')
-            
+
         # If the dump is a System attribute, just return it
         if what in self.__dict__:
             return getattr(self, what)
-            
+
         # Setup data dictionary
         if self._data is None or clear:
             self._data = {}
@@ -452,7 +452,7 @@ class System(object):
             txt += '\n'
             txt += str(self.interaction)
         return txt
-        
+
     def show(self, backend='matplotlib', *args, **kwargs):
         from .visualize import show_ovito
         from .visualize import show_matplotlib
@@ -502,7 +502,7 @@ class System(object):
         # Do nothing if the layout is already ok
         current_layout = self.species_layout
         if layout == current_layout:
-            return system
+            return
 
         # Convert to new layout
         import string
@@ -528,4 +528,3 @@ class System(object):
                 # If layout=F, current_layout is C and we add 2*offset-1=+1
                 for p in self.particle:
                     p.species = str(int(p.species) + 2*offset - 1)
-    
