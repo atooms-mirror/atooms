@@ -220,7 +220,7 @@ class Test(unittest.TestCase):
         y.energy = None
         try:
             z = x + y
-        except AssertionError:
+        except:
             ok = True
         self.assertTrue(ok)
 

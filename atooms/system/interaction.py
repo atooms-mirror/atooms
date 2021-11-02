@@ -37,14 +37,15 @@ class InteractionBase(object):
     def __add__(self, other):
         total = Interaction()
         for attr in self.observable:
-            # Sanity check
-            err = getattr(self, attr) is not None and getattr(other, attr) is None or \
-                  getattr(self, attr) is None and getattr(other, attr) is not None
-            assert not err, 'attribute {} not set in {} or {}'.format(attr, self, other)
-
-            # Store the sum of the properties in the total interaction
-            if getattr(self, attr) is not None and getattr(other, attr) is not None:
+            if getattr(self, attr) is None and getattr(other, attr) is None:
+                continue
+            elif getattr(self, attr) is not None and getattr(other, attr) is not None:
+                # Store the sum of the properties in the total interaction
                 setattr(total, attr, getattr(self, attr) + getattr(other, attr))
+            else:
+                raise ValueError('attribute {} not set in {} or {}'.format(attr,
+                                                                           self,
+                                                                           other))
         return total
 
     def __radd__(self, other):
@@ -62,7 +63,7 @@ class InteractionBase(object):
         """
         # Sanity checks
         assert observable in self.observable, \
-            'unsupported observable %s'.format(observable)
+            'unsupported observable {}'.format(observable)
 
         # Zeroing observables
         ndim, N = position.shape
@@ -95,7 +96,6 @@ class Interaction(InteractionBase):
             self.add(term)
 
     def add(self, term):
-        assert set(self.observable) == set(term.observable), 'observables differ'
         self.term.append(term)
         self.variables.update(term.variables)
 
@@ -109,7 +109,7 @@ class Interaction(InteractionBase):
         for term in self.term:
             # Extract the relevant variables for this term
             term_kwargs = {}
-            for key, value in term.variables.items():
+            for key in term.variables:
                 term_kwargs[key] = kwargs[key]
             term.compute(observable, **term_kwargs)
 
