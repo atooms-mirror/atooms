@@ -2,6 +2,17 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations.
 
+## 3.3.0 - 2021/11/02
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.2.0...3.3.0)
+
+## Added
+
+Add `Wall` class and optional instances as `System.wall`
+Add `System.species_layout` property to show and change the chemical species layout (A, C, F)
+Add `InteractionBase` as the base for actual Interaction subclasses
+Refactor `Interaction` to handle multiple interaction terms via the `term` list variable
+
 ## 3.2.0 - 2021/10/31
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.1.0...3.2.0)
