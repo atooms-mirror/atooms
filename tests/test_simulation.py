@@ -75,17 +75,20 @@ class Test(unittest.TestCase):
         from atooms.trajectory import TrajectoryXYZ
         f = '/tmp/test_simulation/config/trajectory.xyz'
 
+        bck = DryRun()
+        bck.timestep = 0.1
+
         # We do not accept too deep introspection
         with self.assertRaises(ValueError):
             # Mute errors temporarily
             setup_logging(level=50, update=True)
-            s = Simulation(DryRun(), output_path=f, enable_speedometer=False, steps=100)
+            s = Simulation(bck, output_path=f, enable_speedometer=False, steps=100)
             s.add(write, Scheduler(20), 'output', ['system.particle.position'])
             s.run()
 
         # Test generic writer and write_config
         setup_logging(level=40, update=True)
-        s = Simulation(DryRun(), output_path=f, enable_speedometer=True, steps=100)
+        s = Simulation(bck, output_path=f, enable_speedometer=True, steps=100)
         s.trajectory_class = TrajectoryXYZ
         s.add(write_config, Scheduler(20))
         s.add(write, Scheduler(20), 'output', ['current_step',
@@ -94,6 +97,8 @@ class Test(unittest.TestCase):
         import os
         self.assertTrue(os.path.exists(f))
         self.assertTrue(os.path.exists(f + '.output'))
+        with TrajectoryXYZ(f) as th:
+            self.assertAlmostEqual(th.timestep, bck.timestep)
 
     def test_target_rmsd(self):
         f = '/tmp/test_simulation/config/trajectory'

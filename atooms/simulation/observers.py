@@ -184,9 +184,12 @@ def write_config(sim, fields=None, precision=None):
         rmf(sim.output_path)
 
     with sim.trajectory_class(sim.output_path, 'a') as t:
+        if hasattr(sim.backend, 'timestep'):
+            t.timestep = sim.backend.timestep
         if precision is not None:
             t.precision = precision
         if fields is not None:
+            # TODO: fix this fields and deprecate it
             t.fields = fields
         t.write(sim.system, sim.current_step)
 
