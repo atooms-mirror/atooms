@@ -4,35 +4,9 @@
 #+date: Version: >= 3.0.0
 #+html_doctype: html5
 #+options: html-style:nil
-* Setup                                                    :noexport:ARCHIVE:
 #+language: en
 #+select_tags: export
 #+exclude_tags: noexport
-#+latex_class: article
-#+latex_class_options: [11pt,a4paper]
-#+latex_header: \usepackage[OT1]{fontenc}
-#+latex_header: \linespread{1.1}
-#+latex_header: \textwidth=16cm
-#+latex_header: \textheight=25cm
-#+latex_header: \hoffset=-1.8cm
-#+latex_header: \voffset=-2.2cm
-#+latex_header: \parindent=0ex
-#+latex_header: \parskip=1ex
-#+latex_header: \usepackage[scaled]{helvet}
-#+latex_header: \renewcommand\familydefault{\sfdefault}
-#+latex_header: \setlength{\leftmargini}{1em}
-#+latex_header: \renewcommand{\labelitemi}{--}
-#+latex_header: \usepackage{titling}
-#+latex_header: \setlength{\droptitle}{-40pt}
-#+latex_header: \pretitle{\begin{center}\bfseries\large}
-#+latex_header: \predate{\begin{center}\vskip-40pt}
-#+latex_header: \hypersetup{
-#+latex_header:     colorlinks,%
-#+latex_header:     citecolor=black,%
-#+latex_header:     filecolor=black,%
-#+latex_header:     linkcolor=blue,%
-#+latex_header:     urlcolor=blue
-#+latex_header: }
 #+options: toc:2 num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
 #+property: header-args:python :exports both
 #+property: header-args:gnuplot :exports results

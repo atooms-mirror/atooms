@@ -263,16 +263,18 @@ class Test(unittest.TestCase):
         with TrajectoryXYZ(os.path.join(self.inpdir, '0.xyz'), 'w') as th:
             th.timestep = 0.001
             th.write(self.system[0], 10)
+            th.write(self.system[0], 20)
         with TrajectoryXYZ(os.path.join(self.inpdir, '1.xyz'), 'w') as th:
             th.timestep = 0.001
-            th.write(self.system[0], 20)
+            th.write(self.system[0], 30)
+            th.write(self.system[0], 40)
         with trj.SuperTrajectory(glob.glob(self.inpdir + '/*'), TrajectoryXYZ) as th:
             self.assertFalse(th.grandcanonical)
-            self.assertEqual(th.times, [0.001*10, 0.001*20])
+            self.assertEqual(th.times, [0.001*10, 0.001*20, 0.001*30, 0.001*40])
             self.assertEqual(th.timestep, 0.001)
-            self.assertEqual(th.steps, [10, 20])
+            self.assertEqual(th.steps, [10, 20, 30, 40])
             for i, system in enumerate(th):
-                self.assertTrue(_equal(self.system[i], system, ignore=['mass', 'velocity']))
+                self.assertTrue(_equal(self.system[0], system, ignore=['mass', 'velocity']))
 
     def test_super_rumd(self):
         # TODO: refactor supertrajectory tests

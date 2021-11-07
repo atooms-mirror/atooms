@@ -538,20 +538,25 @@ class SuperTrajectory(TrajectoryBase):
                         self._steps_frame.append(j)
 
     def read_system(self, frame):
-        f = self._steps_file[frame]
-        j = self._steps_frame[frame]
         # Optimization: use the last trajectory in cache (it works
         # well if frames are read sequentially)
+        f = self._steps_file[frame]
+        j = self._steps_frame[frame]
+        
+        # Note: if the file object has been closed in the meantime,
+        # this approach will fail. In atooms 2, there was a check
+        # whether the file object (trajectory attribute) was
+        # closed. We will assume that decorators have no side
+        # effects. If this needs to be fixed again, we can find a way.
         if self._last_trajectory is None:
+            # First trajectory
             self._last_trajectory = self.trajectoryclass(f)
-        elif self._last_trajectory.filename != f or \
-                self._last_trajectory.trajectory.closed:
-            # Careful: we must check if the file object has not been closed in the meantime.
-            # This can happen with class decorators.
+        elif self._last_trajectory.filename != f:
+            # This is a new trajectory file
             self._last_trajectory.close()
             self._last_trajectory = self.trajectoryclass(f)
         else:
-            # In cache
+            # Already in cache, we just pass for clarity
             pass
         t = self._last_trajectory
         return t[j]
