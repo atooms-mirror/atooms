@@ -51,7 +51,7 @@ def _update_position_unfolded(particle, data, meta):
     ndim = meta['ndim']
     r = numpy.array(data[0:ndim], dtype=float)
     particle.position_unfolded = r
-    if not 'position' in meta['columns']:
+    if 'position' not in meta['columns']:
         particle.position = _periodic_vector_unfolded(r, meta['cell'])
     return data[ndim:]
 
