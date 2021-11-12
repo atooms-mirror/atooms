@@ -163,7 +163,8 @@ def write_to_ram(sim, trajectory_ram):
     trajectory_ram.write(sim.system, sim.current_step)
 
 
-def write_trajectory(sim, fields=None, precision=None, trajectory=None):
+def write_trajectory(sim, fields=None, precision=None,
+                     trajectory=None, trajectory_class=None):
     """
     Write trajectory frame from `sim` Simulation instance
 
@@ -180,8 +181,10 @@ def write_trajectory(sim, fields=None, precision=None, trajectory=None):
         rmd(sim.output_path)
         rmf(sim.output_path)
 
-    if trajectory is None:
+    if trajectory is None and trajectory_class is None:
         th = sim.trajectory_class(sim.output_path, 'a')
+    elif trajectory_class is not None:
+        th = trajectory_class(sim.output_path, 'a')
     else:
         th = trajectory
 
