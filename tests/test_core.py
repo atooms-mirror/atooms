@@ -27,7 +27,7 @@ class Test(unittest.TestCase):
         self.assertFalse(os.path.exists(self.dirout + '/1'))
         self.assertFalse(os.path.exists(self.dirout + '/2'))
         self.assertTrue(os.path.exists(self.dirout + '/3'))
-        
+
     def test_rmd(self):
         utils.rmd(self.dirbase)
 

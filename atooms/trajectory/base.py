@@ -303,7 +303,7 @@ class TrajectoryBase(object):
             return self.read_sample(frame)
         else:
             raise NotImplementedError()
-        
+
     def write_system(self, system, step):
         """Write a `system` to file. Noting to return."""
         if hasattr(self, 'write_sample'):
@@ -542,7 +542,7 @@ class SuperTrajectory(TrajectoryBase):
         # well if frames are read sequentially)
         f = self._steps_file[frame]
         j = self._steps_frame[frame]
-        
+
         # Note: if the file object has been closed in the meantime,
         # this approach will fail. In atooms 2, there was a check
         # whether the file object (trajectory attribute) was

@@ -157,7 +157,7 @@ class Test(unittest.TestCase):
         self.assertTrue(system.species_layout == 'F')
         system.species_layout = 'A'
         self.assertTrue(system.species_layout == 'A')
-        
+
     def test_packing(self):
         import math
         system = copy.copy(self.ref)
@@ -212,7 +212,7 @@ class Test(unittest.TestCase):
         from atooms.system.interaction import InteractionBase
         x, y = InteractionBase(), InteractionBase()
         x.energy, y.energy = 1., 1.
-        z = sum([x, y])        
+        z = sum([x, y])
         self.assertAlmostEqual(z.energy, 2.)
 
         # This must fail
@@ -234,14 +234,14 @@ class Test(unittest.TestCase):
         w.compute('forces', position=numpy.array([[1.]]))
         self.assertAlmostEqual(w.energy, 0.0)
         self.assertTrue(w.forces is not None)
-        
+
     def test_interaction_terms_via_system(self):
         from atooms.system.interaction import InteractionBase, Interaction
         system = copy.copy(self.ref)
         system.interaction = Interaction(InteractionBase())
         system.compute_interaction('forces')
         self.assertAlmostEqual(system.potential_energy(), 0.0)
-        
+
     def test_overlap(self):
         from atooms.system.particle import self_overlap, collective_overlap
         sys1 = copy.deepcopy(self.ref)

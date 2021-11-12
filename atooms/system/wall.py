@@ -10,7 +10,7 @@ class Wall:
     >>> w.distance(numpy.array([1.0, 0.0, 0.0]))
     >>> w.distance(numpy.array([[-2.5, 2.0, 1.0], [1.0, 0.0, 0.0]]).transpose())
     """
-    
+
     def __init__(self, vector, point, species='A'):
         """A plane specified by `point` and a `vector` orthogonal to the plane"""
         vec = numpy.array(vector)
@@ -32,6 +32,3 @@ class Wall:
             return scalar_distance * self.normal[:, None]
         else:
             raise ValueError('input vector has more than 2 dimensions')
-    
-
-

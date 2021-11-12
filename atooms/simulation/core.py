@@ -88,6 +88,7 @@ class Simulation(object):
         if hasattr(self.backend, 'trajectory_class'):
             self.trajectory_class = self.backend.trajectory_class
         else:
+            # TODO: there should be one by default, checkpoint may fail otherwise
             self.trajectory_class = None
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
@@ -345,11 +346,13 @@ class Simulation(object):
             # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
             self._notify(self._targeters)
 
-            # Then notify non targeters unless we are restarting
+            # If this is not the first step it means we are restarting
+            # and these observers have been already called at the end
+            # of the last checkpointed step. So we do not need to call
+            # them again.
             if self.current_step == 0:
                 self._notify(self._non_targeters)
-            else:
-                self._notify(self._speedometers)
+
             _log.info('starting at step: %d', self.current_step)
             _log.info('')
             while True:

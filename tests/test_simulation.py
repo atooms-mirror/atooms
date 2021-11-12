@@ -78,12 +78,12 @@ class Test(unittest.TestCase):
         bck = DryRun()
         bck.timestep = 0.1
 
-        # We do not accept too deep introspection
-        with self.assertRaises(ValueError):
+        # Accessing list elements attributes does not work
+        with self.assertRaises(AttributeError):
             # Mute errors temporarily
             setup_logging(level=50, update=True)
             s = Simulation(bck, output_path=f, enable_speedometer=False, steps=100)
-            s.add(write, Scheduler(20), 'output', ['system.particle.position'])
+            s.add(write, Scheduler(20), 'output', ['system.particle[0].position'])
             s.run()
 
         # Test generic writer and write_config

@@ -111,5 +111,4 @@ class TrajectoryFactory(object):
                 th.register_callback(cbk, *args, **kwargs)
             return th
         else:
-            raise ValueError('unknown file format for %s' % filename)            
-
+            raise ValueError('unknown file format for %s' % filename)

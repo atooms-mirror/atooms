@@ -159,40 +159,47 @@ def write_to_ram(sim, trajectory_ram):
     """
     Write configurations to a trajectory in ram.
     """
+    # TODO: deprecate this since write_trajectory now covers it
     trajectory_ram.write(sim.system, sim.current_step)
 
 
-def write_config(sim, fields=None, precision=None):
+def write_trajectory(sim, fields=None, precision=None, trajectory=None):
     """
-    Write configurations to a trajectory file.
+    Write trajectory frame from `sim` Simulation instance
 
-    The trajectory format is taken from the passed Simulation
-    instance.
+    The trajectory format is taken from `sim.trajectory_class` and a
+    local instance with that format is used appending the frames on
+    successive calls to this function.
+
+    If `trajectory` is a Trajectory instance, it is used instead.
     """
-    # Initialize
-    # This will clear the variable in a new run
-    if sim.current_step == 0 or not hasattr(sim, '__init_write_config'):
-        sim.__init_write_config = False
-    if sim.restart:
-        sim.__init_write_config = True
-
-    # Header
-    if not sim.__init_write_config:
-        sim.__init_write_config = True
+    # TODO: deprecate fields in favor of variables
+    # Clear up everything
+    if sim.current_step == 0:
         # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
         rmd(sim.output_path)
         rmf(sim.output_path)
 
-    with sim.trajectory_class(sim.output_path, 'a') as t:
-        if hasattr(sim.backend, 'timestep'):
-            t.timestep = sim.backend.timestep
-        if precision is not None:
-            t.precision = precision
-        if fields is not None:
-            # TODO: fix this fields and deprecate it
-            t.fields = fields
-        t.write(sim.system, sim.current_step)
+    if trajectory is None:
+        th = sim.trajectory_class(sim.output_path, 'a')
+    else:
+        th = trajectory
 
+    # Write stuff
+    if hasattr(sim.backend, 'timestep'):
+        th.timestep = sim.backend.timestep
+    if precision is not None:
+        th.precision = precision
+    if fields is not None:
+        th.variables = fields
+    th.write(sim.system, sim.current_step)
+
+    if trajectory is None:
+        th.close()
+
+
+# Deprecated alias
+write_config = write_trajectory
 
 def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     """
@@ -216,7 +223,7 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     The `precision` parameter controls the default precision of
     floating point fields.
     """
-
+    # TODO: deprecate fields
     # By default write minimal info
     if fields is None:
         fields = ['steps',
@@ -255,17 +262,8 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     if fmt is not None:
         _db_fmt.update(fmt)
 
-    # TODO: make it possible to have multiple write_thermo callbacks. At present they interfere
-    # Initialize
-    # This will clear the variable in a new run
-    if sim.current_step == 0 or not hasattr(sim, '__init_write_thermo'):
-        sim.__init_write_thermo = False
-    if sim.restart:
-        sim.__init_write_thermo = True
-
     # Header
-    if not sim.__init_write_thermo:
-        sim.__init_write_thermo = True
+    if sim.current_step == 0:
         with open(sim.output_path + '.thermo', 'w') as fh:
             txt = ', '.join(fields)
             fh.write('# columns: {}\n'.format(txt))
@@ -277,37 +275,83 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
         fh.write('{}\n'.format(result))
 
 
-def write(sim, name, attributes):
+def write(sim, suffix=None, attributes=None, path=None):
     """
     Write generic attributes of simulation and system to a file.
 
-    `name` is a tag appended to `sim.base_path` to define the output
+    `suffix` is a tag appended to `sim.base_path` to define the output
     file path.
 
-    `attributes` must be a list of valid properties of the Simulation
-    instance `sim` or of its System instance `sim.system`.
+    `attributes` must be a list of either:
+
+    - a string representing a valid property of the Simulation instance `sim`
+
+    - a tuple `(name, callback)` where `name` is a descriptive name of
+      the value returned by the `callback`, which is a function that
+      takes `sim` as first argument
+
+    - a string from the following list:
+      - steps
+      - temperature
+      - potential energy per particle
+      - kinetic energy per particle   
+      - total energy
+      - pressure
+      - rmsd
+      - conserved energy
     """
-    f = sim.output_path + '.' + name
+    from operator import attrgetter
+
+    # TODO: add formats / precision
+    assert suffix is not None or path is not None
+    assert not (suffix is not None and path is not None)
+    assert attributes is not None
+
+    if path is None:
+        path = sim.output_path + '.' + suffix
+
+    _callbacks = {
+        'steps': lambda x: x.current_step,
+        'potential energy per particle': lambda x: x.system.potential_energy(True),
+        'kinetic energy per particle': lambda x: x.system.kinetic_energy(True),
+        'total energy per particle': lambda x: x.system.total_energy(True, cache=True),
+        'temperature': lambda x: x.system.temperature,
+        'density': lambda x: x.system.density,
+        'pressure': lambda x: x.system.pressure,
+        'rmsd': lambda x: x.rmsd,
+    }
+
+    # Define callbacks
+    names, callbacks = [], []
+    for attribute in attributes:
+        if attribute in _callbacks:
+            # A predefined callback
+            names.append(attribute)
+            callbacks.append(_callbacks[attribute])
+        elif isinstance(attribute, list) or isinstance(attribute, tuple):
+            # A tuple or list (name, callback)
+            assert len(attribute) == 2
+            names.append(attribute[0])
+            callbacks.append(attribute[1])
+        else:
+            # Generic simulation attribute
+            names.append(attribute)
+            callbacks.append(attrgetter(attribute))
+
+    # Extract the requested attribute
+    values = []
+    for callback in callbacks:
+        values.append(callback(sim))
+
+    # Header
     if sim.current_step == 0:
-        with open(f, 'w') as fh:
-            fh.write('# columns: %s\n' % ', '.join(attributes))
-    else:
-        # Extract the requested attributes
-        values = []
-        for attr in attributes:
-            level = len(attr.split('.'))
-            if level == 1:
-                values.append(getattr(sim, attr))
-            elif level == 2:
-                system_attr = attr.split('.')[-1]
-                if attr.startswith('system'):
-                    values.append(getattr(sim.system, system_attr))
-            else:
-                raise ValueError('attribute is too deep')
-        # Format output string
-        fmt = ('%s ' * len(attributes)) + '\n'
-        with open(f, 'a') as fh:
-            fh.write(fmt % tuple(values))
+        with open(path, 'w') as fh:
+            fh.write('# columns: {}\n'.format(', '.join(names)))
+
+    # Format output string
+    fmt = ('{} ' * len(values)) + '\n'
+    with open(path, 'a') as fh:
+        fh.write(fmt.format(*values))
 
 
 # Target callbacks.

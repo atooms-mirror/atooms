@@ -17,7 +17,7 @@ class Test(unittest.TestCase):
     @unittest.skipIf(not HAS_HDF5, 'no h5py module')
     def test_write_initial_state(self):
         p = [_PairPotential("lennard_jones", {"epsilon": 1.0, "sigma": 1.0},
-                           [1, 1], _CutOff("CS", 2.5))]
+                            [1, 1], _CutOff("CS", 2.5))]
         i = [Interaction()]
         i[0].name = "atomic"
         i[0].potential = p

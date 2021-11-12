@@ -17,12 +17,12 @@ setup_logging(level=40)
 
 
 class Test(unittest.TestCase):
-    
+
     def setUp(self):
         if SKIP:
             self.skipTest('missing RUMD')
         self.input_file = os.path.join(os.path.dirname(__file__),
-                                       '../data/ka_N256_rho1.185_rumd.xyz.gz')        
+                                       '../data/ka_N256_rho1.185_rumd.xyz.gz')
         potential = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
         potential.SetVerbose(False)
         potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
