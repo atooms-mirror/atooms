@@ -28,6 +28,7 @@ import logging
 import atooms.core.progress
 from atooms.core import __version__
 from atooms.core.utils import mkdir, barrier
+from atooms.trajectory import TrajectoryXYZ
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, SimulationKill
 
 _log = logging.getLogger(__name__)
@@ -88,8 +89,7 @@ class Simulation(object):
         if hasattr(self.backend, 'trajectory_class'):
             self.trajectory_class = self.backend.trajectory_class
         else:
-            # TODO: there should be one by default, checkpoint may fail otherwise
-            self.trajectory_class = None
+            self.trajectory_class = TrajectoryXYZ
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
         # exist. This creates the data/ folder and its parents folders.
