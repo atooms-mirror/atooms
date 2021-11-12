@@ -188,7 +188,7 @@ def check_block_size(steps, block_size, prune=False):
     rest = len(steps_local) % block_size
     if rest > 1:
         steps_local = steps_local[:-rest]
-        warning.warn('truncated block')
+        warnings.warn('truncated block')
 
     # Final test, after pruning spurious samples we should have a period
     # sampling, otherwise there was some error
