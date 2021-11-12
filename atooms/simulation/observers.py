@@ -291,18 +291,18 @@ def write(sim, suffix=None, attributes=None, path=None):
     - a string representing a valid property of the Simulation instance `sim`
 
     - a tuple `(name, callback)` where `name` is a descriptive name of
-      the value returned by the `callback`, which is a function that
-      takes `sim` as first argument
+    the value returned by the `callback`, which is a function that
+    takes `sim` as first argument
 
     - a string from the following list:
-      - steps
-      - temperature
-      - potential energy per particle
-      - kinetic energy per particle   
-      - total energy
-      - pressure
-      - rmsd
-      - conserved energy
+    steps
+    temperature
+    potential energy per particle
+    kinetic energy per particle   
+    total energy
+    pressure
+    rmsd
+    conserved energy
     """
     from operator import attrgetter
 
