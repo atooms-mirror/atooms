@@ -2,16 +2,34 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations.
 
+## 3.4.0 - 2021/11/18
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.3.4...3.4.0)
+
+## Added
+- Refactor and improve simulation observers
+  - Refactor `write_thermo()` and `write_config()` as stateless functions
+  - Add optional `trajectory_class` parameter to `write_trajectory()` to choose the trajectory format
+  - Add optional `trajectory` parameter to `write_trajectory()` to write to an existing `Trajectory`
+  - Add `store()` simulation observer to store properties in a dict during the simulation
+  - Add option `variables` to `write_trajectory()` simulation observe
+  - Support more general attributes writing in `write()` via the `what` variable
+  - Expect deprecations for `write_config()` (use `write_trajectory` instead)
+  - Expect deprecations for `write_to_ram()` (use `write_trajectory` passing a `TrajectoryRAM` instance instead)
+- Add default value for `Simulation.trajectory_class` as `TrajectoryXYZ`
+- Add `coordinate` and `momentum` arrays to reservoirs to enable in-place modification (f2py) and chains
+- Reservoir masses are arrays too
+	 
 ## 3.3.0 - 2021/11/02
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.2.0...3.3.0)
 
 ## Added
 
-Add `Wall` class and optional instances as `System.wall`
-Add `System.species_layout` property to show and change the chemical species layout (A, C, F)
-Add `InteractionBase` as the base for actual Interaction subclasses
-Refactor `Interaction` to handle multiple interaction terms via the `term` list variable
+- Add `Wall` class and optional instances as `System.wall`
+- Add `System.species_layout` property to show and change the chemical species layout (A, C, F)
+- Add `InteractionBase` as the base for actual Interaction subclasses
+- Refactor `Interaction` to handle multiple interaction terms via the `term` list variable
 
 ## 3.2.0 - 2021/10/31
 
