@@ -83,7 +83,7 @@ class Test(unittest.TestCase):
             # Mute errors temporarily
             setup_logging(level=50, update=True)
             s = Simulation(bck, output_path=f, enable_speedometer=False, steps=100)
-            s.add(write, Scheduler(20), 'output', ['system.particle[0].position'])
+            s.add(write, Scheduler(20), ['system.particle[0].position'], 'output')
             s.run()
 
         # Test generic writer and write_config
@@ -91,8 +91,7 @@ class Test(unittest.TestCase):
         s = Simulation(bck, output_path=f, enable_speedometer=True, steps=100)
         s.trajectory_class = TrajectoryXYZ
         s.add(write_config, Scheduler(20))
-        s.add(write, Scheduler(20), 'output', ['current_step',
-                                               'system.cell'])
+        s.add(write, Scheduler(20), ['current_step', 'system.cell'], 'output')
         s.run()
         import os
         self.assertTrue(os.path.exists(f))

@@ -285,7 +285,7 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
 def _setup_callbacks(what):
     """Setup callbacks from `what` list, see `write` for definitions"""
     from operator import attrgetter
-    
+
     # Default callbacks that take simulation as first argument
     _callbacks = {
         'steps': lambda x: x.current_step,
@@ -317,7 +317,7 @@ def _setup_callbacks(what):
     return names, callbacks
 
 
-def write(sim, what, suffix='thermo', path=None):
+def write(sim, what, suffix=None, path=None):
     """
     Write generic attributes of simulation `sim` to a file.
 
@@ -395,7 +395,7 @@ def store(sim, what, db):
     if len(db) == 0:
         for attribute in what:
             db[attribute] = []
-    
+
     # Define callbacks
     names, callbacks = _setup_callbacks(what)
 
