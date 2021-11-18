@@ -164,8 +164,8 @@ def write_to_ram(sim, trajectory_ram):
     trajectory_ram.write(sim.system, sim.current_step)
 
 
-def write_trajectory(sim, fields=None, precision=None,
-                     trajectory=None, trajectory_class=None):
+def write_trajectory(sim, variables=None, precision=None, trajectory=None,
+                     trajectory_class=None, fields=None):
     """
     Write trajectory frame from `sim` Simulation instance
 
@@ -176,6 +176,9 @@ def write_trajectory(sim, fields=None, precision=None,
     If `trajectory` is a Trajectory instance, it is used instead.
     """
     # TODO: deprecate fields in favor of variables
+    if fields is not None:
+        variables = fields
+
     # Clear up everything
     if sim.current_step == 0:
         # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
@@ -194,8 +197,8 @@ def write_trajectory(sim, fields=None, precision=None,
         th.timestep = sim.backend.timestep
     if precision is not None:
         th.precision = precision
-    if fields is not None:
-        th.variables = fields
+    if variables is not None:
+        th.variables = variables
     th.write(sim.system, sim.current_step)
 
     if trajectory is None:
@@ -279,14 +282,50 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
         fh.write('{}\n'.format(result))
 
 
-def write(sim, suffix=None, attributes=None, path=None):
+def _setup_callbacks(what):
+    """Setup callbacks from `what` list, see `write` for definitions"""
+    from operator import attrgetter
+    
+    # Default callbacks that take simulation as first argument
+    _callbacks = {
+        'steps': lambda x: x.current_step,
+        'potential energy per particle': lambda x: x.system.potential_energy(True),
+        'kinetic energy per particle': lambda x: x.system.kinetic_energy(True),
+        'total energy per particle': lambda x: x.system.total_energy(True, cache=True),
+        'temperature': lambda x: x.system.temperature,
+        'density': lambda x: x.system.density,
+        'pressure': lambda x: x.system.pressure,
+        'rmsd': lambda x: x.rmsd,
+    }
+
+    names, callbacks = [], []
+    for attribute in what:
+        if attribute in _callbacks:
+            # A predefined callback
+            names.append(attribute)
+            callbacks.append(_callbacks[attribute])
+        elif isinstance(attribute, list) or isinstance(attribute, tuple):
+            # A tuple or list (name, callback)
+            assert len(attribute) == 2
+            names.append(attribute[0])
+            callbacks.append(attribute[1])
+        else:
+            # Generic simulation attribute
+            names.append(attribute)
+            callbacks.append(attrgetter(attribute))
+
+    return names, callbacks
+
+
+def write(sim, what, suffix='thermo', path=None):
     """
-    Write generic attributes of simulation and system to a file.
+    Write generic attributes of simulation `sim` to a file.
 
-    `suffix` is a tag appended to `sim.base_path` to define the output
-    file path.
+    `suffix` is a tag appended to `sim.output_path` to define the output
+    file path. If `path` is provided, however, it is used instead as
+    output file path.
 
-    `attributes` must be a list of either:
+    `what` tells the function what to write and must be a list of either:
 
     - a string representing a valid property of the Simulation instance `sim`
 
@@ -304,43 +343,15 @@ def write(sim, suffix=None, attributes=None, path=None):
     rmsd
     conserved energy
     """
-    from operator import attrgetter
-
     # TODO: add formats / precision
     assert suffix is not None or path is not None
     assert not (suffix is not None and path is not None)
-    assert attributes is not None
 
     if path is None:
         path = sim.output_path + '.' + suffix
 
-    _callbacks = {
-        'steps': lambda x: x.current_step,
-        'potential energy per particle': lambda x: x.system.potential_energy(True),
-        'kinetic energy per particle': lambda x: x.system.kinetic_energy(True),
-        'total energy per particle': lambda x: x.system.total_energy(True, cache=True),
-        'temperature': lambda x: x.system.temperature,
-        'density': lambda x: x.system.density,
-        'pressure': lambda x: x.system.pressure,
-        'rmsd': lambda x: x.rmsd,
-    }
-
     # Define callbacks
-    names, callbacks = [], []
-    for attribute in attributes:
-        if attribute in _callbacks:
-            # A predefined callback
-            names.append(attribute)
-            callbacks.append(_callbacks[attribute])
-        elif isinstance(attribute, list) or isinstance(attribute, tuple):
-            # A tuple or list (name, callback)
-            assert len(attribute) == 2
-            names.append(attribute[0])
-            callbacks.append(attribute[1])
-        else:
-            # Generic simulation attribute
-            names.append(attribute)
-            callbacks.append(attrgetter(attribute))
+    names, callbacks = _setup_callbacks(what)
 
     # Extract the requested attribute
     values = []
@@ -356,6 +367,43 @@ def write(sim, suffix=None, attributes=None, path=None):
     fmt = ('{} ' * len(values)) + '\n'
     with open(path, 'a') as fh:
         fh.write(fmt.format(*values))
+
+
+def store(sim, what, db):
+    """
+    Store generic attributes of simulation `sim` in the dictonary `db`.
+
+    `what` tells the function what to write and must be a list of either:
+
+    - a string representing a valid property of the Simulation instance `sim`
+
+    - a tuple `(name, callback)` where `name` is a descriptive name of
+    the value returned by the `callback`, which is a function that
+    takes `sim` as first argument
+
+    - a string from the following list:
+    steps
+    temperature
+    potential energy per particle
+    kinetic energy per particle   
+    total energy
+    pressure
+    rmsd
+    conserved energy
+    """
+    # If the dict is empty fill it
+    if len(db) == 0:
+        for attribute in what:
+            db[attribute] = []
+    
+    # Define callbacks
+    names, callbacks = _setup_callbacks(what)
+
+    # Extract the requested attribute
+    for name, callback in zip(names, callbacks):
+        db[name] = callback(sim)
+
+    return db
 
 
 # Target callbacks.
