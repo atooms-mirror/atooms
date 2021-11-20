@@ -34,7 +34,7 @@ def main(args):
         args.fields = args.fields.split(',')
 
     if args.out is not None and not args.out in trajectory.Trajectory.formats:
-        available_formats()   
+        formats()   
         raise ValueError('Unknown output format %s' % args.out)
 
     if args.file_out == '-':
