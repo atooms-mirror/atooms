@@ -145,9 +145,9 @@ def main(args):
     if isinstance(out_class, str):
         out_class = Trajectory.formats[out_class]
 
-    conv = inp.copy(fout=args.file_out, cls=out_class,
-                    only=args.fields, exclude=exclude_list,
-                    include=include_list, steps=steps)
+    conv = ts.copy(fout=args.file_out, cls=out_class,
+                   only=args.fields, exclude=exclude_list,
+                   include=include_list, steps=steps)
     fout = conv.close()
 
     if args.ff:
