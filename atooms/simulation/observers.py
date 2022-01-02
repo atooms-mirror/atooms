@@ -180,7 +180,9 @@ def write_trajectory(sim, variables=None, precision=None, trajectory=None,
         variables = fields
 
     # Clear up everything
-    if sim.current_step == 0:
+    if sim.current_step == 0 and trajectory is None and \
+       trajectory_class is None:
+        # TODO: bug here with trajectory the file is removed!
         # TODO: folder-based trajectories should ensure that mode='w' clears up the folder
         rmd(sim.output_path)
         rmf(sim.output_path)
