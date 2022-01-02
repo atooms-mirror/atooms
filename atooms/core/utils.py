@@ -297,7 +297,6 @@ def setup_logging(name=None, level=40, filename=None, update=False):
     if update:
         # We only update the level of the logger
         log.setLevel(level)
-        return
     else:
         # The logger should always pass messages to all handlers
         current_level = log.getEffectiveLevel()
@@ -321,7 +320,8 @@ def setup_logging(name=None, level=40, filename=None, update=False):
     handler.addFilter(_ParallelFilter())
     handler.setLevel(level)
     if update:
-        log.handlers(handler)
+        if len(log.handlers) == 0:
+            log.addHandler(handler)
     else:
         log.addHandler(handler)
 
