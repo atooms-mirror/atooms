@@ -41,7 +41,7 @@ import logging
 from atooms.core.utils import rmd, rmf
 
 __all__ = ['SimulationEnd', 'WallTimeLimit', 'SimulationKill',
-           'Scheduler', 'write_config', 'write_thermo',
+           'Scheduler', 'write_config', 'write_thermo', 'store',
            'write_trajectory', 'write', 'target', 'target_rmsd',
            'target_steps', 'target_walltime', 'user_stop',
            'target_user_stop', 'Speedometer', 'shell_stop',
