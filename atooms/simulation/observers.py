@@ -403,7 +403,7 @@ def store(sim, what, db):
 
     # Extract the requested attribute
     for name, callback in zip(names, callbacks):
-        db[name] = callback(sim)
+        db[name].append(callback(sim))
 
     return db
 
