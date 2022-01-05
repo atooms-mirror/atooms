@@ -12,7 +12,6 @@ barostat or a particle reservoir.
 
 import copy
 import numpy
-from .particle import cm_position, cm_velocity, fix_total_momentum
 
 
 class System(object):
@@ -158,6 +157,7 @@ class System(object):
 
     def set_temperature(self, temperature):
         """Reset velocities to a Maxwellian distribution with fixed CM."""
+        from .particle import fix_total_momentum        
         T = temperature
         for p in self.particle:
             p.maxwellian(T)
@@ -293,18 +293,30 @@ class System(object):
             T = self.temperature
         return (len(self.particle) * T + self.interaction.virial / self.number_of_dimensions) / self.cell.volume
 
+    def cm(self, what):
+        """General center-of-mass attribute."""
+        # It could be implemented in a more general and faster way via dumps
+        # but one should pay attention to array ordering and views
+        x = numpy.zeros_like(getattr(self.particle[0], what))
+        mtot = 0.0
+        for p in self.particle:
+            x += getattr(p, what) * p.mass
+            mtot += p.mass
+        return x / mtot
+    
     @property
     def cm_velocity(self):
         """Center-of-mass velocity."""
-        return cm_velocity(self.particle)
+        return self.cm('velocity')
 
     @property
     def cm_position(self):
         """Center-of-mass position."""
-        return cm_position(self.particle)
+        return self.cm('position')
 
     def fix_momentum(self):
         """Subtract out the the center-of-mass motion."""
+        from .particle import fix_total_momentum        
         fix_total_momentum(self.particle)
 
     def fold(self):
