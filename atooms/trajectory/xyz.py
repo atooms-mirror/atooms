@@ -434,9 +434,12 @@ def fallback(p, data, meta):
             return 1.0
 
     def _comment(self, step, system):
+        # Variables in xyz files are assumed to be referred to particles
+        # so we strip 'particle' from all column entries
+        variables = [re.sub('particle.', '', var) for var in self.variables]
         # Concatenate metadata in comment line
         line = 'step:{} '.format(step)
-        line += 'columns:{} '.format(','.join(self.variables))
+        line += 'columns:{} '.format(','.join(variables))
         if self.timestep is not None:
             line += 'dt:{:g} '.format(self.timestep)
         if system.cell is not None:
