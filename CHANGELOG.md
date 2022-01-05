@@ -2,6 +2,16 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations.
 
+## 3.5.0 - 2022/01/05
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.4.3...3.5.0)
+
+## Added
+- Add system.cm() to compute general attribute of CM
+
+## Changed
+- Remove `particle` from attributes in comment header of xyz files. This is backward compatible.
+
 ## 3.4.0 - 2021/11/18
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.3.4...3.4.0)
