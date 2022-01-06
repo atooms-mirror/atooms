@@ -315,6 +315,8 @@ A 1.1 11.1 21.1
             self.assertAlmostEqual(s.particle[0].position_unfolded[0], 1.1)
             self.assertAlmostEqual(s.particle[0].position[0], -0.9)
             self.assertAlmostEqual(s.particle[0].position[1], -0.9)
+            self.assertAlmostEqual(s.dump('particle.position_unfolded')[0, 0], 1.1)
+            self.assertAlmostEqual(s.dump('position_unfolded')[0, 0], 1.1)
 
     def tearDown(self):
         from atooms.core.utils import rmd
