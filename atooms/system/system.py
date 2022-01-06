@@ -383,6 +383,7 @@ class System(object):
             return
 
         # Accepts some aliases
+        # TODO: default to particle properties
         aliases = {
             'box': 'cell.side',
             'pos': 'particle.position',
@@ -391,6 +392,7 @@ class System(object):
             'rad': 'particle.radius',
             'radius': 'particle.radius',
             'position': 'particle.position',
+            'position_unfolded': 'particle.position_unfolded',
             'velocity': 'particle.velocity',
             'species': 'particle.species'}
         if what in aliases:
