@@ -1,20 +1,12 @@
 #!/usr/bin/env python
 
 try:
-    from setuptools import setup, find_packages
+    from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
-# Get the long description from README.md and try to convert it to
-# reST. Adapted from https://bons.ai/blog/markdown-for-pypi
-try:
-    from pypandoc import convert
-    readme = convert('README.md', 'rst')
-except (ImportError, OSError):
-    try:
-        readme = open('README.md', 'r').read()
-    except:
-        readme = ''
+with open('README.md') as f:
+    readme = f.read()
 
 with open('atooms/core/_version.py') as f:
     exec(f.read())
@@ -23,6 +15,7 @@ setup(name='atooms',
       version=__version__,
       description='A framework for simulations of interacting particles',
       long_description=readme,
+      long_description_content_type="text/markdown",
       author='Daniele Coslovich',
       author_email='daniele.coslovich@umontpellier.fr',
       url='https://framagit.org/atooms/atooms',
@@ -30,7 +23,6 @@ setup(name='atooms',
                 'atooms/plugins', 'atooms/simulation', 'atooms/system', 
                 'atooms/trajectory'],
       scripts=['bin/trj.py'],
-      long_description_content_type="text/markdown",
       install_requires=['numpy'],
       license='GPLv3',
       classifiers=[
