@@ -4,6 +4,7 @@ Atooms
 [![pypi](https://img.shields.io/pypi/v/atooms.svg)](https://pypi.python.org/pypi/atooms/)
 [![version](https://img.shields.io/pypi/pyversions/atooms.svg)](https://pypi.python.org/pypi/atooms/)
 [![license](https://img.shields.io/pypi/l/atooms.svg)](https://en.wikipedia.org/wiki/GNU_General_Public_License)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/git/https%3A%2F%2Fframagit.org%2Fatooms%2Fpostprocessing/HEAD?labpath=docs%2Findex.ipynb)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1183301.svg)](https://doi.org/10.5281/zenodo.1183301)
 [![pipeline](https://framagit.org/atooms/atooms/badges/master/pipeline.svg)](https://framagit.org/atooms/atooms/badges/master/pipeline.svg)
 [![coverage report](https://framagit.org/atooms/atooms/badges/master/coverage.svg)](https://framagit.org/atooms/atooms/-/commits/master)
@@ -57,6 +58,8 @@ print('Final temperature and density:', sim.system.temperature, sim.system.densi
 Documentation
 -------------
 Check out the [tutorial](https://atooms.frama.io/atooms/tutorial) for more examples and the [public API](https://atooms.frama.io/api/atooms) for full details.
+
+Org-mode and jupyter notebooks are available under `docs/`. You can run the tutorial interactively on [Binder]( https://mybinder.org/v2/git/https%3A%2F%2Fframagit.org%2Fatooms%2Fatooms/HEAD?labpath=docs%2).
 
 Installation
 ------------
