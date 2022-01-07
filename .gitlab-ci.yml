@@ -68,7 +68,7 @@ test:3.8:
 #   extends: .run
 
 pages:
-  # image: python:3.8
+  image: python:3.8
   script:
     # - pip install pdoc3
     # - rm -rf docs/api
