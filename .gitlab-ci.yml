@@ -73,7 +73,7 @@ pages:
     # - pip install pdoc3
     # - make docs
     - mkdir -p public
-    - mv docs/api/atooms public/api
+    - mv docs/api/ public/
     - mv docs/_build/html public/tutorial
   artifacts:
     paths:
