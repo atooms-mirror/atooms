@@ -379,6 +379,44 @@ class Test(unittest.TestCase):
         s.particle[0].species[()] = 'C'
         self.assertEqual(spe[0], s.particle[0].species)
 
+    def test_dumps(self):
+        """Check that dump order does not matter"""
+        import numpy
+        from atooms.system import Particle, System
+
+        p = [Particle(), Particle()]
+        s = System(p)
+        # View, dump, view: we should preserve the view and get a copy of the dump
+        pos1 = s.dump("pos", view=True)
+        pos1[0, 0] = 0.0
+        pos2 = s.dump('pos', view=False)
+        pos2[0, 0] = 1.0
+        pos3 = s.dump("pos", view=True)
+        self.assertNotAlmostEqual(pos1[0, 0], pos2[0, 0])
+        self.assertAlmostEqual(pos1[0, 0], pos3[0, 0])
+        self.assertFalse(numpy.may_share_memory(pos1, pos2))
+        self.assertTrue(numpy.may_share_memory(pos1, pos3))
+
+    def test_dump_flatten(self):
+        """Check that flattening a dump does not change successive views"""
+        import numpy
+        from atooms.system import Particle, System
+
+        p = [Particle(), Particle()]
+        s = System(p)
+        self.assertEqual(len(s.dump('pos', view=True).shape), 2)
+        self.assertEqual(len(s.dump('pos', view=False, flat=True).shape), 1)
+        self.assertEqual(len(s.dump('pos', view=True).shape), 2)
+        self.assertEqual(len(s.dump('pos', view=False, flat=True).shape), 1)
+
+    def test_dump_fail(self):
+        """Check that dump fails on unknown attributes"""
+        for what in ['whatever', 'particle.whatever', 'cell.whatever']:
+            try:
+                self.ref.dump(what)
+            except AttributeError:
+                pass
+
     def test_decimate(self):
         from atooms.system import Particle, System
         from atooms.system.particle import composition, decimate

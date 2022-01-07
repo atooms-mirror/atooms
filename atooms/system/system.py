@@ -157,7 +157,7 @@ class System(object):
 
     def set_temperature(self, temperature):
         """Reset velocities to a Maxwellian distribution with fixed CM."""
-        from .particle import fix_total_momentum        
+        from .particle import fix_total_momentum
         T = temperature
         for p in self.particle:
             p.maxwellian(T)
@@ -303,7 +303,7 @@ class System(object):
             x += getattr(p, what) * p.mass
             mtot += p.mass
         return x / mtot
-    
+
     @property
     def cm_velocity(self):
         """Center-of-mass velocity."""
@@ -316,7 +316,7 @@ class System(object):
 
     def fix_momentum(self):
         """Subtract out the the center-of-mass motion."""
-        from .particle import fix_total_momentum        
+        from .particle import fix_total_momentum
         fix_total_momentum(self.particle)
 
     def fold(self):
@@ -361,77 +361,81 @@ class System(object):
             pos = system.dump('position')
             pos = system.dump('pos')
         """
-        # Unless a view is requested the default behavior is to always
-        # create a new dump. This allows changes in the particles'
-        # properties or particle number to be reflected in the dump.
-        if not view:
-            clear = True
-
         if isinstance(what, list):
             raise ValueError('list arguments to dump() are not supported, use dict comprehension instead')
 
-        # If the dump is a System attribute, just return it
+        # If the attribute to dump is a plain System attribute, return it
         if what in self.__dict__:
-            return getattr(self, what)
+            if view:
+                return getattr(self, what)
+            else:
+                return copy.deepcopy(getattr(self, what))
 
-        # Setup data dictionary
+        # Setup data cache dictionary for more complex attributes
         if self._data is None or clear:
             self._data = {}
 
         # Return immediately if we only want to clear the dump
-        if what is None and clear:
+        if clear and what is None:
             return
 
         # Accepts some aliases
-        # TODO: default to particle properties
         aliases = {
             'box': 'cell.side',
             'pos': 'particle.position',
             'vel': 'particle.velocity',
             'spe': 'particle.species',
-            'rad': 'particle.radius',
-            'radius': 'particle.radius',
-            'position': 'particle.position',
-            'position_unfolded': 'particle.position_unfolded',
-            'velocity': 'particle.velocity',
-            'species': 'particle.species'}
+            'rad': 'particle.radius'}
         if what in aliases:
             what = aliases[what]
+
+        # We accept particle attributes
+        if not what.startswith('particle') and not what.startswith('cell'):
+            what = 'particle.' + what
         # Extract the requested attribute
         attr = what.split('.')[-1]
 
         # Make array of attributes
         if what.startswith('particle'):
-            # Skip if it has been dumped already
-            # and the number of particles has not changed
-            # Note: if particles are reassigned the dump will
-            # not be updated. It can be fixed by keeping a list of ids
-            # although testing it would bring a overhead.
             if what in self._data and len(self.particle) == self._data['npart']:
+                # Get the data in cache if it is present
+                # and the number of particles has not changed.
+                # Note: if particles are reassigned the cache will
+                # not be updated. It can be fixed by keeping a list of ids
+                # although testing it would bring a overhead.
                 data = self._data[what]
+                # If we are asking a flat copy we must not flatten the cached array
+                if not view and flat:
+                    data = copy.deepcopy(data).flatten(order=order)
             else:
+                # We create a new array
                 data = numpy.array([getattr(p, attr) for p in self.particle], dtype=dtype)
-
                 # We transpose the array if F order is requested
                 if order == 'F':
                     data = numpy.transpose(data)
-                if not flat:
-                    # If view is True, we set the particle property as a
-                    # view on the dump array. Pay attention of C / F order.
-                    # To check if particle properties and dump are associated:
-                    # numpy.may_share_memory(p[0].position, pos[:, 0])
-                    if view and order == 'C':
-                        for i, p in enumerate(self.particle):
-                            setattr(p, attr, data[i, ...])
-                    if view and order == 'F':
-                        for i, p in enumerate(self.particle):
-                            setattr(p, attr, data[..., i])
+                # If view is True, we set the particle property as a
+                # view on the dump array. Pay attention of C / F order.
+                # To check if particle properties and dump are associated:
+                # numpy.may_share_memory(p[0].position, pos[:, 0])
+                if view:
+                    if not flat:
+                        if order == 'C':
+                            for i, p in enumerate(self.particle):
+                                setattr(p, attr, data[i, ...])
+                        if order == 'F':
+                            for i, p in enumerate(self.particle):
+                                setattr(p, attr, data[..., i])
+                    else:
+                        data = data.flatten(order=order)
+                        shape = getattr(self.particle[0], attr).shape
+                        if len(shape) == 2:
+                            ndim = self.number_of_dimensions
+                            for i, p in enumerate(self.particle):
+                                setattr(p, attr, data[i*ndim: (i + 1)*ndim])
                 else:
-                    data = data.flatten(order=order)
-                    if view and attr in ['position', 'velocity']:
-                        ndim = self.number_of_dimensions
-                        for i, p in enumerate(self.particle):
-                            setattr(p, attr, data[i*ndim: (i+1)*ndim])
+                    # We flatten the array if requested
+                    if flat:
+                        data = data.flatten(order=order)
 
         elif what.startswith('cell'):
             data = numpy.array(getattr(self.cell, attr), dtype=dtype)
@@ -440,13 +444,14 @@ class System(object):
         else:
             raise ValueError('Unknown attribute %s' % what)
 
-        # Store data in local dict and keep track of the number of particles
-        self._data[what] = data
-        self._data['npart'] = len(self.particle)
+        if view:
+            # Store data in local dict and keep track of the number of particles
+            self._data[what] = data
+            self._data['npart'] = len(self.particle)
+        else:
+            data = copy.deepcopy(data)
 
-        # If what is a string or we only have one entry we return an
-        # array, otherwise we return a dict with the requested keys
-        return self._data[what]
+        return data
 
     def __str__(self):
         txt = ''
