@@ -71,10 +71,12 @@ pages:
   # image: python:3.8
   script:
     # - pip install pdoc3
-    # - make docs
+    # - rm -rf docs/api
     - mkdir -p public
     - mv docs/api/ public/
-    - mv docs/_build/html public/tutorial
+    - pip install sphinx
+    - make -C docs html
+    - mv docs/_build/html/ public/tutorial
   artifacts:
     paths:
       - public
