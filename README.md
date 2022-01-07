@@ -16,13 +16,13 @@ Quick start
 The goal of atooms is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
 The simulation data are stored in trajectory files, which are easy to analyze, manipulate and convert with atooms.
 
-In this quick example, we read a trajectory file in [xyz format](https://en.wikipedia.org/wiki/XYZ_format) composed by multiple frames. Each frame holds the state of the system at a given instant of time during the simulation. Accessing the coordinates of the particles in a trajectory file goes like this:
+Here we read a multi-frame trajectory in [xyz format](https://en.wikipedia.org/wiki/XYZ_format). Each frame holds the state of the system at a given instant of time during the simulation. Accessing the coordinates of a particle goes like this:
 ```python
 from atooms.trajectory import Trajectory
 
 with Trajectory('input.xyz') as trajectory:
     for system in trajectory:
-        print('The position of particle 0 is', system.particle[0].position)
+        print(system.particle[0].position)
 ```
 Note that trajectories support iteration and indexing, just like lists.
 
@@ -31,35 +31,30 @@ Here we pick the last frame of the trajectory, change the density of the system 
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
     system.density = 1.0
-    print('The new density is', len(system.particle) / system.cell.volume)
+    print('New density:', len(system.particle) / system.cell.volume)
 
 from atooms.trajectory import TrajectoryRUMD
 with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
-    trajectory.write(system, step=0)
+    trajectory.write(system)
 ```
 
-We can now run 1000 molecular dynamics steps using the Lennard-Jones potential:
+We can now run a short simulation with the RUMD backend, using a Lennard-Jones potential:
 ```python
 import rumd
 from atooms.backends.rumd import RUMD
 from atooms.simulation import Simulation
 
-# Kob-Andersen model
 potential = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
 potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
-
-backend = RUMD('rescaled.xyz.gz', [potential], 
-               output_path='/tmp/outdir', integrator='nve')
+backend = RUMD('rescaled.xyz.gz', [potential], integrator='nve'
 sim = Simulation(backend)
 sim.run(1000)
-print('Final temperature and density', sim.system.temperature, sim.system.density)
+print('Final temperature and density:', sim.system.temperature, sim.system.density)
 ```
 
 Documentation
 -------------
 Check out the [tutorial](https://atooms.frama.io/atooms/docs) for more examples and the [public API](https://atooms.frama.io/api/) for full details.
-
-The tutorial is also available as *org-mode* files and *jupyter notebooks*, which can be executed live on *binder*.
 
 Installation
 ------------
