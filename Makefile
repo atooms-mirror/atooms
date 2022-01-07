@@ -17,8 +17,11 @@ test:	version
 docs:
 	rm -rf docs/api
 	pdoc -o docs/api --force --html --skip-errors $(PROJECT)
-	sed -i '/^$$/d' docs/index.html
-	orgnb.py docs/index.org docs/atooms.ipynb
+	emacs docs/basics.org --batch -l ~/.emacs -l ~/.emacs.d/org-mode.el -f org-rst-export-to-rst --kill
+	emacs docs/simulations.org --batch -l ~/.emacs -l ~/.emacs.d/org-mode.el -f org-rst-export-to-rst --kill
+	emacs docs/trajectories.org --batch -l ~/.emacs -l ~/.emacs.d/org-mode.el -f org-rst-export-to-rst --kill
+	orgnb.py docs/*.org
+	make -C docs/ clean html
 
 version:
 	@echo __commit__ = \'$(COMMIT_DIRTY)\' > atooms/core/_commit.py
