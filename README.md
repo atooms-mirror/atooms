@@ -57,7 +57,9 @@ print('Final temperature and density', sim.system.temperature, sim.system.densit
 
 Documentation
 -------------
-See the [tutorial](https://atooms.frama.io/atooms/) for a step-by-step introduction to atooms objects and the [public API documentation](https://atooms.frama.io/atooms/api/atooms/) for full details. 
+Check out the [tutorial](https://atooms.frama.io/atooms/docs) for more examples and the [public API](https://atooms.frama.io/api/) for full details.
+
+The tutorial is also available as *org-mode* files and *jupyter notebooks*, which can be executed live on *binder*.
 
 Installation
 ------------
