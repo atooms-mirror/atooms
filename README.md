@@ -38,7 +38,9 @@ with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
     trajectory.write(system)
 ```
 
-We can now run a short simulation with the RUMD backend, using a Lennard-Jones potential:
+atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://framagit.org/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
+
+Here we can now a short molecular dynamics simulation with the RUMD backend, using a Lennard-Jones potential:
 ```python
 import rumd
 from atooms.backends.rumd import RUMD
@@ -54,7 +56,7 @@ print('Final temperature and density:', sim.system.temperature, sim.system.densi
 
 Documentation
 -------------
-Check out the [tutorial](https://atooms.frama.io/atooms/docs) for more examples and the [public API](https://atooms.frama.io/api/) for full details.
+Check out the [tutorial](https://atooms.frama.io/atooms/tutorial) for more examples and the [public API](https://atooms.frama.io/api/atooms) for full details.
 
 Installation
 ------------
@@ -73,39 +75,6 @@ make install
 Contributing
 ------------
 You are welcome to contribute to this project! Please have a look at [these guidelines](https://framagit.org/atooms/atooms/-/blob/atooms-3.0.0/CONTRIBUTING.md).
-
-Simulation backends
--------------------
-atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://framagit.org/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
-
-Trajectory conversion
----------------------
-atooms provides a command line tool to convert between various trajectory formats. The following command will convert a trajectory file produced by [RUMD](http://rumd.org) into a simpler xyz format
-
-```bash
-$ trj.py convert -i rumd -o xyz trajectory.xyz.gz output.xyz
-```
-If you don't specify the output path, the trajectory is written to standard output. This is useful for quick inspection of complex trajectory formats or for piping into sed / awk.
-
-`trj.py` provides means to fine tune the format of the output file. Type `trj.py --help` to get a list of options and supported trajectory formats.
-
-Custom trajectory formats 
--------------------------
-It is easy to add new trajectory formats by subclassing existing trajectory classes. Just create a package called
-`atooms_plugins` and add your trajectory modules there. They will be automatically
-available to all client codes that use atooms.
-
-Suppose you wrote a custom trajectory class `TrajectoryABC` in
-`atooms_plugins/test.py` (the last path is relative to the current
-directory). You can now convert an existing xyz trajectory to your custom
-format:
-
-```bash
-$ trj.py convert output.xyz output.abc
-```
-
-Remember to add an empty `__init__.py` file at the root of `atooms_plugins`. 
-Actually, the `atooms_plugins` package can be put anywhere in your `PYTHONPATH`.
 
 Additional packages 
 -------------------
