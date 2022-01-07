@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Basics &#8212; atooms  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Simulations" href="simulations.html" />
+    <link rel="prev" title="Atooms" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">atooms</a></h1>
+
+
+
+<p class="blurb">A Python framework for simulations of interacting particles</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Basics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#particles-properties">Particles’ properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dealing-with-velocities">Dealing with velocities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#boundary-conditions">Boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-system-object">The system object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interaction-and-backends">Interaction and backends</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#trajectory-files">Trajectory files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#particles-on-a-lattice">Particles on a lattice</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="simulations.html">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="trajectories.html">Trajectories</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://atooms.frama.io/atooms/">Notebooks on Binder</a></li>
+    
+    <li class="toctree-l1"><a href="https://atooms.frama.io/atooms/">Source code on Framagit</a></li>
+    
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Atooms</a></li>
+      <li>Next: <a href="simulations.html" title="next chapter">Simulations</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="basics">
+<h1>Basics<a class="headerlink" href="#basics" title="Permalink to this headline"></a></h1>
+<p>Atooms provides a high-level interface to the main objects of particle-based simulations. It mostly focuses on classical molecular dynamics and Monte Carlo simulations, but it is not limited to that. It can be used to simulate and analyze lattice models such as TASEP or kinetically constrained models.</p>
+<p>We will start by having a look at the basic objects of particle-based simulations and how to store them on a file.</p>
+<section id="particles-properties">
+<h2>Particles’ properties<a class="headerlink" href="#particles-properties" title="Permalink to this headline"></a></h2>
+<p>Particles’ positions are stored as numpy arrays, but we can pass a simple list with x, y, z coordinates when we create them</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atooms.system.particle</span> <span class="kn">import</span> <span class="n">Particle</span>
+<span class="n">particle</span> <span class="o">=</span> <span class="n">Particle</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">particle</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">particle</span><span class="o">.</span><span class="n">position</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[ 1.  0.  0.] &lt;class &#39;numpy.ndarray&#39;&gt;
+</pre></div>
+</div>
+<p>Particles can live in an arbitrary number of spatial dimensions</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">particle</span> <span class="o">=</span> <span class="n">Particle</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">particle</span><span class="o">.</span><span class="n">position</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">5</span>
+</pre></div>
+</div>
+<p>By default, particles have a few more properties such as velocity, chemical species, mass and radius. They can all be altered at will or even set to None.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="n">particle</span> <span class="o">=</span> <span class="n">Particle</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">velocity</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">particle</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="s1">&#39;Na&#39;</span>
+<span class="n">particle</span><span class="o">.</span><span class="n">position</span> <span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+<span class="n">particle</span><span class="o">.</span><span class="n">velocity</span> <span class="o">*=</span> <span class="mi">2</span>
+<span class="n">particle</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># point particles have no radius</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Particle</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">Na</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">[</span> <span class="mf">1.</span>  <span class="mf">1.</span>  <span class="mf">1.</span><span class="p">],</span> <span class="n">velocity</span><span class="o">=</span><span class="p">[</span> <span class="mf">2.</span>  <span class="mf">0.</span>  <span class="mf">0.</span><span class="p">],</span> <span class="n">radius</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You may want to add physical properties to particles, like charge or whatever. Of course, in python you can do it very easily</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">particle</span><span class="o">.</span><span class="n">charge</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+</pre></div>
+</div>
+<p>This won’t break anything!</p>
+</section>
+<section id="dealing-with-velocities">
+<h2>Dealing with velocities<a class="headerlink" href="#dealing-with-velocities" title="Permalink to this headline"></a></h2>
+<p>You may not need velocities at all (for instance because you are working with Monte Carlo simulations) but if you do, atooms provides a few useful methods and functions. For instance, you can assign velocity from a Maxwell-Boltzmann distribution at a temperature T.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">particle</span> <span class="o">=</span> <span class="p">[</span><span class="n">Particle</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">particle</span><span class="p">:</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">maxwellian</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">ekin</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">kinetic_energy</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">particle</span><span class="p">])</span>
+<span class="n">ndim</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">ndof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span> <span class="o">*</span> <span class="n">ndim</span>
+<span class="n">T</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="n">ndof</span> <span class="o">*</span> <span class="n">ekin</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.944755026085</span>
+</pre></div>
+</div>
+<p>Doing so will leave a non-zero total momentum, but we can fix it (note that all masses are equal)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atooms.system.particle</span> <span class="kn">import</span> <span class="n">fix_total_momentum</span><span class="p">,</span> <span class="n">cm_velocity</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cm_velocity</span><span class="p">(</span><span class="n">particle</span><span class="p">))</span>
+<span class="n">fix_total_momentum</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cm_velocity</span><span class="p">(</span><span class="n">particle</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">-</span><span class="mf">0.03078045</span>  <span class="mf">0.05653126</span>  <span class="mf">0.01857607</span><span class="p">]</span>
+<span class="p">[</span>  <span class="mf">1.31006317e-17</span>   <span class="mf">7.77156117e-18</span>  <span class="o">-</span><span class="mf">2.07056594e-17</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="boundary-conditions">
+<h2>Boundary conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline"></a></h2>
+<p>To avoid major finite size effects, we enclose particles in a cell with periodic boundary conditions. By convention, the cell origin is at the origin of the reference frame.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atooms.system.cell</span> <span class="kn">import</span> <span class="n">Cell</span>
+<span class="n">L</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">cell</span> <span class="o">=</span> <span class="n">Cell</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="p">[</span><span class="n">L</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">L</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">side</span><span class="p">,</span> <span class="n">cell</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span> <span class="mf">2.</span>  <span class="mf">2.</span>  <span class="mf">2.</span><span class="p">]</span> <span class="mf">8.0</span>
+</pre></div>
+</div>
+<p>Atooms provides means to fold particles back in the “central” simulation cell, i.e. the one centered at the origin at the reference frame. For simplicity, let us work with particles in 1d.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cell</span> <span class="o">=</span> <span class="n">Cell</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">particle</span> <span class="o">=</span> <span class="n">Particle</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>  <span class="c1"># particle outside the central cell</span>
+<span class="n">particle</span><span class="o">.</span><span class="n">fold</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">particle</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.0</span>
+</pre></div>
+</div>
+<p>The particle is now folded back at the origin.</p>
+<p>A related method returns the nearest periodic image of a given particle with respect to another particle</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">particle_1</span> <span class="o">=</span> <span class="n">Particle</span><span class="p">(</span><span class="n">position</span><span class="o">=-</span><span class="mf">0.45</span><span class="p">)</span>
+<span class="n">particle_2</span> <span class="o">=</span> <span class="n">Particle</span><span class="p">(</span><span class="n">position</span><span class="o">=+</span><span class="mf">0.45</span><span class="p">)</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">particle_1</span><span class="o">.</span><span class="n">nearest_image</span><span class="p">(</span><span class="n">particle_2</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Particle</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">A</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="p">[</span> <span class="mf">0.</span>  <span class="mf">0.</span>  <span class="mf">0.</span><span class="p">],</span> <span class="n">radius</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="the-system-object">
+<h2>The system object<a class="headerlink" href="#the-system-object" title="Permalink to this headline"></a></h2>
+<p>Objects like particles and the simulation cell can be gathered in an instance of a god-like class called System. The system contains all the relevant physical objects of your simulation. Reservoirs like thermostats, barostats and particle reservoirs can be added as well. These objects are placeholders for thermodynamic state variables like temperature, pressure or chemical potential. Any class meant to describe the interaction between particles also belongs to the system.</p>
+<p>Let us build a system with a few particles in a cell and use the system methods to modify the system density and temperature. Note that density and temperature are python properties and thus modify the attributes of particles and cell under the hoods using the <code class="docutils literal notranslate"><span class="pre">set_density</span></code> and <code class="docutils literal notranslate"><span class="pre">set_temperature</span></code> methods respectively</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atooms.system</span> <span class="kn">import</span> <span class="n">System</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="n">particle</span><span class="o">=</span><span class="p">[</span><span class="n">Particle</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)],</span>
+            <span class="n">cell</span><span class="o">=</span><span class="n">Cell</span><span class="p">([</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">]))</span>
+<span class="n">system</span><span class="o">.</span><span class="n">density</span> <span class="o">=</span> <span class="mf">1.2</span>  <span class="c1"># equivalent to system.set_density(1.2)</span>
+<span class="n">system</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="mf">1.5</span>  <span class="c1"># equivalent to system.set_temperature(1.2)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">density</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">1.2</span> <span class="mf">1.5</span>
+</pre></div>
+</div>
+<p>Note that the system temperature is the kinetic one and need not coincide with the one of the thermostat.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atooms.system</span> <span class="kn">import</span> <span class="n">Thermostat</span>
+<span class="n">system</span><span class="o">.</span><span class="n">thermostat</span> <span class="o">=</span> <span class="n">Thermostat</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">system</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="mf">1.5</span>  <span class="c1"># equivalent to system.set_temperature(1.2)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">thermostat</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">1.5</span> <span class="mf">1.0</span>
+</pre></div>
+</div>
+</section>
+<section id="interaction-and-backends">
+<h2>Interaction and backends<a class="headerlink" href="#interaction-and-backends" title="Permalink to this headline"></a></h2>
+<p>Classical particles interact with each other via a potential <span class="math notranslate nohighlight">\(u(\{r_i\})\)</span>, where <span class="math notranslate nohighlight">\(\{r_i\}\)</span> is the set of particles’ coordinates. Atooms relies on third-party efficient <strong>backends</strong> written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see Molecular dynamics ith LAMMPS for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see <a class="reference external" href="https://lammps.sandia.gov/doc/pair_style.html">https://lammps.sandia.gov/doc/pair_style.html</a>, and stores a reference to the system object of which we want to compute the energy.</p>
+<p>As proof of principle, we compute the interaction energy between two Lennard-Jones particles</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atooms.system</span> <span class="kn">import</span> <span class="n">System</span><span class="p">,</span> <span class="n">Particle</span><span class="p">,</span> <span class="n">Cell</span>
+<span class="kn">from</span> <span class="nn">atooms.backends.lammps</span> <span class="kn">import</span> <span class="n">LAMMPS</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="mf">1.122</span>  <span class="c1"># Minimum of the potential</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="n">particle</span><span class="o">=</span><span class="p">[</span><span class="n">Particle</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+                      <span class="n">Particle</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])],</span>
+            <span class="n">cell</span><span class="o">=</span><span class="n">Cell</span><span class="p">([</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">]))</span>
+<span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">pair_style      lj/cut 2.5</span>
+<span class="s2">pair_coeff      1 1 1.0 1.0  2.5</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="c1"># The backend will add an interaction to the system</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">LAMMPS</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+
+<span class="c1"># Compute and get the potential energy</span>
+<span class="c1"># The cache option allows to get the potential energy without recalculating it</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">potential_energy</span><span class="p">(),</span> <span class="n">system</span><span class="o">.</span><span class="n">potential_energy</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="mf">0.99999388</span> <span class="o">-</span><span class="mf">0.99999388</span>
+</pre></div>
+</div>
+<p>The energy and forces are stored in <code class="docutils literal notranslate"><span class="pre">system.interaction.energy</span></code> and <code class="docutils literal notranslate"><span class="pre">system.interaction.forces</span></code>.</p>
+</section>
+<section id="trajectory-files">
+<h2>Trajectory files<a class="headerlink" href="#trajectory-files" title="Permalink to this headline"></a></h2>
+<p>To write the state of the system to a file, we use a <code class="docutils literal notranslate"><span class="pre">Trajectory</span></code> class. Trajectories are composed of multiple frames, each one holding the state of the system at a given step during the simulation. We use a basic xyz format to write the state of the system and then parse the trajectory file we produced to see how it looks like.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atooms.trajectory</span> <span class="kn">import</span> <span class="n">TrajectoryXYZ</span>
+
+<span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="n">particle</span><span class="o">=</span><span class="p">[</span><span class="n">Particle</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)],</span>
+                <span class="n">cell</span><span class="o">=</span><span class="n">Cell</span><span class="p">([</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">]))</span>
+
+<span class="c1"># Open the trajectory in write mode and write the state of the system</span>
+<span class="c1"># at step 0</span>
+<span class="k">with</span> <span class="n">TrajectoryXYZ</span><span class="p">(</span><span class="s1">&#39;test.xyz&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">th</span><span class="p">:</span>
+    <span class="n">th</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Read the xyz file back as plain text</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;test.xyz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">4</span>
+<span class="n">step</span><span class="p">:</span><span class="mi">0</span> <span class="n">columns</span><span class="p">:</span><span class="nb">id</span><span class="p">,</span><span class="n">pos</span> <span class="n">dt</span><span class="p">:</span><span class="mi">1</span> <span class="n">cell</span><span class="p">:</span><span class="mf">10.0</span><span class="p">,</span><span class="mf">10.0</span><span class="p">,</span><span class="mf">10.0</span>
+<span class="n">A</span> <span class="mf">0.000000</span> <span class="mf">0.000000</span> <span class="mf">0.000000</span>
+<span class="n">A</span> <span class="mf">0.000000</span> <span class="mf">0.000000</span> <span class="mf">0.000000</span>
+<span class="n">A</span> <span class="mf">0.000000</span> <span class="mf">0.000000</span> <span class="mf">0.000000</span>
+<span class="n">A</span> <span class="mf">0.000000</span> <span class="mf">0.000000</span> <span class="mf">0.000000</span>
+</pre></div>
+</div>
+<p>Note that trajectories are file-like objects: they must be opened and closed, preferably using the <code class="docutils literal notranslate"><span class="pre">with</span></code> syntax.</p>
+<p>Of course, we can write multiple frames by calling <code class="docutils literal notranslate"><span class="pre">write()</span></code> repeatedly.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">TrajectoryXYZ</span><span class="p">(</span><span class="s1">&#39;test.xyz&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">th</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">th</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">i</span><span class="o">*</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To get the system back we read the trajectory. Trajectories support iteration and indexing, just like lists.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">TrajectoryXYZ</span><span class="p">(</span><span class="s1">&#39;test.xyz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">th</span><span class="p">:</span>
+    <span class="c1"># First frame</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">th</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">particle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">side</span><span class="p">)</span>
+
+    <span class="c1"># Last frame</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">th</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">particle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">side</span><span class="p">)</span>
+
+    <span class="c1"># Iterate over all frames</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">system</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">th</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">th</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">system</span><span class="o">.</span><span class="n">particle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span> <span class="mf">0.</span>  <span class="mf">0.</span>  <span class="mf">0.</span><span class="p">]</span> <span class="p">[</span> <span class="mf">10.</span>  <span class="mf">10.</span>  <span class="mf">10.</span><span class="p">]</span>
+<span class="p">[</span> <span class="mf">0.</span>  <span class="mf">0.</span>  <span class="mf">0.</span><span class="p">]</span> <span class="p">[</span> <span class="mf">10.</span>  <span class="mf">10.</span>  <span class="mf">10.</span><span class="p">]</span>
+<span class="mi">0</span> <span class="p">[</span> <span class="mf">0.</span>  <span class="mf">0.</span>  <span class="mf">0.</span><span class="p">]</span>
+<span class="mi">10</span> <span class="p">[</span> <span class="mf">0.</span>  <span class="mf">0.</span>  <span class="mf">0.</span><span class="p">]</span>
+<span class="mi">20</span> <span class="p">[</span> <span class="mf">0.</span>  <span class="mf">0.</span>  <span class="mf">0.</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="particles-on-a-lattice">
+<h2>Particles on a lattice<a class="headerlink" href="#particles-on-a-lattice" title="Permalink to this headline"></a></h2>
+<p>Suppose we want to simulate a system where particles can only be located at discrete sites, say a one-dimensional lattice or perhaps a network with a complex topology. Particle positions can then be described as plain integers, holding the index of the site on which a particle is located. We create such a system and then write it to a file in xyz format</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">atooms.system</span> <span class="kn">import</span> <span class="n">System</span><span class="p">,</span> <span class="n">Particle</span>
+
+<span class="c1"># Build model system with integer coordinates</span>
+<span class="n">particle</span> <span class="o">=</span> <span class="p">[</span><span class="n">Particle</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
+<span class="n">particle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">particle</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">particle</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="n">particle</span><span class="o">=</span><span class="n">particle</span><span class="p">)</span>
+
+<span class="c1"># Write xyz trajectory</span>
+<span class="kn">from</span> <span class="nn">atooms.trajectory</span> <span class="kn">import</span> <span class="n">TrajectoryXYZ</span>
+<span class="k">with</span> <span class="n">TrajectoryXYZ</span><span class="p">(</span><span class="s1">&#39;test.xyz&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">th</span><span class="p">:</span>
+    <span class="n">th</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Read the xyz file back as plain text</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;test.xyz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">3</span>
+<span class="n">step</span><span class="p">:</span><span class="mi">0</span> <span class="n">columns</span><span class="p">:</span><span class="nb">id</span><span class="p">,</span><span class="n">pos</span> <span class="n">dt</span><span class="p">:</span><span class="mi">1</span>
+<span class="n">A</span> <span class="mi">0</span>
+<span class="n">A</span> <span class="mi">1</span>
+<span class="n">A</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>Everything went fine. However, we have to tweak things a bit when reading the particles back, to avoid positions being transformed to arrays of floats instead of integers. This can be done with the help of a callback that transforms the system accordingly as we read the trajectory.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Read file as an xyz trajectory</span>
+<span class="k">with</span> <span class="n">TrajectoryXYZ</span><span class="p">(</span><span class="s1">&#39;test.xyz&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">th</span><span class="p">:</span>
+    <span class="c1"># We add a callback to read positions as simple integers</span>
+    <span class="c1"># Otherwise they are read as numpy arrays of floats.</span>
+    <span class="k">def</span> <span class="nf">modify</span><span class="p">(</span><span class="n">system</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">particle</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">system</span>
+    <span class="n">th</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">modify</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">th</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">particle</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2022, Daniele Coslovich.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.3.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/basics.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

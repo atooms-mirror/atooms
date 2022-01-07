@@ -95,10 +95,11 @@ import logging
 from atooms.core.utils import rmd, rmf
 
 __all__ = [&#39;SimulationEnd&#39;, &#39;WallTimeLimit&#39;, &#39;SimulationKill&#39;,
-           &#39;Scheduler&#39;, &#39;write_config&#39;, &#39;write_thermo&#39;, &#39;write&#39;,
-           &#39;target&#39;, &#39;target_rmsd&#39;, &#39;target_steps&#39;, &#39;target_walltime&#39;,
-           &#39;user_stop&#39;, &#39;target_user_stop&#39;, &#39;Speedometer&#39;,
-           &#39;shell_stop&#39;, &#39;target_shell_stop&#39;, &#39;target_python_stop&#39;]
+           &#39;Scheduler&#39;, &#39;write_config&#39;, &#39;write_thermo&#39;, &#39;store&#39;,
+           &#39;write_trajectory&#39;, &#39;write&#39;, &#39;target&#39;, &#39;target_rmsd&#39;,
+           &#39;target_steps&#39;, &#39;target_walltime&#39;, &#39;user_stop&#39;,
+           &#39;target_user_stop&#39;, &#39;Speedometer&#39;, &#39;shell_stop&#39;,
+           &#39;target_shell_stop&#39;, &#39;target_python_stop&#39;]
 
 _log = logging.getLogger(__name__)
 
@@ -213,37 +214,55 @@ def write_to_ram(sim, trajectory_ram):
     &#34;&#34;&#34;
     Write configurations to a trajectory in ram.
     &#34;&#34;&#34;
+    # TODO: deprecate this since write_trajectory now covers it
     trajectory_ram.write(sim.system, sim.current_step)
 
 
-def write_config(sim, fields=None, precision=None):
+def write_trajectory(sim, variables=None, precision=None, trajectory=None,
+                     trajectory_class=None, fields=None):
     &#34;&#34;&#34;
-    Write configurations to a trajectory file.
+    Write trajectory frame from `sim` Simulation instance
 
-    The trajectory format is taken from the passed Simulation
-    instance.
+    The trajectory format is taken from `sim.trajectory_class` and a
+    local instance with that format is used appending the frames on
+    successive calls to this function.
+
+    If `trajectory` is a Trajectory instance, it is used instead.
     &#34;&#34;&#34;
-    # Initialize
-    # This will clear the variable in a new run
-    if sim.current_step == 0 or not hasattr(sim, &#39;__init_write_config&#39;):
-        sim.__init_write_config = False
-    if sim.restart:
-        sim.__init_write_config = True
+    # TODO: deprecate fields in favor of variables
+    if fields is not None:
+        variables = fields
 
-    # Header
-    if not sim.__init_write_config:
-        sim.__init_write_config = True
+    # Clear up everything
+    if sim.current_step == 0 and trajectory is None and \
+       trajectory_class is None:
+        # TODO: bug here with trajectory the file is removed!
         # TODO: folder-based trajectories should ensure that mode=&#39;w&#39; clears up the folder
         rmd(sim.output_path)
         rmf(sim.output_path)
 
-    with sim.trajectory_class(sim.output_path, &#39;a&#39;) as t:
-        if precision is not None:
-            t.precision = precision
-        if fields is not None:
-            t.fields = fields
-        t.write(sim.system, sim.current_step)
+    if trajectory is None and trajectory_class is None:
+        th = sim.trajectory_class(sim.output_path, &#39;a&#39;)
+    elif trajectory_class is not None:
+        th = trajectory_class(sim.output_path, &#39;a&#39;)
+    else:
+        th = trajectory
 
+    # Write stuff
+    if hasattr(sim.backend, &#39;timestep&#39;):
+        th.timestep = sim.backend.timestep
+    if precision is not None:
+        th.precision = precision
+    if variables is not None:
+        th.variables = variables
+    th.write(sim.system, sim.current_step)
+
+    if trajectory is None:
+        th.close()
+
+
+# Deprecated alias
+write_config = write_trajectory
 
 def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     &#34;&#34;&#34;
@@ -267,7 +286,7 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     The `precision` parameter controls the default precision of
     floating point fields.
     &#34;&#34;&#34;
-
+    # TODO: deprecate fields
     # By default write minimal info
     if fields is None:
         fields = [&#39;steps&#39;,
@@ -306,17 +325,8 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
     if fmt is not None:
         _db_fmt.update(fmt)
 
-    # TODO: make it possible to have multiple write_thermo callbacks. At present they interfere
-    # Initialize
-    # This will clear the variable in a new run
-    if sim.current_step == 0 or not hasattr(sim, &#39;__init_write_thermo&#39;):
-        sim.__init_write_thermo = False
-    if sim.restart:
-        sim.__init_write_thermo = True
-
     # Header
-    if not sim.__init_write_thermo:
-        sim.__init_write_thermo = True
+    if sim.current_step == 0:
         with open(sim.output_path + &#39;.thermo&#39;, &#39;w&#39;) as fh:
             txt = &#39;, &#39;.join(fields)
             fh.write(&#39;# columns: {}\n&#39;.format(txt))
@@ -328,37 +338,128 @@ def write_thermo(sim, fields=None, fmt=None, precision=6, functions=None):
         fh.write(&#39;{}\n&#39;.format(result))
 
 
-def write(sim, name, attributes):
-    &#34;&#34;&#34;
-    Write generic attributes of simulation and system to a file.
+def _setup_callbacks(what):
+    &#34;&#34;&#34;Setup callbacks from `what` list, see `write` for definitions&#34;&#34;&#34;
+    from operator import attrgetter
 
-    `name` is a tag appended to `sim.base_path` to define the output
-    file path.
+    # Default callbacks that take simulation as first argument
+    _callbacks = {
+        &#39;steps&#39;: lambda x: x.current_step,
+        &#39;potential energy per particle&#39;: lambda x: x.system.potential_energy(True),
+        &#39;kinetic energy per particle&#39;: lambda x: x.system.kinetic_energy(True),
+        &#39;total energy per particle&#39;: lambda x: x.system.total_energy(True, cache=True),
+        &#39;temperature&#39;: lambda x: x.system.temperature,
+        &#39;density&#39;: lambda x: x.system.density,
+        &#39;pressure&#39;: lambda x: x.system.pressure,
+        &#39;rmsd&#39;: lambda x: x.rmsd,
+    }
 
-    `attributes` must be a list of valid properties of the Simulation
-    instance `sim` or of its System instance `sim.system`.
+    names, callbacks = [], []
+    for attribute in what:
+        if attribute in _callbacks:
+            # A predefined callback
+            names.append(attribute)
+            callbacks.append(_callbacks[attribute])
+        elif isinstance(attribute, list) or isinstance(attribute, tuple):
+            # A tuple or list (name, callback)
+            assert len(attribute) == 2
+            names.append(attribute[0])
+            callbacks.append(attribute[1])
+        else:
+            # Generic simulation attribute
+            names.append(attribute)
+            callbacks.append(attrgetter(attribute))
+
+    return names, callbacks
+
+
+def write(sim, what, suffix=None, path=None):
     &#34;&#34;&#34;
-    f = sim.output_path + &#39;.&#39; + name
+    Write generic attributes of simulation `sim` to a file.
+
+    `suffix` is a tag appended to `sim.output_path` to define the output
+    file path. If `path` is provided, however, it is used instead as
+    output file path.
+
+    `what` tells the function what to write and must be a list of either:
+
+    - a string representing a valid property of the Simulation instance `sim`
+
+    - a tuple `(name, callback)` where `name` is a descriptive name of
+    the value returned by the `callback`, which is a function that
+    takes `sim` as first argument
+
+    - a string from the following list:
+    steps
+    temperature
+    potential energy per particle
+    kinetic energy per particle   
+    total energy
+    pressure
+    rmsd
+    conserved energy
+    &#34;&#34;&#34;
+    # TODO: add formats / precision
+    assert suffix is not None or path is not None
+    assert not (suffix is not None and path is not None)
+
+    if path is None:
+        path = sim.output_path + &#39;.&#39; + suffix
+
+    # Define callbacks
+    names, callbacks = _setup_callbacks(what)
+
+    # Extract the requested attribute
+    values = []
+    for callback in callbacks:
+        values.append(callback(sim))
+
+    # Header
     if sim.current_step == 0:
-        with open(f, &#39;w&#39;) as fh:
-            fh.write(&#39;# columns: %s\n&#39; % &#39;, &#39;.join(attributes))
-    else:
-        # Extract the requested attributes
-        values = []
-        for attr in attributes:
-            level = len(attr.split(&#39;.&#39;))
-            if level == 1:
-                values.append(getattr(sim, attr))
-            elif level == 2:
-                system_attr = attr.split(&#39;.&#39;)[-1]
-                if attr.startswith(&#39;system&#39;):
-                    values.append(getattr(sim.system, system_attr))
-            else:
-                raise ValueError(&#39;attribute is too deep&#39;)
-        # Format output string
-        fmt = (&#39;%s &#39; * len(attributes)) + &#39;\n&#39;
-        with open(f, &#39;a&#39;) as fh:
-            fh.write(fmt % tuple(values))
+        with open(path, &#39;w&#39;) as fh:
+            fh.write(&#39;# columns: {}\n&#39;.format(&#39;, &#39;.join(names)))
+
+    # Format output string
+    fmt = (&#39;{} &#39; * len(values)) + &#39;\n&#39;
+    with open(path, &#39;a&#39;) as fh:
+        fh.write(fmt.format(*values))
+
+
+def store(sim, what, db):
+    &#34;&#34;&#34;
+    Store generic attributes of simulation `sim` in the dictonary `db`.
+
+    `what` tells the function what to write and must be a list of either:
+
+    - a string representing a valid property of the Simulation instance `sim`
+
+    - a tuple `(name, callback)` where `name` is a descriptive name of
+    the value returned by the `callback`, which is a function that
+    takes `sim` as first argument
+
+    - a string from the following list:
+    steps
+    temperature
+    potential energy per particle
+    kinetic energy per particle   
+    total energy
+    pressure
+    rmsd
+    conserved energy
+    &#34;&#34;&#34;
+    # If the dict is empty fill it
+    if len(db) == 0:
+        for attribute in what:
+            db[attribute] = []
+
+    # Define callbacks
+    names, callbacks = _setup_callbacks(what)
+
+    # Extract the requested attribute
+    for name, callback in zip(names, callbacks):
+        db[name].append(callback(sim))
+
+    return db
 
 
 # Target callbacks.
@@ -595,6 +696,74 @@ echo {sim.current_step} {sim.rmsd} &gt;&gt; {sim.output_path}.out
         else:
             _log.error(&#39;shell command {} failed with output {}&#39;.format(cmd, e.output))
             raise</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.store"><code class="name flex">
+<span>def <span class="ident">store</span></span>(<span>sim, what, db)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Store generic attributes of simulation <code>sim</code> in the dictonary <code>db</code>.</p>
+<p><code>what</code> tells the function what to write and must be a list of either:</p>
+<ul>
+<li>
+<p>a string representing a valid property of the Simulation instance <code>sim</code></p>
+</li>
+<li>
+<p>a tuple <code>(name, callback)</code> where <code>name</code> is a descriptive name of
+the value returned by the <code>callback</code>, which is a function that
+takes <code>sim</code> as first argument</p>
+</li>
+<li>
+<p>a string from the following list:
+steps
+temperature
+potential energy per particle
+kinetic energy per particle <br>
+total energy
+pressure
+rmsd
+conserved energy</p>
+</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def store(sim, what, db):
+    &#34;&#34;&#34;
+    Store generic attributes of simulation `sim` in the dictonary `db`.
+
+    `what` tells the function what to write and must be a list of either:
+
+    - a string representing a valid property of the Simulation instance `sim`
+
+    - a tuple `(name, callback)` where `name` is a descriptive name of
+    the value returned by the `callback`, which is a function that
+    takes `sim` as first argument
+
+    - a string from the following list:
+    steps
+    temperature
+    potential energy per particle
+    kinetic energy per particle   
+    total energy
+    pressure
+    rmsd
+    conserved energy
+    &#34;&#34;&#34;
+    # If the dict is empty fill it
+    if len(db) == 0:
+        for attribute in what:
+            db[attribute] = []
+
+    # Define callbacks
+    names, callbacks = _setup_callbacks(what)
+
+    # Extract the requested attribute
+    for name, callback in zip(names, callbacks):
+        db[name].append(callback(sim))
+
+    return db</code></pre>
 </details>
 </dd>
 <dt id="atooms.simulation.observers.target"><code class="name flex">
@@ -834,89 +1003,145 @@ deleted to allow parallel jobs to all exit.</p></div>
 </details>
 </dd>
 <dt id="atooms.simulation.observers.write"><code class="name flex">
-<span>def <span class="ident">write</span></span>(<span>sim, name, attributes)</span>
+<span>def <span class="ident">write</span></span>(<span>sim, what, suffix=None, path=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Write generic attributes of simulation and system to a file.</p>
-<p><code>name</code> is a tag appended to <code>sim.base_path</code> to define the output
-file path.</p>
-<p><code>attributes</code> must be a list of valid properties of the Simulation
-instance <code>sim</code> or of its System instance <code>sim.system</code>.</p></div>
+<div class="desc"><p>Write generic attributes of simulation <code>sim</code> to a file.</p>
+<p><code>suffix</code> is a tag appended to <code>sim.output_path</code> to define the output
+file path. If <code>path</code> is provided, however, it is used instead as
+output file path.</p>
+<p><code>what</code> tells the function what to write and must be a list of either:</p>
+<ul>
+<li>
+<p>a string representing a valid property of the Simulation instance <code>sim</code></p>
+</li>
+<li>
+<p>a tuple <code>(name, callback)</code> where <code>name</code> is a descriptive name of
+the value returned by the <code>callback</code>, which is a function that
+takes <code>sim</code> as first argument</p>
+</li>
+<li>
+<p>a string from the following list:
+steps
+temperature
+potential energy per particle
+kinetic energy per particle <br>
+total energy
+pressure
+rmsd
+conserved energy</p>
+</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def write(sim, name, attributes):
+<pre><code class="python">def write(sim, what, suffix=None, path=None):
     &#34;&#34;&#34;
-    Write generic attributes of simulation and system to a file.
+    Write generic attributes of simulation `sim` to a file.
 
-    `name` is a tag appended to `sim.base_path` to define the output
-    file path.
+    `suffix` is a tag appended to `sim.output_path` to define the output
+    file path. If `path` is provided, however, it is used instead as
+    output file path.
 
-    `attributes` must be a list of valid properties of the Simulation
-    instance `sim` or of its System instance `sim.system`.
+    `what` tells the function what to write and must be a list of either:
+
+    - a string representing a valid property of the Simulation instance `sim`
+
+    - a tuple `(name, callback)` where `name` is a descriptive name of
+    the value returned by the `callback`, which is a function that
+    takes `sim` as first argument
+
+    - a string from the following list:
+    steps
+    temperature
+    potential energy per particle
+    kinetic energy per particle   
+    total energy
+    pressure
+    rmsd
+    conserved energy
     &#34;&#34;&#34;
-    f = sim.output_path + &#39;.&#39; + name
+    # TODO: add formats / precision
+    assert suffix is not None or path is not None
+    assert not (suffix is not None and path is not None)
+
+    if path is None:
+        path = sim.output_path + &#39;.&#39; + suffix
+
+    # Define callbacks
+    names, callbacks = _setup_callbacks(what)
+
+    # Extract the requested attribute
+    values = []
+    for callback in callbacks:
+        values.append(callback(sim))
+
+    # Header
     if sim.current_step == 0:
-        with open(f, &#39;w&#39;) as fh:
-            fh.write(&#39;# columns: %s\n&#39; % &#39;, &#39;.join(attributes))
-    else:
-        # Extract the requested attributes
-        values = []
-        for attr in attributes:
-            level = len(attr.split(&#39;.&#39;))
-            if level == 1:
-                values.append(getattr(sim, attr))
-            elif level == 2:
-                system_attr = attr.split(&#39;.&#39;)[-1]
-                if attr.startswith(&#39;system&#39;):
-                    values.append(getattr(sim.system, system_attr))
-            else:
-                raise ValueError(&#39;attribute is too deep&#39;)
-        # Format output string
-        fmt = (&#39;%s &#39; * len(attributes)) + &#39;\n&#39;
-        with open(f, &#39;a&#39;) as fh:
-            fh.write(fmt % tuple(values))</code></pre>
+        with open(path, &#39;w&#39;) as fh:
+            fh.write(&#39;# columns: {}\n&#39;.format(&#39;, &#39;.join(names)))
+
+    # Format output string
+    fmt = (&#39;{} &#39; * len(values)) + &#39;\n&#39;
+    with open(path, &#39;a&#39;) as fh:
+        fh.write(fmt.format(*values))</code></pre>
 </details>
 </dd>
 <dt id="atooms.simulation.observers.write_config"><code class="name flex">
-<span>def <span class="ident">write_config</span></span>(<span>sim, fields=None, precision=None)</span>
+<span>def <span class="ident">write_config</span></span>(<span>sim, variables=None, precision=None, trajectory=None, trajectory_class=None, fields=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Write configurations to a trajectory file.</p>
-<p>The trajectory format is taken from the passed Simulation
-instance.</p></div>
+<div class="desc"><p>Write trajectory frame from <code>sim</code> Simulation instance</p>
+<p>The trajectory format is taken from <code>sim.trajectory_class</code> and a
+local instance with that format is used appending the frames on
+successive calls to this function.</p>
+<p>If <code>trajectory</code> is a Trajectory instance, it is used instead.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def write_config(sim, fields=None, precision=None):
+<pre><code class="python">def write_trajectory(sim, variables=None, precision=None, trajectory=None,
+                     trajectory_class=None, fields=None):
     &#34;&#34;&#34;
-    Write configurations to a trajectory file.
+    Write trajectory frame from `sim` Simulation instance
 
-    The trajectory format is taken from the passed Simulation
-    instance.
+    The trajectory format is taken from `sim.trajectory_class` and a
+    local instance with that format is used appending the frames on
+    successive calls to this function.
+
+    If `trajectory` is a Trajectory instance, it is used instead.
     &#34;&#34;&#34;
-    # Initialize
-    # This will clear the variable in a new run
-    if sim.current_step == 0 or not hasattr(sim, &#39;__init_write_config&#39;):
-        sim.__init_write_config = False
-    if sim.restart:
-        sim.__init_write_config = True
+    # TODO: deprecate fields in favor of variables
+    if fields is not None:
+        variables = fields
 
-    # Header
-    if not sim.__init_write_config:
-        sim.__init_write_config = True
+    # Clear up everything
+    if sim.current_step == 0 and trajectory is None and \
+       trajectory_class is None:
+        # TODO: bug here with trajectory the file is removed!
         # TODO: folder-based trajectories should ensure that mode=&#39;w&#39; clears up the folder
         rmd(sim.output_path)
         rmf(sim.output_path)
 
-    with sim.trajectory_class(sim.output_path, &#39;a&#39;) as t:
-        if precision is not None:
-            t.precision = precision
-        if fields is not None:
-            t.fields = fields
-        t.write(sim.system, sim.current_step)</code></pre>
+    if trajectory is None and trajectory_class is None:
+        th = sim.trajectory_class(sim.output_path, &#39;a&#39;)
+    elif trajectory_class is not None:
+        th = trajectory_class(sim.output_path, &#39;a&#39;)
+    else:
+        th = trajectory
+
+    # Write stuff
+    if hasattr(sim.backend, &#39;timestep&#39;):
+        th.timestep = sim.backend.timestep
+    if precision is not None:
+        th.precision = precision
+    if variables is not None:
+        th.variables = variables
+    th.write(sim.system, sim.current_step)
+
+    if trajectory is None:
+        th.close()</code></pre>
 </details>
 </dd>
 <dt id="atooms.simulation.observers.write_thermo"><code class="name flex">
@@ -964,7 +1189,7 @@ floating point fields.</p></div>
     The `precision` parameter controls the default precision of
     floating point fields.
     &#34;&#34;&#34;
-
+    # TODO: deprecate fields
     # By default write minimal info
     if fields is None:
         fields = [&#39;steps&#39;,
@@ -1003,17 +1228,8 @@ floating point fields.</p></div>
     if fmt is not None:
         _db_fmt.update(fmt)
 
-    # TODO: make it possible to have multiple write_thermo callbacks. At present they interfere
-    # Initialize
-    # This will clear the variable in a new run
-    if sim.current_step == 0 or not hasattr(sim, &#39;__init_write_thermo&#39;):
-        sim.__init_write_thermo = False
-    if sim.restart:
-        sim.__init_write_thermo = True
-
     # Header
-    if not sim.__init_write_thermo:
-        sim.__init_write_thermo = True
+    if sim.current_step == 0:
         with open(sim.output_path + &#39;.thermo&#39;, &#39;w&#39;) as fh:
             txt = &#39;, &#39;.join(fields)
             fh.write(&#39;# columns: {}\n&#39;.format(txt))
@@ -1023,6 +1239,62 @@ floating point fields.</p></div>
         values = [_db_func[field](sim) for field in fields]
         result = &#39; &#39;.join([_db_fmt[field].format(value) for value, field in zip(values, fields)])
         fh.write(&#39;{}\n&#39;.format(result))</code></pre>
+</details>
+</dd>
+<dt id="atooms.simulation.observers.write_trajectory"><code class="name flex">
+<span>def <span class="ident">write_trajectory</span></span>(<span>sim, variables=None, precision=None, trajectory=None, trajectory_class=None, fields=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write trajectory frame from <code>sim</code> Simulation instance</p>
+<p>The trajectory format is taken from <code>sim.trajectory_class</code> and a
+local instance with that format is used appending the frames on
+successive calls to this function.</p>
+<p>If <code>trajectory</code> is a Trajectory instance, it is used instead.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_trajectory(sim, variables=None, precision=None, trajectory=None,
+                     trajectory_class=None, fields=None):
+    &#34;&#34;&#34;
+    Write trajectory frame from `sim` Simulation instance
+
+    The trajectory format is taken from `sim.trajectory_class` and a
+    local instance with that format is used appending the frames on
+    successive calls to this function.
+
+    If `trajectory` is a Trajectory instance, it is used instead.
+    &#34;&#34;&#34;
+    # TODO: deprecate fields in favor of variables
+    if fields is not None:
+        variables = fields
+
+    # Clear up everything
+    if sim.current_step == 0 and trajectory is None and \
+       trajectory_class is None:
+        # TODO: bug here with trajectory the file is removed!
+        # TODO: folder-based trajectories should ensure that mode=&#39;w&#39; clears up the folder
+        rmd(sim.output_path)
+        rmf(sim.output_path)
+
+    if trajectory is None and trajectory_class is None:
+        th = sim.trajectory_class(sim.output_path, &#39;a&#39;)
+    elif trajectory_class is not None:
+        th = trajectory_class(sim.output_path, &#39;a&#39;)
+    else:
+        th = trajectory
+
+    # Write stuff
+    if hasattr(sim.backend, &#39;timestep&#39;):
+        th.timestep = sim.backend.timestep
+    if precision is not None:
+        th.precision = precision
+    if variables is not None:
+        th.variables = variables
+    th.write(sim.system, sim.current_step)
+
+    if trajectory is None:
+        th.close()</code></pre>
 </details>
 </dd>
 </dl>
@@ -1264,6 +1536,7 @@ and returns the next step at which an observer has to to notified.</p>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
 <li><code><a title="atooms.simulation.observers.shell_stop" href="#atooms.simulation.observers.shell_stop">shell_stop</a></code></li>
+<li><code><a title="atooms.simulation.observers.store" href="#atooms.simulation.observers.store">store</a></code></li>
 <li><code><a title="atooms.simulation.observers.target" href="#atooms.simulation.observers.target">target</a></code></li>
 <li><code><a title="atooms.simulation.observers.target_python_stop" href="#atooms.simulation.observers.target_python_stop">target_python_stop</a></code></li>
 <li><code><a title="atooms.simulation.observers.target_rmsd" href="#atooms.simulation.observers.target_rmsd">target_rmsd</a></code></li>
@@ -1275,6 +1548,7 @@ and returns the next step at which an observer has to to notified.</p>
 <li><code><a title="atooms.simulation.observers.write" href="#atooms.simulation.observers.write">write</a></code></li>
 <li><code><a title="atooms.simulation.observers.write_config" href="#atooms.simulation.observers.write_config">write_config</a></code></li>
 <li><code><a title="atooms.simulation.observers.write_thermo" href="#atooms.simulation.observers.write_thermo">write_thermo</a></code></li>
+<li><code><a title="atooms.simulation.observers.write_trajectory" href="#atooms.simulation.observers.write_trajectory">write_trajectory</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

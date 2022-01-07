@@ -1,0 +1,10 @@
+#+title: Atooms
+#+author: Daniele Coslovich
+#+html_doctype: html5
+#+options: html-style:nil
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+options: toc:nil num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
+#+property: header-args:python :exports both
+#+property: header-args:gnuplot :exports results

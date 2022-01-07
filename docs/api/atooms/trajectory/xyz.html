@@ -79,7 +79,7 @@ def _update_position_unfolded(particle, data, meta):
     ndim = meta[&#39;ndim&#39;]
     r = numpy.array(data[0:ndim], dtype=float)
     particle.position_unfolded = r
-    if not &#39;position&#39; in meta[&#39;columns&#39;]:
+    if &#39;position&#39; not in meta[&#39;columns&#39;]:
         particle.position = _periodic_vector_unfolded(r, meta[&#39;cell&#39;])
     return data[ndim:]
 
@@ -462,9 +462,12 @@ def fallback(p, data, meta):
             return 1.0
 
     def _comment(self, step, system):
+        # Variables in xyz files are assumed to be referred to particles
+        # so we strip &#39;particle&#39; from all column entries
+        variables = [re.sub(&#39;particle.&#39;, &#39;&#39;, var) for var in self.variables]
         # Concatenate metadata in comment line
         line = &#39;step:{} &#39;.format(step)
-        line += &#39;columns:{} &#39;.format(&#39;,&#39;.join(self.variables))
+        line += &#39;columns:{} &#39;.format(&#39;,&#39;.join(variables))
         if self.timestep is not None:
             line += &#39;dt:{:g} &#39;.format(self.timestep)
         if system.cell is not None:
@@ -920,9 +923,12 @@ def fallback(p, data, meta):
             return 1.0
 
     def _comment(self, step, system):
+        # Variables in xyz files are assumed to be referred to particles
+        # so we strip &#39;particle&#39; from all column entries
+        variables = [re.sub(&#39;particle.&#39;, &#39;&#39;, var) for var in self.variables]
         # Concatenate metadata in comment line
         line = &#39;step:{} &#39;.format(step)
-        line += &#39;columns:{} &#39;.format(&#39;,&#39;.join(self.variables))
+        line += &#39;columns:{} &#39;.format(&#39;,&#39;.join(variables))
         if self.timestep is not None:
             line += &#39;dt:{:g} &#39;.format(self.timestep)
         if system.cell is not None:

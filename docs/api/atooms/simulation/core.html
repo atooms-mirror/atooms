@@ -68,6 +68,7 @@ import logging
 import atooms.core.progress
 from atooms.core import __version__
 from atooms.core.utils import mkdir, barrier
+from atooms.trajectory import TrajectoryXYZ
 from .observers import target_steps, Speedometer, Scheduler, SimulationEnd, SimulationKill
 
 _log = logging.getLogger(__name__)
@@ -128,7 +129,7 @@ class Simulation(object):
         if hasattr(self.backend, &#39;trajectory_class&#39;):
             self.trajectory_class = self.backend.trajectory_class
         else:
-            self.trajectory_class = None
+            self.trajectory_class = TrajectoryXYZ
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
         # exist. This creates the data/ folder and its parents folders.
@@ -351,7 +352,7 @@ class Simulation(object):
                 def flush(sim):
                     pass
                 self.remove(flush)
-                self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
+                self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
         # Report
         _report(self._info_start())
@@ -385,11 +386,13 @@ class Simulation(object):
             # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
             self._notify(self._targeters)
 
-            # Then notify non targeters unless we are restarting
+            # If this is not the first step it means we are restarting
+            # and these observers have been already called at the end
+            # of the last checkpointed step. So we do not need to call
+            # them again.
             if self.current_step == 0:
                 self._notify(self._non_targeters)
-            else:
-                self._notify(self._speedometers)
+
             _log.info(&#39;starting at step: %d&#39;, self.current_step)
             _log.info(&#39;&#39;)
             while True:
@@ -447,9 +450,9 @@ class Simulation(object):
 
     def _info_backend(self):
         &#34;&#34;&#34;Subclasses may want to override this method.&#34;&#34;&#34;
-        txt = &#39;backend: {}\n&#39;.format(self.backend)
+        txt = &#39;backend: {}\n&#39;.format(self.backend.__class__)
         if hasattr(self.backend, &#39;version&#39;):
-            txt += &#39;backend version: %s\n&#39; % self.backend.version
+            txt += &#39;backend version: {}\n&#39;.format(self.backend.version)
         return txt
 
     def _info_observers(self):
@@ -529,7 +532,7 @@ other paths are defined based on it and on its base_path.</p></div>
         if hasattr(self.backend, &#39;trajectory_class&#39;):
             self.trajectory_class = self.backend.trajectory_class
         else:
-            self.trajectory_class = None
+            self.trajectory_class = TrajectoryXYZ
         # Make sure the dirname of output_path exists. For instance,
         # if output_path is data/trajectory.xyz, then data/ should
         # exist. This creates the data/ folder and its parents folders.
@@ -752,7 +755,7 @@ other paths are defined based on it and on its base_path.</p></div>
                 def flush(sim):
                     pass
                 self.remove(flush)
-                self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
+                self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
         # Report
         _report(self._info_start())
@@ -786,11 +789,13 @@ other paths are defined based on it and on its base_path.</p></div>
             # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
             self._notify(self._targeters)
 
-            # Then notify non targeters unless we are restarting
+            # If this is not the first step it means we are restarting
+            # and these observers have been already called at the end
+            # of the last checkpointed step. So we do not need to call
+            # them again.
             if self.current_step == 0:
                 self._notify(self._non_targeters)
-            else:
-                self._notify(self._speedometers)
+
             _log.info(&#39;starting at step: %d&#39;, self.current_step)
             _log.info(&#39;&#39;)
             while True:
@@ -848,9 +853,9 @@ other paths are defined based on it and on its base_path.</p></div>
 
     def _info_backend(self):
         &#34;&#34;&#34;Subclasses may want to override this method.&#34;&#34;&#34;
-        txt = &#39;backend: {}\n&#39;.format(self.backend)
+        txt = &#39;backend: {}\n&#39;.format(self.backend.__class__)
         if hasattr(self.backend, &#39;version&#39;):
-            txt += &#39;backend version: %s\n&#39; % self.backend.version
+            txt += &#39;backend version: {}\n&#39;.format(self.backend.version)
         return txt
 
     def _info_observers(self):
@@ -1117,7 +1122,7 @@ gracefully.</p></div>
             def flush(sim):
                 pass
             self.remove(flush)
-            self.add(flush, Scheduler((self.current_step + self.steps) / min_iters))
+            self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
     # Report
     _report(self._info_start())
@@ -1151,11 +1156,13 @@ gracefully.</p></div>
         # TODO: this should be moved outside this block to avoid rewriting checkpoint / logs
         self._notify(self._targeters)
 
-        # Then notify non targeters unless we are restarting
+        # If this is not the first step it means we are restarting
+        # and these observers have been already called at the end
+        # of the last checkpointed step. So we do not need to call
+        # them again.
         if self.current_step == 0:
             self._notify(self._non_targeters)
-        else:
-            self._notify(self._speedometers)
+
         _log.info(&#39;starting at step: %d&#39;, self.current_step)
         _log.info(&#39;&#39;)
         while True:
