@@ -68,9 +68,12 @@ html_theme_options = {
     'description': 'A Python framework for simulations of interacting particles',
     'fixed_sidebar': True,
     'sidebar_collapse': True,
-    'extra_nav_links': {'Notebooks on Binder': 'https://atooms.frama.io/atooms/',
-                        'Source code on Framagit': 'https://atooms.frama.io/atooms/'},
+    'extra_nav_links': {'Run this tutorial on Binder': 'https://atooms.frama.io/atooms/',
+                        'Org-mode and jupyter notebooks on Framagit': 'https://atooms.frama.io/atooms/'},
     'gray_2': '#F4F4F4ED',
+    'sidebar_width': '380px',
+    'body_max_width': 'auto',
+    'page_width': '1200px',
 #    'code_highlight_bg': '#111',
 }
 

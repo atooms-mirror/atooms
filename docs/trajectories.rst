@@ -4,6 +4,30 @@
 Trajectories
 ------------
 
+Trajectory conversion
+~~~~~~~~~~~~~~~~~~~~~
+
+``atooms`` provides a command line tool to convert between various trajectory formats. The following command will convert a trajectory file produced by `RUMD <http://rumd.org>`_ into a simpler xyz format
+
+.. code:: sh
+
+    trj.py convert -i rumd -o xyz trajectory.xyz.gz output.xyz
+
+If you don't specify the output path, the trajectory is written to standard output. This is useful for quick inspection of complex trajectory formats or for piping into ``sed`` or ``awk``.
+
+``trj.py`` provides means to fine tune the format of the output file. Type ``trj.py --help`` to get a list of options and supported trajectory formats.
+
+Custom trajectory formats
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is easy to add new trajectory formats by subclassing existing trajectory classes. To make these new classes accessible also to ``trj.py``, create a package called ``atooms_plugins`` and add your trajectory modules there. Suppose you wrote a custom trajectory class ``TrajectoryABC`` in ``atooms_plugins/test.py`` (the last path is relative to the current directory). You can now convert an existing xyz trajectory to your custom format:
+
+.. code:: sh
+
+    trj.py convert output.xyz output.abc
+
+Remember to add an empty ``__init__.py`` file at the root of ``atooms_plugins``. Actually, the ``atooms_plugins`` package can be put anywhere in your ``PYTHONPATH``.
+
 Custom trajectory output
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
