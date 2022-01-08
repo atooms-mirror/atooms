@@ -11,6 +11,7 @@ barostat or a particle reservoir.
 """
 
 import copy
+import random
 import numpy
 
 
@@ -20,7 +21,7 @@ class System(object):
 
     def __init__(self, particle=None, cell=None, interaction=None,
                  thermostat=None, barostat=None, reservoir=None,
-                 wall=None):
+                 wall=None, composition=None, d=3):
         if particle is None:
             particle = []
         self.particle = particle
@@ -31,6 +32,26 @@ class System(object):
         self.barostat = barostat
         self.reservoir = reservoir
         self.wall = wall
+
+        # If we ask for a specific composition (N_1, N_2, ...), with
+        # fill the system with particles of appropriate species
+        # starting from a crystalline template at unit density
+        if composition is not None:
+            from .particle import _lattice
+            from .cell import Cell
+            N = sum(composition.values())
+            self.particle = _lattice(N, d)
+            self.cell = Cell(numpy.ones(d))
+            # First assign species sequentially
+            cum = 1
+            for species in composition:
+                n = composition[species]
+                for j in range(cum, cum + n):
+                    self.particle[j - 1].species = species
+                cum += n
+            # Now randomize the species
+            self.particle = random.sample(self.particle, len(self.particle))
+        
         # Internal data dictionary for array dumps
         self._data = None
 
@@ -454,9 +475,12 @@ class System(object):
         return data
 
     def __str__(self):
+        from .particle import composition
         txt = ''
         if self.particle:
+            c = dict(composition(self.particle))
             txt += 'system composed by {0} particles\n'.format(len(self.particle))
+            txt += 'with chemical composition C={}\n'.format(c)
         if self.cell:
             txt += 'enclosed in a {0.shape} box at number density rho={1:.6f}\n'.format(self.cell, self.density)
         if self.wall:

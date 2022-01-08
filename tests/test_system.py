@@ -417,6 +417,12 @@ class Test(unittest.TestCase):
             except AttributeError:
                 pass
 
+    def test_system_composition(self):
+        from atooms.system.particle import composition
+        self.assertEqual(dict(composition(System(composition={'Si': 4, 'O': 2}).particle)), {'Si': 4, 'O': 2})
+        self.assertEqual(dict(composition(System(composition={'B': 4}).particle)), {'B': 4})
+        self.assertEqual(dict(composition(System(composition={'A': 4, 'B': 10, 'C': 2}).particle)), {'A': 4, 'B': 10, 'C': 2})
+            
     def test_decimate(self):
         from atooms.system import Particle, System
         from atooms.system.particle import composition, decimate

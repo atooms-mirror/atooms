@@ -391,3 +391,32 @@ def decimate(particle, N):
             pnew.append(particle[ii])
 
     return pnew
+
+
+def _lattice(N, d=3):
+    """
+    Return a list of `N` particles on the sites of a simple cubic
+    lattice in `d`-dimensional space. A perfect crystalline
+    configuration is etched so as to match the input value of `N`. The
+    particles' position are between -0.5 and 0.5 along each axis.
+    """
+    import random
+
+    # Find minimum number of particles to match input N
+    n_max = 100
+    for n in range(1, n_max):
+        if n**d >= N:
+            n = n + 1
+            break
+
+    # Put particles on a cubic lattice
+    a = 1.0 / n
+    particle = []
+    from itertools import product
+    for site in product(range(n), repeat=d):
+        r = a * numpy.array(site) + a/2 - 0.5
+        particle.append(Particle(position=r))
+
+    # Etch particles from the crystal to match the target N
+    particle = random.sample(particle, N)
+    return particle
