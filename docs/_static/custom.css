@@ -27,3 +27,9 @@ div.admonition {
 div.note {
     background-color: #0e84b51c;
 }
+
+@media screen and (max-width: 870px) {
+div.sphinxsidebar {
+    height: auto;
+}
+}
