@@ -71,9 +71,9 @@ html_theme_options = {
     'extra_nav_links': {'Run this tutorial on Binder': 'https://atooms.frama.io/atooms/',
                         'Org-mode and jupyter notebooks on Framagit': 'https://atooms.frama.io/atooms/'},
     'gray_2': '#F4F4F4ED',
-    'sidebar_width': '380px',
+    'sidebar_width': '270px',
     'body_max_width': 'auto',
-    'page_width': '1200px',
+    'page_width': '1100px',
 #    'code_highlight_bg': '#111',
 }
 
