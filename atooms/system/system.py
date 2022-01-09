@@ -209,6 +209,7 @@ class System(object):
 
     def set_composition(self, N):
         """Set the chemical composition as specified in the `N` dictionary."""
+        assert sum(N.values()) == len(self.particle), 'composition {} does not match N = {}'.format(N, len(self.particle))
         # First assign species sequentially
         cum = 1
         for species in N:
@@ -378,6 +379,23 @@ class System(object):
         for p in self.particle:
             p.fold(self.cell)
 
+    def replicate(self, n, d):
+        """Replicate the system `n` times along dimension `d`"""
+        assert n > 1
+        npart = len(self.particle)
+        L = self.cell.side[d]
+        for p in self.particle:
+            p.position[d] += L/2
+        for i in range(1, n):
+            for j in range(npart):
+                p = copy.deepcopy(self.particle[j])
+                p.position[d] = self.particle[j].position[d] + i*L
+                self.particle.append(p)
+        self.cell.side[d] *= n
+        for p in self.particle:
+            #p.position[d] -= (L / 2 + L * (n-1))
+            p.position[d] -= L * n / 2
+            
     def dump(self, what=None, order='C', dtype=None, view=False, clear=False, flat=False):
         """
         Return a numpy array with system properties specified by `what`.

@@ -472,6 +472,23 @@ class Test(unittest.TestCase):
         self.assertEqual(System(N={'A': 4, 'B': 10, 'C': 2}).composition, {'A': 4, 'B': 10, 'C': 2})
         self.assertAlmostEqual(System(N={'Si': 10, 'O': 20}).concentration, {'Si': 10/30., 'O': 20/30.})
             
+    def test_replicate(self):
+        s = System(N=2**3, d=2)
+        L = s.cell.side[0]
+        for p in s.particle:
+            p.radius = 0.1
+        s.replicate(3, 0)
+        x = s.dump('pos', order='F')
+        self.assertAlmostEqual(min(x[0, :]), -max(x[0, :]))
+        self.assertAlmostEqual(s.cell.side[0], L * 3)
 
+        s = System(N=2**3, d=3)
+        L = s.cell.side[0]
+        s.replicate(4, 1)
+        x = s.dump('pos', order='F')
+        self.assertAlmostEqual(min(x[1, :]), -max(x[1, :]))
+        self.assertAlmostEqual(s.cell.side[1], L * 4)
+        # s.show(outfile='1.png')
+        
 if __name__ == '__main__':
     unittest.main()

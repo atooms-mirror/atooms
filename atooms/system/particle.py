@@ -406,7 +406,6 @@ def _lattice(N, d=3):
     n_max = 100
     for n in range(1, n_max):
         if n**d >= N:
-            n = n + 1
             break
 
     # Put particles on a cubic lattice
@@ -418,5 +417,6 @@ def _lattice(N, d=3):
         particle.append(Particle(position=r))
 
     # Etch particles from the crystal to match the target N
+    print(N, len(particle))
     particle = random.sample(particle, N)
     return particle
