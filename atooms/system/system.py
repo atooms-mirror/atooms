@@ -209,20 +209,20 @@ class System(object):
 
     def set_composition(self, N):
         """Set the chemical composition as specified in the `N` dictionary."""
-        # First assign species sequentially
-        cum = 1
-        for species in N:
-            n = N[species]
-            for j in range(cum, cum + n):
-                self.particle[j - 1].species = species
-            cum += n
-        # Now randomize the species
-        self.particle = random.sample(self.particle, len(self.particle))
+        assert sum(N.values()) == len(self.particle), 'composition {} does not match N = {}'.format(N, len(self.particle))
+        # Create array of species
+        species = []
+        for sp in N:
+            species += [sp] * N[sp]
+        # Randomize the species and assign them
+        random.shuffle(species)
+        for sp, p in zip(species, self.particle):
+            p.species = sp
 
     @property
     def concentration(self):
         """Chemical concentration"""
-        return {k: v / len(self.particle) for k, v in self.composition.items()}
+        return {k: float(v) / len(self.particle) for k, v in self.composition.items()}
         
     def scale_velocities(self, factor):
         """Scale particles' velocities by `factor`."""
@@ -378,6 +378,23 @@ class System(object):
         for p in self.particle:
             p.fold(self.cell)
 
+    def replicate(self, n, axis):
+        """Replicate the system `n` times along `axis`"""
+        assert n > 1
+        npart = len(self.particle)
+        L = self.cell.side[axis]
+        for p in self.particle:
+            p.position[axis] += L/2
+        for i in range(1, n):
+            for j in range(npart):
+                p = copy.deepcopy(self.particle[j])
+                p.position[axis] = self.particle[j].position[axis] + i*L
+                self.particle.append(p)
+        self.cell.side[axis] *= n
+        for p in self.particle:
+            #p.position[d] -= (L / 2 + L * (n-1))
+            p.position[axis] -= L * n / 2
+            
     def dump(self, what=None, order='C', dtype=None, view=False, clear=False, flat=False):
         """
         Return a numpy array with system properties specified by `what`.

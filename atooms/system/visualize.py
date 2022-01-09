@@ -6,6 +6,18 @@ Each show() method relies on a specific, optional visualization backend.
 
 # These functions used to belong to system.particle
 
+_palette = [
+    "#d6493c",
+    "#ffd966",
+    "#43249f",
+    "#090966",
+    "#4b2b31",
+]
+
+def _hex_to_rgb(h):
+    h = h.lstrip('#')
+    return tuple(int(h[i:i + 2], 16) / 256 for i in (0, 2, 4))
+
 
 def show_3dmol(particle, cell=None, radius=1.0, palette=None):
     """
@@ -32,7 +44,7 @@ def show_3dmol(particle, cell=None, radius=1.0, palette=None):
     return view
 
 
-def show_matplotlib(particle, cell, outfile=None, linewidth=3, alpha=0.3, show=False):
+def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, show=False, outfile=None):
     """
     Make a snapshot of the `particle`s in the `cell` and save the
     image in `outfile`. The image is returned for further
@@ -41,6 +53,8 @@ def show_matplotlib(particle, cell, outfile=None, linewidth=3, alpha=0.3, show=F
     import matplotlib.pyplot as plt
     from .particle import distinct_species
 
+    if output_file is not None:
+        outfile = output_file
     color_db = ['b', 'r', 'g', 'y']
     species = distinct_species(particle)
     fig = plt.figure()
@@ -61,10 +75,11 @@ def show_matplotlib(particle, cell, outfile=None, linewidth=3, alpha=0.3, show=F
     return fig
 
 
-def show_ovito(particle, cell, outfile=None, radius=0.35,
-               viewport=None, callback=None, tmpdir=None,
+def show_ovito(particle, cell, output_file=None, color='species',
+               radius=0.35, viewport=None, callback=None, tmpdir=None,
                camera_dir=(0, 1, 0), camera_pos=(0, -10, 0),
-               size=(640, 480), zoom=True, perspective=False):
+               size=(640, 480), zoom=True, perspective=False,
+               color_map='viridis', color_normalize=False, outfile=None):
     """
     Render image of particles in cell using ovito. The image is
     returned for visualization in jupyter notebooks.
@@ -74,6 +89,44 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     from ovito.vis import Viewport, TachyonRenderer
     import tempfile
     from atooms.core.utils import mkdir
+
+    if output_file is not None:
+        outfile = output_file
+    
+    # Color coding
+    color_attr = [getattr(p, color) for p in particle]
+    is_discrete = isinstance(color_attr[0], (str, int))
+    # Corresponding color system
+    if is_discrete:
+        # Discrete attribute
+        color_db = sorted(list(set(color_attr)))
+        color_db.sort()
+        palette = [_hex_to_rgb(c) for c in _palette]
+        colors = []
+        for p in particle:
+            colors.append(palette[color_db.index(getattr(p, color))])
+    else:
+        # Continuous attribute
+        try:
+            # Try with matplotlib
+            import matplotlib
+            import matplotlib.cm
+            colormap = matplotlib.cm.get_cmap(color_map)
+            if color_normalize:
+                norm = matplotlib.colors.Normalize()
+                norm.autoscale(color_attr)
+                colors = colormap(norm(color_attr))
+            else:
+                colors = colormap(color_attr)
+        except ImportError:
+            # Fallback
+            if color_normalize:
+                c_min, c_max = min(color_attr), max(color_attr)
+                if c_min != c_max:
+                    colors = [[(c - c_min) / (c_max - c_min), 0.3,
+                               (c_max - c) / (c_max - c_min)] for c in color_attr]
+            else:
+                colors = [[c, 0.3, c] for c in color_attr]
 
     # Make sure dirname exists
     if outfile is not None:
@@ -85,11 +138,12 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
 
     # Self-contained EXYZ dump (it is not clean to use trajectories here)
     fh.write('{}\n'.format(len(particle)))
-    fh.write('Properties=species:S:1:pos:R:3 Lattice="{},0.,0.,0.,{},0.,0.,0.,{}"\n'.format(*cell.side))
-    for p in particle:
-        fh.write('{} {} {} {}\n'.format(p.species, *p.position))
+    fh.write('Properties=species:S:1:pos:R:3:radius:R:1:color:R:3 Lattice="{},0.,0.,0.,{},0.,0.,0.,{}"\n'.format(*cell.side))
+    for i, p in enumerate(particle):
+        c = colors[i]
+        fh.write('{} {} {} {} {} {} {} {}\n'.format(p.species, *p.position, p.radius, *c))
     fh.close()
-
+    
     # Ovito stuff. Can be customized by client code.
     pipeline = import_file(tmp_file)
     # Ovito seems to ignore the lattice info of exyz file
@@ -100,7 +154,7 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     pipeline.source.data.cell_[:, 3] = -cell.side/2
     # Scale radius by default
     vis_element = pipeline.source.data.particles.vis
-    vis_element.radius = radius
+    vis_element.radius *= radius
     # Apply client code callback
     if callback:
         callback(pipeline)

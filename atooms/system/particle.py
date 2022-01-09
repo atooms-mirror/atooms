@@ -406,7 +406,6 @@ def _lattice(N, d=3):
     n_max = 100
     for n in range(1, n_max):
         if n**d >= N:
-            n = n + 1
             break
 
     # Put particles on a cubic lattice
