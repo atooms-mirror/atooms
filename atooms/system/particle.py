@@ -23,11 +23,11 @@ class Particle(object):
         if position is None:
             self.position = numpy.zeros(_ndim)
         else:
-            self.position = numpy.asarray(position)
+            self.position = numpy.asarray(position, dtype='float64')
         if velocity is None:
             self.velocity = numpy.zeros(_ndim)
         else:
-            self.velocity = numpy.asarray(velocity)
+            self.velocity = numpy.asarray(velocity, dtype='float64')
 
     @property
     def diameter(self):
