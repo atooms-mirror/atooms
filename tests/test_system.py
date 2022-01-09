@@ -417,12 +417,6 @@ class Test(unittest.TestCase):
             except AttributeError:
                 pass
 
-    def test_system_composition(self):
-        from atooms.system.particle import composition
-        self.assertEqual(dict(composition(System(composition={'Si': 4, 'O': 2}).particle)), {'Si': 4, 'O': 2})
-        self.assertEqual(dict(composition(System(composition={'B': 4}).particle)), {'B': 4})
-        self.assertEqual(dict(composition(System(composition={'A': 4, 'B': 10, 'C': 2}).particle)), {'A': 4, 'B': 10, 'C': 2})
-            
     def test_decimate(self):
         from atooms.system import Particle, System
         from atooms.system.particle import composition, decimate
@@ -467,6 +461,17 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(rotated[1].position[1], 1, 6)
         self.assertAlmostEqual(rotated[2].position[1], 2, 6)
 
+    def test_init(self):
+        """Test __init__() syntax"""
+        self.assertEqual(len(System(N=1).particle), 1)
+        self.assertEqual(len(System(N=10).particle), 10)
+        self.assertEqual(len(System(N=100).particle), 100)
+        self.assertEqual(System(N=10).composition, {'A': 10})
+        self.assertEqual(System(N={'B': 4}).composition, {'B': 4})
+        self.assertEqual(System(N={'Si': 4, 'O': 2}).composition, {'Si': 4, 'O': 2})
+        self.assertEqual(System(N={'A': 4, 'B': 10, 'C': 2}).composition, {'A': 4, 'B': 10, 'C': 2})
+        self.assertAlmostEqual(System(N={'Si': 10, 'O': 20}).concentration, {'Si': 10/30., 'O': 20/30.})
+            
 
 if __name__ == '__main__':
     unittest.main()

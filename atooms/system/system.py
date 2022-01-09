@@ -21,7 +21,20 @@ class System(object):
 
     def __init__(self, particle=None, cell=None, interaction=None,
                  thermostat=None, barostat=None, reservoir=None,
-                 wall=None, composition=None, d=3):
+                 wall=None, N=0, d=3):
+        """
+        Create a `System` with requested objects.
+
+        If provided, `particle` must be a list of `Particle`s.
+
+        If `N` is provided and is an `int`, the system is filled with
+        `N` particles starting from a crystalline template in a
+        unit-length sided `Cell` in `d` dimensions.
+
+        If `N` is a `dict` specifying a target composition, ex. `{'A':
+        N_A, 'B': N_B, ...}`, the system is filled as above but
+        setting the species as requested. The assignement is random.
+        """
         if particle is None:
             particle = []
         self.particle = particle
@@ -33,25 +46,18 @@ class System(object):
         self.reservoir = reservoir
         self.wall = wall
 
-        # If we ask for a specific composition (N_1, N_2, ...), with
-        # fill the system with particles of appropriate species
-        # starting from a crystalline template at unit density
-        if composition is not None:
+        # Initialize system
+        if N != 0:
             from .particle import _lattice
             from .cell import Cell
-            N = sum(composition.values())
-            self.particle = _lattice(N, d)
+            assert len(particle) == 0
+            if isinstance(N, int):
+                N = {'A': N}
+            npart = sum(N.values())
+            self.particle = _lattice(npart, d)
             self.cell = Cell(numpy.ones(d))
-            # First assign species sequentially
-            cum = 1
-            for species in composition:
-                n = composition[species]
-                for j in range(cum, cum + n):
-                    self.particle[j - 1].species = species
-                cum += n
-            # Now randomize the species
-            self.particle = random.sample(self.particle, len(self.particle))
-        
+            self.set_composition(N)
+
         # Internal data dictionary for array dumps
         self._data = None
 
@@ -191,6 +197,33 @@ class System(object):
             for p in self.particle:
                 p.velocity *= fac
 
+    @property
+    def composition(self):
+        """Chemical composition"""
+        from .particle import composition
+        return dict(composition(self.particle))
+
+    @composition.setter
+    def composition(self, value):
+        self.set_composition(value)
+
+    def set_composition(self, N):
+        """Set the chemical composition as specified in the `N` dictionary."""
+        # First assign species sequentially
+        cum = 1
+        for species in N:
+            n = N[species]
+            for j in range(cum, cum + n):
+                self.particle[j - 1].species = species
+            cum += n
+        # Now randomize the species
+        self.particle = random.sample(self.particle, len(self.particle))
+
+    @property
+    def concentration(self):
+        """Chemical concentration"""
+        return {k: v / len(self.particle) for k, v in self.composition.items()}
+        
     def scale_velocities(self, factor):
         """Scale particles' velocities by `factor`."""
         for p in self.particle:
@@ -478,9 +511,9 @@ class System(object):
         from .particle import composition
         txt = ''
         if self.particle:
-            c = dict(composition(self.particle))
             txt += 'system composed by {0} particles\n'.format(len(self.particle))
-            txt += 'with chemical composition C={}\n'.format(c)
+            txt += 'with chemical composition C={}\n'.format(self.composition)
+            txt += 'with chemical concentration x={}\n'.format(self.concentration)
         if self.cell:
             txt += 'enclosed in a {0.shape} box at number density rho={1:.6f}\n'.format(self.cell, self.density)
         if self.wall:
