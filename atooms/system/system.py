@@ -223,7 +223,7 @@ class System(object):
     @property
     def concentration(self):
         """Chemical concentration"""
-        return {k: v / len(self.particle) for k, v in self.composition.items()}
+        return {k: float(v) / len(self.particle) for k, v in self.composition.items()}
         
     def scale_velocities(self, factor):
         """Scale particles' velocities by `factor`."""
