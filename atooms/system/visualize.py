@@ -85,9 +85,9 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
 
     # Self-contained EXYZ dump (it is not clean to use trajectories here)
     fh.write('{}\n'.format(len(particle)))
-    fh.write('Properties=species:S:1:pos:R:3 Lattice="{},0.,0.,0.,{},0.,0.,0.,{}"\n'.format(*cell.side))
+    fh.write('Properties=species:S:1:pos:R:3:radius:R:1 Lattice="{},0.,0.,0.,{},0.,0.,0.,{}"\n'.format(*cell.side))
     for p in particle:
-        fh.write('{} {} {} {}\n'.format(p.species, *p.position))
+        fh.write('{} {} {} {} {}\n'.format(p.species, *p.position, p.radius))
     fh.close()
 
     # Ovito stuff. Can be customized by client code.
@@ -100,7 +100,7 @@ def show_ovito(particle, cell, outfile=None, radius=0.35,
     pipeline.source.data.cell_[:, 3] = -cell.side/2
     # Scale radius by default
     vis_element = pipeline.source.data.particles.vis
-    vis_element.radius = radius
+    vis_element.radius *= radius
     # Apply client code callback
     if callback:
         callback(pipeline)
