@@ -210,15 +210,14 @@ class System(object):
     def set_composition(self, N):
         """Set the chemical composition as specified in the `N` dictionary."""
         assert sum(N.values()) == len(self.particle), 'composition {} does not match N = {}'.format(N, len(self.particle))
-        # First assign species sequentially
-        cum = 1
-        for species in N:
-            n = N[species]
-            for j in range(cum, cum + n):
-                self.particle[j - 1].species = species
-            cum += n
-        # Now randomize the species
-        self.particle = random.sample(self.particle, len(self.particle))
+        # Create array of species
+        species = []
+        for sp in N:
+            species += [sp] * N[sp]
+        # Randomize the species and assign them
+        random.shuffle(species)
+        for sp, p in zip(species, self.particle):
+            p.species = sp
 
     @property
     def concentration(self):
