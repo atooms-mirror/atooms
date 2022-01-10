@@ -470,8 +470,9 @@ class Test(unittest.TestCase):
         self.assertEqual(System(N={'B': 4}).composition, {'B': 4})
         self.assertEqual(System(N={'Si': 4, 'O': 2}).composition, {'Si': 4, 'O': 2})
         self.assertEqual(System(N={'A': 4, 'B': 10, 'C': 2}).composition, {'A': 4, 'B': 10, 'C': 2})
-        self.assertAlmostEqual(System(N={'Si': 10, 'O': 20}).concentration, {'Si': 10/30., 'O': 20/30.})
-            
+        self.assertAlmostEqual(System(N={'Si': 10, 'O': 20}).concentration['Si'], 10/30.)
+        self.assertAlmostEqual(System(N={'Si': 10, 'O': 20}).concentration['O'], 20/30.)
+
     def test_replicate(self):
         s = System(N=2**3, d=2)
         L = s.cell.side[0]
@@ -489,6 +490,7 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(min(x[1, :]), -max(x[1, :]))
         self.assertAlmostEqual(s.cell.side[1], L * 4)
         # s.show(outfile='1.png')
-        
+
+
 if __name__ == '__main__':
     unittest.main()

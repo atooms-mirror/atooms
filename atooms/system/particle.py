@@ -417,6 +417,5 @@ def _lattice(N, d=3):
         particle.append(Particle(position=r))
 
     # Etch particles from the crystal to match the target N
-    print(N, len(particle))
     particle = random.sample(particle, N)
     return particle
