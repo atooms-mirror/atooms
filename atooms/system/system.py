@@ -378,8 +378,9 @@ class System(object):
         for p in self.particle:
             p.fold(self.cell)
 
-    def replicate(self, n, axis):
-        """Replicate the system `n` times along `axis`"""
+    def replicate(self, times, axis):
+        """Replicate the system several `times` along `axis`"""
+        n = times
         assert n > 1
         npart = len(self.particle)
         L = self.cell.side[axis]

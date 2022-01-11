@@ -52,11 +52,11 @@ class Particle(object):
         if position is None:
             self.position = numpy.zeros(_ndim)
         else:
-            self.position = numpy.asarray(position)
+            self.position = numpy.asarray(position, dtype=&#39;float64&#39;)
         if velocity is None:
             self.velocity = numpy.zeros(_ndim)
         else:
-            self.velocity = numpy.asarray(velocity)
+            self.velocity = numpy.asarray(velocity, dtype=&#39;float64&#39;)
 
     @property
     def diameter(self):
@@ -419,7 +419,35 @@ def decimate(particle, N):
             ii = idx_species[species][i]
             pnew.append(particle[ii])
 
-    return pnew</code></pre>
+    return pnew
+
+
+def _lattice(N, d=3):
+    &#34;&#34;&#34;
+    Return a list of `N` particles on the sites of a simple cubic
+    lattice in `d`-dimensional space. A perfect crystalline
+    configuration is etched so as to match the input value of `N`. The
+    particles&#39; position are between -0.5 and 0.5 along each axis.
+    &#34;&#34;&#34;
+    import random
+
+    # Find minimum number of particles to match input N
+    n_max = 100
+    for n in range(1, n_max):
+        if n**d &gt;= N:
+            break
+
+    # Put particles on a cubic lattice
+    a = 1.0 / n
+    particle = []
+    from itertools import product
+    for site in product(range(n), repeat=d):
+        r = a * numpy.array(site) + a/2 - 0.5
+        particle.append(Particle(position=r))
+
+    # Etch particles from the crystal to match the target N
+    particle = random.sample(particle, N)
+    return particle</code></pre>
 </details>
 </section>
 <section>
@@ -813,11 +841,11 @@ of the set.</p></div>
         if position is None:
             self.position = numpy.zeros(_ndim)
         else:
-            self.position = numpy.asarray(position)
+            self.position = numpy.asarray(position, dtype=&#39;float64&#39;)
         if velocity is None:
             self.velocity = numpy.zeros(_ndim)
         else:
-            self.velocity = numpy.asarray(velocity)
+            self.velocity = numpy.asarray(velocity, dtype=&#39;float64&#39;)
 
     @property
     def diameter(self):

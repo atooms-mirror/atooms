@@ -15,45 +15,49 @@ Quick start
 -----------
 
 The goal of atooms is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
-The simulation data are stored in trajectory files, which are easy to analyze, manipulate and convert with atooms.
 
-Here we read a multi-frame trajectory in [xyz format](https://en.wikipedia.org/wiki/XYZ_format). Each frame holds the state of the system at a given instant of time during the simulation. Accessing the coordinates of a particle goes like this:
+As an example, we set up a mixture of two types of particles in an elongated box with rough walls on the x-axis boundaries. We set the number density to 1 (in reduced units).
 ```python
-from atooms.trajectory import Trajectory
+from atooms.system import System
 
-with Trajectory('input.xyz') as trajectory:
-    for system in trajectory:
-        print(system.particle[0].position)
-```
-Note that trajectories support iteration and indexing, just like lists.
-
-Here we pick the last frame of the trajectory, change the density of the system to unity and write this new configuration to a trajectory format suitable for the [RUMD](http://rumd.org) simulation package:
-```python
-with Trajectory('input.xyz') as trajectory:
-    system = trajectory[-1]
-    system.density = 1.0
-    print('New density:', len(system.particle) / system.cell.volume)
-
-from atooms.trajectory import TrajectoryRUMD
-with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
-    trajectory.write(system)
+system = System(N=27)
+system.replicate(times=4, axis=0)
+system.density = 1.0
+system.composition = {'A': len(system.particle) - 10, 'B': 10}
+for p in system.particle:
+    if abs(p.position[0]) > 0.7 * system.cell.side[0] / 2:
+        # Freeze particles on the cell borders along the x-axis
+        p.mass = 1e100
+        p.species = 'C'
+    else:
+        # Randomly displace those in the bulk
+        import numpy.random
+        p.position += (numpy.random.random() - 0.5) * 0.2
+        p.fold(system.cell)
+system.show('ovito')
 ```
 
-atooms has a generic simulation interface that abstracts out most of the common parts of particle-based simulations. The actual simulation code is wrapped by a simulation backend that exposes a minimal but consistent interface. This enables one to develop more complex simulation frameworks (e.g., [parallel tempering](https://framagit.org/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
+![](https://framagit.org/atooms/atooms/-/raw/master/snapshot.png)
 
-Here we can now a short molecular dynamics simulation with the RUMD backend, using a Lennard-Jones potential:
+Simulation data are stored in trajectory files, which are easy to manipulate with atooms. Here, we write our system in a single-frame trajectory file using the [xyz format](https://en.wikipedia.org/wiki/XYZ_format).
+
 ```python
-import rumd
-from atooms.backends.rumd import RUMD
-from atooms.simulation import Simulation
+from atooms.trajectory import TrajectoryXYZ
 
-potential = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
-potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
-backend = RUMD('rescaled.xyz.gz', [potential], integrator='nve'
-sim = Simulation(backend)
-sim.run(1000)
-print('Final temperature and density:', sim.system.temperature, sim.system.density)
+with TrajectoryXYZ('input.xyz', 'w') as th:
+    th.variables = ['species', 'position', 'mass']
+    th.write(system)
 ```
+
+Here a few things one can do with atooms and its components:
+- start a simulation using one of the [supported backends]() or your own code
+- convert between different [trajectory formats]() or add you own
+- compute [static and dynamic correlation functions]()
+- explore and analyze the [potential energy landscape]()
+- run efficient [multi-GPU parallel tempering]() simulations
+- run [transition path sampling]() simulations
+- explore the [repository of models]() for simple liquids and glasses
+and more.
 
 Documentation
 -------------
@@ -79,10 +83,10 @@ Contributing
 ------------
 You are welcome to contribute to this project! Please have a look at [these guidelines](https://framagit.org/atooms/atooms/-/blob/atooms-3.0.0/CONTRIBUTING.md).
 
-Additional packages 
+Component packages 
 -------------------
-Atooms is composable: it is easy to add new functionalities, and just those you actually need.
-Additional packages are available from the [atooms main repository](https://framagit.org/atooms).
+Atooms is modular: it is easy to add new functionalities, and just those you actually need.
+Component packages are available from the [atooms main repository](https://framagit.org/atooms).
 These packages will be installed in the atooms namespace to prevent name clashing.
 
 If you want to add your own package to the atooms namespace, structure it this way
@@ -98,8 +102,7 @@ from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 ```
 
-Add the package root folder to $PYTHONPATH. You can now import your package as
-
+Install =your_package= and you are ready to go
 ```python
 import atooms.your_package
 ```

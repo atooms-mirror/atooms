@@ -44,6 +44,7 @@ barostat or a particle reservoir.
 &#34;&#34;&#34;
 
 import copy
+import random
 import numpy
 
 
@@ -53,7 +54,20 @@ class System(object):
 
     def __init__(self, particle=None, cell=None, interaction=None,
                  thermostat=None, barostat=None, reservoir=None,
-                 wall=None):
+                 wall=None, N=0, d=3):
+        &#34;&#34;&#34;
+        Create a `System` with requested objects.
+
+        If provided, `particle` must be a list of `Particle`s.
+
+        If `N` is provided and is an `int`, the system is filled with
+        `N` particles starting from a crystalline template in a
+        unit-length sided `Cell` in `d` dimensions.
+
+        If `N` is a `dict` specifying a target composition, ex. `{&#39;A&#39;:
+        N_A, &#39;B&#39;: N_B, ...}`, the system is filled as above but
+        setting the species as requested. The assignement is random.
+        &#34;&#34;&#34;
         if particle is None:
             particle = []
         self.particle = particle
@@ -64,6 +78,19 @@ class System(object):
         self.barostat = barostat
         self.reservoir = reservoir
         self.wall = wall
+
+        # Initialize system
+        if N != 0:
+            from .particle import _lattice
+            from .cell import Cell
+            assert len(particle) == 0
+            if isinstance(N, int):
+                N = {&#39;A&#39;: N}
+            npart = sum(N.values())
+            self.particle = _lattice(npart, d)
+            self.cell = Cell(numpy.ones(d))
+            self.set_composition(N)
+
         # Internal data dictionary for array dumps
         self._data = None
 
@@ -203,6 +230,33 @@ class System(object):
             for p in self.particle:
                 p.velocity *= fac
 
+    @property
+    def composition(self):
+        &#34;&#34;&#34;Chemical composition&#34;&#34;&#34;
+        from .particle import composition
+        return dict(composition(self.particle))
+
+    @composition.setter
+    def composition(self, value):
+        self.set_composition(value)
+
+    def set_composition(self, N):
+        &#34;&#34;&#34;Set the chemical composition as specified in the `N` dictionary.&#34;&#34;&#34;
+        assert sum(N.values()) == len(self.particle), &#39;composition {} does not match N = {}&#39;.format(N, len(self.particle))
+        # Create array of species
+        species = []
+        for sp in N:
+            species += [sp] * N[sp]
+        # Randomize the species and assign them
+        random.shuffle(species)
+        for sp, p in zip(species, self.particle):
+            p.species = sp
+
+    @property
+    def concentration(self):
+        &#34;&#34;&#34;Chemical concentration&#34;&#34;&#34;
+        return {k: float(v) / len(self.particle) for k, v in self.composition.items()}
+        
     def scale_velocities(self, factor):
         &#34;&#34;&#34;Scale particles&#39; velocities by `factor`.&#34;&#34;&#34;
         for p in self.particle:
@@ -357,6 +411,24 @@ class System(object):
         for p in self.particle:
             p.fold(self.cell)
 
+    def replicate(self, times, axis):
+        &#34;&#34;&#34;Replicate the system several `times` along `axis`&#34;&#34;&#34;
+        n = times
+        assert n &gt; 1
+        npart = len(self.particle)
+        L = self.cell.side[axis]
+        for p in self.particle:
+            p.position[axis] += L/2
+        for i in range(1, n):
+            for j in range(npart):
+                p = copy.deepcopy(self.particle[j])
+                p.position[axis] = self.particle[j].position[axis] + i*L
+                self.particle.append(p)
+        self.cell.side[axis] *= n
+        for p in self.particle:
+            #p.position[d] -= (L / 2 + L * (n-1))
+            p.position[axis] -= L * n / 2
+            
     def dump(self, what=None, order=&#39;C&#39;, dtype=None, view=False, clear=False, flat=False):
         &#34;&#34;&#34;
         Return a numpy array with system properties specified by `what`.
@@ -487,9 +559,12 @@ class System(object):
         return data
 
     def __str__(self):
+        from .particle import composition
         txt = &#39;&#39;
         if self.particle:
             txt += &#39;system composed by {0} particles\n&#39;.format(len(self.particle))
+            txt += &#39;with chemical composition C={}\n&#39;.format(self.composition)
+            txt += &#39;with chemical concentration x={}\n&#39;.format(self.concentration)
         if self.cell:
             txt += &#39;enclosed in a {0.shape} box at number density rho={1:.6f}\n&#39;.format(self.cell, self.density)
         if self.wall:
@@ -593,10 +668,18 @@ class System(object):
 <dl>
 <dt id="atooms.system.system.System"><code class="flex name class">
 <span>class <span class="ident">System</span></span>
-<span>(</span><span>particle=None, cell=None, interaction=None, thermostat=None, barostat=None, reservoir=None, wall=None)</span>
+<span>(</span><span>particle=None, cell=None, interaction=None, thermostat=None, barostat=None, reservoir=None, wall=None, N=0, d=3)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>System class.</p></div>
+<div class="desc"><p>System class.</p>
+<p>Create a <code><a title="atooms.system.system.System" href="#atooms.system.system.System">System</a></code> with requested objects.</p>
+<p>If provided, <code>particle</code> must be a list of <code>Particle</code>s.</p>
+<p>If <code>N</code> is provided and is an <code>int</code>, the system is filled with
+<code>N</code> particles starting from a crystalline template in a
+unit-length sided <code>Cell</code> in <code>d</code> dimensions.</p>
+<p>If <code>N</code> is a <code>dict</code> specifying a target composition, ex. <code>{'A':
+N_A, 'B': N_B, ...}</code>, the system is filled as above but
+setting the species as requested. The assignement is random.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -607,7 +690,20 @@ class System(object):
 
     def __init__(self, particle=None, cell=None, interaction=None,
                  thermostat=None, barostat=None, reservoir=None,
-                 wall=None):
+                 wall=None, N=0, d=3):
+        &#34;&#34;&#34;
+        Create a `System` with requested objects.
+
+        If provided, `particle` must be a list of `Particle`s.
+
+        If `N` is provided and is an `int`, the system is filled with
+        `N` particles starting from a crystalline template in a
+        unit-length sided `Cell` in `d` dimensions.
+
+        If `N` is a `dict` specifying a target composition, ex. `{&#39;A&#39;:
+        N_A, &#39;B&#39;: N_B, ...}`, the system is filled as above but
+        setting the species as requested. The assignement is random.
+        &#34;&#34;&#34;
         if particle is None:
             particle = []
         self.particle = particle
@@ -618,6 +714,19 @@ class System(object):
         self.barostat = barostat
         self.reservoir = reservoir
         self.wall = wall
+
+        # Initialize system
+        if N != 0:
+            from .particle import _lattice
+            from .cell import Cell
+            assert len(particle) == 0
+            if isinstance(N, int):
+                N = {&#39;A&#39;: N}
+            npart = sum(N.values())
+            self.particle = _lattice(npart, d)
+            self.cell = Cell(numpy.ones(d))
+            self.set_composition(N)
+
         # Internal data dictionary for array dumps
         self._data = None
 
@@ -757,6 +866,33 @@ class System(object):
             for p in self.particle:
                 p.velocity *= fac
 
+    @property
+    def composition(self):
+        &#34;&#34;&#34;Chemical composition&#34;&#34;&#34;
+        from .particle import composition
+        return dict(composition(self.particle))
+
+    @composition.setter
+    def composition(self, value):
+        self.set_composition(value)
+
+    def set_composition(self, N):
+        &#34;&#34;&#34;Set the chemical composition as specified in the `N` dictionary.&#34;&#34;&#34;
+        assert sum(N.values()) == len(self.particle), &#39;composition {} does not match N = {}&#39;.format(N, len(self.particle))
+        # Create array of species
+        species = []
+        for sp in N:
+            species += [sp] * N[sp]
+        # Randomize the species and assign them
+        random.shuffle(species)
+        for sp, p in zip(species, self.particle):
+            p.species = sp
+
+    @property
+    def concentration(self):
+        &#34;&#34;&#34;Chemical concentration&#34;&#34;&#34;
+        return {k: float(v) / len(self.particle) for k, v in self.composition.items()}
+        
     def scale_velocities(self, factor):
         &#34;&#34;&#34;Scale particles&#39; velocities by `factor`.&#34;&#34;&#34;
         for p in self.particle:
@@ -911,6 +1047,24 @@ class System(object):
         for p in self.particle:
             p.fold(self.cell)
 
+    def replicate(self, times, axis):
+        &#34;&#34;&#34;Replicate the system several `times` along `axis`&#34;&#34;&#34;
+        n = times
+        assert n &gt; 1
+        npart = len(self.particle)
+        L = self.cell.side[axis]
+        for p in self.particle:
+            p.position[axis] += L/2
+        for i in range(1, n):
+            for j in range(npart):
+                p = copy.deepcopy(self.particle[j])
+                p.position[axis] = self.particle[j].position[axis] + i*L
+                self.particle.append(p)
+        self.cell.side[axis] *= n
+        for p in self.particle:
+            #p.position[d] -= (L / 2 + L * (n-1))
+            p.position[axis] -= L * n / 2
+            
     def dump(self, what=None, order=&#39;C&#39;, dtype=None, view=False, clear=False, flat=False):
         &#34;&#34;&#34;
         Return a numpy array with system properties specified by `what`.
@@ -1041,9 +1195,12 @@ class System(object):
         return data
 
     def __str__(self):
+        from .particle import composition
         txt = &#39;&#39;
         if self.particle:
             txt += &#39;system composed by {0} particles\n&#39;.format(len(self.particle))
+            txt += &#39;with chemical composition C={}\n&#39;.format(self.composition)
+            txt += &#39;with chemical concentration x={}\n&#39;.format(self.concentration)
         if self.cell:
             txt += &#39;enclosed in a {0.shape} box at number density rho={1:.6f}\n&#39;.format(self.cell, self.density)
         if self.wall:
@@ -1161,6 +1318,33 @@ def cm_position(self):
 def cm_velocity(self):
     &#34;&#34;&#34;Center-of-mass velocity.&#34;&#34;&#34;
     return self.cm(&#39;velocity&#39;)</code></pre>
+</details>
+</dd>
+<dt id="atooms.system.system.System.composition"><code class="name">var <span class="ident">composition</span></code></dt>
+<dd>
+<div class="desc"><p>Chemical composition</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def composition(self):
+    &#34;&#34;&#34;Chemical composition&#34;&#34;&#34;
+    from .particle import composition
+    return dict(composition(self.particle))</code></pre>
+</details>
+</dd>
+<dt id="atooms.system.system.System.concentration"><code class="name">var <span class="ident">concentration</span></code></dt>
+<dd>
+<div class="desc"><p>Chemical concentration</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def concentration(self):
+    &#34;&#34;&#34;Chemical concentration&#34;&#34;&#34;
+    return {k: float(v) / len(self.particle) for k, v in self.composition.items()}</code></pre>
 </details>
 </dd>
 <dt id="atooms.system.system.System.density"><code class="name">var <span class="ident">density</span></code></dt>
@@ -1679,6 +1863,34 @@ energy per particle.</p></div>
         return 0.0</code></pre>
 </details>
 </dd>
+<dt id="atooms.system.system.System.replicate"><code class="name flex">
+<span>def <span class="ident">replicate</span></span>(<span>self, times, axis)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Replicate the system several <code>times</code> along <code>axis</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def replicate(self, times, axis):
+    &#34;&#34;&#34;Replicate the system several `times` along `axis`&#34;&#34;&#34;
+    n = times
+    assert n &gt; 1
+    npart = len(self.particle)
+    L = self.cell.side[axis]
+    for p in self.particle:
+        p.position[axis] += L/2
+    for i in range(1, n):
+        for j in range(npart):
+            p = copy.deepcopy(self.particle[j])
+            p.position[axis] = self.particle[j].position[axis] + i*L
+            self.particle.append(p)
+    self.cell.side[axis] *= n
+    for p in self.particle:
+        #p.position[d] -= (L / 2 + L * (n-1))
+        p.position[axis] -= L * n / 2</code></pre>
+</details>
+</dd>
 <dt id="atooms.system.system.System.scale_velocities"><code class="name flex">
 <span>def <span class="ident">scale_velocities</span></span>(<span>self, factor)</span>
 </code></dt>
@@ -1692,6 +1904,28 @@ energy per particle.</p></div>
     &#34;&#34;&#34;Scale particles&#39; velocities by `factor`.&#34;&#34;&#34;
     for p in self.particle:
         p.velocity *= factor</code></pre>
+</details>
+</dd>
+<dt id="atooms.system.system.System.set_composition"><code class="name flex">
+<span>def <span class="ident">set_composition</span></span>(<span>self, N)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Set the chemical composition as specified in the <code>N</code> dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_composition(self, N):
+    &#34;&#34;&#34;Set the chemical composition as specified in the `N` dictionary.&#34;&#34;&#34;
+    assert sum(N.values()) == len(self.particle), &#39;composition {} does not match N = {}&#39;.format(N, len(self.particle))
+    # Create array of species
+    species = []
+    for sp in N:
+        species += [sp] * N[sp]
+    # Randomize the species and assign them
+    random.shuffle(species)
+    for sp, p in zip(species, self.particle):
+        p.species = sp</code></pre>
 </details>
 </dd>
 <dt id="atooms.system.system.System.set_density"><code class="name flex">
@@ -1889,7 +2123,9 @@ or memory dellocation issues.</p></div>
 <li><code><a title="atooms.system.system.System.cm" href="#atooms.system.system.System.cm">cm</a></code></li>
 <li><code><a title="atooms.system.system.System.cm_position" href="#atooms.system.system.System.cm_position">cm_position</a></code></li>
 <li><code><a title="atooms.system.system.System.cm_velocity" href="#atooms.system.system.System.cm_velocity">cm_velocity</a></code></li>
+<li><code><a title="atooms.system.system.System.composition" href="#atooms.system.system.System.composition">composition</a></code></li>
 <li><code><a title="atooms.system.system.System.compute_interaction" href="#atooms.system.system.System.compute_interaction">compute_interaction</a></code></li>
+<li><code><a title="atooms.system.system.System.concentration" href="#atooms.system.system.System.concentration">concentration</a></code></li>
 <li><code><a title="atooms.system.system.System.density" href="#atooms.system.system.System.density">density</a></code></li>
 <li><code><a title="atooms.system.system.System.distinct_species" href="#atooms.system.system.System.distinct_species">distinct_species</a></code></li>
 <li><code><a title="atooms.system.system.System.dump" href="#atooms.system.system.System.dump">dump</a></code></li>
@@ -1903,7 +2139,9 @@ or memory dellocation issues.</p></div>
 <li><code><a title="atooms.system.system.System.particle" href="#atooms.system.system.System.particle">particle</a></code></li>
 <li><code><a title="atooms.system.system.System.potential_energy" href="#atooms.system.system.System.potential_energy">potential_energy</a></code></li>
 <li><code><a title="atooms.system.system.System.pressure" href="#atooms.system.system.System.pressure">pressure</a></code></li>
+<li><code><a title="atooms.system.system.System.replicate" href="#atooms.system.system.System.replicate">replicate</a></code></li>
 <li><code><a title="atooms.system.system.System.scale_velocities" href="#atooms.system.system.System.scale_velocities">scale_velocities</a></code></li>
+<li><code><a title="atooms.system.system.System.set_composition" href="#atooms.system.system.System.set_composition">set_composition</a></code></li>
 <li><code><a title="atooms.system.system.System.set_density" href="#atooms.system.system.System.set_density">set_density</a></code></li>
 <li><code><a title="atooms.system.system.System.set_temperature" href="#atooms.system.system.System.set_temperature">set_temperature</a></code></li>
 <li><code><a title="atooms.system.system.System.show" href="#atooms.system.system.System.show">show</a></code></li>

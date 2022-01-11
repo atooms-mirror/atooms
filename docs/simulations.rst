@@ -4,7 +4,9 @@
 Simulations
 -----------
 
-Within atooms, a **simulation** is a high-level class that encapsulates some common tasks and provides a consistent interface to the user, while **backends** are classes that actually make the system evolve. Here, we implement a minimal backend to run a simulation.
+atooms provides a generic interface that abstracts out most of the common tasks of particle-based simulations. The actual simulation is performed by a simulation backend, which exposes a minimal but consistent interface. This enables one to develop complex simulation frameworks (e.g., [parallel tempering](`https://framagit.org/atooms/parallel_tempering <https://framagit.org/atooms/parallel_tempering>`_)) that are essentially decoupled from the underlying simulation code.
+
+A **Simulation** is a high-level class that encapsulates some common tasks and provides a consistent interface to the user, while **backend** classes actually make the system evolve. Here, we implement a minimal backend to run a simulation.
 
 At a very minimum, a backend is a class that provides 
 
@@ -243,6 +245,37 @@ We can use the `postprocessing <https://gitlab.info-ufr.univ-montp2.fr/atooms/po
     plot 'lammps.xyz.pp.gr' u 1:2 noti w lp lc rgb 'red' pt 7
 
 .. image:: lammps_gr.png
+
+Molecular dynamics simulation with RUMD
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here we pick the last frame of the trajectory, change the density of the system to unity and write this new configuration to a trajectory format suitable for the `RUMD <http://rumd.org>`_ simulation package
+
+.. code:: python
+
+    with Trajectory('input.xyz') as trajectory:
+        system = trajectory[-1]
+        system.density = 1.0
+        print('New density:', len(system.particle) / system.cell.volume)
+
+    from atooms.trajectory import TrajectoryRUMD
+    with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
+        trajectory.write(system)
+
+Now we run a short molecular dynamics simulation with the ``RUMD`` backend, using a Lennard-Jones potential:
+
+.. code:: python
+
+    import rumd
+    from atooms.backends.rumd import RUMD
+    from atooms.simulation import Simulation
+
+    potential = rumd.Pot_LJ_12_6(cutoff_method=rumd.ShiftedPotential)
+    potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
+    backend = RUMD('rescaled.xyz.gz', [potential], integrator='nve'
+    sim = Simulation(backend)
+    sim.run(1000)
+    print('Final temperature and density:', sim.system.temperature, sim.system.density)
 
 Energy minimization with LAMMPS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
