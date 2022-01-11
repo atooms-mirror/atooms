@@ -20,10 +20,10 @@ As an example, we set up a mixture of two types of particles in an elongated box
 ```python
 from atooms.system import System
 
-system = System(N=27)
+system = System(N=64)
 system.replicate(times=4, axis=0)
 system.density = 1.0
-system.composition = {'A': len(system.particle) - 10, 'B': 10}
+system.composition = {'A': len(system.particle) - 40, 'B': 40}
 for p in system.particle:
     if abs(p.position[0]) > 0.7 * system.cell.side[0] / 2:
         # Freeze particles on the cell borders along the x-axis
@@ -32,7 +32,7 @@ for p in system.particle:
     else:
         # Randomly displace those in the bulk
         import numpy.random
-        p.position += (numpy.random.random() - 0.5) * 0.2
+        p.position += (numpy.random.random() - 0.5) * 0.3
         p.fold(system.cell)
 system.show('ovito')
 ```
@@ -103,7 +103,7 @@ from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)
 ```
 
-Install =your_package= and you are ready to go
+Install `your_package` and you are ready to go
 ```python
 import atooms.your_package
 ```
