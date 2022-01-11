@@ -50,14 +50,15 @@ with TrajectoryXYZ('input.xyz', 'w') as th:
 ```
 
 Here a few things one can do with atooms and its components:
-- start a simulation using one of the [supported backends]() or your own code
+- start a simulation using one of the [supported simulation backends]() or your own code
 - convert between different [trajectory formats]() or add you own
 - compute [static and dynamic correlation functions]()
 - explore and analyze the [potential energy landscape]()
 - run efficient [multi-GPU parallel tempering]() simulations
 - run [transition path sampling]() simulations
 - explore the [repository of models]() for simple liquids and glasses
-and more.
+
+and [more]().
 
 Documentation
 -------------
