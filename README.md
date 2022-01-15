@@ -9,27 +9,13 @@ Atooms
 [![pipeline](https://framagit.org/atooms/atooms/badges/master/pipeline.svg)](https://framagit.org/atooms/atooms/badges/master/pipeline.svg)
 [![coverage report](https://framagit.org/atooms/atooms/badges/master/coverage.svg)](https://framagit.org/atooms/atooms/-/commits/master)
 
-**atooms** is a Python framework for simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency.
-
-This is the base atooms package, which provides some core classes and functionalities. For instance, it allows you to
-- create [starting configurations](https://atooms.frama.io/atooms/tutorial/basics.html) for your simulations
-- convert between [trajectory file](https://atooms.frama.io/atooms/tutorial/trajectories.html) formats - even in-house ones
-- run molecular dynamics simulations using one of the [supported backends](https://atooms.frama.io/atooms/tutorial/simulations.html)
-
-Several [component packages](Component packages) are built on top of the core library. Here a few things one can do with them:
-- compute [static and dynamic correlation functions](https://framagit.org/atooms/postprocessing)
-- use the [models repository](https://framagit.org/atooms/models) to build an interaction model for simple liquids and glasses
-- explore and analyze the [potential energy landscape](https://framagit.org/atooms/landscape)
-- run efficient [multi-GPU parallel tempering]((https://framagit.org/atooms/parallel_tempering) simulations
+**atooms** is a high-level Python framework for simulations of interacting particles, such as molecular dynamics or Monte Carlo. This is the core package: it provides a consistent interface to the basic objects of particle-based simulations. [Feature packages](Component packages) are built on top of it and implement complex simulation methods and analysis tools.
 
 Quick start
 -----------
 
-The goal of the base atooms package is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
-
-As an example, we set up a mixture of two types of particles, A and B, in an elongated box. The number density is set to unity.
+Here is a small example for setting up a mixture of two types of particles, A and B, in a periodic elongated cell. The number density is set to unity.
 ```python
-import numpy
 from atooms.system import System
 
 system = System(N=64)
@@ -38,10 +24,11 @@ system.composition = {'A': 128, 'B': 128}
 system.density = 1.0
 ```
 
-Particles in the central part of the cell get a random displacement.
+Particles in the central part of the cell get a random displacement and are folded back in the simulation cell
 ```python
+import numpy
+
 for p in system.particle:
-    # Randomly displace particles in the bulk
     if abs(p.position[0]) < system.cell.side[0] / 4:
         p.position += 0.5 * (numpy.random.random() - 0.5)
         p.fold(system.cell)
@@ -59,7 +46,16 @@ with TrajectoryXYZ('input.xyz', 'w') as th:
     th.write(system)
 ```
 
-This trajectory file can be used to start a simulation using one the available [simulation backends](https://atooms.frama.io/atooms/tutorial/simulations.html) or your own code.
+The trajectory file can now be used to start a simulation using one the available [simulation backends](https://atooms.frama.io/atooms/tutorial/simulations.html) or your own code.
+
+Features
+--------
+
+- Focus on expressive, natural language
+- API refined over 10+ years towards consistency
+- Modular and extensible design via namespace packages
+- Built to interface to in-house codes and custom formats
+- Support for third-party simulation backends, with a focus on GPU codes
 
 Documentation
 -------------
@@ -85,12 +81,18 @@ Contributing
 ------------
 You are welcome to contribute to this project! Please have a look at [these guidelines](https://framagit.org/atooms/atooms/-/blob/atooms-3.0.0/CONTRIBUTING.md).
 
-Component packages 
+Feature packages 
 ------------------
 Atooms is modular: it is easy to add new functionalities, and just those you actually need.
-Component packages are available from the [atooms main repository](https://framagit.org/atooms).
 
-They are installed in the atooms namespace to prevent name clashing. If you want to add your own package to the atooms namespace, structure it this way
+Feature packages are available from the [atooms main repository](https://framagit.org/atooms). Here are a few things you can do with them:
+
+- Compute [static and dynamic correlation functions](https://framagit.org/atooms/postprocessing)
+- Use the [models repository](https://framagit.org/atooms/models) to define interaction potentials for simple liquids and glasses
+- Explore and analyze the [potential energy landscape](https://framagit.org/atooms/landscape)
+- Run efficient [multi-GPU parallel tempering](https://framagit.org/atooms/parallel_tempering) simulations
+
+They are installed in the `atooms` namespace to prevent name clashing. If you want to add your own feature package to the atooms namespace, structure it this way
 ```bash
 atooms/your_package
 atooms/your_package/__init__.py
