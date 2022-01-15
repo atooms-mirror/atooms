@@ -7,11 +7,11 @@ Each show() method relies on a specific, optional visualization backend.
 # These functions used to belong to system.particle
 
 _palette = [
-    "#d6493c",
-    "#ffd966",
-    "#43249f",
-    "#090966",
-    "#4b2b31",
+    "#3c44aa",
+    "#f0002f",
+    "#f58f20",
+    "#940650",
+    "#f0e694",
 ]
 
 def _hex_to_rgb(h):

@@ -9,47 +9,57 @@ Atooms
 [![pipeline](https://framagit.org/atooms/atooms/badges/master/pipeline.svg)](https://framagit.org/atooms/atooms/badges/master/pipeline.svg)
 [![coverage report](https://framagit.org/atooms/atooms/badges/master/coverage.svg)](https://framagit.org/atooms/atooms/-/commits/master)
 
-**atooms** is a Python framework for simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency. To achieve this, atooms relies on backends written in C, CUDA or Fortran.
+**atooms** is a Python framework for simulations of interacting particles. It makes it easy to develop simulation and analysis tools using an expressive language, without sacrificing efficiency.
+
+This is the base atooms package, which provides some core classes and functionalities. For instance, it allows you to
+- create [starting configurations](https://atooms.frama.io/atooms/tutorial/basics.html) for your simulations
+- convert between [trajectory file](https://atooms.frama.io/atooms/tutorial/trajectories.html) formats - even in-house ones
+- run molecular dynamics simulations using one of the [supported backends](https://atooms.frama.io/atooms/tutorial/simulations.html)
+
+Several [component packages](Component packages) are built on top of the core library. Here a few things one can do with them:
+- compute [static and dynamic correlation functions](https://framagit.org/atooms/postprocessing)
+- use the [models repository](https://framagit.org/atooms/models) to build an interaction model for simple liquids and glasses
+- explore and analyze the [potential energy landscape](https://framagit.org/atooms/landscape)
+- run efficient [multi-GPU parallel tempering]((https://framagit.org/atooms/parallel_tempering) simulations
 
 Quick start
 -----------
 
 The goal of the base atooms package is to provide a coherent interface to the basic objects of [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics) or [Monte Carlo](https://en.wikipedia.org/wiki/Monte_Carlo_method_in_statistical_physics) simulations.
 
-As an example, we set up a mixture of two types of particles in an elongated box with rough walls on the x-axis boundaries formed by a third component. We set the number density to 1 (in reduced units).
+As an example, we set up a mixture of two types of particles, A and B, in an elongated box. The number density is set to unity.
 ```python
+import numpy
 from atooms.system import System
 
 system = System(N=64)
 system.replicate(times=4, axis=0)
+system.composition = {'A': 128, 'B': 128}
 system.density = 1.0
-system.composition = {'A': len(system.particle) - 40, 'B': 40}
+```
+
+Particles in the central part of the cell get a random displacement.
+```python
 for p in system.particle:
-    if abs(p.position[0]) > 0.7 * system.cell.side[0] / 2:
-        # Freeze particles on the cell borders along the x-axis
-        p.mass = 1e100
-        p.species = 'C'
-    else:
-        # Randomly displace those in the bulk
-        import numpy.random
-        p.position += (numpy.random.random() - 0.5) * 0.3
+    # Randomly displace particles in the bulk
+    if abs(p.position[0]) < system.cell.side[0] / 4:
+        p.position += 0.5 * (numpy.random.random() - 0.5)
         p.fold(system.cell)
 system.show('ovito')
 ```
 
 ![](https://framagit.org/atooms/atooms/-/raw/master/snapshot.png)
 
-Simulation data are stored in trajectory files, which are easy to manipulate and convert with atooms. Here, we write our system in a single-frame trajectory file using the [xyz format](https://en.wikipedia.org/wiki/XYZ_format).
-
+Simulation data are stored in trajectory files, which are easy to manipulate and convert with atooms. Here, we write the system species and positions in a single-frame trajectory file using the [xyz format](https://en.wikipedia.org/wiki/XYZ_format).
 ```python
 from atooms.trajectory import TrajectoryXYZ
 
 with TrajectoryXYZ('input.xyz', 'w') as th:
-    th.variables = ['species', 'position', 'mass']
+    th.variables = ['species', 'position']  # actually, this is the default
     th.write(system)
 ```
 
-The trajectory file can be used to start a simulation using one of the supported [simulation backends](https://atooms.frama.io/atooms/tutorial/simulations.html) or your own code.
+This trajectory file can be used to start a simulation using one the available [simulation backends](https://atooms.frama.io/atooms/tutorial/simulations.html) or your own code.
 
 Documentation
 -------------
@@ -80,14 +90,7 @@ Component packages
 Atooms is modular: it is easy to add new functionalities, and just those you actually need.
 Component packages are available from the [atooms main repository](https://framagit.org/atooms).
 
-Here a few things one can do with them:
-
-- compute [static and dynamic correlation functions](https://framagit.org/atooms/postprocessing)
-- use the [models repository](https://framagit.org/atooms/models) to build an interaction model for simple liquids and glasses
-- explore and analyze the [potential energy landscape](https://framagit.org/atooms/landscape)
-- run efficient [multi-GPU parallel tempering]((https://framagit.org/atooms/parallel_tempering) simulations
-
-Component packages are installed in the atooms namespace to prevent name clashing. If you want to add your own package to the atooms namespace, structure it this way
+They are installed in the atooms namespace to prevent name clashing. If you want to add your own package to the atooms namespace, structure it this way
 ```bash
 atooms/your_package
 atooms/your_package/__init__.py
