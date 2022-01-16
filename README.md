@@ -9,7 +9,9 @@ Atooms
 [![pipeline](https://framagit.org/atooms/atooms/badges/master/pipeline.svg)](https://framagit.org/atooms/atooms/badges/master/pipeline.svg)
 [![coverage report](https://framagit.org/atooms/atooms/badges/master/coverage.svg)](https://framagit.org/atooms/atooms/-/commits/master)
 
-**atooms** is a high-level Python framework for simulations of interacting particles, such as molecular dynamics or Monte Carlo. This is the core package: it provides a consistent interface to the basic objects of particle-based simulations. [Feature packages](Component packages) are built on top of it and implement complex simulation methods and analysis tools.
+**atooms** is a high-level Python framework for simulations of interacting particles, such as molecular dynamics or Monte Carlo.
+
+This is the core package: it provides a consistent interface to the basic objects of particle-based simulations. [Feature packages](Component packages) are built on top of it and implement complex simulation methods and analysis tools.
 
 Quick start
 -----------
@@ -24,7 +26,7 @@ system.composition = {'A': 128, 'B': 128}
 system.density = 1.0
 ```
 
-Particles in the central part of the cell get a random displacement and are folded back in the simulation cell
+Particles in the central part of the cell get a random displacement and are folded back into the simulation cell
 ```python
 import numpy
 
@@ -51,17 +53,17 @@ The trajectory file can now be used to start a simulation using one the availabl
 Features
 --------
 
-- Focus on expressive, natural language
+- Focus on expressive, natural interface
 - API refined over 10+ years towards consistency
 - Modular and extensible design via namespace packages
-- Built to interface to in-house codes and custom formats
+- In-house codes and custom trajectory formats are first-class citizens
 - Support for third-party simulation backends, with a focus on GPU codes
 
 Documentation
 -------------
-Check out the [tutorial](https://atooms.frama.io/atooms/tutorial) for more examples and the [public API](https://atooms.frama.io/api/atooms) for full details.
+Check out the [tutorial](https://atooms.frama.io/atooms/tutorial) for more examples and the [public API](https://atooms.frama.io/api/atooms) for more details.
 
-Org-mode and jupyter notebooks are available under `docs/`. You can run the tutorial interactively on [Binder]( https://mybinder.org/v2/git/https%3A%2F%2Fframagit.org%2Fatooms%2Fatooms/HEAD?labpath=docs%2).
+Org-mode and jupyter notebooks are available under `docs/`. You can run them interactively on [Binder]( https://mybinder.org/v2/git/https%3A%2F%2Fframagit.org%2Fatooms%2Fatooms/HEAD?labpath=docs%2).
 
 Installation
 ------------
@@ -79,20 +81,13 @@ make install
 
 Contributing
 ------------
-You are welcome to contribute to this project! Please have a look at [these guidelines](https://framagit.org/atooms/atooms/-/blob/atooms-3.0.0/CONTRIBUTING.md).
+You are welcome to contribute to this project! Please have a look at [these guidelines](https://framagit.org/atooms/atooms/-/blob/master/CONTRIBUTING.md).
 
 Feature packages 
 ------------------
 Atooms is modular: it is easy to add new functionalities, and just those you actually need.
 
-Feature packages are available from the [atooms main repository](https://framagit.org/atooms). Here are a few things you can do with them:
-
-- Compute [static and dynamic correlation functions](https://framagit.org/atooms/postprocessing)
-- Use the [models repository](https://framagit.org/atooms/models) to define interaction potentials for simple liquids and glasses
-- Explore and analyze the [potential energy landscape](https://framagit.org/atooms/landscape)
-- Run efficient [multi-GPU parallel tempering](https://framagit.org/atooms/parallel_tempering) simulations
-
-They are installed in the `atooms` namespace to prevent name clashing. If you want to add your own feature package to the atooms namespace, structure it this way
+Feature packages are available from the [atooms main repository](https://framagit.org/atooms). They are installed in the `atooms` namespace to prevent name clashing. If you want to add your own feature package to the atooms namespace, structure it this way
 ```bash
 atooms/your_package
 atooms/your_package/__init__.py
