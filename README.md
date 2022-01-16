@@ -63,7 +63,7 @@ Documentation
 -------------
 Check out the [tutorial](https://atooms.frama.io/atooms/tutorial) for more examples and the [public API](https://atooms.frama.io/api/atooms) for more details.
 
-Org-mode and jupyter notebooks are available under `docs/`. You can run them interactively on [Binder]( https://mybinder.org/v2/git/https%3A%2F%2Fframagit.org%2Fatooms%2Fatooms/HEAD?labpath=docs%2).
+Org-mode and jupyter notebooks are available under [docs](https://framagit.org/atooms/atooms/-/blob/master/docs/). You can run them interactively on [Binder](https://mybinder.org/v2/git/https%3A%2F%2Fframagit.org%2Fatooms%2Fatooms/HEAD?labpath=docs%2).
 
 Installation
 ------------
