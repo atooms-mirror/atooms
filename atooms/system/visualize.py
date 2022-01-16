@@ -85,14 +85,15 @@ def show_ovito(particle, cell, output_file=None, color='species',
     returned for visualization in jupyter notebooks.
     """
     import os
-    from ovito.io import import_file
-    from ovito.vis import Viewport, TachyonRenderer
+    from ovito.io import import_file  # pylint: disable=import-error
+    from ovito.vis import Viewport, TachyonRenderer  # pylint: disable=no-name-in-module
+
     import tempfile
     from atooms.core.utils import mkdir
 
     if output_file is not None:
         outfile = output_file
-    
+
     # Color coding
     color_attr = [getattr(p, color) for p in particle]
     is_discrete = isinstance(color_attr[0], (str, int))
@@ -143,7 +144,7 @@ def show_ovito(particle, cell, output_file=None, color='species',
         c = colors[i]
         fh.write('{} {} {} {} {} {} {} {}\n'.format(p.species, *p.position, p.radius, *c))
     fh.close()
-    
+
     # Ovito stuff. Can be customized by client code.
     pipeline = import_file(tmp_file)
     # Ovito seems to ignore the lattice info of exyz file

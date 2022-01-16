@@ -223,7 +223,7 @@ class System(object):
     def concentration(self):
         """Chemical concentration"""
         return {k: float(v) / len(self.particle) for k, v in self.composition.items()}
-        
+
     def scale_velocities(self, factor):
         """Scale particles' velocities by `factor`."""
         for p in self.particle:
@@ -393,9 +393,8 @@ class System(object):
                 self.particle.append(p)
         self.cell.side[axis] *= n
         for p in self.particle:
-            #p.position[d] -= (L / 2 + L * (n-1))
             p.position[axis] -= L * n / 2
-            
+
     def dump(self, what=None, order='C', dtype=None, view=False, clear=False, flat=False):
         """
         Return a numpy array with system properties specified by `what`.

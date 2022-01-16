@@ -160,6 +160,7 @@ class Sliced(object):
         return object.__new__(cls)
 
     def __init__(self, component, uslice):
+        # pylint:disable=access-member-before-definition
         self._sliced_frames = range(len(self.steps))[uslice]
         self.steps = self.steps[uslice]
 

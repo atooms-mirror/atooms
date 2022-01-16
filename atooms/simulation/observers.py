@@ -339,7 +339,7 @@ def write(sim, what, suffix=None, path=None):
     steps
     temperature
     potential energy per particle
-    kinetic energy per particle   
+    kinetic energy per particle
     total energy
     pressure
     rmsd
@@ -387,7 +387,7 @@ def store(sim, what, db):
     steps
     temperature
     potential energy per particle
-    kinetic energy per particle   
+    kinetic energy per particle
     total energy
     pressure
     rmsd

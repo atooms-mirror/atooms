@@ -12,8 +12,8 @@ import os
 import numpy
 import logging
 
-import rumd
-from rumd.Simulation import Simulation
+import rumd  # pylint:disable=import-error
+from rumd.Simulation import Simulation  # pylint:disable=import-error
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
 

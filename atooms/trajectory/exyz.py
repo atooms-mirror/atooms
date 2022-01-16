@@ -19,7 +19,7 @@ class TrajectoryEXYZ(TrajectoryXYZ):
     callback_read = {}
 
     def __init__(self, filename, mode='r'):
-        super(TrajectoryXYZ, self).__init__(filename, mode)
+        super(TrajectoryEXYZ, self).__init__(filename, mode)
 
         # Trajectory file handle
         self.precision = 12
