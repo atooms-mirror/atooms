@@ -193,7 +193,10 @@ def composition(particles):
     from collections import defaultdict
     comp = defaultdict(int)
     for p in particles:
-        comp[p.species] += 1
+        try:
+            comp[p.species] += 1
+        except TypeError:
+            comp[int(p.species)] += 1
     return comp
 
 
