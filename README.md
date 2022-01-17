@@ -53,11 +53,12 @@ The trajectory file can now be used to start a simulation using one the availabl
 Features
 --------
 
-- Focus on expressive, natural interface
-- API refined over 10+ years towards consistency
+- Focus on a simple and expressive interface
+- API refined over the years towards consistency
 - Modular and extensible design via namespace packages
-- In-house codes and custom trajectory formats are first-class citizens
-- Support for third-party simulation backends, with a focus on GPU codes
+- Semantic versioning - for what is worth
+- Easy to interface: in-house codes and custom formats are first-class citizens
+- Support for efficient simulation backends, with a focus on GPU codes
 
 Documentation
 -------------
