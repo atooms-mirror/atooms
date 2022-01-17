@@ -393,6 +393,7 @@ def store(sim, what, db):
     rmsd
     conserved energy
     """
+    # TODO: allow list?
     # If the dict is empty fill it
     if len(db) == 0:
         for attribute in what:
@@ -547,22 +548,23 @@ class Speedometer(object):
         if not self._init:
             # We could store all this in __init__() but this
             # way we allow targeters added to simulation via add()
-            for c in sim._callback:
+            for observer in sim._observer:
+                c = observer['callback']
                 if c is self:
                     continue
                 if 'target' in c.__name__.lower():
-                    self._callback = c
-                    args = sim._cbk_params[c]['args']
-                    kwargs = sim._cbk_params[c]['kwargs']
+                    self._observer = observer
+                    args = observer['args']
+                    kwargs = observer['kwargs']
                     self.x_last = c(sim, *args, **kwargs)
                     self.t_last = time.time()
                     self._init = True
                     return
 
         t_now = time.time()
-        args = sim._cbk_params[self._callback]['args']
-        kwargs = sim._cbk_params[self._callback]['kwargs']
-        x_now = self._callback(sim, *args, **kwargs)
+        args = self._observer['args']
+        kwargs = self._observer['kwargs']
+        x_now = self._observer['callback'](sim, *args, **kwargs)
         # Get the speed at which the simulation advances
         speed = (x_now - self.x_last) / (t_now - self.t_last)
         # Report fraction of target achieved and ETA

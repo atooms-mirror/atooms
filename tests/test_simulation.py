@@ -229,6 +229,22 @@ class Test(unittest.TestCase):
         s.run(100)
         self.assertEqual(s.current_step, 40)
 
+    def test_multiple_observers(self):
+        """We can add multiple observers of the same kind"""
+        from atooms.core.utils import mkdir
+        from atooms.trajectory import TrajectoryXYZ, TrajectoryRam
+        from atooms.simulation import write_trajectory
+        mkdir('/tmp/test_simulation')
+        th0 = TrajectoryRam()
+        th1 = TrajectoryXYZ('/tmp/test_simulation/trajectory.xyz', 'w')
+        s = Simulation(DryRun())
+        s.add(write_trajectory, Scheduler(1), trajectory=th0)
+        s.add(write_trajectory, Scheduler(1), trajectory=th1)
+        s.run(100)
+        th0.close()
+        th1.close()
+        self.assertEqual(s.current_step, 100)
+        
     def tearDown(self):
         rmd('/tmp/test_simulation')
 
