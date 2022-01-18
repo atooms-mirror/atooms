@@ -1,22 +1,41 @@
 # Changelog
 
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations.
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations and critical bug fixes.
+
+## 3.6.0 - 2022/01/18
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.5.0...3.6.0)
+
+### New features
+- Add `radius` parameter and coloring support in `visualize.show_ovito()`
+- Add `N` and `d` parameters in `System.__init__()` to initialize the system
+- Add `System.composition` and `System.concentration`
+- Add `position_unfolded` alias in `System.dump()`
+
+### Bug fixes
+- Fix simulation callback behavior when adding the same callback with different arguments
+- Fix `System.dump()` behavior with successive copies/views and refactor it
+- Fix `Particle.composition()` with unhashable species such as numpy 0-arrays
+- Remove dead modules from pypi version
+
+### Backward-compatible changes
+- Ensure `Particle.position` and `Particle.velocity` are `float64` arrays. This fixes the behavior of hdf5 trajectories, which store float32 coordinates, and were not compatible with some backends. This change is backward compatible.
 
 ## 3.5.0 - 2022/01/05
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.4.3...3.5.0)
 
-## Added
+### New features
 - Add system.cm() to compute general attribute of CM
 
-## Changed
-- Remove `particle` from attributes in comment header of xyz files. This is backward compatible.
+### Backward-compatible changes
+- Remove `particle` from attributes in comment header of xyz files. This change is backward compatible.
 
 ## 3.4.0 - 2021/11/18
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.3.4...3.4.0)
 
-## Added
+### New features
 - Refactor and improve simulation observers
   - Refactor `write_thermo()` and `write_config()` as stateless functions
   - Add optional `trajectory_class` parameter to `write_trajectory()` to choose the trajectory format
@@ -34,7 +53,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.2.0...3.3.0)
 
-## Added
+### New features
 
 - Add `Wall` class and optional instances as `System.wall`
 - Add `System.species_layout` property to show and change the chemical species layout (A, C, F)
@@ -45,7 +64,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.1.0...3.2.0)
 
-### Added
+#### New features
 
 - Add syntax to optionally specify the data type of Interaction.variables as <property[:dtype]>. This allows dumping arrays with the correct data type.
 
@@ -53,7 +72,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.0.0...3.1.0)
 
-### Added
+### New features
 
 - Add `TrajectoryFactory.register_callback()`
 - Argument `what` in `System.compute_interaction()` is now optional
@@ -61,8 +80,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## 3.0.0 - 2021/10/03
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/2.8.1...3.0.0)
-	
-### Changed
+
+### Changes
 - Interaction class now belongs to system.interaction module
 - Change the interface of Interaction.compute() method so as to accept System arbitrary attributes. Thanks to this change, Interaction now behaves as a strategy pattern for System
 - Use new Trajectory.copy() method to convert trajectory, instead of trajectory.utils.convert()
@@ -74,7 +93,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Rename forcefield option as potentials in RUMD backend
 - Merge autopep8 and flake8 Makefile targets into pep8
 
-### Removed
+### Removals
 - Remove Interaction subpackage, including potential tabulation stuff, which will be moved to a specific backend.
 - Remove atooms.backends.f90, it will be added to the atooms-models package
 - Remove Trajectory.self_callbacks and Trajectory.class_callbacks
@@ -91,12 +110,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Remove user and develop targets from Makefile
 - Remove tox.ini
 
-### Deprecated
+### Deprecations
 - Trajectory.write_sample() in favor of write_system()
 - Trajectory.read_sample() in favor of read_system()
 - Trajectory.fields in favor of Trajectory.variables
 
-### Added
+### New features
 - Add Trajectory.variables to store System attributes that change along the trajectory
 - Add core.utils.canonicalize() as standalone function
 - Add contribution guidelines
