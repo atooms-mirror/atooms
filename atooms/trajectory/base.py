@@ -504,7 +504,6 @@ class SuperTrajectory(TrajectoryBase):
     """Collection of subtrajectories."""
 
     # Optimized version
-    # TODO: supertrajectory should propagate variables/constants
 
     def __init__(self, files, trajectoryclass, mode='r'):
         """
@@ -546,7 +545,11 @@ class SuperTrajectory(TrajectoryBase):
                         self.steps.append(step)
                         self._steps_file.append(f)
                         self._steps_frame.append(j)
-                        
+
+        # Propagate variables
+        with self.trajectoryclass(self.files[0]) as t:
+            self.variables = t.variables
+
     def read_system(self, frame):
         # Optimization: use the last trajectory in cache (it works
         # well if frames are read sequentially)
