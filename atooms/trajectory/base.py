@@ -519,7 +519,14 @@ class SuperTrajectory(TrajectoryBase):
         self.trajectoryclass = trajectoryclass
 
         # Make sure subtrajectories are sorted by increasing step
-        self.files.sort()
+        # We look up the first step in each subtrajectory
+        _step = []
+        for f in self.files:
+            with self.trajectoryclass(f) as t:
+                _step.append(t.steps[0])
+        _, self.files = zip(*sorted(zip(_step, self.files)))
+        self.files = list(self.files)
+
         # This list holds the file containing a given step
         self._steps_file = []
         self._steps_frame = []
@@ -532,11 +539,14 @@ class SuperTrajectory(TrajectoryBase):
             # we can optimize this by about 10% on xyz files (16.12.2016)
             with self.trajectoryclass(f) as t:
                 for j, step in enumerate(t.steps):
+                    # The second test is to avoid storing twice the same frame
+                    # if it appears at the end of a file and the beginning
+                    # of the next file
                     if len(self.steps) == 0 or step != self.steps[-1]:
                         self.steps.append(step)
                         self._steps_file.append(f)
                         self._steps_frame.append(j)
-
+                        
     def read_system(self, frame):
         # Optimization: use the last trajectory in cache (it works
         # well if frames are read sequentially)
