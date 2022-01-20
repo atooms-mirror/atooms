@@ -20,6 +20,8 @@ class TrajectoryDynamO(TrajectoryBase):
             self._file = bz2.BZ2File(filename)
         else:
             self._file = open(filename)
+        self.variables = ['particle.species', 'particle.mass',
+                          'particle.position', 'particle.velocity']
 
     def read_steps(self):
         # Quick and dirty (assume Snapshot.[0-9]*e.xml* naming scheme)
@@ -34,8 +36,6 @@ class TrajectoryDynamO(TrajectoryBase):
         assert frame == 0
         tree = ElementTree.parse(self._file)
         root = tree.getroot()
-        self.variables = ['particle.species', 'particle.mass',
-                          'particle.position', 'particle.velocity']
 
         # Cell
         _cell = root.find("Simulation").find('SimulationSize')

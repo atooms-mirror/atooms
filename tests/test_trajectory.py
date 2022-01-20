@@ -266,11 +266,8 @@ class Test(unittest.TestCase):
             self.assertEqual(len(th.steps), 1)
             self.assertAlmostEqual(th[0].density, 0.5)
         with SuperTrajectory(glob.glob('data/dynamo/Snapshot.[0-9]*e.xml.bz2'), TrajectoryDynamO) as th:
-            # TODO: variables is not propagated correctly??
-            th.copy(TrajectoryXYZ, fout=self.inpdir + '/conv.xyz', only=['species', 'position'])
-            th.copy(TrajectoryXYZ, fout='/tmp/conv.xyz', only=['species', 'position'])
-            # TODO: when writing a trajectory it should be possible to read it (the returned object cannot be read)
-            # TODO: does copy close the file?
+            th_xyz = th.copy(TrajectoryXYZ, fout=self.inpdir + '/conv.xyz', only=['species', 'position'])
+            th_xyz.close()
             with TrajectoryXYZ(self.inpdir + '/conv.xyz') as th_xyz:
                 self.assertEqual(th.steps, th_xyz.steps)
                 self.assertEqual(str(th[0]), str(th_xyz[0]))
