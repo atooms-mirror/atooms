@@ -6,7 +6,7 @@
 import logging
 import pkgutil
 
-from .utils import split
+from .utils import split, formats
 from .base import SuperTrajectory
 from .decorators import *
 
