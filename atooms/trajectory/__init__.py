@@ -26,6 +26,7 @@ try:
 except ImportError:
     pass
 from .ram import TrajectoryRam
+from .dynamo import TrajectoryDynamO
 
 from atooms.core.utils import NullHandler
 logging.getLogger(__name__).addHandler(NullHandler())

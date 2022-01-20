@@ -258,6 +258,24 @@ class Test(unittest.TestCase):
             self.assertTrue(numpy.all(th[0].cell.side == numpy.array([10.0, 10.0, 10.0])))
             self.assertTrue(numpy.all(th[1].cell.side == numpy.array([10.0, 10.0, 10.0])))
 
+    def test_dynamo(self):
+        import glob
+        from atooms.trajectory import SuperTrajectory, TrajectoryXYZ, TrajectoryDynamO
+        # TODO: make dynamo configs smaller
+        with trj.TrajectoryDynamO('data/dynamo/config.start.xml') as th:
+            self.assertEqual(len(th.steps), 1)
+            self.assertAlmostEqual(th[0].density, 0.5)
+        with SuperTrajectory(glob.glob('data/dynamo/Snapshot.[0-9]*e.xml.bz2'), TrajectoryDynamO) as th:
+            # TODO: variables is not propagated correctly??
+            th.copy(TrajectoryXYZ, fout=self.inpdir + '/conv.xyz', only=['species', 'position'])
+            th.copy(TrajectoryXYZ, fout='/tmp/conv.xyz', only=['species', 'position'])
+            # TODO: when writing a trajectory it should be possible to read it (the returned object cannot be read)
+            # TODO: does copy close the file?
+            with TrajectoryXYZ(self.inpdir + '/conv.xyz') as th_xyz:
+                self.assertEqual(th.steps, th_xyz.steps)
+                self.assertEqual(str(th[0]), str(th_xyz[0]))
+                self.assertEqual(str(th[-1]), str(th_xyz[-1]))
+            
     def test_super(self):
         import glob
         with TrajectoryXYZ(os.path.join(self.inpdir, '0.xyz'), 'w') as th:
