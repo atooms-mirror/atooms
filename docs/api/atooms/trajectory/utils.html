@@ -374,18 +374,20 @@ def is_grandcanonical(trajectory, tests=1):
 def formats():
     &#34;&#34;&#34;Return a string with the available trajectory formats.&#34;&#34;&#34;
     from atooms import trajectory
-    txt = &#39;available trajectory formats:\n&#39;
+    txt = &#39;Available trajectory formats:\n&#39;
     fmts = trajectory.Trajectory.formats
     maxlen = max([len(name) for name in fmts])
     for name in sorted(fmts):
         class_name = fmts[name]
         if class_name.__doc__:
-            docline = class_name.__doc__.split(&#39;\n&#39;)[0].rstrip(&#39;.&#39;)
+            docline = class_name.__doc__.split(&#39;\n&#39;)[0]
+            if len(docline) == 0:
+                docline = &#39;...no description...&#39;
         else:
             docline = &#39;...no description...&#39;
         fmt = &#39;  %-&#39; + str(maxlen) + &#39;s : %s\n&#39;
         txt += fmt % (name, docline)
-    return txt
+    return txt.strip(&#39;\n&#39;)
 
 
 def info(trajectory, keys=None):
@@ -702,18 +704,20 @@ given <code>frame</code>.</p></div>
 <pre><code class="python">def formats():
     &#34;&#34;&#34;Return a string with the available trajectory formats.&#34;&#34;&#34;
     from atooms import trajectory
-    txt = &#39;available trajectory formats:\n&#39;
+    txt = &#39;Available trajectory formats:\n&#39;
     fmts = trajectory.Trajectory.formats
     maxlen = max([len(name) for name in fmts])
     for name in sorted(fmts):
         class_name = fmts[name]
         if class_name.__doc__:
-            docline = class_name.__doc__.split(&#39;\n&#39;)[0].rstrip(&#39;.&#39;)
+            docline = class_name.__doc__.split(&#39;\n&#39;)[0]
+            if len(docline) == 0:
+                docline = &#39;...no description...&#39;
         else:
             docline = &#39;...no description...&#39;
         fmt = &#39;  %-&#39; + str(maxlen) + &#39;s : %s\n&#39;
         txt += fmt % (name, docline)
-    return txt</code></pre>
+    return txt.strip(&#39;\n&#39;)</code></pre>
 </details>
 </dd>
 <dt id="atooms.trajectory.utils.get_block_size"><code class="name flex">

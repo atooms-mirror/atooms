@@ -4,6 +4,35 @@
 Trajectories
 ------------
 
+Trajectory formats
+~~~~~~~~~~~~~~~~~~
+
+``atooms`` supports several trajectory formats, most of them in read and write mode
+
+.. code:: python
+
+    from atooms.trajectory.utils import formats
+
+    print(formats())
+
+::
+
+    Available trajectory formats:
+      dynamo       : ...no description...
+      exyz         : ...no description...
+      folderlammps : ...no description...
+      gsd          : ...no description...
+      hdf5         : Trajectory layout based on HDF5 library. 
+      hoomd        : ...no description...
+      lammps       : ...no description...
+      neighbors    : ...no description...
+      pdb          : Trajectory file with PDB layout
+      ram          : ...no description...
+      rumd         : ...no description...
+      simplexyz    : ...no description...
+      superrumd    : ...no description...
+      xyz          : ...no description...
+
 Trajectory conversion
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -16,6 +45,15 @@ Trajectory conversion
 If you don't specify the output path, the trajectory is written to standard output. This is useful for quick inspection of complex trajectory formats or for piping into ``sed`` or ``awk``.
 
 ``trj.py`` provides means to fine tune the format of the output file. Type ``trj.py --help`` to get a list of options and supported trajectory formats.
+
+The same thing can be done from Python
+
+.. code:: python
+
+    from atooms.trajectory import TrajectoryRUMD, TrajectoryXYZ
+
+    with TrajectoryRUMD('trajectory.xyz.gz') as th:
+        th.copy('output.xyz', TrajectoryXYZ)
 
 Custom trajectory formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~

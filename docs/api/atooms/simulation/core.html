@@ -137,12 +137,12 @@ class Simulation(object):
             mkdir(os.path.dirname(self.output_path))
 
         # Internal variables
-        self._callback = []
+        self._observer = []
+        self._observer_id = 0        
         self._start_time = time.time()
         self._speedometer = None
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
         self._targeter_steps = target_steps
-        self._cbk_params = {}  # hold scheduler and parameters of callbacks
         if enable_speedometer:
             self._speedometer = Speedometer()
             self.add(self._speedometer, Scheduler(self.steps, calls=20))
@@ -196,25 +196,36 @@ class Simulation(object):
         assert type(scheduler(self)) is int, \
             &#34;probable swap between callback {} and scheduler {}&#34;.format(callback, scheduler)
 
-        # Store scheduler, callback and its arguments
-        # in a separate dict (NOT in the function object itself!)
-        self._cbk_params[callback] = {&#39;scheduler&#39;: scheduler,
-                                      &#39;args&#39;: args,
-                                      &#39;kwargs&#39;: kwargs}
+        # Store callback id, scheduler, callback and its arguments
+        self._observer_id += 1
+        pack = {&#39;id&#39;: self._observer_id,
+                &#39;scheduler&#39;: scheduler,
+                &#39;callback&#39;: callback,
+                &#39;args&#39;: args,
+                &#39;kwargs&#39;: kwargs}
 
         # Keep targeters last
         if &#39;target&#39; not in _callable_name(callback):
-            self._callback.insert(0, callback)
+            self._observer.insert(0, pack)
         else:
-            self._callback.append(callback)
+            self._observer.append(pack)
+        return self._observer_id
 
     def remove(self, callback):
-        &#34;&#34;&#34;Remove the observer `callback`.&#34;&#34;&#34;
-        if callback in self._callback:
-            self._callback.remove(callback)
-            self._cbk_params.pop(callback)
+        &#34;&#34;&#34;Remove a callback.&#34;&#34;&#34;
+        if isinstance(callback, int):
+            for cbk in self._observer:
+                if cbk[&#39;id&#39;] == callback:
+                    self._observer.remove(cbk)
+                    break
         else:
-            _log.debug(&#39;attempt to remove inexistent callback %s (dont worry)&#39;, callback)
+            # This is a backward compatible fix to remove a callback as function
+            # It may be removed from v.4 onwards
+            for cbk in self._observer:
+                # Here we pretend callback_id is a function
+                # This will remove all instances
+                if cbk[&#39;callback&#39;] == callback:
+                    self._observer.remove(cbk)
 
     def remove_callback(self, callback):
         self.remove(callback)
@@ -222,21 +233,22 @@ class Simulation(object):
     def _notify(self, observers):
         for observer in observers:
             _log.debug(&#39;notify %s at step %d&#39;, observer, self.current_step)
-            args = self._cbk_params[observer][&#39;args&#39;]
-            kwargs = self._cbk_params[observer][&#39;kwargs&#39;]
-            observer(self, *args, **kwargs)
+            callback = observer[&#39;callback&#39;]
+            args = observer[&#39;args&#39;]
+            kwargs = observer[&#39;kwargs&#39;]            
+            callback(self, *args, **kwargs)
 
     @property
     def _targeters(self):
-        return [o for o in self._callback if &#39;target&#39; in _callable_name(o)]
+        return [o for o in self._observer if &#39;target&#39; in _callable_name(o[&#39;callback&#39;])]
 
     @property
     def _non_targeters(self):
-        return [o for o in self._callback if &#39;target&#39; not in _callable_name(o)]
+        return [o for o in self._observer if &#39;target&#39; not in _callable_name(o[&#39;callback&#39;])]
 
     @property
     def _speedometers(self):
-        return [o for o in self._callback if isinstance(o, Speedometer)]
+        return [o for o in self._observer if isinstance(o[&#39;callback&#39;], Speedometer)]
 
     def write_checkpoint(self):
         &#34;&#34;&#34;Write checkpoint to allow restarting a simulation.&#34;&#34;&#34;
@@ -344,7 +356,7 @@ class Simulation(object):
 
         # Targeter for progress bar
         if atooms.core.progress.active:
-            intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._callback]
+            intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._observer]
             intervals = [intv for intv in intervals if intv is not None]
             min_iters = 10
             if min(intervals) &gt; (self.current_step + self.steps) / min_iters and \
@@ -377,7 +389,7 @@ class Simulation(object):
 
         # Reinitialize speedometers
         for s in self._speedometers:
-            s._init = False
+            s[&#39;callback&#39;]._init = False
         from atooms.core.progress import progress
         bar = progress(total=self.steps)
 
@@ -397,7 +409,8 @@ class Simulation(object):
             _log.info(&#39;&#39;)
             while True:
                 # Run simulation until any of the observers need to be called
-                all_steps = [self._cbk_params[c][&#39;scheduler&#39;](self) for c in self._callback]
+                # TODO: change naming
+                all_steps = [c[&#39;scheduler&#39;](self) for c in self._observer]
                 next_checkpoint = self._checkpoint_scheduler(self)
                 next_step = min(all_steps + [next_checkpoint])
 
@@ -406,7 +419,7 @@ class Simulation(object):
                 # Find observers indexes corresponding to minimum step
                 # then get all corresponding observers
                 next_step_ids = [i for i, step in enumerate(all_steps) if step == next_step]
-                next_observers = [self._callback[i] for i in next_step_ids]
+                next_observers = [self._observer[i] for i in next_step_ids]
 
                 # Observers should be sorted such that targeters are
                 # last to avoid cropping output files
@@ -457,15 +470,15 @@ class Simulation(object):
 
     def _info_observers(self):
         txt = []
-        for f in self._callback:
-            params = self._cbk_params[f]
-            s = params[&#39;scheduler&#39;]
-            if &#39;target&#39; in _callable_name(f):
-                args = params[&#39;args&#39;]
-                txt.append(&#39;target %s: %s&#39; % (_callable_name(f), args[0]))
+        for observer in self._observer:
+            callback = observer[&#39;callback&#39;]
+            scheduler = observer[&#39;scheduler&#39;]
+            if &#39;target&#39; in _callable_name(callback):
+                args = observer[&#39;args&#39;]
+                txt.append(&#39;target %s: %s&#39; % (_callable_name(callback), args[0]))
             else:
                 txt.append(&#39;writer %s: interval=%s calls=%s&#39; %
-                           (_callable_name(f), s.interval, s.calls))
+                           (_callable_name(callback), scheduler.interval, scheduler.calls))
         return &#39;\n&#39;.join(txt) + &#39;\n&#39;
 
     def _info_end(self):
@@ -540,12 +553,12 @@ other paths are defined based on it and on its base_path.</p></div>
             mkdir(os.path.dirname(self.output_path))
 
         # Internal variables
-        self._callback = []
+        self._observer = []
+        self._observer_id = 0        
         self._start_time = time.time()
         self._speedometer = None
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
         self._targeter_steps = target_steps
-        self._cbk_params = {}  # hold scheduler and parameters of callbacks
         if enable_speedometer:
             self._speedometer = Speedometer()
             self.add(self._speedometer, Scheduler(self.steps, calls=20))
@@ -599,25 +612,36 @@ other paths are defined based on it and on its base_path.</p></div>
         assert type(scheduler(self)) is int, \
             &#34;probable swap between callback {} and scheduler {}&#34;.format(callback, scheduler)
 
-        # Store scheduler, callback and its arguments
-        # in a separate dict (NOT in the function object itself!)
-        self._cbk_params[callback] = {&#39;scheduler&#39;: scheduler,
-                                      &#39;args&#39;: args,
-                                      &#39;kwargs&#39;: kwargs}
+        # Store callback id, scheduler, callback and its arguments
+        self._observer_id += 1
+        pack = {&#39;id&#39;: self._observer_id,
+                &#39;scheduler&#39;: scheduler,
+                &#39;callback&#39;: callback,
+                &#39;args&#39;: args,
+                &#39;kwargs&#39;: kwargs}
 
         # Keep targeters last
         if &#39;target&#39; not in _callable_name(callback):
-            self._callback.insert(0, callback)
+            self._observer.insert(0, pack)
         else:
-            self._callback.append(callback)
+            self._observer.append(pack)
+        return self._observer_id
 
     def remove(self, callback):
-        &#34;&#34;&#34;Remove the observer `callback`.&#34;&#34;&#34;
-        if callback in self._callback:
-            self._callback.remove(callback)
-            self._cbk_params.pop(callback)
+        &#34;&#34;&#34;Remove a callback.&#34;&#34;&#34;
+        if isinstance(callback, int):
+            for cbk in self._observer:
+                if cbk[&#39;id&#39;] == callback:
+                    self._observer.remove(cbk)
+                    break
         else:
-            _log.debug(&#39;attempt to remove inexistent callback %s (dont worry)&#39;, callback)
+            # This is a backward compatible fix to remove a callback as function
+            # It may be removed from v.4 onwards
+            for cbk in self._observer:
+                # Here we pretend callback_id is a function
+                # This will remove all instances
+                if cbk[&#39;callback&#39;] == callback:
+                    self._observer.remove(cbk)
 
     def remove_callback(self, callback):
         self.remove(callback)
@@ -625,21 +649,22 @@ other paths are defined based on it and on its base_path.</p></div>
     def _notify(self, observers):
         for observer in observers:
             _log.debug(&#39;notify %s at step %d&#39;, observer, self.current_step)
-            args = self._cbk_params[observer][&#39;args&#39;]
-            kwargs = self._cbk_params[observer][&#39;kwargs&#39;]
-            observer(self, *args, **kwargs)
+            callback = observer[&#39;callback&#39;]
+            args = observer[&#39;args&#39;]
+            kwargs = observer[&#39;kwargs&#39;]            
+            callback(self, *args, **kwargs)
 
     @property
     def _targeters(self):
-        return [o for o in self._callback if &#39;target&#39; in _callable_name(o)]
+        return [o for o in self._observer if &#39;target&#39; in _callable_name(o[&#39;callback&#39;])]
 
     @property
     def _non_targeters(self):
-        return [o for o in self._callback if &#39;target&#39; not in _callable_name(o)]
+        return [o for o in self._observer if &#39;target&#39; not in _callable_name(o[&#39;callback&#39;])]
 
     @property
     def _speedometers(self):
-        return [o for o in self._callback if isinstance(o, Speedometer)]
+        return [o for o in self._observer if isinstance(o[&#39;callback&#39;], Speedometer)]
 
     def write_checkpoint(self):
         &#34;&#34;&#34;Write checkpoint to allow restarting a simulation.&#34;&#34;&#34;
@@ -747,7 +772,7 @@ other paths are defined based on it and on its base_path.</p></div>
 
         # Targeter for progress bar
         if atooms.core.progress.active:
-            intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._callback]
+            intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._observer]
             intervals = [intv for intv in intervals if intv is not None]
             min_iters = 10
             if min(intervals) &gt; (self.current_step + self.steps) / min_iters and \
@@ -780,7 +805,7 @@ other paths are defined based on it and on its base_path.</p></div>
 
         # Reinitialize speedometers
         for s in self._speedometers:
-            s._init = False
+            s[&#39;callback&#39;]._init = False
         from atooms.core.progress import progress
         bar = progress(total=self.steps)
 
@@ -800,7 +825,8 @@ other paths are defined based on it and on its base_path.</p></div>
             _log.info(&#39;&#39;)
             while True:
                 # Run simulation until any of the observers need to be called
-                all_steps = [self._cbk_params[c][&#39;scheduler&#39;](self) for c in self._callback]
+                # TODO: change naming
+                all_steps = [c[&#39;scheduler&#39;](self) for c in self._observer]
                 next_checkpoint = self._checkpoint_scheduler(self)
                 next_step = min(all_steps + [next_checkpoint])
 
@@ -809,7 +835,7 @@ other paths are defined based on it and on its base_path.</p></div>
                 # Find observers indexes corresponding to minimum step
                 # then get all corresponding observers
                 next_step_ids = [i for i, step in enumerate(all_steps) if step == next_step]
-                next_observers = [self._callback[i] for i in next_step_ids]
+                next_observers = [self._observer[i] for i in next_step_ids]
 
                 # Observers should be sorted such that targeters are
                 # last to avoid cropping output files
@@ -860,15 +886,15 @@ other paths are defined based on it and on its base_path.</p></div>
 
     def _info_observers(self):
         txt = []
-        for f in self._callback:
-            params = self._cbk_params[f]
-            s = params[&#39;scheduler&#39;]
-            if &#39;target&#39; in _callable_name(f):
-                args = params[&#39;args&#39;]
-                txt.append(&#39;target %s: %s&#39; % (_callable_name(f), args[0]))
+        for observer in self._observer:
+            callback = observer[&#39;callback&#39;]
+            scheduler = observer[&#39;scheduler&#39;]
+            if &#39;target&#39; in _callable_name(callback):
+                args = observer[&#39;args&#39;]
+                txt.append(&#39;target %s: %s&#39; % (_callable_name(callback), args[0]))
             else:
                 txt.append(&#39;writer %s: interval=%s calls=%s&#39; %
-                           (_callable_name(f), s.interval, s.calls))
+                           (_callable_name(callback), scheduler.interval, scheduler.calls))
         return &#39;\n&#39;.join(txt) + &#39;\n&#39;
 
     def _info_end(self):
@@ -993,17 +1019,20 @@ observer is notified every <code>scheduler</code> steps.</p></div>
     assert type(scheduler(self)) is int, \
         &#34;probable swap between callback {} and scheduler {}&#34;.format(callback, scheduler)
 
-    # Store scheduler, callback and its arguments
-    # in a separate dict (NOT in the function object itself!)
-    self._cbk_params[callback] = {&#39;scheduler&#39;: scheduler,
-                                  &#39;args&#39;: args,
-                                  &#39;kwargs&#39;: kwargs}
+    # Store callback id, scheduler, callback and its arguments
+    self._observer_id += 1
+    pack = {&#39;id&#39;: self._observer_id,
+            &#39;scheduler&#39;: scheduler,
+            &#39;callback&#39;: callback,
+            &#39;args&#39;: args,
+            &#39;kwargs&#39;: kwargs}
 
     # Keep targeters last
     if &#39;target&#39; not in _callable_name(callback):
-        self._callback.insert(0, callback)
+        self._observer.insert(0, pack)
     else:
-        self._callback.append(callback)</code></pre>
+        self._observer.append(pack)
+    return self._observer_id</code></pre>
 </details>
 </dd>
 <dt id="atooms.simulation.core.Simulation.add_callback"><code class="name flex">
@@ -1063,18 +1092,26 @@ gracefully.</p></div>
 <span>def <span class="ident">remove</span></span>(<span>self, callback)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Remove the observer <code>callback</code>.</p></div>
+<div class="desc"><p>Remove a callback.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def remove(self, callback):
-    &#34;&#34;&#34;Remove the observer `callback`.&#34;&#34;&#34;
-    if callback in self._callback:
-        self._callback.remove(callback)
-        self._cbk_params.pop(callback)
+    &#34;&#34;&#34;Remove a callback.&#34;&#34;&#34;
+    if isinstance(callback, int):
+        for cbk in self._observer:
+            if cbk[&#39;id&#39;] == callback:
+                self._observer.remove(cbk)
+                break
     else:
-        _log.debug(&#39;attempt to remove inexistent callback %s (dont worry)&#39;, callback)</code></pre>
+        # This is a backward compatible fix to remove a callback as function
+        # It may be removed from v.4 onwards
+        for cbk in self._observer:
+            # Here we pretend callback_id is a function
+            # This will remove all instances
+            if cbk[&#39;callback&#39;] == callback:
+                self._observer.remove(cbk)</code></pre>
 </details>
 </dd>
 <dt id="atooms.simulation.core.Simulation.remove_callback"><code class="name flex">
@@ -1114,7 +1151,7 @@ gracefully.</p></div>
 
     # Targeter for progress bar
     if atooms.core.progress.active:
-        intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._callback]
+        intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._observer]
         intervals = [intv for intv in intervals if intv is not None]
         min_iters = 10
         if min(intervals) &gt; (self.current_step + self.steps) / min_iters and \
@@ -1147,7 +1184,7 @@ gracefully.</p></div>
 
     # Reinitialize speedometers
     for s in self._speedometers:
-        s._init = False
+        s[&#39;callback&#39;]._init = False
     from atooms.core.progress import progress
     bar = progress(total=self.steps)
 
@@ -1167,7 +1204,8 @@ gracefully.</p></div>
         _log.info(&#39;&#39;)
         while True:
             # Run simulation until any of the observers need to be called
-            all_steps = [self._cbk_params[c][&#39;scheduler&#39;](self) for c in self._callback]
+            # TODO: change naming
+            all_steps = [c[&#39;scheduler&#39;](self) for c in self._observer]
             next_checkpoint = self._checkpoint_scheduler(self)
             next_step = min(all_steps + [next_checkpoint])
 
@@ -1176,7 +1214,7 @@ gracefully.</p></div>
             # Find observers indexes corresponding to minimum step
             # then get all corresponding observers
             next_step_ids = [i for i, step in enumerate(all_steps) if step == next_step]
-            next_observers = [self._callback[i] for i in next_step_ids]
+            next_observers = [self._observer[i] for i in next_step_ids]
 
             # Observers should be sorted such that targeters are
             # last to avoid cropping output files

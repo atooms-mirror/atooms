@@ -484,7 +484,7 @@ def fallback(p, data, meta):
         self._file.write(&#39;%d\n&#39; % len(system.particle))
         # column in comment used to have non-canonical variables
         # we could restore it by adding a de_canonicalize() function
-        # or by storing a copy of the non-canonical variables
+        # or by storing a copy of the non-canonical variables        
         self._file.write(self._comment(step, system) + &#39;\n&#39;)
         fmt = &#39; &#39;.join([&#39;{0.&#39; + variable.split(&#39;particle.&#39;)[-1] + &#39;}&#39; for variable in self.variables]) + &#39;\n&#39;
         for i, p in enumerate(system.particle):
@@ -945,7 +945,7 @@ def fallback(p, data, meta):
         self._file.write(&#39;%d\n&#39; % len(system.particle))
         # column in comment used to have non-canonical variables
         # we could restore it by adding a de_canonicalize() function
-        # or by storing a copy of the non-canonical variables
+        # or by storing a copy of the non-canonical variables        
         self._file.write(self._comment(step, system) + &#39;\n&#39;)
         fmt = &#39; &#39;.join([&#39;{0.&#39; + variable.split(&#39;particle.&#39;)[-1] + &#39;}&#39; for variable in self.variables]) + &#39;\n&#39;
         for i, p in enumerate(system.particle):

@@ -55,6 +55,7 @@ try:
 except ImportError:
     pass
 from .ram import TrajectoryRam
+from .dynamo import TrajectoryDynamO
 
 from atooms.core.utils import NullHandler
 logging.getLogger(__name__).addHandler(NullHandler())
@@ -118,6 +119,10 @@ del(__added)</code></pre>
 <dt><code class="name"><a title="atooms.trajectory.decorators" href="decorators.html">atooms.trajectory.decorators</a></code></dt>
 <dd>
 <div class="desc"><p>Trajectory callbacks and class decorators …</p></div>
+</dd>
+<dt><code class="name"><a title="atooms.trajectory.dynamo" href="dynamo.html">atooms.trajectory.dynamo</a></code></dt>
+<dd>
+<div class="desc"><p>DynamO trajectory format</p></div>
 </dd>
 <dt><code class="name"><a title="atooms.trajectory.exyz" href="exyz.html">atooms.trajectory.exyz</a></code></dt>
 <dd>
@@ -206,6 +211,7 @@ del(__added)</code></pre>
 <ul>
 <li><code><a title="atooms.trajectory.base" href="base.html">atooms.trajectory.base</a></code></li>
 <li><code><a title="atooms.trajectory.decorators" href="decorators.html">atooms.trajectory.decorators</a></code></li>
+<li><code><a title="atooms.trajectory.dynamo" href="dynamo.html">atooms.trajectory.dynamo</a></code></li>
 <li><code><a title="atooms.trajectory.exyz" href="exyz.html">atooms.trajectory.exyz</a></code></li>
 <li><code><a title="atooms.trajectory.factory" href="factory.html">atooms.trajectory.factory</a></code></li>
 <li><code><a title="atooms.trajectory.folder" href="folder.html">atooms.trajectory.folder</a></code></li>

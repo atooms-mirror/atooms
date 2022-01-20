@@ -393,7 +393,7 @@ def write(sim, what, suffix=None, path=None):
     steps
     temperature
     potential energy per particle
-    kinetic energy per particle   
+    kinetic energy per particle
     total energy
     pressure
     rmsd
@@ -441,12 +441,13 @@ def store(sim, what, db):
     steps
     temperature
     potential energy per particle
-    kinetic energy per particle   
+    kinetic energy per particle
     total energy
     pressure
     rmsd
     conserved energy
     &#34;&#34;&#34;
+    # TODO: allow list?
     # If the dict is empty fill it
     if len(db) == 0:
         for attribute in what:
@@ -601,22 +602,23 @@ class Speedometer(object):
         if not self._init:
             # We could store all this in __init__() but this
             # way we allow targeters added to simulation via add()
-            for c in sim._callback:
+            for observer in sim._observer:
+                c = observer[&#39;callback&#39;]
                 if c is self:
                     continue
                 if &#39;target&#39; in c.__name__.lower():
-                    self._callback = c
-                    args = sim._cbk_params[c][&#39;args&#39;]
-                    kwargs = sim._cbk_params[c][&#39;kwargs&#39;]
+                    self._observer = observer
+                    args = observer[&#39;args&#39;]
+                    kwargs = observer[&#39;kwargs&#39;]
                     self.x_last = c(sim, *args, **kwargs)
                     self.t_last = time.time()
                     self._init = True
                     return
 
         t_now = time.time()
-        args = sim._cbk_params[self._callback][&#39;args&#39;]
-        kwargs = sim._cbk_params[self._callback][&#39;kwargs&#39;]
-        x_now = self._callback(sim, *args, **kwargs)
+        args = self._observer[&#39;args&#39;]
+        kwargs = self._observer[&#39;kwargs&#39;]
+        x_now = self._observer[&#39;callback&#39;](sim, *args, **kwargs)
         # Get the speed at which the simulation advances
         speed = (x_now - self.x_last) / (t_now - self.t_last)
         # Report fraction of target achieved and ETA
@@ -718,7 +720,7 @@ takes <code>sim</code> as first argument</p>
 steps
 temperature
 potential energy per particle
-kinetic energy per particle <br>
+kinetic energy per particle
 total energy
 pressure
 rmsd
@@ -745,12 +747,13 @@ conserved energy</p>
     steps
     temperature
     potential energy per particle
-    kinetic energy per particle   
+    kinetic energy per particle
     total energy
     pressure
     rmsd
     conserved energy
     &#34;&#34;&#34;
+    # TODO: allow list?
     # If the dict is empty fill it
     if len(db) == 0:
         for attribute in what:
@@ -1025,7 +1028,7 @@ takes <code>sim</code> as first argument</p>
 steps
 temperature
 potential energy per particle
-kinetic energy per particle <br>
+kinetic energy per particle
 total energy
 pressure
 rmsd
@@ -1056,7 +1059,7 @@ conserved energy</p>
     steps
     temperature
     potential energy per particle
-    kinetic energy per particle   
+    kinetic energy per particle
     total energy
     pressure
     rmsd
@@ -1460,22 +1463,23 @@ and returns the next step at which an observer has to to notified.</p>
         if not self._init:
             # We could store all this in __init__() but this
             # way we allow targeters added to simulation via add()
-            for c in sim._callback:
+            for observer in sim._observer:
+                c = observer[&#39;callback&#39;]
                 if c is self:
                     continue
                 if &#39;target&#39; in c.__name__.lower():
-                    self._callback = c
-                    args = sim._cbk_params[c][&#39;args&#39;]
-                    kwargs = sim._cbk_params[c][&#39;kwargs&#39;]
+                    self._observer = observer
+                    args = observer[&#39;args&#39;]
+                    kwargs = observer[&#39;kwargs&#39;]
                     self.x_last = c(sim, *args, **kwargs)
                     self.t_last = time.time()
                     self._init = True
                     return
 
         t_now = time.time()
-        args = sim._cbk_params[self._callback][&#39;args&#39;]
-        kwargs = sim._cbk_params[self._callback][&#39;kwargs&#39;]
-        x_now = self._callback(sim, *args, **kwargs)
+        args = self._observer[&#39;args&#39;]
+        kwargs = self._observer[&#39;kwargs&#39;]
+        x_now = self._observer[&#39;callback&#39;](sim, *args, **kwargs)
         # Get the speed at which the simulation advances
         speed = (x_now - self.x_last) / (t_now - self.t_last)
         # Report fraction of target achieved and ETA

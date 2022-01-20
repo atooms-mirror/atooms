@@ -44,7 +44,7 @@ import sys
 
 # Redefine range for python
 if sys.version_info[0] == 2:
-    range = xrange
+    range = xrange  # noqa: F821 pylint: disable=undefined-variable
 
 # Formatting callbacks
 
