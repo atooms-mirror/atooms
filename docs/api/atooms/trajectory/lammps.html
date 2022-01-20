@@ -91,7 +91,7 @@ def _parse_fz(data, idx, system):
 class TrajectoryLAMMPS(TrajectoryBase):
 
     &#34;&#34;&#34;
-    Trajectory layout for LAMMPS.
+    LAMMPS format (https://docs.lammps.org/dump.html)
 
     In write mode, an additional .inp file is used as startup file.
     &#34;&#34;&#34;
@@ -267,12 +267,10 @@ class TrajectoryLAMMPS(TrajectoryBase):
 class TrajectoryFolderLAMMPS(TrajectoryFolder):
 
     &#34;&#34;&#34;
-    Trajectory layout for LAMMPS.
+    Multi-file layout LAMMPS format.
 
-    In write mode, an additional .inp file is used as startup file.
+    It looks for all files matching a pattern in the input forlder path.
     &#34;&#34;&#34;
-
-    suffix = &#39;tgz&#39;
 
     def __init__(self, filename, mode=&#39;r&#39;, file_pattern=&#39;*&#39;,
                  step_pattern=r&#39;[a-zA-Z\.]*(\d*)&#39;, first_particle=-1, last_particle=-1):
@@ -308,11 +306,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 
     def write_system(self, system, step):
         # We cannot write
-        raise NotImplementedError(&#39;cannot write lammps folder trajectory&#39;)
-
-# Note: to get the tabulated potential from a dump of potential.x do
-# &gt; { echo -e &#34;\nPOTENTIAL\nN 10000\n&#34;; grep -v &#39;#&#39; /tmp/kalj.ff.potential.1-1 | \
-#    awk &#39;{printf &#34;%i %g %12e %12e\n&#34;, NR, $1, $2, -$3}&#39; ; }</code></pre>
+        raise NotImplementedError(&#39;cannot write lammps folder trajectory&#39;)</code></pre>
 </details>
 </section>
 <section>
@@ -329,8 +323,8 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 <span>(</span><span>filename, mode='r', file_pattern='*', step_pattern='[a-zA-Z\\.]*(\\d*)', first_particle=-1, last_particle=-1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Trajectory layout for LAMMPS.</p>
-<p>In write mode, an additional .inp file is used as startup file.</p>
+<div class="desc"><p>Multi-file layout LAMMPS format.</p>
+<p>It looks for all files matching a pattern in the input forlder path.</p>
 <p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
 <details class="source">
 <summary>
@@ -339,12 +333,10 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 <pre><code class="python">class TrajectoryFolderLAMMPS(TrajectoryFolder):
 
     &#34;&#34;&#34;
-    Trajectory layout for LAMMPS.
+    Multi-file layout LAMMPS format.
 
-    In write mode, an additional .inp file is used as startup file.
+    It looks for all files matching a pattern in the input forlder path.
     &#34;&#34;&#34;
-
-    suffix = &#39;tgz&#39;
 
     def __init__(self, filename, mode=&#39;r&#39;, file_pattern=&#39;*&#39;,
                  step_pattern=r&#39;[a-zA-Z\.]*(\d*)&#39;, first_particle=-1, last_particle=-1):
@@ -387,13 +379,6 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 <li><a title="atooms.trajectory.folder.TrajectoryFolder" href="folder.html#atooms.trajectory.folder.TrajectoryFolder">TrajectoryFolder</a></li>
 <li><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></li>
 </ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="atooms.trajectory.lammps.TrajectoryFolderLAMMPS.suffix"><code class="name">var <span class="ident">suffix</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="atooms.trajectory.folder.TrajectoryFolder" href="folder.html#atooms.trajectory.folder.TrajectoryFolder">TrajectoryFolder</a></b></code>:
@@ -423,7 +408,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 <span>(</span><span>filename, mode='r', single_frame=False, first_particle=-1, last_particle=-1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Trajectory layout for LAMMPS.</p>
+<div class="desc"><p>LAMMPS format (<a href="https://docs.lammps.org/dump.html">https://docs.lammps.org/dump.html</a>)</p>
 <p>In write mode, an additional .inp file is used as startup file.</p>
 <p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
 <details class="source">
@@ -433,7 +418,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 <pre><code class="python">class TrajectoryLAMMPS(TrajectoryBase):
 
     &#34;&#34;&#34;
-    Trajectory layout for LAMMPS.
+    LAMMPS format (https://docs.lammps.org/dump.html)
 
     In write mode, an additional .inp file is used as startup file.
     &#34;&#34;&#34;
@@ -674,9 +659,6 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
 <ul>
 <li>
 <h4><code><a title="atooms.trajectory.lammps.TrajectoryFolderLAMMPS" href="#atooms.trajectory.lammps.TrajectoryFolderLAMMPS">TrajectoryFolderLAMMPS</a></code></h4>
-<ul class="">
-<li><code><a title="atooms.trajectory.lammps.TrajectoryFolderLAMMPS.suffix" href="#atooms.trajectory.lammps.TrajectoryFolderLAMMPS.suffix">suffix</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="atooms.trajectory.lammps.TrajectoryLAMMPS" href="#atooms.trajectory.lammps.TrajectoryLAMMPS">TrajectoryLAMMPS</a></code></h4>

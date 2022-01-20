@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>atooms.trajectory.rumd API documentation</title>
-<meta name="description" content="RUMD trajectory format." />
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,17 +22,11 @@
 <h1 class="title">Module <code>atooms.trajectory.rumd</code></h1>
 </header>
 <section id="section-intro">
-<p>RUMD trajectory format.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python"># This file is part of atooms
-# Copyright 2010-2017, Daniele Coslovich
-
-&#34;&#34;&#34;RUMD trajectory format.&#34;&#34;&#34;
-
-import os
+<pre><code class="python">import os
 import re
 import glob
 
@@ -42,6 +36,9 @@ from atooms.trajectory import SuperTrajectory
 
 
 class TrajectoryRUMD(TrajectoryXYZ):
+
+    &#34;&#34;&#34;RUMD trajectory format (https://rumd.org)&#34;&#34;&#34;
+
     # TODO: allow reading unfolded configuration by parsing the box image integers
 
     def __init__(self, filename, mode=&#39;r&#39;, fields=None):
@@ -131,6 +128,8 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
 class SuperTrajectoryRUMD(SuperTrajectory):
 
+    &#34;&#34;&#34;SuperTrajectory for RUMD format&#34;&#34;&#34;
+    
     # TODO: why new here? init should be enough and will make it possible dynamic extension
     def __new__(cls, inp, mode=&#39;r&#39;, basename=&#39;trajectory*.gz&#39;):
         &#34;&#34;&#34; Takes a directory as input and get all block*gz files in there &#34;&#34;&#34;
@@ -162,7 +161,7 @@ class SuperTrajectoryRUMD(SuperTrajectory):
 <span>(</span><span>files, trajectoryclass, mode='r')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Collection of subtrajectories.</p>
+<div class="desc"><p>SuperTrajectory for RUMD format</p>
 <p>Group a list of <code>files</code> into a single trajectory of class
 <code>trajectoryclass</code>.</p></div>
 <details class="source">
@@ -171,6 +170,8 @@ class SuperTrajectoryRUMD(SuperTrajectory):
 </summary>
 <pre><code class="python">class SuperTrajectoryRUMD(SuperTrajectory):
 
+    &#34;&#34;&#34;SuperTrajectory for RUMD format&#34;&#34;&#34;
+    
     # TODO: why new here? init should be enough and will make it possible dynamic extension
     def __new__(cls, inp, mode=&#39;r&#39;, basename=&#39;trajectory*.gz&#39;):
         &#34;&#34;&#34; Takes a directory as input and get all block*gz files in there &#34;&#34;&#34;
@@ -221,14 +222,16 @@ class SuperTrajectoryRUMD(SuperTrajectory):
 <span>(</span><span>filename, mode='r', fields=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Trajectory with XYZ layout using memory leightweight indexed
-access.</p>
+<div class="desc"><p>RUMD trajectory format (<a href="https://rumd.org">https://rumd.org</a>)</p>
 <p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class TrajectoryRUMD(TrajectoryXYZ):
+
+    &#34;&#34;&#34;RUMD trajectory format (https://rumd.org)&#34;&#34;&#34;
+
     # TODO: allow reading unfolded configuration by parsing the box image integers
 
     def __init__(self, filename, mode=&#39;r&#39;, fields=None):

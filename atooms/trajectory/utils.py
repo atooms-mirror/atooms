@@ -350,14 +350,33 @@ def formats():
     maxlen = max([len(name) for name in fmts])
     for name in sorted(fmts):
         class_name = fmts[name]
+        # Check read/write capability
+        try:
+            fmts[name].read_system(None, None)
+        except NotImplementedError:
+            capability = ' '
+        except:
+            capability = 'R'
+        else:
+            capability = 'R'
+        try:
+            fmts[name].write_system(None, None, None)
+        except NotImplementedError:
+            pass
+        except:
+            capability += 'W'
+        else:
+            capability += 'W'
+            
+        # Get format description from __doc__
         if class_name.__doc__:
-            docline = class_name.__doc__.split('\n')[0]
+            docline = class_name.__doc__.strip().split('\n')[0]
             if len(docline) == 0:
                 docline = '...no description...'
         else:
             docline = '...no description...'
-        fmt = '  %-' + str(maxlen) + 's : %s\n'
-        txt += fmt % (name, docline)
+        fmt = '- %-' + str(maxlen) + 's : [%-2s] %s\n'
+        txt += fmt % (name, capability, docline)
     return txt.strip('\n')
 
 

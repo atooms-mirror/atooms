@@ -98,7 +98,7 @@ def add_interaction_hdf5(finp, ff):
 
 class TrajectoryHDF5(TrajectoryBase):
 
-    """Trajectory layout based on HDF5 library. """
+    """In-house trajectory layout in HDF5 format."""
 
     suffix = 'h5'
 

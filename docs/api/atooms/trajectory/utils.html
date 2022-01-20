@@ -379,14 +379,33 @@ def formats():
     maxlen = max([len(name) for name in fmts])
     for name in sorted(fmts):
         class_name = fmts[name]
+        # Check read/write capability
+        try:
+            fmts[name].read_system(None, None)
+        except NotImplementedError:
+            capability = &#39; &#39;
+        except:
+            capability = &#39;R&#39;
+        else:
+            capability = &#39;R&#39;
+        try:
+            fmts[name].write_system(None, None, None)
+        except NotImplementedError:
+            pass
+        except:
+            capability += &#39;W&#39;
+        else:
+            capability += &#39;W&#39;
+            
+        # Get format description from __doc__
         if class_name.__doc__:
-            docline = class_name.__doc__.split(&#39;\n&#39;)[0]
+            docline = class_name.__doc__.strip().split(&#39;\n&#39;)[0]
             if len(docline) == 0:
                 docline = &#39;...no description...&#39;
         else:
             docline = &#39;...no description...&#39;
-        fmt = &#39;  %-&#39; + str(maxlen) + &#39;s : %s\n&#39;
-        txt += fmt % (name, docline)
+        fmt = &#39;- %-&#39; + str(maxlen) + &#39;s : [%-2s] %s\n&#39;
+        txt += fmt % (name, capability, docline)
     return txt.strip(&#39;\n&#39;)
 
 
@@ -709,14 +728,33 @@ given <code>frame</code>.</p></div>
     maxlen = max([len(name) for name in fmts])
     for name in sorted(fmts):
         class_name = fmts[name]
+        # Check read/write capability
+        try:
+            fmts[name].read_system(None, None)
+        except NotImplementedError:
+            capability = &#39; &#39;
+        except:
+            capability = &#39;R&#39;
+        else:
+            capability = &#39;R&#39;
+        try:
+            fmts[name].write_system(None, None, None)
+        except NotImplementedError:
+            pass
+        except:
+            capability += &#39;W&#39;
+        else:
+            capability += &#39;W&#39;
+            
+        # Get format description from __doc__
         if class_name.__doc__:
-            docline = class_name.__doc__.split(&#39;\n&#39;)[0]
+            docline = class_name.__doc__.strip().split(&#39;\n&#39;)[0]
             if len(docline) == 0:
                 docline = &#39;...no description...&#39;
         else:
             docline = &#39;...no description...&#39;
-        fmt = &#39;  %-&#39; + str(maxlen) + &#39;s : %s\n&#39;
-        txt += fmt % (name, docline)
+        fmt = &#39;- %-&#39; + str(maxlen) + &#39;s : [%-2s] %s\n&#39;
+        txt += fmt % (name, capability, docline)
     return txt.strip(&#39;\n&#39;)</code></pre>
 </details>
 </dd>

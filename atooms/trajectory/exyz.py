@@ -12,9 +12,11 @@ log = logging.getLogger(__name__)
 
 
 class TrajectoryEXYZ(TrajectoryXYZ):
+
     """
-    Trajectory with extended XYZ layout.
+    Extended XYZ layout (https://github.com/libAtoms/extxyz)
     """
+
     suffix = 'xyz'
     callback_read = {}
 

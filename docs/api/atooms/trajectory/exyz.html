@@ -40,9 +40,11 @@ log = logging.getLogger(__name__)
 
 
 class TrajectoryEXYZ(TrajectoryXYZ):
+
     &#34;&#34;&#34;
-    Trajectory with extended XYZ layout.
+    Extended XYZ layout (https://github.com/libAtoms/extxyz)
     &#34;&#34;&#34;
+
     suffix = &#39;xyz&#39;
     callback_read = {}
 
@@ -259,16 +261,18 @@ class TrajectoryEXYZ(TrajectoryXYZ):
 <span>(</span><span>filename, mode='r')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Trajectory with extended XYZ layout.</p>
+<div class="desc"><p>Extended XYZ layout (<a href="https://github.com/libAtoms/extxyz">https://github.com/libAtoms/extxyz</a>)</p>
 <p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class TrajectoryEXYZ(TrajectoryXYZ):
+
     &#34;&#34;&#34;
-    Trajectory with extended XYZ layout.
+    Extended XYZ layout (https://github.com/libAtoms/extxyz)
     &#34;&#34;&#34;
+
     suffix = &#39;xyz&#39;
     callback_read = {}
 

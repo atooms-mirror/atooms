@@ -11,7 +11,7 @@ from atooms.system import System
 
 class TrajectoryPDB(TrajectoryBase):
 
-    """Trajectory file with PDB layout"""
+    """PDB format (https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))"""
 
     suffix = 'pdb'
 

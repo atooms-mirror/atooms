@@ -20,8 +20,8 @@ docs:
 	emacs docs/basics.org --batch -l ~/.emacs -l ~/.emacs.d/org-mode.el -f org-rst-export-to-rst --kill
 	emacs docs/simulations.org --batch -l ~/.emacs -l ~/.emacs.d/org-mode.el -f org-rst-export-to-rst --kill
 	emacs docs/trajectories.org --batch -l ~/.emacs -l ~/.emacs.d/org-mode.el -f org-rst-export-to-rst --kill
-	orgnb.py docs/*.org
 	make -C docs/ html
+	orgnb.py docs/*.org
 
 version:
 	@echo __commit__ = \'$(COMMIT_DIRTY)\' > atooms/core/_commit.py

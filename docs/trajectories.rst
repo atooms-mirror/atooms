@@ -11,49 +11,27 @@ Trajectory formats
 
 .. code:: python
 
-    from atooms.trajectory.utils import formats
+    from atooms.trajectory import formats
 
     print(formats())
 
 ::
 
     Available trajectory formats:
-      dynamo       : ...no description...
-      exyz         : ...no description...
-      folderlammps : ...no description...
-      gsd          : ...no description...
-      hdf5         : Trajectory layout based on HDF5 library. 
-      hoomd        : ...no description...
-      lammps       : ...no description...
-      neighbors    : ...no description...
-      pdb          : Trajectory file with PDB layout
-      ram          : ...no description...
-      rumd         : ...no description...
-      simplexyz    : ...no description...
-      superrumd    : ...no description...
-      xyz          : ...no description...
-
-Trajectory conversion
-~~~~~~~~~~~~~~~~~~~~~
-
-``atooms`` provides a command line tool to convert between various trajectory formats. The following command will convert a trajectory file produced by `RUMD <http://rumd.org>`_ into a simpler xyz format
-
-.. code:: sh
-
-    trj.py convert -i rumd -o xyz trajectory.xyz.gz output.xyz
-
-If you don't specify the output path, the trajectory is written to standard output. This is useful for quick inspection of complex trajectory formats or for piping into ``sed`` or ``awk``.
-
-``trj.py`` provides means to fine tune the format of the output file. Type ``trj.py --help`` to get a list of options and supported trajectory formats.
-
-The same thing can be done from Python
-
-.. code:: python
-
-    from atooms.trajectory import TrajectoryRUMD, TrajectoryXYZ
-
-    with TrajectoryRUMD('trajectory.xyz.gz') as th:
-        th.copy('output.xyz', TrajectoryXYZ)
+    - dynamo       : [R ] DynamO trajectory format (https://www.dynamomd.com/index.php/tutorial3)
+    - exyz         : [RW] Extended XYZ layout (https://github.com/libAtoms/extxyz)
+    - folderlammps : [R ] Multi-file layout LAMMPS format.
+    - gsd          : [RW] Glotzer group's binary GSD format for HOOMD (https://glotzerlab.engin.umich.edu/hoomd-blue/)
+    - hdf5         : [RW] In-house trajectory layout in HDF5 format.
+    - hoomd        : [RW] HOOMD format
+    - lammps       : [RW] LAMMPS format (https://docs.lammps.org/dump.html)
+    - neighbors    : [RW] Neighbors trajectory format
+    - pdb          : [RW] PDB format (https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))
+    - ram          : [RW] Store trajectory in RAM
+    - rumd         : [RW] RUMD trajectory format (https://rumd.org)
+    - simplexyz    : [RW] Simple implementation of the xyz layout (https://en.wikipedia.org/wiki/XYZ_file_format)
+    - superrumd    : [R ] SuperTrajectory for RUMD format
+    - xyz          : [RW] XYZ format with metadata support (https://en.wikipedia.org/wiki/XYZ_file_format)
 
 Custom trajectory formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~

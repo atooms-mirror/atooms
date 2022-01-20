@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>atooms.trajectory.hoomd API documentation</title>
-<meta name="description" content="HOOMD trajectory format" />
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,15 +22,12 @@
 <h1 class="title">Module <code>atooms.trajectory.hoomd</code></h1>
 </header>
 <section id="section-intro">
-<p>HOOMD trajectory format</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python"># This file is part of atooms
 # Copyright 2010-2017, Daniele Coslovich
-
-&#34;&#34;&#34;HOOMD trajectory format&#34;&#34;&#34;
 
 import os
 import tarfile
@@ -53,6 +50,8 @@ def map_label_id(names):
 
 class TrajectoryHOOMD(TrajectoryBase):
 
+    &#34;&#34;&#34;HOOMD format&#34;&#34;&#34;
+    
     suffix = &#39;tgz&#39;
 
     def __init__(self, fname, mode=&#39;r&#39;):
@@ -208,61 +207,7 @@ class TrajectoryHOOMD(TrajectoryBase):
 <span>(</span><span>fname, mode='r')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Trajectory abstract base class.</p>
-<p>A trajectory is composed by one or several frames, each frame
-being a sample of a <code>System</code> taken at a given <code>step</code> during a
-simulation. Trajectory instances are iterable and have as file
-objects: they should be opened and closed using the <code>with</code> syntax</p>
-<pre><code>#!python
-with Trajectory(inpfile) as th:
-    for system in th:
-        pass
-</code></pre>
-<p>alternatively</p>
-<pre><code>#!python
-th = Trajectory(inpfile)
-for system in th:
-    pass
-th.close()
-</code></pre>
-<p>To write the state of a <code>System</code> to a trajectory, we must open the
-trajectory in write mode.</p>
-<pre><code>#!python
-with Trajectory(outfile, 'w') as th:
-    th.write(system, step=0)
-</code></pre>
-<p>Trajectories can use the <code>variables</code> attribute to define which system
-properties will be written to disk. Concrete classes may thus
-provide means to write arbitrary variables to disk via particle
-properties. Example:</p>
-<pre><code>#!python
-for particle in system:
-    particle.some_custom_property = 1.0
-with Trajectory(outfile, 'w') as th:
-    th.variables = ['position', 'some_custom_property']
-    th.write(system, step=0)
-</code></pre>
-<p>To be fully functional, concrete classes must implement
-<code>read_system()</code> and <code>write_system()</code> methods.</p>
-<p><code>read()</code> is a template composed of the two following steps:</p>
-<ul>
-<li>
-<p><code>read_init()</code>: called only once to initialize internal data
-structures, grab metadata, etc. Need <em>not</em> be implemented by
-subclasses.</p>
-</li>
-<li>
-<p><code>read_system(n)</code>: actually return the system at frame n. It must
-be implemented by subclasses.</p>
-</li>
-</ul>
-<p>Similarly, <code>write()</code> is a template composed of <code>write_init()</code> and
-<code>write_system()</code>. Only the latter method must be implemented by
-subclasses.</p>
-<p>The <code>cache</code> variable reduces access time when reading the same
-trajectory multiple times. We use shallow copies to cut down the
-overhead. Cache is disabled by default as there is no control on
-its size yet.</p>
+<div class="desc"><p>HOOMD format</p>
 <p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
 <details class="source">
 <summary>
@@ -270,6 +215,8 @@ its size yet.</p>
 </summary>
 <pre><code class="python">class TrajectoryHOOMD(TrajectoryBase):
 
+    &#34;&#34;&#34;HOOMD format&#34;&#34;&#34;
+    
     suffix = &#39;tgz&#39;
 
     def __init__(self, fname, mode=&#39;r&#39;):

@@ -135,8 +135,9 @@ def _optimize_arrays(variables):
 class TrajectoryXYZ(TrajectoryBase):
 
     """
-    Trajectory with XYZ layout using memory leightweight indexed
-    access.
+    XYZ format with metadata support (https://en.wikipedia.org/wiki/XYZ_file_format)
+
+    It is implemented using a lightweight indexing approach.
     """
 
     suffix = 'xyz'
@@ -483,7 +484,7 @@ def _add_neighbors_to_system(system, offset):
 class TrajectoryNeighbors(TrajectoryXYZ):
 
     """
-    Neighbors trajectory.
+    Neighbors trajectory format
 
     By default, for reading we assume an xyz file with space-separated
     integers indicating the particles indices. For writing, we use

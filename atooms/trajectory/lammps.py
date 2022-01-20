@@ -62,7 +62,7 @@ def _parse_fz(data, idx, system):
 class TrajectoryLAMMPS(TrajectoryBase):
 
     """
-    Trajectory layout for LAMMPS.
+    LAMMPS format (https://docs.lammps.org/dump.html)
 
     In write mode, an additional .inp file is used as startup file.
     """
@@ -238,12 +238,10 @@ class TrajectoryLAMMPS(TrajectoryBase):
 class TrajectoryFolderLAMMPS(TrajectoryFolder):
 
     """
-    Trajectory layout for LAMMPS.
+    Multi-file layout LAMMPS format.
 
-    In write mode, an additional .inp file is used as startup file.
+    It looks for all files matching a pattern in the input forlder path.
     """
-
-    suffix = 'tgz'
 
     def __init__(self, filename, mode='r', file_pattern='*',
                  step_pattern=r'[a-zA-Z\.]*(\d*)', first_particle=-1, last_particle=-1):
@@ -280,7 +278,3 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
     def write_system(self, system, step):
         # We cannot write
         raise NotImplementedError('cannot write lammps folder trajectory')
-
-# Note: to get the tabulated potential from a dump of potential.x do
-# > { echo -e "\nPOTENTIAL\nN 10000\n"; grep -v '#' /tmp/kalj.ff.potential.1-1 | \
-#    awk '{printf "%i %g %12e %12e\n", NR, $1, $2, -$3}' ; }

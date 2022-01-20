@@ -1,8 +1,6 @@
 # This file is part of atooms
 # Copyright 2010-2017, Daniele Coslovich
 
-"""HOOMD trajectory format"""
-
 import os
 import tarfile
 import numpy
@@ -24,6 +22,8 @@ def map_label_id(names):
 
 class TrajectoryHOOMD(TrajectoryBase):
 
+    """HOOMD format"""
+    
     suffix = 'tgz'
 
     def __init__(self, fname, mode='r'):

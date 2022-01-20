@@ -1,8 +1,3 @@
-# This file is part of atooms
-# Copyright 2010-2017, Daniele Coslovich
-
-"""RUMD trajectory format."""
-
 import os
 import re
 import glob
@@ -13,6 +8,9 @@ from atooms.trajectory import SuperTrajectory
 
 
 class TrajectoryRUMD(TrajectoryXYZ):
+
+    """RUMD trajectory format (https://rumd.org)"""
+
     # TODO: allow reading unfolded configuration by parsing the box image integers
 
     def __init__(self, filename, mode='r', fields=None):
@@ -102,6 +100,8 @@ class TrajectoryRUMD(TrajectoryXYZ):
 
 class SuperTrajectoryRUMD(SuperTrajectory):
 
+    """SuperTrajectory for RUMD format"""
+    
     # TODO: why new here? init should be enough and will make it possible dynamic extension
     def __new__(cls, inp, mode='r', basename='trajectory*.gz'):
         """ Takes a directory as input and get all block*gz files in there """

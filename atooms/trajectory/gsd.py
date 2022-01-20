@@ -16,7 +16,7 @@ from atooms.trajectory.base import TrajectoryBase
 class TrajectoryGSD(TrajectoryBase):
 
     """
-    Trajectory implementing the Glotzer group's binary GSD format.
+    Glotzer group's binary GSD format for HOOMD (https://glotzerlab.engin.umich.edu/hoomd-blue/)
     """
     suffix = 'gsd'
 

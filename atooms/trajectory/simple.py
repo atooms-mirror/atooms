@@ -13,7 +13,7 @@ from atooms.system import System
 class TrajectorySimpleXYZ(TrajectoryBase):
 
     """
-    Trajectory with simple xyz layout.
+    Simple implementation of the xyz layout (https://en.wikipedia.org/wiki/XYZ_file_format)
 
     It uses a memory light-weight indexed access.
     """

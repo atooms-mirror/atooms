@@ -1,5 +1,3 @@
-"""DynamO trajectory format"""
-
 import os
 import bz2
 import numpy
@@ -9,6 +7,8 @@ from atooms.system import Particle, Cell, System
 
 
 class TrajectoryDynamO(TrajectoryBase):
+
+    """DynamO trajectory format (https://www.dynamomd.com/index.php/tutorial3)"""
 
     suffix = 'xml'
 

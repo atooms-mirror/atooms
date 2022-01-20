@@ -163,8 +163,9 @@ def _optimize_arrays(variables):
 class TrajectoryXYZ(TrajectoryBase):
 
     &#34;&#34;&#34;
-    Trajectory with XYZ layout using memory leightweight indexed
-    access.
+    XYZ format with metadata support (https://en.wikipedia.org/wiki/XYZ_file_format)
+
+    It is implemented using a lightweight indexing approach.
     &#34;&#34;&#34;
 
     suffix = &#39;xyz&#39;
@@ -511,7 +512,7 @@ def _add_neighbors_to_system(system, offset):
 class TrajectoryNeighbors(TrajectoryXYZ):
 
     &#34;&#34;&#34;
-    Neighbors trajectory.
+    Neighbors trajectory format
 
     By default, for reading we assume an xyz file with space-separated
     integers indicating the particles indices. For writing, we use
@@ -547,7 +548,7 @@ class TrajectoryNeighbors(TrajectoryXYZ):
 <span>(</span><span>filename, mode='r', fields=None, offset=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Neighbors trajectory.</p>
+<div class="desc"><p>Neighbors trajectory format</p>
 <p>By default, for reading we assume an xyz file with space-separated
 integers indicating the particles indices. For writing, we use
 comma-separated entries (no space).</p>
@@ -559,7 +560,7 @@ comma-separated entries (no space).</p>
 <pre><code class="python">class TrajectoryNeighbors(TrajectoryXYZ):
 
     &#34;&#34;&#34;
-    Neighbors trajectory.
+    Neighbors trajectory format
 
     By default, for reading we assume an xyz file with space-separated
     integers indicating the particles indices. For writing, we use
@@ -614,8 +615,8 @@ comma-separated entries (no space).</p>
 <span>(</span><span>filename, mode='r', alias=None, fields=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Trajectory with XYZ layout using memory leightweight indexed
-access.</p>
+<div class="desc"><p>XYZ format with metadata support (<a href="https://en.wikipedia.org/wiki/XYZ_file_format">https://en.wikipedia.org/wiki/XYZ_file_format</a>)</p>
+<p>It is implemented using a lightweight indexing approach.</p>
 <p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
 <details class="source">
 <summary>
@@ -624,8 +625,9 @@ access.</p>
 <pre><code class="python">class TrajectoryXYZ(TrajectoryBase):
 
     &#34;&#34;&#34;
-    Trajectory with XYZ layout using memory leightweight indexed
-    access.
+    XYZ format with metadata support (https://en.wikipedia.org/wiki/XYZ_file_format)
+
+    It is implemented using a lightweight indexing approach.
     &#34;&#34;&#34;
 
     suffix = &#39;xyz&#39;
