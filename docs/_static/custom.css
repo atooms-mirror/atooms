@@ -32,6 +32,11 @@ img {
     margin-left: auto;
     margin-right: auto;
 }
+div.highlight-none pre {
+    background-color: rgb(255, 255, 255);
+    color: #7B8591;
+    padding: 0px 15px;
+}
 @media screen and (max-width: 870px) {
 div.sphinxsidebar {
     height: auto;
