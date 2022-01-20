@@ -345,18 +345,20 @@ def is_grandcanonical(trajectory, tests=1):
 def formats():
     """Return a string with the available trajectory formats."""
     from atooms import trajectory
-    txt = 'available trajectory formats:\n'
+    txt = 'Available trajectory formats:\n'
     fmts = trajectory.Trajectory.formats
     maxlen = max([len(name) for name in fmts])
     for name in sorted(fmts):
         class_name = fmts[name]
         if class_name.__doc__:
-            docline = class_name.__doc__.split('\n')[0].rstrip('.')
+            docline = class_name.__doc__.split('\n')[0]
+            if len(docline) == 0:
+                docline = '...no description...'
         else:
             docline = '...no description...'
         fmt = '  %-' + str(maxlen) + 's : %s\n'
         txt += fmt % (name, docline)
-    return txt
+    return txt.strip('\n')
 
 
 def info(trajectory, keys=None):
