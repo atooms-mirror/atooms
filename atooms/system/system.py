@@ -528,7 +528,7 @@ class System(object):
         from .particle import composition
         txt = ''
         if self.particle:
-            txt += 'system composed by {0} particles\n'.format(len(self.particle))
+            txt += 'system composed by N={0} particles\n'.format(len(self.particle))
             txt += 'with chemical composition C={}\n'.format(self.composition)
             txt += 'with chemical concentration x={}\n'.format(self.concentration)
         if self.cell:
