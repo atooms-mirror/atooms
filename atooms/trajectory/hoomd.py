@@ -23,7 +23,7 @@ def map_label_id(names):
 class TrajectoryHOOMD(TrajectoryBase):
 
     """HOOMD format"""
-    
+
     suffix = 'tgz'
 
     def __init__(self, fname, mode='r'):

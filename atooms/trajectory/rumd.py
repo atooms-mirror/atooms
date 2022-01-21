@@ -101,7 +101,7 @@ class TrajectoryRUMD(TrajectoryXYZ):
 class SuperTrajectoryRUMD(SuperTrajectory):
 
     """SuperTrajectory for RUMD format"""
-    
+
     # TODO: why new here? init should be enough and will make it possible dynamic extension
     def __new__(cls, inp, mode='r', basename='trajectory*.gz'):
         """ Takes a directory as input and get all block*gz files in there """

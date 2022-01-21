@@ -98,7 +98,7 @@ class Simulation(object):
 
         # Internal variables
         self._observer = []
-        self._observer_id = 0        
+        self._observer_id = 0
         self._start_time = time.time()
         self._speedometer = None
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
@@ -195,7 +195,7 @@ class Simulation(object):
             _log.debug('notify %s at step %d', observer, self.current_step)
             callback = observer['callback']
             args = observer['args']
-            kwargs = observer['kwargs']            
+            kwargs = observer['kwargs']
             callback(self, *args, **kwargs)
 
     @property

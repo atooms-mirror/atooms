@@ -244,7 +244,7 @@ class Test(unittest.TestCase):
         th0.close()
         th1.close()
         self.assertEqual(s.current_step, 100)
-        
+
     def tearDown(self):
         rmd('/tmp/test_simulation')
 
