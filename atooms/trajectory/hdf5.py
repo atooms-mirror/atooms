@@ -354,6 +354,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
     def read_system(self, frame):
         # TODO: refactor reading particle variables
+        # TODO: removing variables in read_system() is pointless, it should be done before
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
@@ -383,7 +384,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # Dynamic properties
         p = []
         for r, v in zip(pos, vel):
-            p.append(Particle(position=r, velocity=v))
+            p.append(Particle(position=numpy.array(r, dtype='float64'),
+                              velocity=numpy.array(v, dtype='float64')))
 
         # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2
