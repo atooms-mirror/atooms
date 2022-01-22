@@ -176,7 +176,7 @@ class TrajectoryHDF5(TrajectoryBase):
             particle_h5 = {'number_of_species': [len(species)],
                            'number_of_particles': [len(particle)],
                            'identity': [species.index(p.species)+1 for p in particle],
-                           'element': [p.species.encode() for p in particle],
+                           'element': [str(p.species) for p in particle],
                            'mass': [p.mass for p in particle],
                            'radius': [p.radius for p in particle],
                            'position': [p.position for p in particle],
