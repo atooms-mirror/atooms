@@ -367,8 +367,6 @@ class Simulation(object):
             if self.current_step == 0:
                 self._notify(self._non_targeters)
 
-            _log.info('starting at step: %d', self.current_step)
-            _log.info('')
             while True:
                 # Run simulation until any of the observers need to be called
                 # TODO: change naming
