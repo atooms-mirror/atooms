@@ -2,6 +2,21 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations and critical bug fixes.
 
+## 3.7.0 - 2022/01/31
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.6.0...3.7.0)
+
+### New features
+- Add TrajectoryDynamO (read only at the moment)
+
+### Bug fixes
+- Fix Simulation behavior with active progress bar (regression from f188bdab)
+- Fix writing species in hdf5 trajectory when they are not stored as strings
+- Fix reading SuperTrajectory with unsortable file names
+- SuperTrajectory now propagates variables
+- Particle should not change the datatype of position and velocity
+- TrajectoryHDF5 provides float64 arrays for position and velocity by default
+
 ## 3.6.0 - 2022/01/18
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.5.0...3.6.0)
