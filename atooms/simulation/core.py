@@ -314,16 +314,18 @@ class Simulation(object):
         self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
                  self.current_step + self.steps)
 
-        # Targeter for progress bar
+        # Targeter for progress bar.
         if atooms.core.progress.active:
-            intervals = [self._cbk_params[cbk]['scheduler'].interval for cbk in self._observer]
-            intervals = [intv for intv in intervals if intv is not None]
+            # Add a dummy callback to trigger update of progress bar
+            # when observers have a long interval. We try to flush the
+            # progress bar 10 times.
+            intervals = [cbk['scheduler'].interval for cbk in self._observer]
+            intervals = [interval for interval in intervals if interval is not None]
             min_iters = 10
-            if min(intervals) > (self.current_step + self.steps) / min_iters and \
-               (self.current_step + self.steps) / min_iters > 10:
+            if len(intervals) == 0 or (min(intervals) > (self.current_step + self.steps) / min_iters and 
+                                       (self.current_step + self.steps) / min_iters > 10):
                 def flush(sim):
                     pass
-                self.remove(flush)
                 self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
         # Report

@@ -245,6 +245,22 @@ class Test(unittest.TestCase):
         th1.close()
         self.assertEqual(s.current_step, 100)
 
+    def test_progress(self):
+        import sys
+        import os
+        import atooms.core
+        realstdout = sys.stdout
+        fh = open(os.devnull, 'w')
+        sys.stdout = fh
+        atooms.core.progress.active = True
+        s = Simulation(DryRun())
+        s.run(100)
+        s = Simulation(DryRun())
+        s.add(lambda sim: sim, 50)
+        s.run(100)
+        atooms.core.progress.active = False
+        sys.stdout = realstdout
+        
     def tearDown(self):
         rmd('/tmp/test_simulation')
 
