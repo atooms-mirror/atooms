@@ -374,7 +374,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if 'particle.position_unfolded' not in self.variables:
                 self.variables.append('particle.position_unfolded')
 
-        if 'velocity' in group:
+        if 'velocity' in group and len(group['velocity']) > 0:
             vel = group['velocity' + csample][:]
         else:
             vel = numpy.zeros((len(pos), ndim))
