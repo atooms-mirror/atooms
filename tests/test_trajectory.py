@@ -11,6 +11,7 @@ from atooms.trajectory import TrajectoryXYZ, TrajectorySimpleXYZ, TrajectoryRUMD
 from atooms.trajectory.base import TrajectoryBase
 import atooms.trajectory as trj
 
+
 def almost_equal(x, y, rtol):
     try:
         numpy.testing.assert_allclose(x, y, rtol=rtol)
@@ -86,7 +87,7 @@ class Test(unittest.TestCase):
             th.write_timestep(1.0)
             for i, system in enumerate(self.system):
                 th.write(system, i)
-        with cls(path) as th:
+        with cls(path, 'r') as th:
             self.assertEqual(th.timestep, 1.0)
             for i, system in enumerate(th):
                 self.assertTrue(_equal(self.system[i], system, ignore, precision=precision))
@@ -258,6 +259,11 @@ class Test(unittest.TestCase):
             self.assertTrue(numpy.all(th[0].cell.side == numpy.array([10.0, 10.0, 10.0])))
             self.assertTrue(numpy.all(th[1].cell.side == numpy.array([10.0, 10.0, 10.0])))
 
+    def test_csv(self):
+        import atooms.trajectory.csv
+        self._read_write(atooms.trajectory.csv.TrajectoryCSV, ignore=['mass', 'species', 'velocity'])
+        self._append(atooms.trajectory.csv.TrajectoryCSV, ignore=['mass', 'species', 'velocity'])        
+            
     def test_dynamo(self):
         import glob
         from atooms.trajectory import SuperTrajectory, TrajectoryXYZ, TrajectoryDynamO
