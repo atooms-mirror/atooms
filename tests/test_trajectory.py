@@ -62,6 +62,8 @@ def _rename_species(particle, db):
         p.species = db[p.species]
     return particle
 
+inpfile = '/tmp/test_trajectory'
+inpdir = '/tmp/test_trajectory.d'
 
 class Test(unittest.TestCase):
 
@@ -79,10 +81,8 @@ class Test(unittest.TestCase):
         from atooms.core.utils import mkdir
         mkdir(self.inpdir)
 
-    def _read_write(self, cls, path=None, ignore=None, precision=1e-10):
+    def _read_write(self, cls, path=inpfile, ignore=None, precision=1e-10):
         """Read and write"""
-        if path is None:
-            path = self.inpfile
         with cls(path, 'w') as th:
             th.write_timestep(1.0)
             for i, system in enumerate(self.system):
@@ -93,11 +93,8 @@ class Test(unittest.TestCase):
                 self.assertTrue(_equal(self.system[i], system, ignore, precision=precision))
                 self.assertTrue(self.system[i].__class__ is system.__class__)
 
-    def _read_write_fields(self, cls, write_fields=None, read_fields=None, path=None, ignore=None, fail=None, precision=1e-10):
+    def _read_write_fields(self, cls, write_fields=None, read_fields=None, path=inpfile, ignore=None, fail=None, precision=1e-10):
         """Read and write with fields"""
-        if path is None:
-            path = self.inpfile
-
         # Write
         # try:
         #     th = cls(path, 'w', fields=write_fields)
@@ -150,10 +147,8 @@ class Test(unittest.TestCase):
             # ts = Sliced(ts, slice(None, None, 1))
             # print len(ts)
 
-    def _append(self, cls, path=None, ignore=None):
+    def _append(self, cls, path=inpfile, ignore=None):
         """Read and write"""
-        if path is None:
-            path = self.inpfile
         with cls(path, 'w') as th:
             for system in self.system:
                 th.append(system)
@@ -206,12 +201,12 @@ class Test(unittest.TestCase):
         self._append(trj.TrajectorySimpleXYZ, ignore=['mass', 'velocity'])
 
     def test_ram(self):
-        self._read_write(trj.TrajectoryRam)
-        self._append(trj.TrajectoryRam)
+        self._read_write(trj.TrajectoryRam, path=None)
+        self._append(trj.TrajectoryRam, path=None)
 
     def test_ram_full(self):
-        self._read_write(trj.ram.TrajectoryRamFull)
-        self._append(trj.ram.TrajectoryRamFull)
+        self._read_write(trj.ram.TrajectoryRamFull, path=None)
+        self._append(trj.ram.TrajectoryRamFull, path=None)
 
     def test_hdf5(self):
         try:
