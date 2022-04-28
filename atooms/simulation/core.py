@@ -102,6 +102,7 @@ class Simulation(object):
         self._start_time = time.time()
         self._speedometer = None
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
+        self.checkpoint_variables = ['species', 'position', 'velocity', 'radius']
         self._targeter_steps = target_steps
         if enable_speedometer:
             self._speedometer = Speedometer()
@@ -215,9 +216,11 @@ class Simulation(object):
         if self.output_path is None:
             return
 
-        # Checkpoint number of steps
-        with open(self.output_path + '.chk.step', 'w') as fh:
-            fh.write('%d' % self.current_step)
+        # We clear the checkpoint first.
+        # This way, if we get to write the step at the end of this function
+        # we are sure the checkpoint is consistent
+        from atooms.core.utils import rmf
+        rmf(self.output_path + '.chk.step')
 
         if hasattr(self.backend, 'write_checkpoint'):
             # Use native backend checkpoint method
@@ -225,11 +228,15 @@ class Simulation(object):
         else:
             # TODO: use pickle.dump
             # Fallback to backend trajectory class with high precision
-            with self.trajectory_class(self.output_path + '.chk', 'w',
-                                       fields=['species', 'position',
-                                               'velocity', 'radius']) as t:
+            with self.trajectory_class(self.output_path + '.chk', 'w') as t:
+                t.variables = self.checkpoint_variables
                 t.precision = 12
-                t.write(self.system, 0)
+                t.write(self.system)
+
+        # Checkpoint number of steps
+        with open(self.output_path + '.chk.step', 'w') as fh:
+            fh.write('%d' % self.current_step)
+
 
     def read_checkpoint(self):
         """
@@ -244,8 +251,15 @@ class Simulation(object):
         if os.path.exists(self.output_path + '.chk.step'):
             with open(self.output_path + '.chk.step') as fh:
                 self.current_step = int(fh.read())
+            _log.info('restart simulation from step {}'.format(self.current_step))
         else:
-            _log.debug('could not find steps checkpoint')
+            _log.debug('could not find steps file for checkpoint')
+            # If the default checkpoint file is found,
+            # this means its writing was incomplete
+            if os.path.exists(self.output_path + '.chk'):
+                _log.error('checkpoint cannot be read, most likely in a broken state')
+                raise OSError('error while reading checkpoint file {}'.format(self.output_path + '.chk'))
+            return
 
         if hasattr(self.backend, 'read_checkpoint'):
             # Use native backend checkpoint method
@@ -255,9 +269,10 @@ class Simulation(object):
             # TODO: use pickle.load
             if os.path.exists(self.output_path + '.chk'):
                 with self.trajectory_class(self.output_path + '.chk') as t:
-                    # Trajectory will not store the interaction,
+                    # Trajectory may not store the interaction,
                     # thermostat, barostat, so we must preserve it
                     self.system.update(t[0])
+
 
     @property
     def rmsd(self):
@@ -322,7 +337,7 @@ class Simulation(object):
             intervals = [cbk['scheduler'].interval for cbk in self._observer]
             intervals = [interval for interval in intervals if interval is not None]
             min_iters = 10
-            if len(intervals) == 0 or (min(intervals) > (self.current_step + self.steps) / min_iters and 
+            if len(intervals) == 0 or (min(intervals) > (self.current_step + self.steps) / min_iters and
                                        (self.current_step + self.steps) / min_iters > 10):
                 def flush(sim):
                     pass
