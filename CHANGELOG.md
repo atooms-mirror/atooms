@@ -2,6 +2,13 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations and critical bug fixes.
 
+## 3.8.0 - 2022/04/29
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.7.0...3.8.0)
+
+## Added
+- Support custom checkpoint variables in Simulation subclasses
+
 ## 3.7.0 - 2022/01/31
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.6.0...3.7.0)
