@@ -58,6 +58,8 @@ def _parse_fy(data, idx, system):
 def _parse_fz(data, idx, system):
     system.interaction.forces[idx, 2] = float(data)
 
+def _parse_mass(data, idx, system):
+    system.particle[idx].mass = float(data)
 
 class TrajectoryLAMMPS(TrajectoryBase):
 
@@ -74,7 +76,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
             'xsu': _parse_xs, 'ysu': _parse_ys, 'zsu': _parse_zs,
             'vx': _parse_vx, 'vy': _parse_vy, 'vz': _parse_vz,
             'fx': _parse_fx, 'fy': _parse_fy, 'fz': _parse_fz,
-            'type': _parse_type}
+            'type': _parse_type, 'mass': _parse_mass}
 
     def __init__(self, filename, mode='r', single_frame=False,
                  first_particle=-1, last_particle=-1):

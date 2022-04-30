@@ -476,9 +476,9 @@ ITEM: BOX BOUNDS pp pp pp
 -3 3
 -3 3
 -3 3
-ITEM: ATOMS id type xs ys zs
-2 1 0.10 0.11 0.12
-1 1 0.20 0.21 0.22
+ITEM: ATOMS id type xs ys zs mass vx vy vz
+2 2 0.10 0.11 0.12 3.00 1.0 1.0 1.0
+1 1 0.20 0.21 0.22 2.00 1.0 1.0 1.0
 ITEM: TIMESTEP
 1
 ITEM: NUMBER OF ATOMS
@@ -487,9 +487,9 @@ ITEM: BOX BOUNDS pp pp pp
 -4 4
 -4 4
 -4 4
-ITEM: ATOMS id type xs ys zs
-1 1 0.00 0.01 0.02
-2 1 0.50 0.51 0.52
+ITEM: ATOMS id type xs ys zs mass
+1 1 0.00 0.01 0.02 2.00
+2 2 0.50 0.51 0.52 3.00
 """)
         from atooms.trajectory import TrajectoryLAMMPS
 
@@ -499,9 +499,16 @@ ITEM: ATOMS id type xs ys zs
             self.assertEqual(list(th[0].cell.side), [6.0, 6.0, 6.0])
             self.assertEqual(list(th[0].particle[0].position), scale([0.20, 0.21, 0.22], [6.0, 6.0, 6.0]))
             self.assertEqual(list(th[0].particle[1].position), scale([0.10, 0.11, 0.12], [6.0, 6.0, 6.0]))
+            self.assertEqual(list(th[0].particle[0].velocity), [1.0, 1.0, 1.0])
             self.assertEqual(list(th[1].cell.side), [8.0, 8.0, 8.0])
             self.assertEqual(list(th[1].particle[0].position), scale([0.00, 0.01, 0.02], [8.0, 8.0, 8.0]))
             self.assertEqual(list(th[1].particle[1].position), scale([0.50, 0.51, 0.52], [8.0, 8.0, 8.0]))
+            self.assertEqual(th[0].particle[0].mass, 2.0)
+            self.assertEqual(th[0].particle[1].mass, 3.0)
+            system = th[0]
+            
+        with TrajectoryLAMMPS(self.inpfile, 'w') as th:
+            th.write(system)
 
     def test_lammps_folder(self):
         with open(self.inpdir + '/0.atom', 'w') as fh:
