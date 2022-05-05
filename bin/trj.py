@@ -236,7 +236,7 @@ def scatter(args):
         sl = fractional_slice(args.first, args.last, args.skip, len(t))
         ts = trajectory.Sliced(t, sl)
         for i, system in enumerate(ts):
-            f_out = args.file_out.format(step=t.steps[i], frame=i,
+            f_out = args.file_out.format(step=ts.steps[i], frame=i,
                                          base=os.path.splitext(f)[0],
                                          ext=os.path.splitext(f)[1])
             mkdir(os.path.dirname(f_out))
@@ -245,7 +245,7 @@ def scatter(args):
                     th_out.variables = args.fields.split(',')
                 else:
                     th_out.variables = ts.variables
-                th_out.write(system, step=t.steps[i])
+                th_out.write(system, step=ts.steps[i])
 
 
 if __name__ == '__main__':
