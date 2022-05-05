@@ -34,7 +34,7 @@ def main(args):
         args.fields = args.fields.split(',')
 
     if args.out is not None and not args.out in trajectory.Trajectory.formats:
-        formats()   
+        formats()
         raise ValueError('Unknown output format %s' % args.out)
 
     if args.file_out == '-':
@@ -153,7 +153,7 @@ def main(args):
     if args.ff:
         from atooms.trajectory.hdf5 import add_interaction_hdf5
         add_interaction_hdf5(fout, args.ff)
-    
+
     if args.verbose and args.file_out != '/dev/stdout':
         print('# converted %s to %s' % (args.file_inp, fout))
 
@@ -212,7 +212,7 @@ def main_paste(args):
     for step, s1, s2 in trj.utils.paste(ts1, ts2):
         try:
             for i in range(len(s1.particle)):
-                print(getattr(s1.particle[i], attr1), 
+                print(getattr(s1.particle[i], attr1),
                       getattr(s2.particle[i], attr2))
         except:
             print(getattr(s1, attr1), getattr(s2, attr2))
@@ -226,8 +226,8 @@ def scatter(args):
 
     for f in args.file_inp:
         fmt = args.inp
+        fmt_out = fmt
         t = trj.Trajectory(f, fmt=fmt)
-        fmt_out = t.suffix
 
         # Define slice
         # We interpret --first N --last N as a request of step N
@@ -242,17 +242,16 @@ def scatter(args):
             mkdir(os.path.dirname(f_out))
             with trj.Trajectory(f_out, fmt=fmt_out, mode='w') as th_out:
                 if args.fields is not None:
-                    th_out.fields = args.fields.split(',')
+                    th_out.variables = args.fields.split(',')
                 else:
-                    th_out.fields.append('radius')
-                th_out.fields.append('radius')
+                    th_out.variables = ts.variables
                 th_out.write(system, step=t.steps[i])
-    
+
 
 if __name__ == '__main__':
 
     # create the top-level parser
-    parser = argparse.ArgumentParser(epilog=formats(), 
+    parser = argparse.ArgumentParser(epilog=formats(),
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser = add_first_last_skip(parser)
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='verbose output')
@@ -304,4 +303,3 @@ if __name__ == '__main__':
     # parse argument lists
     args = parser.parse_args()
     args.func(args)
-
