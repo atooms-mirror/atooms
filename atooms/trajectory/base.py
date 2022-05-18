@@ -1,6 +1,10 @@
 # This file is part of atooms
 # Copyright 2010-2017, Daniele Coslovich
 
+"""
+Base trajectory classes.
+"""
+
 import os
 import copy
 import warnings
@@ -36,8 +40,8 @@ class TrajectoryBase(object):
 
     A trajectory is composed by one or several frames, each frame
     being a sample of a `System` taken at a given `step` during a
-    simulation. Trajectory instances are iterable and have as file
-    objects: they should be opened and closed using the `with` syntax
+    simulation. Trajectory instances are iterable and behave as file
+    objects: they can be opened and closed using the `with` syntax
 
     ```python
     with Trajectory(inpfile) as th:
@@ -55,7 +59,7 @@ class TrajectoryBase(object):
     ```
 
     To write the state of a `System` to a trajectory, we must open the
-    trajectory in write mode.
+    trajectory in write mode
 
     ```python
     with Trajectory(outfile, 'w') as th:
@@ -100,18 +104,18 @@ class TrajectoryBase(object):
     suffix = None
 
     def __init__(self, filename, mode='r', cache=False):
-        """
-        The `mode` can be 'r' (read) or 'w' (write).
-        """
         self.filename = filename
         self.mode = mode
+        """Can be 'r' (read) or 'w' (write)."""
         self.callbacks = []
+        """List of callbacks to be applied to the system when reading a frame, see `add_callback()`"""
         self.precision = 6
+        """Number of digits used to write trajectory files."""
         self.metadata = {}
         """
         Dictionary of metadata about the trajectory. It can be used by
         subclasses to hold trajectory format info or dynamically
-        on a per sample basis,
+        on a per sample basis.
         """
         self.thesaurus = {
             'position': 'particle.position',
@@ -162,6 +166,7 @@ class TrajectoryBase(object):
         # Cache frames to optimize reading the same trajectory multiple times
         # We use shallow copies to cut down the overhead
         self.cache = cache
+        """If `True`, use a cache when reading the same frame multiple times"""
         self._cache = None
 
     def __len__(self):
@@ -204,9 +209,11 @@ class TrajectoryBase(object):
             raise TypeError("Invalid argument type [%s]" % type(key))
 
     def append(self, system):
+        """Equivalent to `write(system)`."""
         self.write(system)
 
     def close(self):
+        """Can be implemented by subclasses to close file handles."""
         pass
 
     def read(self, index):
@@ -344,15 +351,22 @@ class TrajectoryBase(object):
         return []
 
     def read_timestep(self):
+        """Can be subclassed to parse the timestep."""
         return 1.0
 
     def write_timestep(self, value):
+        """Set the timestep."""
         self._timestep = value
 
     def read_block_size(self):
+        """
+        Can be subclassed to parse the block size for trajectory with
+        non-uniform intervals between frames (ex. exponential sampling).
+        """
         return None
 
     def write_block_size(self, value):
+        """Can be subclassed to write the block size."""
         pass
 
     # Properties
@@ -466,6 +480,15 @@ class TrajectoryBase(object):
 
     @property
     def block_size(self):
+        """
+        Return the block size in frames of the trajectory.
+
+        A block is a sequence of steps that repeats periodically in
+        the trajectory. The block size is 1 for trajectories with
+        constant time intervals between frames. A block size larger
+        than 1 occurs with exponential sampling, ex. for steps
+        sequences like 1,2,4,11,12,14,...
+        """
         if self._block_size is None:
             self._block_size = self.read_block_size()
         if self._block_size is None:
