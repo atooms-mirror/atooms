@@ -39,7 +39,7 @@ class TrajectoryBase(object):
     simulation. Trajectory instances are iterable and have as file
     objects: they should be opened and closed using the `with` syntax
 
-    ```!python
+    ```python
     with Trajectory(inpfile) as th:
         for system in th:
             pass
