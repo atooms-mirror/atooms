@@ -478,9 +478,9 @@ def target(sim, attribute, value):
     x = float(getattr(sim, attribute))
     if value &gt; 0:
         frac = float(x) / value
-        _log.debug(&#39;target %s now at %g [%d]&#39;, attribute, x, int(frac * 100))
+        _log.debug(&#39;target {} now at {} [{:d}]&#39;.format(attribute, x, int(frac * 100)))
     if x &gt;= value:
-        raise SimulationEnd(&#39;reached target %s: %s&#39;, attribute, value)
+        raise SimulationEnd(&#39;reached target {}: {}&#39;.format(attribute, value))
     return frac
 
 def target_rmsd(sim, value):
@@ -794,9 +794,9 @@ simulation.</p>
     x = float(getattr(sim, attribute))
     if value &gt; 0:
         frac = float(x) / value
-        _log.debug(&#39;target %s now at %g [%d]&#39;, attribute, x, int(frac * 100))
+        _log.debug(&#39;target {} now at {} [{:d}]&#39;.format(attribute, x, int(frac * 100)))
     if x &gt;= value:
-        raise SimulationEnd(&#39;reached target %s: %s&#39;, attribute, value)
+        raise SimulationEnd(&#39;reached target {}: {}&#39;.format(attribute, value))
     return frac</code></pre>
 </details>
 </dd>

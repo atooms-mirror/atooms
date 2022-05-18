@@ -138,10 +138,11 @@ class Simulation(object):
 
         # Internal variables
         self._observer = []
-        self._observer_id = 0        
+        self._observer_id = 0
         self._start_time = time.time()
         self._speedometer = None
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
+        self.checkpoint_variables = [&#39;species&#39;, &#39;position&#39;, &#39;velocity&#39;, &#39;radius&#39;]
         self._targeter_steps = target_steps
         if enable_speedometer:
             self._speedometer = Speedometer()
@@ -235,7 +236,7 @@ class Simulation(object):
             _log.debug(&#39;notify %s at step %d&#39;, observer, self.current_step)
             callback = observer[&#39;callback&#39;]
             args = observer[&#39;args&#39;]
-            kwargs = observer[&#39;kwargs&#39;]            
+            kwargs = observer[&#39;kwargs&#39;]
             callback(self, *args, **kwargs)
 
     @property
@@ -255,9 +256,11 @@ class Simulation(object):
         if self.output_path is None:
             return
 
-        # Checkpoint number of steps
-        with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
-            fh.write(&#39;%d&#39; % self.current_step)
+        # We clear the checkpoint first.
+        # This way, if we get to write the step at the end of this function
+        # we are sure the checkpoint is consistent
+        from atooms.core.utils import rmf
+        rmf(self.output_path + &#39;.chk.step&#39;)
 
         if hasattr(self.backend, &#39;write_checkpoint&#39;):
             # Use native backend checkpoint method
@@ -265,11 +268,15 @@ class Simulation(object):
         else:
             # TODO: use pickle.dump
             # Fallback to backend trajectory class with high precision
-            with self.trajectory_class(self.output_path + &#39;.chk&#39;, &#39;w&#39;,
-                                       fields=[&#39;species&#39;, &#39;position&#39;,
-                                               &#39;velocity&#39;, &#39;radius&#39;]) as t:
+            with self.trajectory_class(self.output_path + &#39;.chk&#39;, &#39;w&#39;) as t:
+                t.variables = self.checkpoint_variables
                 t.precision = 12
-                t.write(self.system, 0)
+                t.write(self.system)
+
+        # Checkpoint number of steps
+        with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
+            fh.write(&#39;%d&#39; % self.current_step)
+
 
     def read_checkpoint(self):
         &#34;&#34;&#34;
@@ -284,8 +291,15 @@ class Simulation(object):
         if os.path.exists(self.output_path + &#39;.chk.step&#39;):
             with open(self.output_path + &#39;.chk.step&#39;) as fh:
                 self.current_step = int(fh.read())
+            _log.info(&#39;restart simulation from step {}&#39;.format(self.current_step))
         else:
-            _log.debug(&#39;could not find steps checkpoint&#39;)
+            _log.debug(&#39;could not find steps file for checkpoint&#39;)
+            # If the default checkpoint file is found,
+            # this means its writing was incomplete
+            if os.path.exists(self.output_path + &#39;.chk&#39;):
+                _log.error(&#39;checkpoint cannot be read, most likely in a broken state&#39;)
+                raise OSError(&#39;error while reading checkpoint file {}&#39;.format(self.output_path + &#39;.chk&#39;))
+            return
 
         if hasattr(self.backend, &#39;read_checkpoint&#39;):
             # Use native backend checkpoint method
@@ -295,9 +309,10 @@ class Simulation(object):
             # TODO: use pickle.load
             if os.path.exists(self.output_path + &#39;.chk&#39;):
                 with self.trajectory_class(self.output_path + &#39;.chk&#39;) as t:
-                    # Trajectory will not store the interaction,
+                    # Trajectory may not store the interaction,
                     # thermostat, barostat, so we must preserve it
                     self.system.update(t[0])
+
 
     @property
     def rmsd(self):
@@ -354,16 +369,18 @@ class Simulation(object):
         self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
                  self.current_step + self.steps)
 
-        # Targeter for progress bar
+        # Targeter for progress bar.
         if atooms.core.progress.active:
-            intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._observer]
-            intervals = [intv for intv in intervals if intv is not None]
+            # Add a dummy callback to trigger update of progress bar
+            # when observers have a long interval. We try to flush the
+            # progress bar 10 times.
+            intervals = [cbk[&#39;scheduler&#39;].interval for cbk in self._observer]
+            intervals = [interval for interval in intervals if interval is not None]
             min_iters = 10
-            if min(intervals) &gt; (self.current_step + self.steps) / min_iters and \
-               (self.current_step + self.steps) / min_iters &gt; 10:
+            if len(intervals) == 0 or (min(intervals) &gt; (self.current_step + self.steps) / min_iters and
+                                       (self.current_step + self.steps) / min_iters &gt; 10):
                 def flush(sim):
                     pass
-                self.remove(flush)
                 self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
         # Report
@@ -405,8 +422,6 @@ class Simulation(object):
             if self.current_step == 0:
                 self._notify(self._non_targeters)
 
-            _log.info(&#39;starting at step: %d&#39;, self.current_step)
-            _log.info(&#39;&#39;)
             while True:
                 # Run simulation until any of the observers need to be called
                 # TODO: change naming
@@ -554,10 +569,11 @@ other paths are defined based on it and on its base_path.</p></div>
 
         # Internal variables
         self._observer = []
-        self._observer_id = 0        
+        self._observer_id = 0
         self._start_time = time.time()
         self._speedometer = None
         self._checkpoint_scheduler = Scheduler(checkpoint_interval)
+        self.checkpoint_variables = [&#39;species&#39;, &#39;position&#39;, &#39;velocity&#39;, &#39;radius&#39;]
         self._targeter_steps = target_steps
         if enable_speedometer:
             self._speedometer = Speedometer()
@@ -651,7 +667,7 @@ other paths are defined based on it and on its base_path.</p></div>
             _log.debug(&#39;notify %s at step %d&#39;, observer, self.current_step)
             callback = observer[&#39;callback&#39;]
             args = observer[&#39;args&#39;]
-            kwargs = observer[&#39;kwargs&#39;]            
+            kwargs = observer[&#39;kwargs&#39;]
             callback(self, *args, **kwargs)
 
     @property
@@ -671,9 +687,11 @@ other paths are defined based on it and on its base_path.</p></div>
         if self.output_path is None:
             return
 
-        # Checkpoint number of steps
-        with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
-            fh.write(&#39;%d&#39; % self.current_step)
+        # We clear the checkpoint first.
+        # This way, if we get to write the step at the end of this function
+        # we are sure the checkpoint is consistent
+        from atooms.core.utils import rmf
+        rmf(self.output_path + &#39;.chk.step&#39;)
 
         if hasattr(self.backend, &#39;write_checkpoint&#39;):
             # Use native backend checkpoint method
@@ -681,11 +699,15 @@ other paths are defined based on it and on its base_path.</p></div>
         else:
             # TODO: use pickle.dump
             # Fallback to backend trajectory class with high precision
-            with self.trajectory_class(self.output_path + &#39;.chk&#39;, &#39;w&#39;,
-                                       fields=[&#39;species&#39;, &#39;position&#39;,
-                                               &#39;velocity&#39;, &#39;radius&#39;]) as t:
+            with self.trajectory_class(self.output_path + &#39;.chk&#39;, &#39;w&#39;) as t:
+                t.variables = self.checkpoint_variables
                 t.precision = 12
-                t.write(self.system, 0)
+                t.write(self.system)
+
+        # Checkpoint number of steps
+        with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
+            fh.write(&#39;%d&#39; % self.current_step)
+
 
     def read_checkpoint(self):
         &#34;&#34;&#34;
@@ -700,8 +722,15 @@ other paths are defined based on it and on its base_path.</p></div>
         if os.path.exists(self.output_path + &#39;.chk.step&#39;):
             with open(self.output_path + &#39;.chk.step&#39;) as fh:
                 self.current_step = int(fh.read())
+            _log.info(&#39;restart simulation from step {}&#39;.format(self.current_step))
         else:
-            _log.debug(&#39;could not find steps checkpoint&#39;)
+            _log.debug(&#39;could not find steps file for checkpoint&#39;)
+            # If the default checkpoint file is found,
+            # this means its writing was incomplete
+            if os.path.exists(self.output_path + &#39;.chk&#39;):
+                _log.error(&#39;checkpoint cannot be read, most likely in a broken state&#39;)
+                raise OSError(&#39;error while reading checkpoint file {}&#39;.format(self.output_path + &#39;.chk&#39;))
+            return
 
         if hasattr(self.backend, &#39;read_checkpoint&#39;):
             # Use native backend checkpoint method
@@ -711,9 +740,10 @@ other paths are defined based on it and on its base_path.</p></div>
             # TODO: use pickle.load
             if os.path.exists(self.output_path + &#39;.chk&#39;):
                 with self.trajectory_class(self.output_path + &#39;.chk&#39;) as t:
-                    # Trajectory will not store the interaction,
+                    # Trajectory may not store the interaction,
                     # thermostat, barostat, so we must preserve it
                     self.system.update(t[0])
+
 
     @property
     def rmsd(self):
@@ -770,16 +800,18 @@ other paths are defined based on it and on its base_path.</p></div>
         self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
                  self.current_step + self.steps)
 
-        # Targeter for progress bar
+        # Targeter for progress bar.
         if atooms.core.progress.active:
-            intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._observer]
-            intervals = [intv for intv in intervals if intv is not None]
+            # Add a dummy callback to trigger update of progress bar
+            # when observers have a long interval. We try to flush the
+            # progress bar 10 times.
+            intervals = [cbk[&#39;scheduler&#39;].interval for cbk in self._observer]
+            intervals = [interval for interval in intervals if interval is not None]
             min_iters = 10
-            if min(intervals) &gt; (self.current_step + self.steps) / min_iters and \
-               (self.current_step + self.steps) / min_iters &gt; 10:
+            if len(intervals) == 0 or (min(intervals) &gt; (self.current_step + self.steps) / min_iters and
+                                       (self.current_step + self.steps) / min_iters &gt; 10):
                 def flush(sim):
                     pass
-                self.remove(flush)
                 self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
         # Report
@@ -821,8 +853,6 @@ other paths are defined based on it and on its base_path.</p></div>
             if self.current_step == 0:
                 self._notify(self._non_targeters)
 
-            _log.info(&#39;starting at step: %d&#39;, self.current_step)
-            _log.info(&#39;&#39;)
             while True:
                 # Run simulation until any of the observers need to be called
                 # TODO: change naming
@@ -1072,8 +1102,15 @@ gracefully.</p></div>
     if os.path.exists(self.output_path + &#39;.chk.step&#39;):
         with open(self.output_path + &#39;.chk.step&#39;) as fh:
             self.current_step = int(fh.read())
+        _log.info(&#39;restart simulation from step {}&#39;.format(self.current_step))
     else:
-        _log.debug(&#39;could not find steps checkpoint&#39;)
+        _log.debug(&#39;could not find steps file for checkpoint&#39;)
+        # If the default checkpoint file is found,
+        # this means its writing was incomplete
+        if os.path.exists(self.output_path + &#39;.chk&#39;):
+            _log.error(&#39;checkpoint cannot be read, most likely in a broken state&#39;)
+            raise OSError(&#39;error while reading checkpoint file {}&#39;.format(self.output_path + &#39;.chk&#39;))
+        return
 
     if hasattr(self.backend, &#39;read_checkpoint&#39;):
         # Use native backend checkpoint method
@@ -1083,7 +1120,7 @@ gracefully.</p></div>
         # TODO: use pickle.load
         if os.path.exists(self.output_path + &#39;.chk&#39;):
             with self.trajectory_class(self.output_path + &#39;.chk&#39;) as t:
-                # Trajectory will not store the interaction,
+                # Trajectory may not store the interaction,
                 # thermostat, barostat, so we must preserve it
                 self.system.update(t[0])</code></pre>
 </details>
@@ -1149,16 +1186,18 @@ gracefully.</p></div>
     self.add(self._targeter_steps, Scheduler(self.current_step + self.steps),
              self.current_step + self.steps)
 
-    # Targeter for progress bar
+    # Targeter for progress bar.
     if atooms.core.progress.active:
-        intervals = [self._cbk_params[cbk][&#39;scheduler&#39;].interval for cbk in self._observer]
-        intervals = [intv for intv in intervals if intv is not None]
+        # Add a dummy callback to trigger update of progress bar
+        # when observers have a long interval. We try to flush the
+        # progress bar 10 times.
+        intervals = [cbk[&#39;scheduler&#39;].interval for cbk in self._observer]
+        intervals = [interval for interval in intervals if interval is not None]
         min_iters = 10
-        if min(intervals) &gt; (self.current_step + self.steps) / min_iters and \
-           (self.current_step + self.steps) / min_iters &gt; 10:
+        if len(intervals) == 0 or (min(intervals) &gt; (self.current_step + self.steps) / min_iters and
+                                   (self.current_step + self.steps) / min_iters &gt; 10):
             def flush(sim):
                 pass
-            self.remove(flush)
             self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
     # Report
@@ -1200,8 +1239,6 @@ gracefully.</p></div>
         if self.current_step == 0:
             self._notify(self._non_targeters)
 
-        _log.info(&#39;starting at step: %d&#39;, self.current_step)
-        _log.info(&#39;&#39;)
         while True:
             # Run simulation until any of the observers need to be called
             # TODO: change naming
@@ -1312,9 +1349,11 @@ subclassed by more complex simulation classes.</p></div>
     if self.output_path is None:
         return
 
-    # Checkpoint number of steps
-    with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
-        fh.write(&#39;%d&#39; % self.current_step)
+    # We clear the checkpoint first.
+    # This way, if we get to write the step at the end of this function
+    # we are sure the checkpoint is consistent
+    from atooms.core.utils import rmf
+    rmf(self.output_path + &#39;.chk.step&#39;)
 
     if hasattr(self.backend, &#39;write_checkpoint&#39;):
         # Use native backend checkpoint method
@@ -1322,11 +1361,14 @@ subclassed by more complex simulation classes.</p></div>
     else:
         # TODO: use pickle.dump
         # Fallback to backend trajectory class with high precision
-        with self.trajectory_class(self.output_path + &#39;.chk&#39;, &#39;w&#39;,
-                                   fields=[&#39;species&#39;, &#39;position&#39;,
-                                           &#39;velocity&#39;, &#39;radius&#39;]) as t:
+        with self.trajectory_class(self.output_path + &#39;.chk&#39;, &#39;w&#39;) as t:
+            t.variables = self.checkpoint_variables
             t.precision = 12
-            t.write(self.system, 0)</code></pre>
+            t.write(self.system)
+
+    # Checkpoint number of steps
+    with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
+        fh.write(&#39;%d&#39; % self.current_step)</code></pre>
 </details>
 </dd>
 </dl>

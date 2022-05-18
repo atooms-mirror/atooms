@@ -67,37 +67,41 @@ class TrajectoryBase(object):
     simulation. Trajectory instances are iterable and have as file
     objects: they should be opened and closed using the `with` syntax
 
-        #!python
-        with Trajectory(inpfile) as th:
-            for system in th:
-                pass
-
-    alternatively
-
-        #!python
-        th = Trajectory(inpfile)
+    ```!python
+    with Trajectory(inpfile) as th:
         for system in th:
             pass
-        th.close()
+    ```
+    
+    alternatively
+
+    ```python
+    th = Trajectory(inpfile)
+    for system in th:
+        pass
+    th.close()
+    ```
 
     To write the state of a `System` to a trajectory, we must open the
     trajectory in write mode.
 
-        #!python
-        with Trajectory(outfile, &#39;w&#39;) as th:
-            th.write(system, step=0)
+    ```python
+    with Trajectory(outfile, &#39;w&#39;) as th:
+        th.write(system, step=0)
+    ```
 
     Trajectories can use the `variables` attribute to define which system
     properties will be written to disk. Concrete classes may thus
     provide means to write arbitrary variables to disk via particle
     properties. Example:
 
-        #!python
-        for particle in system:
-            particle.some_custom_property = 1.0
-        with Trajectory(outfile, &#39;w&#39;) as th:
-            th.variables = [&#39;position&#39;, &#39;some_custom_property&#39;]
-            th.write(system, step=0)
+    ```python
+    for particle in system:
+        particle.some_custom_property = 1.0
+    with Trajectory(outfile, &#39;w&#39;) as th:
+        th.variables = [&#39;position&#39;, &#39;some_custom_property&#39;]
+        th.write(system, step=0)
+    ```
 
     To be fully functional, concrete classes must implement
     `read_system()` and `write_system()` methods.
@@ -814,13 +818,14 @@ class SuperTrajectory(TrajectoryBase):
 being a sample of a <code>System</code> taken at a given <code>step</code> during a
 simulation. Trajectory instances are iterable and have as file
 objects: they should be opened and closed using the <code>with</code> syntax</p>
-<pre><code>#!python
+<p>```!python
 with Trajectory(inpfile) as th:
-    for system in th:
-        pass
-</code></pre>
-<p>alternatively</p>
-<pre><code>#!python
+for system in th:
+pass</p>
+<pre><code>
+alternatively
+
+```python
 th = Trajectory(inpfile)
 for system in th:
     pass
@@ -828,16 +833,14 @@ th.close()
 </code></pre>
 <p>To write the state of a <code>System</code> to a trajectory, we must open the
 trajectory in write mode.</p>
-<pre><code>#!python
-with Trajectory(outfile, 'w') as th:
+<pre><code class="language-python">with Trajectory(outfile, 'w') as th:
     th.write(system, step=0)
 </code></pre>
 <p>Trajectories can use the <code>variables</code> attribute to define which system
 properties will be written to disk. Concrete classes may thus
 provide means to write arbitrary variables to disk via particle
 properties. Example:</p>
-<pre><code>#!python
-for particle in system:
+<pre><code class="language-python">for particle in system:
     particle.some_custom_property = 1.0
 with Trajectory(outfile, 'w') as th:
     th.variables = ['position', 'some_custom_property']
@@ -878,37 +881,41 @@ its size yet.</p>
     simulation. Trajectory instances are iterable and have as file
     objects: they should be opened and closed using the `with` syntax
 
-        #!python
-        with Trajectory(inpfile) as th:
-            for system in th:
-                pass
-
-    alternatively
-
-        #!python
-        th = Trajectory(inpfile)
+    ```!python
+    with Trajectory(inpfile) as th:
         for system in th:
             pass
-        th.close()
+    ```
+    
+    alternatively
+
+    ```python
+    th = Trajectory(inpfile)
+    for system in th:
+        pass
+    th.close()
+    ```
 
     To write the state of a `System` to a trajectory, we must open the
     trajectory in write mode.
 
-        #!python
-        with Trajectory(outfile, &#39;w&#39;) as th:
-            th.write(system, step=0)
+    ```python
+    with Trajectory(outfile, &#39;w&#39;) as th:
+        th.write(system, step=0)
+    ```
 
     Trajectories can use the `variables` attribute to define which system
     properties will be written to disk. Concrete classes may thus
     provide means to write arbitrary variables to disk via particle
     properties. Example:
 
-        #!python
-        for particle in system:
-            particle.some_custom_property = 1.0
-        with Trajectory(outfile, &#39;w&#39;) as th:
-            th.variables = [&#39;position&#39;, &#39;some_custom_property&#39;]
-            th.write(system, step=0)
+    ```python
+    for particle in system:
+        particle.some_custom_property = 1.0
+    with Trajectory(outfile, &#39;w&#39;) as th:
+        th.variables = [&#39;position&#39;, &#39;some_custom_property&#39;]
+        th.write(system, step=0)
+    ```
 
     To be fully functional, concrete classes must implement
     `read_system()` and `write_system()` methods.
@@ -1340,7 +1347,9 @@ its size yet.</p>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="atooms.trajectory.base.SuperTrajectory" href="#atooms.trajectory.base.SuperTrajectory">SuperTrajectory</a></li>
+<li><a title="atooms.trajectory.csv.TrajectoryCSV" href="csv.html#atooms.trajectory.csv.TrajectoryCSV">TrajectoryCSV</a></li>
 <li><a title="atooms.trajectory.dynamo.TrajectoryDynamO" href="dynamo.html#atooms.trajectory.dynamo.TrajectoryDynamO">TrajectoryDynamO</a></li>
+<li>atooms.trajectory.dynamo._TrajectoryDynamO</li>
 <li><a title="atooms.trajectory.folder.TrajectoryFolder" href="folder.html#atooms.trajectory.folder.TrajectoryFolder">TrajectoryFolder</a></li>
 <li><a title="atooms.trajectory.gsd.TrajectoryGSD" href="gsd.html#atooms.trajectory.gsd.TrajectoryGSD">TrajectoryGSD</a></li>
 <li><a title="atooms.trajectory.hdf5.TrajectoryHDF5" href="hdf5.html#atooms.trajectory.hdf5.TrajectoryHDF5">TrajectoryHDF5</a></li>

@@ -205,7 +205,7 @@ class TrajectoryHDF5(TrajectoryBase):
             particle_h5 = {&#39;number_of_species&#39;: [len(species)],
                            &#39;number_of_particles&#39;: [len(particle)],
                            &#39;identity&#39;: [species.index(p.species)+1 for p in particle],
-                           &#39;element&#39;: [p.species.encode() for p in particle],
+                           &#39;element&#39;: [str(p.species) for p in particle],
                            &#39;mass&#39;: [p.mass for p in particle],
                            &#39;radius&#39;: [p.radius for p in particle],
                            &#39;position&#39;: [p.position for p in particle],
@@ -383,6 +383,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
     def read_system(self, frame):
         # TODO: refactor reading particle variables
+        # TODO: removing variables in read_system() is pointless, it should be done before
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
@@ -402,7 +403,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if &#39;particle.position_unfolded&#39; not in self.variables:
                 self.variables.append(&#39;particle.position_unfolded&#39;)
 
-        if &#39;velocity&#39; in group:
+        if &#39;velocity&#39; in group and len(group[&#39;velocity&#39;]) &gt; 0:
             vel = group[&#39;velocity&#39; + csample][:]
         else:
             vel = numpy.zeros((len(pos), ndim))
@@ -412,7 +413,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # Dynamic properties
         p = []
         for r, v in zip(pos, vel):
-            p.append(Particle(position=r, velocity=v))
+            p.append(Particle(position=numpy.array(r, dtype=&#39;float64&#39;),
+                              velocity=numpy.array(v, dtype=&#39;float64&#39;)))
 
         # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2
@@ -610,7 +612,7 @@ class TrajectoryHDF5(TrajectoryBase):
             particle_h5 = {&#39;number_of_species&#39;: [len(species)],
                            &#39;number_of_particles&#39;: [len(particle)],
                            &#39;identity&#39;: [species.index(p.species)+1 for p in particle],
-                           &#39;element&#39;: [p.species.encode() for p in particle],
+                           &#39;element&#39;: [str(p.species) for p in particle],
                            &#39;mass&#39;: [p.mass for p in particle],
                            &#39;radius&#39;: [p.radius for p in particle],
                            &#39;position&#39;: [p.position for p in particle],
@@ -788,6 +790,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
     def read_system(self, frame):
         # TODO: refactor reading particle variables
+        # TODO: removing variables in read_system() is pointless, it should be done before
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
@@ -807,7 +810,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if &#39;particle.position_unfolded&#39; not in self.variables:
                 self.variables.append(&#39;particle.position_unfolded&#39;)
 
-        if &#39;velocity&#39; in group:
+        if &#39;velocity&#39; in group and len(group[&#39;velocity&#39;]) &gt; 0:
             vel = group[&#39;velocity&#39; + csample][:]
         else:
             vel = numpy.zeros((len(pos), ndim))
@@ -817,7 +820,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # Dynamic properties
         p = []
         for r, v in zip(pos, vel):
-            p.append(Particle(position=r, velocity=v))
+            p.append(Particle(position=numpy.array(r, dtype=&#39;float64&#39;),
+                              velocity=numpy.array(v, dtype=&#39;float64&#39;)))
 
         # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2

@@ -30,18 +30,18 @@
 import bz2
 import numpy
 from xml.etree import ElementTree
-from atooms.trajectory.base import TrajectoryBase
+from atooms.trajectory.base import TrajectoryBase, SuperTrajectory
 from atooms.system import Particle, Cell, System
 
 
-class TrajectoryDynamO(TrajectoryBase):
+class _TrajectoryDynamO(TrajectoryBase):
 
     &#34;&#34;&#34;DynamO trajectory format (https://www.dynamomd.com/index.php/tutorial3)&#34;&#34;&#34;
 
     suffix = &#39;xml&#39;
 
     def __init__(self, filename, mode=&#39;r&#39;):
-        super(TrajectoryDynamO, self).__init__(filename, mode)
+        super(_TrajectoryDynamO, self).__init__(filename, mode)
         assert mode == &#39;r&#39;, &#39;cannot write yet&#39;
         self._filename = filename
         if (os.path.splitext(filename)[1][1:].strip() == &#34;bz2&#34;):
@@ -51,13 +51,30 @@ class TrajectoryDynamO(TrajectoryBase):
         self.variables = [&#39;particle.species&#39;, &#39;particle.mass&#39;,
                           &#39;particle.position&#39;, &#39;particle.velocity&#39;]
 
+    def read_timestep(self):
+        return 1e-10
+
     def read_steps(self):
-        # Quick and dirty (assume Snapshot.[0-9]*e.xml* naming scheme)
-        # TODO: look up output file if it exists
-        step = 0
+        import re
         base = os.path.basename(self._filename)
+        # If the file is named with Snapshot.[0-9]*e.xml* naming
+        # scheme then we extract the time from the corresponding
+        # output file and convert to a step assuming that frames are
+        # stored at regular time intervals. Otherwise the step is 0.
         if base.startswith(&#39;Snapshot&#39;):
-            step = int(base.split(&#39;.&#39;)[1][:-1])
+            # Get the current frame time from output file
+            output_file = re.sub(&#39;([0-9].)&#39;, &#39;output.\\1&#39;, self._filename)
+            if (os.path.splitext(output_file)[1][1:].strip() == &#34;bz2&#34;):
+                fh = bz2.BZ2File(output_file)
+            else:
+                fh = open(output_file)
+            tree = ElementTree.parse(fh)
+            root = tree.getroot()
+            time = root.find(&#39;Misc&#39;).find(&#39;Duration&#39;).attrib[&#39;Time&#39;]
+            step = round(float(time) / self.timestep)
+            fh.close()
+        else:
+            step = 0
         return [step]
 
     def read_system(self, frame):
@@ -69,17 +86,6 @@ class TrajectoryDynamO(TrajectoryBase):
         _cell = root.find(&#34;Simulation&#34;).find(&#39;SimulationSize&#39;)
         side = numpy.array([_cell.attrib[&#39;x&#39;], _cell.attrib[&#39;y&#39;], _cell.attrib[&#39;z&#39;]])
 
-        # Species
-        species, mass = [], []
-        _species = root.find(&#34;Simulation&#34;).find(&#34;Genus&#34;).findall(&#39;Species&#39;)
-        for sp in _species:
-            assert sp.find(&#39;IDRange&#39;).attrib[&#39;Type&#39;] == &#39;Ranged&#39;
-            begin = int(sp.find(&#39;IDRange&#39;).attrib[&#39;Start&#39;])
-            end = int(sp.find(&#39;IDRange&#39;).attrib[&#39;End&#39;])
-            for _ in range(begin, end+1):
-                species.append(sp.attrib[&#39;Name&#39;])
-                mass.append(sp.attrib[&#39;Mass&#39;])
-
         # Coordinates
         position, velocity = [], []
         for _particle in root.findall(&#39;.//Pt&#39;):
@@ -88,6 +94,21 @@ class TrajectoryDynamO(TrajectoryBase):
             position.append([pos.attrib[&#39;x&#39;], pos.attrib[&#39;y&#39;], pos.attrib[&#39;z&#39;]])
             velocity.append([vel.attrib[&#39;x&#39;], vel.attrib[&#39;y&#39;], vel.attrib[&#39;z&#39;]])
 
+        # Species
+        _species = root.find(&#34;Simulation&#34;).find(&#34;Genus&#34;).findall(&#39;Species&#39;)
+        if len(_species) == 1:
+            species, mass = len(position) * [&#39;A&#39;], len(position) * [1.0]
+        else:
+            species, mass = [], []
+            for sp in _species:
+                assert sp.find(&#39;IDRange&#39;).attrib[&#39;Type&#39;] == &#39;Ranged&#39;
+                begin = int(sp.find(&#39;IDRange&#39;).attrib[&#39;Start&#39;])
+                end = int(sp.find(&#39;IDRange&#39;).attrib[&#39;End&#39;])
+                for _ in range(begin, end+1):
+                    species.append(sp.attrib[&#39;Name&#39;])
+                    mass.append(sp.attrib[&#39;Mass&#39;])
+
+        # Pack everything into a System
         cell = Cell(side)
         particle = [Particle(species=s, mass=float(m),
                              position=numpy.array(p, dtype=float),
@@ -96,7 +117,30 @@ class TrajectoryDynamO(TrajectoryBase):
         return System(particle, cell)
 
     def close(self):
-        self._file.close()</code></pre>
+        self._file.close()
+
+
+class TrajectoryDynamO(TrajectoryBase):
+
+    &#34;&#34;&#34;DynamO trajectory format (https://www.dynamomd.com/index.php/tutorial3)&#34;&#34;&#34;
+
+    def __init__(self, path, mode=&#39;r&#39;):
+        import os
+        import glob
+
+        super(TrajectoryDynamO, self).__init__(path, mode)
+        if os.path.isdir(path):
+            files = glob.glob(path + &#39;/Snapshot.[0-9]*.*&#39;)
+            self._th = SuperTrajectory(files, _TrajectoryDynamO)
+        else:
+            self._th = _TrajectoryDynamO(path)
+        self.steps = self._th.steps
+
+    def read_timestep(self):
+        return self._th.read_timestep()
+
+    def read_system(self, frame):
+        return self._th.read_system(frame)</code></pre>
 </details>
 </section>
 <section>
@@ -110,7 +154,7 @@ class TrajectoryDynamO(TrajectoryBase):
 <dl>
 <dt id="atooms.trajectory.dynamo.TrajectoryDynamO"><code class="flex name class">
 <span>class <span class="ident">TrajectoryDynamO</span></span>
-<span>(</span><span>filename, mode='r')</span>
+<span>(</span><span>path, mode='r')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>DynamO trajectory format (<a href="https://www.dynamomd.com/index.php/tutorial3">https://www.dynamomd.com/index.php/tutorial3</a>)</p>
@@ -123,81 +167,32 @@ class TrajectoryDynamO(TrajectoryBase):
 
     &#34;&#34;&#34;DynamO trajectory format (https://www.dynamomd.com/index.php/tutorial3)&#34;&#34;&#34;
 
-    suffix = &#39;xml&#39;
+    def __init__(self, path, mode=&#39;r&#39;):
+        import os
+        import glob
 
-    def __init__(self, filename, mode=&#39;r&#39;):
-        super(TrajectoryDynamO, self).__init__(filename, mode)
-        assert mode == &#39;r&#39;, &#39;cannot write yet&#39;
-        self._filename = filename
-        if (os.path.splitext(filename)[1][1:].strip() == &#34;bz2&#34;):
-            self._file = bz2.BZ2File(filename)
+        super(TrajectoryDynamO, self).__init__(path, mode)
+        if os.path.isdir(path):
+            files = glob.glob(path + &#39;/Snapshot.[0-9]*.*&#39;)
+            self._th = SuperTrajectory(files, _TrajectoryDynamO)
         else:
-            self._file = open(filename)
-        self.variables = [&#39;particle.species&#39;, &#39;particle.mass&#39;,
-                          &#39;particle.position&#39;, &#39;particle.velocity&#39;]
+            self._th = _TrajectoryDynamO(path)
+        self.steps = self._th.steps
 
-    def read_steps(self):
-        # Quick and dirty (assume Snapshot.[0-9]*e.xml* naming scheme)
-        # TODO: look up output file if it exists
-        step = 0
-        base = os.path.basename(self._filename)
-        if base.startswith(&#39;Snapshot&#39;):
-            step = int(base.split(&#39;.&#39;)[1][:-1])
-        return [step]
+    def read_timestep(self):
+        return self._th.read_timestep()
 
     def read_system(self, frame):
-        assert frame == 0
-        tree = ElementTree.parse(self._file)
-        root = tree.getroot()
-
-        # Cell
-        _cell = root.find(&#34;Simulation&#34;).find(&#39;SimulationSize&#39;)
-        side = numpy.array([_cell.attrib[&#39;x&#39;], _cell.attrib[&#39;y&#39;], _cell.attrib[&#39;z&#39;]])
-
-        # Species
-        species, mass = [], []
-        _species = root.find(&#34;Simulation&#34;).find(&#34;Genus&#34;).findall(&#39;Species&#39;)
-        for sp in _species:
-            assert sp.find(&#39;IDRange&#39;).attrib[&#39;Type&#39;] == &#39;Ranged&#39;
-            begin = int(sp.find(&#39;IDRange&#39;).attrib[&#39;Start&#39;])
-            end = int(sp.find(&#39;IDRange&#39;).attrib[&#39;End&#39;])
-            for _ in range(begin, end+1):
-                species.append(sp.attrib[&#39;Name&#39;])
-                mass.append(sp.attrib[&#39;Mass&#39;])
-
-        # Coordinates
-        position, velocity = [], []
-        for _particle in root.findall(&#39;.//Pt&#39;):
-            pos = _particle.find(&#39;P&#39;)
-            vel = _particle.find(&#39;V&#39;)
-            position.append([pos.attrib[&#39;x&#39;], pos.attrib[&#39;y&#39;], pos.attrib[&#39;z&#39;]])
-            velocity.append([vel.attrib[&#39;x&#39;], vel.attrib[&#39;y&#39;], vel.attrib[&#39;z&#39;]])
-
-        cell = Cell(side)
-        particle = [Particle(species=s, mass=float(m),
-                             position=numpy.array(p, dtype=float),
-                             velocity=numpy.array(v, dtype=float))
-                    for p, m, s, v in zip(position, mass, species, velocity)]
-        return System(particle, cell)
-
-    def close(self):
-        self._file.close()</code></pre>
+        return self._th.read_system(frame)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></li>
 </ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="atooms.trajectory.dynamo.TrajectoryDynamO.suffix"><code class="name">var <span class="ident">suffix</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 <h3>Methods</h3>
 <dl>
-<dt id="atooms.trajectory.dynamo.TrajectoryDynamO.close"><code class="name flex">
-<span>def <span class="ident">close</span></span>(<span>self)</span>
+<dt id="atooms.trajectory.dynamo.TrajectoryDynamO.read_timestep"><code class="name flex">
+<span>def <span class="ident">read_timestep</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -205,8 +200,8 @@ class TrajectoryDynamO(TrajectoryBase):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def close(self):
-    self._file.close()</code></pre>
+<pre><code class="python">def read_timestep(self):
+    return self._th.read_timestep()</code></pre>
 </details>
 </dd>
 </dl>
@@ -253,8 +248,7 @@ class TrajectoryDynamO(TrajectoryBase):
 <li>
 <h4><code><a title="atooms.trajectory.dynamo.TrajectoryDynamO" href="#atooms.trajectory.dynamo.TrajectoryDynamO">TrajectoryDynamO</a></code></h4>
 <ul class="">
-<li><code><a title="atooms.trajectory.dynamo.TrajectoryDynamO.close" href="#atooms.trajectory.dynamo.TrajectoryDynamO.close">close</a></code></li>
-<li><code><a title="atooms.trajectory.dynamo.TrajectoryDynamO.suffix" href="#atooms.trajectory.dynamo.TrajectoryDynamO.suffix">suffix</a></code></li>
+<li><code><a title="atooms.trajectory.dynamo.TrajectoryDynamO.read_timestep" href="#atooms.trajectory.dynamo.TrajectoryDynamO.read_timestep">read_timestep</a></code></li>
 </ul>
 </li>
 </ul>
