@@ -103,10 +103,8 @@ class Particle(object):
         Assign the velocity to particle according to a Maxwell-Boltzmann
         distribution at temperature `T`.
         """
-        vx = random.gauss(0, numpy.sqrt(T / self.mass))
-        vy = random.gauss(0, numpy.sqrt(T / self.mass))
-        vz = random.gauss(0, numpy.sqrt(T / self.mass))
-        self.velocity[:] = numpy.array([vx, vy, vz])
+        for i in len(range(self.velocity)):
+            self.velocity[i] = random.gauss(0, numpy.sqrt(T / self.mass))
 
     @property
     def kinetic_energy(self):
