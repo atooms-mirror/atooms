@@ -215,8 +215,7 @@ class Foldered(TrajectoryFolder):
 <span>(</span><span>filename, mode='r', cls=None, file_pattern='*', step_pattern='(\\d*)')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Transform a file-based trajectory into folder-based one. Read-only.</p>
-<p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
+<div class="desc"><p>Transform a file-based trajectory into folder-based one. Read-only.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -254,58 +253,37 @@ class Foldered(TrajectoryFolder):
 <li><a title="atooms.trajectory.folder.TrajectoryFolder" href="#atooms.trajectory.folder.TrajectoryFolder">TrajectoryFolder</a></li>
 <li><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="atooms.trajectory.folder.Foldered.close"><code class="name flex">
-<span>def <span class="ident">close</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def close(self):
-    if self.archive:
-        rmd(self.dirname)</code></pre>
-</details>
-</dd>
-<dt id="atooms.trajectory.folder.Foldered.read_timestep"><code class="name flex">
-<span>def <span class="ident">read_timestep</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def read_timestep(self):
-    from atooms.trajectory import Trajectory
-    with Trajectory(self.files[0], fmt=self._cls) as th:
-        return th.read_timestep()</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="atooms.trajectory.folder.TrajectoryFolder" href="#atooms.trajectory.folder.TrajectoryFolder">TrajectoryFolder</a></b></code>:
 <ul class="hlist">
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.append" href="base.html#atooms.trajectory.base.TrajectoryBase.append">append</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.block_size">block_size</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.cache" href="base.html#atooms.trajectory.base.TrajectoryBase.cache">cache</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.callbacks" href="base.html#atooms.trajectory.base.TrajectoryBase.callbacks">callbacks</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.close" href="base.html#atooms.trajectory.base.TrajectoryBase.close">close</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.mode" href="base.html#atooms.trajectory.base.TrajectoryBase.mode">mode</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.precision" href="base.html#atooms.trajectory.base.TrajectoryBase.precision">precision</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.read_block_size">read_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_steps" href="base.html#atooms.trajectory.base.TrajectoryBase.read_steps">read_steps</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.read_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.read_timestep">read_timestep</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.write_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.write_block_size">write_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
 <li><code><a title="atooms.trajectory.folder.TrajectoryFolder.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.write_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.write_timestep">write_timestep</a></code></li>
 </ul>
 </li>
 </ul>
@@ -315,8 +293,7 @@ class Foldered(TrajectoryFolder):
 <span>(</span><span>filename, mode='r', file_pattern='*', step_pattern='(\\d*)')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Folder based trajectory.</p>
-<p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
+<div class="desc"><p>Folder based trajectory.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -348,43 +325,37 @@ class Foldered(TrajectoryFolder):
 <li><a title="atooms.trajectory.folder.Foldered" href="#atooms.trajectory.folder.Foldered">Foldered</a></li>
 <li><a title="atooms.trajectory.lammps.TrajectoryFolderLAMMPS" href="lammps.html#atooms.trajectory.lammps.TrajectoryFolderLAMMPS">TrajectoryFolderLAMMPS</a></li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="atooms.trajectory.folder.TrajectoryFolder.close"><code class="name flex">
-<span>def <span class="ident">close</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def close(self):
-    if self.archive:
-        rmd(self.dirname)</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></b></code>:
 <ul class="hlist">
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.append" href="base.html#atooms.trajectory.base.TrajectoryBase.append">append</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.block_size">block_size</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.cache" href="base.html#atooms.trajectory.base.TrajectoryBase.cache">cache</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.callbacks" href="base.html#atooms.trajectory.base.TrajectoryBase.callbacks">callbacks</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.close" href="base.html#atooms.trajectory.base.TrajectoryBase.close">close</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.mode" href="base.html#atooms.trajectory.base.TrajectoryBase.mode">mode</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.precision" href="base.html#atooms.trajectory.base.TrajectoryBase.precision">precision</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.read_block_size">read_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read_steps" href="base.html#atooms.trajectory.base.TrajectoryBase.read_steps">read_steps</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.read_timestep">read_timestep</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.write_block_size">write_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.write_timestep">write_timestep</a></code></li>
 </ul>
 </li>
 </ul>
@@ -412,16 +383,9 @@ class Foldered(TrajectoryFolder):
 <ul>
 <li>
 <h4><code><a title="atooms.trajectory.folder.Foldered" href="#atooms.trajectory.folder.Foldered">Foldered</a></code></h4>
-<ul class="">
-<li><code><a title="atooms.trajectory.folder.Foldered.close" href="#atooms.trajectory.folder.Foldered.close">close</a></code></li>
-<li><code><a title="atooms.trajectory.folder.Foldered.read_timestep" href="#atooms.trajectory.folder.Foldered.read_timestep">read_timestep</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="atooms.trajectory.folder.TrajectoryFolder" href="#atooms.trajectory.folder.TrajectoryFolder">TrajectoryFolder</a></code></h4>
-<ul class="">
-<li><code><a title="atooms.trajectory.folder.TrajectoryFolder.close" href="#atooms.trajectory.folder.TrajectoryFolder.close">close</a></code></li>
-</ul>
 </li>
 </ul>
 </li>

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>atooms.trajectory.pdb API documentation</title>
-<meta name="description" content="PDB format, write-only." />
+<title>atooms.trajectory.csv API documentation</title>
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -19,138 +19,64 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>atooms.trajectory.pdb</code></h1>
+<h1 class="title">Module <code>atooms.trajectory.csv</code></h1>
 </header>
 <section id="section-intro">
-<p>PDB format, write-only.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python"># This file is part of atooms
-# Copyright 2010-2017, Daniele Coslovich
-
-&#34;&#34;&#34;PDB format, write-only.&#34;&#34;&#34;
-
+<pre><code class="python">import numpy
 from .base import TrajectoryBase
-from atooms.system.particle import Particle
-from atooms.system.cell import Cell
-from atooms.system import System
+from atooms.system import System, Particle
 
 
-class TrajectoryPDB(TrajectoryBase):
-
-    &#34;&#34;&#34;PDB format (https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))&#34;&#34;&#34;
-
-    suffix = &#39;pdb&#39;
+class TrajectoryCSV(TrajectoryBase):
 
     def __init__(self, filename, mode=&#39;r&#39;):
-        super(TrajectoryPDB, self).__init__(filename, mode)
+        super(TrajectoryCSV, self).__init__(filename, mode)
         self._file = open(self.filename, self.mode)
+        self.precision = 4
+        self._ndim = 3
+        self._sep = None
+        self._order = &#39;C&#39;
         if mode == &#39;r&#39;:
-            self._setup_index()
-
-    def read_steps(self):
-        pass
-
-    def _setup_index(self):
-        self._index_frame = []
-        self.steps = []
-        fh = self._file
-        self._index_header_lines = 0
-        header = True
+            self._setup()
+    
+    def _setup(self):
+        self._file_index = []
+        self._file.seek(0)
         while True:
-            line = fh.tell()
-            data = fh.readline()
-            # We break if file is over or we found an empty line
+            line = self._file.tell()
+            data = self._file.readline()
             if not data:
                 break
-
-            # Count number of header lines
-            if header:
-                self._index_header_lines += 1
-
-            # Store lines of frame beginnings
-            if data.startswith(&#39;MODEL&#39;):
-                # End of the header
-                if header:
-                    header = False
-                self.steps.append(int(data.split()[-1]))
-                self._index_frame.append(line)
-
-    def write_system(self, system, step):
-        cfg = &#39;&#39;
-        cfg += &#39;MODEL%9i\n&#39; % step
-        fmt = &#39;CRYST1&#39; + 3*&#39;{:9.3f}&#39; + 3*&#39;{:7.2f}&#39; + &#39; P 1           1\n&#39;
-        cfg += fmt.format(*(list(system.cell.side) + [90, 90, 90]))
-        for p in system.particle:
-            # If particle has a field property we dump it in the pdb file
-            if hasattr(p, &#39;field&#39;):
-                x = float(p.field)
             else:
-                x = 1.0
-            data = [&#39; &#39;] * 80
-            data[0:6] = &#39;HETATM&#39;
-            data[30:38] = &#39;{:8.3f}&#39;.format(p.position[0])
-            data[38:46] = &#39;{:8.3f}&#39;.format(p.position[1])
-            data[46:54] = &#39;{:8.3f}&#39;.format(p.position[2])
-            data[60:66] = str(x)
-            data[76:77] = p.species
-            cfg += &#39;&#39;.join(data) + &#39;\n&#39;
-        cfg += &#39;ENDMDL\n&#39;
-        self._file.write(cfg)
-
-    def read_init(self):
-        self._cell = None
+                self._file_index.append(line)
         self._file.seek(0)
-        for _ in range(self._index_header_lines):
-            data = self._file.readline()
-            if data.startswith(&#39;CRYST1&#39;):
-                Lx = float(data[6:15])
-                Ly = float(data[15:24])
-                Lz = float(data[24:33])
-                self._cell = Cell([Lx, Ly, Lz])
+        self.steps = range(len(self._file_index))
 
     def read_system(self, frame):
-        particle = []
-        cell = self._cell
-
-        # Read system at frame
-        self._file.seek(self._index_frame[frame])
-        _ = self._file.readline()
-        while True:
-            data = self._file.readline()
-            if not data or data.startswith(&#39;ENDMDL&#39;):
-                break
-            if data.startswith(&#39;CRYST1&#39;):
-                Lx = float(data[6:15])
-                Ly = float(data[15:24])
-                Lz = float(data[24:33])
-                cell = Cell([Lx, Ly, Lz])
-            elif data.startswith(&#39;HETATM&#39;) or data.startswith(&#39;ATOM&#39;):
-                atom = data[0:6]
-                serial = data[6:11]
-                name = data[12:16]
-                altLoc = data[16]
-                resName = data[17:20]
-                chainID = data[21]
-                resSeq = data[22:26]
-                iCode = data[26]
-                x = float(data[30:38])
-                y = float(data[38:46])
-                z = float(data[46:54])
-                occupancy = data[54:60]
-                tempFactor = data[60:66]
-                try:
-                    element = data[76:77]
-                    charge = data[78:80]
-                except IndexError:
-                    element = name
-                particle.append(Particle(position=[x, y, z], species=element))
+        self._file.seek(self._file_index[frame])
+        data = self._file.readline().strip()
+        pos = numpy.array([float(_) for _ in data.split(self._sep)])        
+        npart = len(pos) // self._ndim
+        pos = pos.reshape((npart, self._ndim))
         system = System()
-        system.particle = particle
-        system.cell = cell
+        for i in range(npart):
+            #p = Particle(position=pos[i*self._ndim: (i+1)*self._ndim])
+            p = Particle(position=pos[i, :])
+            p.position_unfolded = p.position
+            system.particle.append(p)
         return system
+
+    def write_system(self, system, step):
+        sep = &#39; &#39;
+        fmt = &#39;{:.&#39; + str(self.precision) + &#39;g}&#39;
+        numpy.set_string_function(lambda x: sep.join([fmt.format(xi) for xi in x]), False)
+        self._file.write(str(system.dump(&#39;position&#39;, flat=True, order=self._order)) + &#39;\n&#39;)
+        numpy.set_string_function(None, False)
+
 
     def close(self):
         self._file.close()</code></pre>
@@ -165,129 +91,112 @@ class TrajectoryPDB(TrajectoryBase):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="atooms.trajectory.pdb.TrajectoryPDB"><code class="flex name class">
-<span>class <span class="ident">TrajectoryPDB</span></span>
+<dt id="atooms.trajectory.csv.TrajectoryCSV"><code class="flex name class">
+<span>class <span class="ident">TrajectoryCSV</span></span>
 <span>(</span><span>filename, mode='r')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>PDB format (<a href="https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format)">https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format)</a>)</p></div>
+<div class="desc"><p>Trajectory abstract base class.</p>
+<p>A trajectory is composed by one or several frames, each frame
+being a sample of a <code>System</code> taken at a given <code>step</code> during a
+simulation. Trajectory instances are iterable and behave as file
+objects: they can be opened and closed using the <code>with</code> syntax</p>
+<pre><code class="language-python">with Trajectory(inpfile) as th:
+    for system in th:
+        pass
+</code></pre>
+<p>alternatively</p>
+<pre><code class="language-python">th = Trajectory(inpfile)
+for system in th:
+    pass
+th.close()
+</code></pre>
+<p>To write the state of a <code>System</code> to a trajectory, we must open the
+trajectory in write mode</p>
+<pre><code class="language-python">with Trajectory(outfile, 'w') as th:
+    th.write(system, step=0)
+</code></pre>
+<p>Trajectories can use the <code>variables</code> attribute to define which system
+properties will be written to disk. Concrete classes may thus
+provide means to write arbitrary variables to disk via particle
+properties. Example:</p>
+<pre><code class="language-python">for particle in system:
+    particle.some_custom_property = 1.0
+with Trajectory(outfile, 'w') as th:
+    th.variables = ['position', 'some_custom_property']
+    th.write(system, step=0)
+</code></pre>
+<p>To be fully functional, concrete classes must implement
+<code>read_system()</code> and <code>write_system()</code> methods.</p>
+<p><code>read()</code> is a template composed of the two following steps:</p>
+<ul>
+<li>
+<p><code>read_init()</code>: called only once to initialize internal data
+structures, grab metadata, etc. Need <em>not</em> be implemented by
+subclasses.</p>
+</li>
+<li>
+<p><code>read_system(n)</code>: actually return the system at frame n. It must
+be implemented by subclasses.</p>
+</li>
+</ul>
+<p>Similarly, <code>write()</code> is a template composed of <code>write_init()</code> and
+<code>write_system()</code>. Only the latter method must be implemented by
+subclasses.</p>
+<p>The <code>cache</code> variable reduces access time when reading the same
+trajectory multiple times. We use shallow copies to cut down the
+overhead. Cache is disabled by default as there is no control on
+its size yet.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class TrajectoryPDB(TrajectoryBase):
-
-    &#34;&#34;&#34;PDB format (https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))&#34;&#34;&#34;
-
-    suffix = &#39;pdb&#39;
+<pre><code class="python">class TrajectoryCSV(TrajectoryBase):
 
     def __init__(self, filename, mode=&#39;r&#39;):
-        super(TrajectoryPDB, self).__init__(filename, mode)
+        super(TrajectoryCSV, self).__init__(filename, mode)
         self._file = open(self.filename, self.mode)
+        self.precision = 4
+        self._ndim = 3
+        self._sep = None
+        self._order = &#39;C&#39;
         if mode == &#39;r&#39;:
-            self._setup_index()
-
-    def read_steps(self):
-        pass
-
-    def _setup_index(self):
-        self._index_frame = []
-        self.steps = []
-        fh = self._file
-        self._index_header_lines = 0
-        header = True
+            self._setup()
+    
+    def _setup(self):
+        self._file_index = []
+        self._file.seek(0)
         while True:
-            line = fh.tell()
-            data = fh.readline()
-            # We break if file is over or we found an empty line
+            line = self._file.tell()
+            data = self._file.readline()
             if not data:
                 break
-
-            # Count number of header lines
-            if header:
-                self._index_header_lines += 1
-
-            # Store lines of frame beginnings
-            if data.startswith(&#39;MODEL&#39;):
-                # End of the header
-                if header:
-                    header = False
-                self.steps.append(int(data.split()[-1]))
-                self._index_frame.append(line)
-
-    def write_system(self, system, step):
-        cfg = &#39;&#39;
-        cfg += &#39;MODEL%9i\n&#39; % step
-        fmt = &#39;CRYST1&#39; + 3*&#39;{:9.3f}&#39; + 3*&#39;{:7.2f}&#39; + &#39; P 1           1\n&#39;
-        cfg += fmt.format(*(list(system.cell.side) + [90, 90, 90]))
-        for p in system.particle:
-            # If particle has a field property we dump it in the pdb file
-            if hasattr(p, &#39;field&#39;):
-                x = float(p.field)
             else:
-                x = 1.0
-            data = [&#39; &#39;] * 80
-            data[0:6] = &#39;HETATM&#39;
-            data[30:38] = &#39;{:8.3f}&#39;.format(p.position[0])
-            data[38:46] = &#39;{:8.3f}&#39;.format(p.position[1])
-            data[46:54] = &#39;{:8.3f}&#39;.format(p.position[2])
-            data[60:66] = str(x)
-            data[76:77] = p.species
-            cfg += &#39;&#39;.join(data) + &#39;\n&#39;
-        cfg += &#39;ENDMDL\n&#39;
-        self._file.write(cfg)
-
-    def read_init(self):
-        self._cell = None
+                self._file_index.append(line)
         self._file.seek(0)
-        for _ in range(self._index_header_lines):
-            data = self._file.readline()
-            if data.startswith(&#39;CRYST1&#39;):
-                Lx = float(data[6:15])
-                Ly = float(data[15:24])
-                Lz = float(data[24:33])
-                self._cell = Cell([Lx, Ly, Lz])
+        self.steps = range(len(self._file_index))
 
     def read_system(self, frame):
-        particle = []
-        cell = self._cell
-
-        # Read system at frame
-        self._file.seek(self._index_frame[frame])
-        _ = self._file.readline()
-        while True:
-            data = self._file.readline()
-            if not data or data.startswith(&#39;ENDMDL&#39;):
-                break
-            if data.startswith(&#39;CRYST1&#39;):
-                Lx = float(data[6:15])
-                Ly = float(data[15:24])
-                Lz = float(data[24:33])
-                cell = Cell([Lx, Ly, Lz])
-            elif data.startswith(&#39;HETATM&#39;) or data.startswith(&#39;ATOM&#39;):
-                atom = data[0:6]
-                serial = data[6:11]
-                name = data[12:16]
-                altLoc = data[16]
-                resName = data[17:20]
-                chainID = data[21]
-                resSeq = data[22:26]
-                iCode = data[26]
-                x = float(data[30:38])
-                y = float(data[38:46])
-                z = float(data[46:54])
-                occupancy = data[54:60]
-                tempFactor = data[60:66]
-                try:
-                    element = data[76:77]
-                    charge = data[78:80]
-                except IndexError:
-                    element = name
-                particle.append(Particle(position=[x, y, z], species=element))
+        self._file.seek(self._file_index[frame])
+        data = self._file.readline().strip()
+        pos = numpy.array([float(_) for _ in data.split(self._sep)])        
+        npart = len(pos) // self._ndim
+        pos = pos.reshape((npart, self._ndim))
         system = System()
-        system.particle = particle
-        system.cell = cell
+        for i in range(npart):
+            #p = Particle(position=pos[i*self._ndim: (i+1)*self._ndim])
+            p = Particle(position=pos[i, :])
+            p.position_unfolded = p.position
+            system.particle.append(p)
         return system
+
+    def write_system(self, system, step):
+        sep = &#39; &#39;
+        fmt = &#39;{:.&#39; + str(self.precision) + &#39;g}&#39;
+        numpy.set_string_function(lambda x: sep.join([fmt.format(xi) for xi in x]), False)
+        self._file.write(str(system.dump(&#39;position&#39;, flat=True, order=self._order)) + &#39;\n&#39;)
+        numpy.set_string_function(None, False)
+
 
     def close(self):
         self._file.close()</code></pre>
@@ -296,13 +205,6 @@ class TrajectoryPDB(TrajectoryBase):
 <ul class="hlist">
 <li><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></li>
 </ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="atooms.trajectory.pdb.TrajectoryPDB.suffix"><code class="name">var <span class="ident">suffix</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></b></code>:
@@ -355,10 +257,7 @@ class TrajectoryPDB(TrajectoryBase):
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="atooms.trajectory.pdb.TrajectoryPDB" href="#atooms.trajectory.pdb.TrajectoryPDB">TrajectoryPDB</a></code></h4>
-<ul class="">
-<li><code><a title="atooms.trajectory.pdb.TrajectoryPDB.suffix" href="#atooms.trajectory.pdb.TrajectoryPDB.suffix">suffix</a></code></li>
-</ul>
+<h4><code><a title="atooms.trajectory.csv.TrajectoryCSV" href="#atooms.trajectory.csv.TrajectoryCSV">TrajectoryCSV</a></code></h4>
 </li>
 </ul>
 </li>
