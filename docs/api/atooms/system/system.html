@@ -428,6 +428,12 @@ class System(object):
         for p in self.particle:
             p.position[axis] -= L * n / 2
 
+    def view(self, what=None, order=&#39;C&#39;, dtype=None, clear=False, flat=False):
+        &#34;&#34;&#34;
+        Return a view on a system property
+        &#34;&#34;&#34;
+        self.dump(what=what, view=True, order=order, dtype=dtype, clear=clear, flat=flat)
+
     def dump(self, what=None, order=&#39;C&#39;, dtype=None, view=False, clear=False, flat=False):
         &#34;&#34;&#34;
         Return a numpy array with system properties specified by `what`.
@@ -1062,6 +1068,12 @@ setting the species as requested. The assignement is random.</p></div>
         self.cell.side[axis] *= n
         for p in self.particle:
             p.position[axis] -= L * n / 2
+
+    def view(self, what=None, order=&#39;C&#39;, dtype=None, clear=False, flat=False):
+        &#34;&#34;&#34;
+        Return a view on a system property
+        &#34;&#34;&#34;
+        self.dump(what=what, view=True, order=order, dtype=dtype, clear=clear, flat=flat)
 
     def dump(self, what=None, order=&#39;C&#39;, dtype=None, view=False, clear=False, flat=False):
         &#34;&#34;&#34;
@@ -2069,6 +2081,22 @@ or memory dellocation issues.</p></div>
     self._data = None</code></pre>
 </details>
 </dd>
+<dt id="atooms.system.system.System.view"><code class="name flex">
+<span>def <span class="ident">view</span></span>(<span>self, what=None, order='C', dtype=None, clear=False, flat=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return a view on a system property</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def view(self, what=None, order=&#39;C&#39;, dtype=None, clear=False, flat=False):
+    &#34;&#34;&#34;
+    Return a view on a system property
+    &#34;&#34;&#34;
+    self.dump(what=what, view=True, order=order, dtype=dtype, clear=clear, flat=flat)</code></pre>
+</details>
+</dd>
 <dt id="atooms.system.system.System.virial"><code class="name flex">
 <span>def <span class="ident">virial</span></span>(<span>self, per_particle=True, cache=False)</span>
 </code></dt>
@@ -2146,6 +2174,7 @@ or memory dellocation issues.</p></div>
 <li><code><a title="atooms.system.system.System.temperature" href="#atooms.system.system.System.temperature">temperature</a></code></li>
 <li><code><a title="atooms.system.system.System.total_energy" href="#atooms.system.system.System.total_energy">total_energy</a></code></li>
 <li><code><a title="atooms.system.system.System.update" href="#atooms.system.system.System.update">update</a></code></li>
+<li><code><a title="atooms.system.system.System.view" href="#atooms.system.system.System.view">view</a></code></li>
 <li><code><a title="atooms.system.system.System.virial" href="#atooms.system.system.System.virial">virial</a></code></li>
 </ul>
 </li>

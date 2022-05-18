@@ -374,7 +374,7 @@ def is_grandcanonical(trajectory, tests=1):
 def formats():
     &#34;&#34;&#34;Return a string with the available trajectory formats.&#34;&#34;&#34;
     from atooms import trajectory
-    txt = &#39;Available trajectory formats:\n&#39;
+    txt = &#39;available trajectory formats:\n&#39;
     fmts = trajectory.Trajectory.formats
     maxlen = max([len(name) for name in fmts])
     for name in sorted(fmts):
@@ -396,7 +396,7 @@ def formats():
             capability += &#39;W&#39;
         else:
             capability += &#39;W&#39;
-            
+
         # Get format description from __doc__
         if class_name.__doc__:
             docline = class_name.__doc__.strip().split(&#39;\n&#39;)[0]
@@ -404,7 +404,7 @@ def formats():
                 docline = &#39;...no description...&#39;
         else:
             docline = &#39;...no description...&#39;
-        fmt = &#39;- %-&#39; + str(maxlen) + &#39;s : [%-2s] %s\n&#39;
+        fmt = &#39; - %-&#39; + str(maxlen) + &#39;s : [%-2s] %s\n&#39;
         txt += fmt % (name, capability, docline)
     return txt.strip(&#39;\n&#39;)
 
@@ -723,7 +723,7 @@ given <code>frame</code>.</p></div>
 <pre><code class="python">def formats():
     &#34;&#34;&#34;Return a string with the available trajectory formats.&#34;&#34;&#34;
     from atooms import trajectory
-    txt = &#39;Available trajectory formats:\n&#39;
+    txt = &#39;available trajectory formats:\n&#39;
     fmts = trajectory.Trajectory.formats
     maxlen = max([len(name) for name in fmts])
     for name in sorted(fmts):
@@ -745,7 +745,7 @@ given <code>frame</code>.</p></div>
             capability += &#39;W&#39;
         else:
             capability += &#39;W&#39;
-            
+
         # Get format description from __doc__
         if class_name.__doc__:
             docline = class_name.__doc__.strip().split(&#39;\n&#39;)[0]
@@ -753,7 +753,7 @@ given <code>frame</code>.</p></div>
                 docline = &#39;...no description...&#39;
         else:
             docline = &#39;...no description...&#39;
-        fmt = &#39;- %-&#39; + str(maxlen) + &#39;s : [%-2s] %s\n&#39;
+        fmt = &#39; - %-&#39; + str(maxlen) + &#39;s : [%-2s] %s\n&#39;
         txt += fmt % (name, capability, docline)
     return txt.strip(&#39;\n&#39;)</code></pre>
 </details>

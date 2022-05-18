@@ -205,7 +205,7 @@ class TrajectoryHDF5(TrajectoryBase):
             particle_h5 = {&#39;number_of_species&#39;: [len(species)],
                            &#39;number_of_particles&#39;: [len(particle)],
                            &#39;identity&#39;: [species.index(p.species)+1 for p in particle],
-                           &#39;element&#39;: [p.species.encode() for p in particle],
+                           &#39;element&#39;: [str(p.species) for p in particle],
                            &#39;mass&#39;: [p.mass for p in particle],
                            &#39;radius&#39;: [p.radius for p in particle],
                            &#39;position&#39;: [p.position for p in particle],
@@ -383,6 +383,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
     def read_system(self, frame):
         # TODO: refactor reading particle variables
+        # TODO: removing variables in read_system() is pointless, it should be done before
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
@@ -402,7 +403,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if &#39;particle.position_unfolded&#39; not in self.variables:
                 self.variables.append(&#39;particle.position_unfolded&#39;)
 
-        if &#39;velocity&#39; in group:
+        if &#39;velocity&#39; in group and len(group[&#39;velocity&#39;]) &gt; 0:
             vel = group[&#39;velocity&#39; + csample][:]
         else:
             vel = numpy.zeros((len(pos), ndim))
@@ -412,7 +413,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # Dynamic properties
         p = []
         for r, v in zip(pos, vel):
-            p.append(Particle(position=r, velocity=v))
+            p.append(Particle(position=numpy.array(r, dtype=&#39;float64&#39;),
+                              velocity=numpy.array(v, dtype=&#39;float64&#39;)))
 
         # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2
@@ -524,8 +526,7 @@ class TrajectoryHDF5(TrajectoryBase):
 <span>(</span><span>filename, mode='r+')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>In-house trajectory layout in HDF5 format.</p>
-<p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
+<div class="desc"><p>In-house trajectory layout in HDF5 format.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -610,7 +611,7 @@ class TrajectoryHDF5(TrajectoryBase):
             particle_h5 = {&#39;number_of_species&#39;: [len(species)],
                            &#39;number_of_particles&#39;: [len(particle)],
                            &#39;identity&#39;: [species.index(p.species)+1 for p in particle],
-                           &#39;element&#39;: [p.species.encode() for p in particle],
+                           &#39;element&#39;: [str(p.species) for p in particle],
                            &#39;mass&#39;: [p.mass for p in particle],
                            &#39;radius&#39;: [p.radius for p in particle],
                            &#39;position&#39;: [p.position for p in particle],
@@ -788,6 +789,7 @@ class TrajectoryHDF5(TrajectoryBase):
 
     def read_system(self, frame):
         # TODO: refactor reading particle variables
+        # TODO: removing variables in read_system() is pointless, it should be done before
         # We must increase frame by 1 if we iterate over frames with len().
         # This is some convention to be fixed once and for all
         # TODO: read cell on the fly NPT
@@ -807,7 +809,7 @@ class TrajectoryHDF5(TrajectoryBase):
             if &#39;particle.position_unfolded&#39; not in self.variables:
                 self.variables.append(&#39;particle.position_unfolded&#39;)
 
-        if &#39;velocity&#39; in group:
+        if &#39;velocity&#39; in group and len(group[&#39;velocity&#39;]) &gt; 0:
             vel = group[&#39;velocity&#39; + csample][:]
         else:
             vel = numpy.zeros((len(pos), ndim))
@@ -817,7 +819,8 @@ class TrajectoryHDF5(TrajectoryBase):
         # Dynamic properties
         p = []
         for r, v in zip(pos, vel):
-            p.append(Particle(position=r, velocity=v))
+            p.append(Particle(position=numpy.array(r, dtype=&#39;float64&#39;),
+                              velocity=numpy.array(v, dtype=&#39;float64&#39;)))
 
         # Static properties
         # TODO: optimize, this takes quite some additional time, almost x2
@@ -888,39 +891,6 @@ class TrajectoryHDF5(TrajectoryBase):
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="atooms.trajectory.hdf5.TrajectoryHDF5.close"><code class="name flex">
-<span>def <span class="ident">close</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def close(self):
-    try:
-        self._file.close()
-    except ValueError:
-        _log.error(&#39;file %s already closed&#39;, self.filename)
-        raise</code></pre>
-</details>
-</dd>
-<dt id="atooms.trajectory.hdf5.TrajectoryHDF5.read_block_size"><code class="name flex">
-<span>def <span class="ident">read_block_size</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def read_block_size(self):
-    try:
-        return self._file[&#39;trajectory/realtime/block_period&#39;][0]
-    except:
-        return None</code></pre>
-</details>
-</dd>
 <dt id="atooms.trajectory.hdf5.TrajectoryHDF5.read_interaction"><code class="name flex">
 <span>def <span class="ident">read_interaction</span></span>(<span>self)</span>
 </code></dt>
@@ -965,38 +935,6 @@ class TrajectoryHDF5(TrajectoryBase):
     return interaction</code></pre>
 </details>
 </dd>
-<dt id="atooms.trajectory.hdf5.TrajectoryHDF5.read_timestep"><code class="name flex">
-<span>def <span class="ident">read_timestep</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def read_timestep(self):
-    try:
-        return self._file[&#39;trajectory/realtime/timestep&#39;][0]
-    except:
-        _log.warning(&#39;no time step in file %s, set to 1&#39;, self.filename)
-        return 1.0</code></pre>
-</details>
-</dd>
-<dt id="atooms.trajectory.hdf5.TrajectoryHDF5.write_block_size"><code class="name flex">
-<span>def <span class="ident">write_block_size</span></span>(<span>self, value)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def write_block_size(self, value):
-    self._file.create_group_safe(&#39;/trajectory&#39;)
-    self._file.create_group_safe(&#39;/trajectory/realtime&#39;)
-    self._file[&#39;trajectory/realtime/block_period&#39;] = [value]</code></pre>
-</details>
-</dd>
 <dt id="atooms.trajectory.hdf5.TrajectoryHDF5.write_interaction"><code class="name flex">
 <span>def <span class="ident">write_interaction</span></span>(<span>self, interaction)</span>
 </code></dt>
@@ -1037,42 +975,38 @@ class TrajectoryHDF5(TrajectoryBase):
             self._file[pgr + &#39;lookup_points&#39;] = [phi.npoints]</code></pre>
 </details>
 </dd>
-<dt id="atooms.trajectory.hdf5.TrajectoryHDF5.write_timestep"><code class="name flex">
-<span>def <span class="ident">write_timestep</span></span>(<span>self, value)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def write_timestep(self, value):
-    self._file.create_group_safe(&#39;/trajectory&#39;)
-    self._file.create_group_safe(&#39;/trajectory/realtime&#39;)
-    self._file[&#39;trajectory/realtime/timestep&#39;] = [value]</code></pre>
-</details>
-</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></b></code>:
 <ul class="hlist">
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.append" href="base.html#atooms.trajectory.base.TrajectoryBase.append">append</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.block_size">block_size</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.cache" href="base.html#atooms.trajectory.base.TrajectoryBase.cache">cache</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.callbacks" href="base.html#atooms.trajectory.base.TrajectoryBase.callbacks">callbacks</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.close" href="base.html#atooms.trajectory.base.TrajectoryBase.close">close</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.mode" href="base.html#atooms.trajectory.base.TrajectoryBase.mode">mode</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.precision" href="base.html#atooms.trajectory.base.TrajectoryBase.precision">precision</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.read_block_size">read_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read_steps" href="base.html#atooms.trajectory.base.TrajectoryBase.read_steps">read_steps</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.read_timestep">read_timestep</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.write_block_size">write_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
 <li><code><a title="atooms.trajectory.base.TrajectoryBase.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.write_timestep">write_timestep</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1100,15 +1034,10 @@ class TrajectoryHDF5(TrajectoryBase):
 <ul>
 <li>
 <h4><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5" href="#atooms.trajectory.hdf5.TrajectoryHDF5">TrajectoryHDF5</a></code></h4>
-<ul class="two-column">
-<li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.close" href="#atooms.trajectory.hdf5.TrajectoryHDF5.close">close</a></code></li>
-<li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.read_block_size" href="#atooms.trajectory.hdf5.TrajectoryHDF5.read_block_size">read_block_size</a></code></li>
+<ul class="">
 <li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.read_interaction" href="#atooms.trajectory.hdf5.TrajectoryHDF5.read_interaction">read_interaction</a></code></li>
-<li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.read_timestep" href="#atooms.trajectory.hdf5.TrajectoryHDF5.read_timestep">read_timestep</a></code></li>
 <li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.suffix" href="#atooms.trajectory.hdf5.TrajectoryHDF5.suffix">suffix</a></code></li>
-<li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.write_block_size" href="#atooms.trajectory.hdf5.TrajectoryHDF5.write_block_size">write_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.write_interaction" href="#atooms.trajectory.hdf5.TrajectoryHDF5.write_interaction">write_interaction</a></code></li>
-<li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.write_timestep" href="#atooms.trajectory.hdf5.TrajectoryHDF5.write_timestep">write_timestep</a></code></li>
 </ul>
 </li>
 </ul>
