@@ -67,7 +67,7 @@ class TrajectoryBase(object):
     simulation. Trajectory instances are iterable and have as file
     objects: they should be opened and closed using the `with` syntax
 
-    ```!python
+    ```python
     with Trajectory(inpfile) as th:
         for system in th:
             pass
@@ -818,15 +818,12 @@ class SuperTrajectory(TrajectoryBase):
 being a sample of a <code>System</code> taken at a given <code>step</code> during a
 simulation. Trajectory instances are iterable and have as file
 objects: they should be opened and closed using the <code>with</code> syntax</p>
-<p>```!python
-with Trajectory(inpfile) as th:
-for system in th:
-pass</p>
-<pre><code>
-alternatively
-
-```python
-th = Trajectory(inpfile)
+<pre><code class="language-python">with Trajectory(inpfile) as th:
+    for system in th:
+        pass
+</code></pre>
+<p>alternatively</p>
+<pre><code class="language-python">th = Trajectory(inpfile)
 for system in th:
     pass
 th.close()
@@ -881,7 +878,7 @@ its size yet.</p>
     simulation. Trajectory instances are iterable and have as file
     objects: they should be opened and closed using the `with` syntax
 
-    ```!python
+    ```python
     with Trajectory(inpfile) as th:
         for system in th:
             pass
