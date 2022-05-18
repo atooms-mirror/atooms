@@ -198,21 +198,32 @@ class SuperTrajectoryRUMD(SuperTrajectory):
 <li><code><b><a title="atooms.trajectory.base.SuperTrajectory" href="base.html#atooms.trajectory.base.SuperTrajectory">SuperTrajectory</a></b></code>:
 <ul class="hlist">
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.append" href="base.html#atooms.trajectory.base.TrajectoryBase.append">append</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.block_size">block_size</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.cache" href="base.html#atooms.trajectory.base.TrajectoryBase.cache">cache</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.callbacks" href="base.html#atooms.trajectory.base.TrajectoryBase.callbacks">callbacks</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.close" href="base.html#atooms.trajectory.base.TrajectoryBase.close">close</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.mode" href="base.html#atooms.trajectory.base.TrajectoryBase.mode">mode</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.precision" href="base.html#atooms.trajectory.base.TrajectoryBase.precision">precision</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.read_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.read_block_size">read_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.read_steps" href="base.html#atooms.trajectory.base.TrajectoryBase.read_steps">read_steps</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.read_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.read_timestep">read_timestep</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.write_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.write_block_size">write_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
 <li><code><a title="atooms.trajectory.base.SuperTrajectory.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.SuperTrajectory.write_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.write_timestep">write_timestep</a></code></li>
 </ul>
 </li>
 </ul>
@@ -222,8 +233,7 @@ class SuperTrajectoryRUMD(SuperTrajectory):
 <span>(</span><span>filename, mode='r', fields=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>RUMD trajectory format (<a href="https://rumd.org">https://rumd.org</a>)</p>
-<p>The <code>mode</code> can be 'r' (read) or 'w' (write).</p></div>
+<div class="desc"><p>RUMD trajectory format (<a href="https://rumd.org">https://rumd.org</a>)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -328,21 +338,32 @@ class SuperTrajectoryRUMD(SuperTrajectory):
 <li><code><b><a title="atooms.trajectory.xyz.TrajectoryXYZ" href="xyz.html#atooms.trajectory.xyz.TrajectoryXYZ">TrajectoryXYZ</a></b></code>:
 <ul class="hlist">
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.append" href="base.html#atooms.trajectory.base.TrajectoryBase.append">append</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.block_size">block_size</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.cache" href="base.html#atooms.trajectory.base.TrajectoryBase.cache">cache</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.callbacks" href="base.html#atooms.trajectory.base.TrajectoryBase.callbacks">callbacks</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.close" href="base.html#atooms.trajectory.base.TrajectoryBase.close">close</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.mode" href="base.html#atooms.trajectory.base.TrajectoryBase.mode">mode</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.precision" href="base.html#atooms.trajectory.base.TrajectoryBase.precision">precision</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.read_block_size">read_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_steps" href="xyz.html#atooms.trajectory.xyz.TrajectoryXYZ.read_steps">read_steps</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.read_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.read_timestep">read_timestep</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.write_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.write_block_size">write_block_size</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
 <li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+<li><code><a title="atooms.trajectory.xyz.TrajectoryXYZ.write_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.write_timestep">write_timestep</a></code></li>
 </ul>
 </li>
 </ul>
