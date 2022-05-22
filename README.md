@@ -109,3 +109,5 @@ import atooms.your_package
 Authors
 -------
 Daniele Coslovich: https://www.units.it/daniele.coslovich/
+
+Thanks go to Francesco Turci and Geert Kapteijns for their contributions.
