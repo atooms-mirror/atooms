@@ -11,7 +11,7 @@ Atooms
 
 **atooms** is a high-level Python framework for simulations of interacting particles, such as molecular dynamics or Monte Carlo.
 
-This is the core package: it provides a consistent interface to the basic objects of particle-based simulations. [Feature packages](Component packages) are built on top of it and implement complex simulation methods and analysis tools.
+This is the core package: it provides a consistent interface to the basic objects of particle-based simulations. [Feature packages](Feature packages) are built on top of it and implement complex simulation methods and analysis tools.
 
 Quick start
 -----------
