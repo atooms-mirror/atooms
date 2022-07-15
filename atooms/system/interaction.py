@@ -67,10 +67,6 @@ class InteractionBase(object):
 
         # Zeroing observables
         ndim, N = position.shape
-        self.energy = None
-        self.virial = None
-        self.stress = None
-        self.forces = None
         if observable == 'energy':
             self.energy = 0.0
         elif observable == 'forces' or observable is None:
