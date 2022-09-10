@@ -133,6 +133,7 @@ class TrajectoryBase(object):
             'vz': 'particle.velocity[2]',
             'id': 'particle.species',
             'type': 'particle.species',
+            'name': 'particle.species',
         }
         """
         Dictionary of common shortcuts and synonims for system
