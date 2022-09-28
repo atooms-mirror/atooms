@@ -70,6 +70,7 @@ def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, sh
         ax.add_artist(c)
     if outfile is not None:
         fig.savefig(outfile, bbox_inches='tight')
+    # TODO: show should be True by default
     if show:
         plt.show()
     return fig
