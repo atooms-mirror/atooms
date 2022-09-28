@@ -2,6 +2,13 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations and critical bug fixes.
 
+## 3.10.0 - 2022/09/28
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.9.0...3.10.0)
+
+## Added
+- Add parsing of energies in lammps file
+
 ## 3.8.0 - 2022/04/29
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.7.0...3.8.0)
