@@ -25,6 +25,9 @@ class TrajectoryRam(TrajectoryBase):
             self._system[ind].update(system)
         else:
             self._system.append(copy.deepcopy(system))
+            # Ensure the system cache is cleared
+            # TODO: relax this once order changes are handled in System.dump()
+            self._system[-1].dump(clear=True)
 
     def read_system(self, frame):
         return copy.deepcopy(self._system[frame])
