@@ -475,6 +475,7 @@ class System(object):
                 # not be updated. It can be fixed by keeping a list of ids
                 # although testing it would bring a overhead.
                 data = self._data[what]
+                # TODO: if order changes, we must transpose the array. This may happen if a trajectory has stored the system in ram with a fortran order and postprocessing asks for a C order array
                 # If we are asking a flat copy we must not flatten the cached array
                 if not view and flat:
                     data = copy.deepcopy(data).flatten(order=order)
@@ -524,6 +525,10 @@ class System(object):
 
         return data
 
+    def view(self, what=None, order='C', dtype=None, clear=False, flat=False):
+        """Alias of System.get(view=True, *args, **kwargs)"""
+        return self.dump(what=what, order=order, dtype=dtype, clear=clear, flat=flat, view=True)
+    
     def __str__(self):
         from .particle import composition
         txt = ''
