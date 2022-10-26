@@ -63,7 +63,7 @@ def _parse_mass(data, idx, system):
 
 def _parse_energy(data, idx, system):
     system.particle[idx].energy = float(data)
-    
+
 class TrajectoryLAMMPS(TrajectoryBase):
 
     """

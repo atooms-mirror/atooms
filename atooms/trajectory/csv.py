@@ -14,7 +14,7 @@ class TrajectoryCSV(TrajectoryBase):
         self._order = 'C'
         if mode == 'r':
             self._setup()
-    
+
     def _setup(self):
         self._file_index = []
         self._file.seek(0)
@@ -31,7 +31,7 @@ class TrajectoryCSV(TrajectoryBase):
     def read_system(self, frame):
         self._file.seek(self._file_index[frame])
         data = self._file.readline().strip()
-        pos = numpy.array([float(_) for _ in data.split(self._sep)])        
+        pos = numpy.array([float(_) for _ in data.split(self._sep)])
         npart = len(pos) // self._ndim
         pos = pos.reshape((npart, self._ndim))
         system = System()
@@ -48,7 +48,6 @@ class TrajectoryCSV(TrajectoryBase):
         numpy.set_string_function(lambda x: sep.join([fmt.format(xi) for xi in x]), False)
         self._file.write(str(system.dump('position', flat=True, order=self._order)) + '\n')
         numpy.set_string_function(None, False)
-
 
     def close(self):
         self._file.close()

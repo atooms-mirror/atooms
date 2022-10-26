@@ -81,7 +81,7 @@ class System(object):
 
     def dump(self, clear=False):
         pass
-            
+
     def update(self, other, full=False, exclude=None, only=None):
         for key in other.__dict__:
             if exclude is not None or only is not None:

@@ -62,6 +62,7 @@ def _rename_species(particle, db):
         p.species = db[p.species]
     return particle
 
+
 inpfile = '/tmp/test_trajectory'
 inpdir = '/tmp/test_trajectory.d'
 
@@ -257,8 +258,8 @@ class Test(unittest.TestCase):
     def test_csv(self):
         import atooms.trajectory.csv
         self._read_write(atooms.trajectory.csv.TrajectoryCSV, ignore=['mass', 'species', 'velocity'])
-        self._append(atooms.trajectory.csv.TrajectoryCSV, ignore=['mass', 'species', 'velocity'])        
-            
+        self._append(atooms.trajectory.csv.TrajectoryCSV, ignore=['mass', 'species', 'velocity'])
+
     def test_dynamo(self):
         import glob
         from atooms.trajectory import SuperTrajectory, TrajectoryXYZ, TrajectoryDynamO
@@ -506,7 +507,7 @@ ITEM: ATOMS id type xs ys zs mass
             self.assertEqual(th[0].particle[0].mass, 2.0)
             self.assertEqual(th[0].particle[1].mass, 3.0)
             system = th[0]
-            
+
         with TrajectoryLAMMPS(self.inpfile, 'w') as th:
             th.write(system)
 

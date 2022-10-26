@@ -48,7 +48,7 @@ class TrajectoryBase(object):
         for system in th:
             pass
     ```
-    
+
     alternatively
 
     ```python

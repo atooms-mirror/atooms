@@ -237,7 +237,6 @@ class Simulation(object):
         with open(self.output_path + '.chk.step', 'w') as fh:
             fh.write('%d' % self.current_step)
 
-
     def read_checkpoint(self):
         """
         Read the checkpoint to restart a simulation.
@@ -272,7 +271,6 @@ class Simulation(object):
                     # Trajectory may not store the interaction,
                     # thermostat, barostat, so we must preserve it
                     self.system.update(t[0])
-
 
     @property
     def rmsd(self):

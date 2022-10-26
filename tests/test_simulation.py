@@ -260,7 +260,7 @@ class Test(unittest.TestCase):
         s.run(100)
         atooms.core.progress.active = False
         sys.stdout = realstdout
-        
+
     def tearDown(self):
         rmd('/tmp/test_simulation')
 

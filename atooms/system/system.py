@@ -528,7 +528,7 @@ class System(object):
     def view(self, what=None, order='C', dtype=None, clear=False, flat=False):
         """Alias of System.get(view=True, *args, **kwargs)"""
         return self.dump(what=what, order=order, dtype=dtype, clear=clear, flat=flat, view=True)
-    
+
     def __str__(self):
         from .particle import composition
         txt = ''
