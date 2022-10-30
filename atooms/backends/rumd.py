@@ -62,6 +62,7 @@ class RUMD(object):
 
         # Keep a reference of the Trajectory backend class
         self.trajectory_class = Trajectory
+        self.timestep = dt
 
         # Store internal rumd simulation instance.
         # It is exposed as self.rumd_simulation for further customization
