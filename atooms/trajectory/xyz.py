@@ -188,7 +188,7 @@ class TrajectoryXYZ(TrajectoryBase):
             # Passing a scalar will trigger an error (gotcha: even
             # when casting numpy array to list, the elements remain of
             # numpy type and this function gets called! (4% slowdown)
-            if arr.dtype == 'float':
+            if arr.dtype.str[1] == 'f':  # this matches both float32 and float64
                 _fmt = _fmt_float
             else:
                 _fmt = _fmt_any
