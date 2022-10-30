@@ -14,8 +14,8 @@ import logging
 
 import rumd  # pylint:disable=import-error
 from rumd.Simulation import Simulation  # pylint:disable=import-error
-from atooms.system.particle import Particle
-from atooms.system.cell import Cell
+from atooms.system import System as _System
+from atooms.system import Particle, Cell
 
 _log = logging.getLogger(__name__)
 _version = rumd.GetVersion()
@@ -31,7 +31,6 @@ def unfold(system):
     #     p.position += p.periodic_image * s.cell.side
     # system.particle = particle
     # return s
-    from atooms.system import System
     npart = system.sample.GetNumberOfParticles()
     pos = system.sample.GetPositions()
     nsp = system.sample.GetNumberOfTypes()
@@ -47,7 +46,7 @@ def unfold(system):
     for p, i in zip(particle, ima):
         p.position += i * system.cell.side
 
-    return System(particle=particle, cell=system.cell)
+    return _System(particle=particle, cell=system.cell)
 
 
 class RUMD(object):
@@ -56,7 +55,7 @@ class RUMD(object):
 
     version = _version
 
-    def __init__(self, input_file_or_sim, potentials=None,
+    def __init__(self, input_file_or_sim_or_system, potentials=None,
                  integrator=None, temperature=None, dt=0.001,
                  fixcm_interval=0, thermostat_relaxation_time=None):
 
@@ -64,15 +63,26 @@ class RUMD(object):
         self.trajectory_class = Trajectory
         self.timestep = dt
 
+        # If we pass a System instance, we write a temporary RUMD
+        # trajectory to initialize the simulation and reset the
+        # input_file_or_sim_or_system variable
+        if isinstance(input_file_or_sim_or_system, _System):
+            import tempfile, os
+            from atooms.trajectory import TrajectoryRUMD            
+            tmp = os.path.join(tempfile.mkdtemp(), 'config.xyz')
+            with TrajectoryRUMD(tmp, 'w') as th:
+                th.write(input_file_or_sim_or_system)
+            input_file_or_sim_or_system = tmp
+        
         # Store internal rumd simulation instance.
         # It is exposed as self.rumd_simulation for further customization
-        if isinstance(input_file_or_sim, Simulation):
+        if isinstance(input_file_or_sim_or_system, Simulation):
             self.rumd_simulation = input_file_or_sim
             self._suppress_all_output = False
             self._initialize_output = True
 
         else:
-            self.rumd_simulation = Simulation(input_file_or_sim, verbose=False)
+            self.rumd_simulation = Simulation(input_file_or_sim_or_system, verbose=False)
             self.rumd_simulation.SetVerbose(False)
             self.rumd_simulation.sample.SetVerbose(False)
             self.rumd_simulation.sample.EnableBackup(False)
@@ -295,6 +305,7 @@ class System(object):
         mass = self.__get_mass()
         return numpy.sum(mass * numpy.sum(vel**2.0, 1)) / ndof
 
+    # TODO: this should be the attribute setter
     def set_temperature(self, T):
         # Scale velocities from temperature Told to T
         # TODO: use maxwellian
