@@ -341,11 +341,14 @@ class Simulation(object):
                     pass
                 self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
-        # Report
+        # Report        
         _report(self._info_start())
         _report(self._info_backend())
         _report(self._info_observers())
-        _report(str(self.system))
+        try:
+            _report(str(self.system))
+        except:
+            _log.warn('issues reporting system; this is mostly harmless but check client code')
         _report(str(self.backend))
 
         # Read checkpoint if we restart
