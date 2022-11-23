@@ -4,6 +4,7 @@
 import numpy
 import re
 from .base import TrajectoryBase
+from .utils import gopen
 from atooms.core.utils import tipify
 from atooms.system.particle import Particle
 from atooms.system.cell import Cell
@@ -23,7 +24,8 @@ class TrajectorySimpleXYZ(TrajectoryBase):
     def __init__(self, filename, mode='r'):
         super(TrajectorySimpleXYZ, self).__init__(filename, mode)
         self._cell = None
-        self._file = open(self.filename, self.mode)
+        # Trajectory file handle
+        self._file = gopen(self.filename, self.mode)
         if self.mode == 'r':
             # Internal index of lines to seek and tell.
             # We may delay setup, moving to read_init() assuming
