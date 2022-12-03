@@ -6,21 +6,21 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.10.0...3.11.0)
 
-## Added
+### Added
 - Add System.view()
 
 ## 3.10.0 - 2022/09/28
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.9.0...3.10.0)
 
-## Added
+### Added
 - Add parsing of energies in lammps file
 
 ## 3.8.0 - 2022/04/29
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.7.0...3.8.0)
 
-## Added
+### Added
 - Support custom checkpoint variables in Simulation subclasses
 
 ## 3.7.0 - 2022/01/31
