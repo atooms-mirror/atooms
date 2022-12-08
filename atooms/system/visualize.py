@@ -44,7 +44,7 @@ def show_3dmol(particle, cell=None, radius=1.0, palette=None):
     return view
 
 
-def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, show=False, outfile=None):
+def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, show=False, now=False, outfile=None):
     """
     Make a snapshot of the `particle`s in the `cell` and save the
     image in `outfile`. The image is returned for further
@@ -52,7 +52,8 @@ def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, sh
     """
     import matplotlib.pyplot as plt
     from .particle import distinct_species
-
+    if now:
+        show = True
     if output_file is not None:
         outfile = output_file
     color_db = ['b', 'r', 'g', 'y']
@@ -76,6 +77,7 @@ def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, sh
     return fig
 
 
+# TODO: radius not working
 def show_ovito(particle, cell, output_file=None, color='species',
                radius=0.35, viewport=None, callback=None, tmpdir=None,
                camera_dir=(0, 1, 0), camera_pos=(0, -10, 0),
