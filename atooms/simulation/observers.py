@@ -393,18 +393,14 @@ def store(sim, what, db):
     rmsd
     conserved energy
     """
-    # TODO: allow list?
-    # If the dict is empty fill it
-    if len(db) == 0:
-        for attribute in what:
-            if isinstance(attribute, tuple):
-                db[attribute[0]] = []
-            else:
-                db[attribute] = []
-
     # Define callbacks
     names, callbacks = _setup_callbacks(what)
 
+    # If the dict is empty fill it
+    if len(db) == 0:
+        for attribute in what:
+            db[attribute] = []
+    
     # Extract the requested attribute
     for name, callback in zip(names, callbacks):
         db[name].append(callback(sim))
