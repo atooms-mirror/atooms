@@ -2,6 +2,13 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations and critical bug fixes.
 
+## 3.13.1 - 2022/12/08
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.13.0...3.13.1)
+
+### Bug fixes
+- Fix simulation.observers.store()
+
 ## 3.11.0 - 2022/24/24
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.10.0...3.11.0)
