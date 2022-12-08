@@ -3,7 +3,7 @@
 import unittest
 import logging
 import numpy
-from atooms.simulation import Simulation, Scheduler, write_thermo, write_config, target_rmsd, write
+from atooms.simulation import Simulation, Scheduler, write_thermo, write_config, target_rmsd, write, store
 from atooms.backends.dryrun import DryRun
 from atooms.core.utils import setup_logging, rmd
 
@@ -161,6 +161,14 @@ class Test(unittest.TestCase):
         s.run()
         self.assertEqual(db, [0, 1, 2, 4, 8])
 
+    def test_store(self):
+        """Test store"""
+        db = {}
+        s = Simulation(DryRun())
+        s.add(store, 1, [("steps", lambda sim: sim.current_step)],  db)
+        s.run(5)
+        self.assertEqual(db["steps"], list(range(6)))
+        
     def test_system(self):
         """
         Test that system in Simulation tracks the one in the backend even
