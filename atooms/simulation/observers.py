@@ -397,7 +397,10 @@ def store(sim, what, db):
     # If the dict is empty fill it
     if len(db) == 0:
         for attribute in what:
-            db[attribute] = []
+            if isinstance(attribute, tuple):
+                db[attribute[0]] = []
+            else:
+                db[attribute] = []
 
     # Define callbacks
     names, callbacks = _setup_callbacks(what)
