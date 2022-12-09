@@ -4,6 +4,8 @@ import unittest
 import logging
 import numpy
 from atooms.simulation import Simulation, Scheduler, write_thermo, write_config, target_rmsd, write, store
+from atooms.system import System
+from atooms.trajectory import TrajectoryXYZ
 from atooms.backends.dryrun import DryRun
 from atooms.core.utils import setup_logging, rmd
 
@@ -25,8 +27,6 @@ class Test(unittest.TestCase):
         Multiple calls to run() with varying number of steps should add up
         correctly. This was not the case in version <= 1.4.3.
         """
-        from atooms.system import System
-
         # Minimal backend
         class Backend(object):
 
@@ -72,8 +72,6 @@ class Test(unittest.TestCase):
         self.assertEqual(int(data[0][-1]), 200)
 
     def test_config(self):
-        from atooms.system import System
-        from atooms.trajectory import TrajectoryXYZ
         f = '/tmp/test_simulation/config/trajectory.xyz'
 
         bck = DryRun(System(N=1))
@@ -172,7 +170,12 @@ class Test(unittest.TestCase):
         s.add(store, 1, [("steps", lambda sim: sim.current_step)])
         s.run(5)
         self.assertEqual(s.data["steps"], list(range(6)))
-        
+
+        s = Simulation(DryRun(System(N=1)))
+        s.add(store, 1, ['steps', ('x_1', lambda sim: sim.system.particle[0].position[0])])
+        s.run(5)
+        self.assertAlmostEqual(numpy.mean(s.data["x_1"]), 0.0)
+
     def test_system(self):
         """
         Test that system in Simulation tracks the one in the backend even
