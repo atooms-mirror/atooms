@@ -2,6 +2,16 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). This file only reports changes that increase major and minor versions, as well as deprecations and critical bug fixes.
 
+## 3.14.0 - 2022/12/09
+
+[Full diff](https://framagit.org/atooms/atooms/-/compare/3.13.1...3.14.0)
+
+### Added
+-  Allow indexing of attributes in what arguments of `store` and `write` observers
+
+### Bug fix
+- Fix `store()`
+
 ## 3.13.1 - 2022/12/08
 
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.13.0...3.13.1)
