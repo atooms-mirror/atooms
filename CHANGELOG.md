@@ -7,7 +7,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 [Full diff](https://framagit.org/atooms/atooms/-/compare/3.13.1...3.14.0)
 
 ### Added
--  Allow indexing of attributes in what arguments of `store` and `write` observers
+- Allow simulation data to be stored in instance as data dict via `store` observer
+- Allow indexing of attributes in what arguments of `store` and `write` observers
 
 ### Bug fix
 - Fix `store()`
