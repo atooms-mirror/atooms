@@ -368,7 +368,7 @@ def _setup_callbacks(what):
         else:
             # Generic simulation attribute
             names.append(attribute)
-            callbacks.append(attrgetter(attribute))
+            callbacks.append(&#39;{simulation.&#39; + attribute + &#39;}&#39;)
 
     return names, callbacks
 
@@ -411,8 +411,14 @@ def write(sim, what, suffix=None, path=None):
 
     # Extract the requested attribute
     values = []
-    for callback in callbacks:
-        values.append(callback(sim))
+    for name, callback in zip(names, callbacks):
+        from atooms.core.utils import tipify
+        if callable(callback):
+            values.append(callback(sim))
+        else:
+            # This is a string to be formatted with the simulation variables.
+            # Then we get it back with its guessed type.
+            values.append(callback.format(simulation=sim))
 
     # Header
     if sim.current_step == 0:
@@ -425,9 +431,9 @@ def write(sim, what, suffix=None, path=None):
         fh.write(fmt.format(*values))
 
 
-def store(sim, what, db):
+def store(sim, what, data=None):
     &#34;&#34;&#34;
-    Store generic attributes of simulation `sim` in the dictonary `db`.
+    Store generic attributes of simulation `sim` in the dictonary `data`.
 
     `what` tells the function what to write and must be a list of either:
 
@@ -447,20 +453,31 @@ def store(sim, what, db):
     rmsd
     conserved energy
     &#34;&#34;&#34;
-    # TODO: allow list?
-    # If the dict is empty fill it
-    if len(db) == 0:
-        for attribute in what:
-            db[attribute] = []
-
+    if data is None:
+        if not hasattr(sim, &#39;data&#39;):
+            sim.data = {}
+        data = sim.data
+    
     # Define callbacks
     names, callbacks = _setup_callbacks(what)
 
+    # If the dict is empty fill it
+    if len(data) == 0:
+        for name in names:
+            data[name] = []
+
     # Extract the requested attribute
     for name, callback in zip(names, callbacks):
-        db[name].append(callback(sim))
+        from atooms.core.utils import tipify
+        if callable(callback):
+            data[name].append(callback(sim))
+        else:
+            # This is a string to be formatted with the simulation variables.
+            # Then we get it back with its guessed type.
+            val = tipify(callback.format(simulation=sim))
+            data[name].append(val)
 
-    return db
+    return data
 
 
 # Target callbacks.
@@ -701,10 +718,10 @@ echo {sim.current_step} {sim.rmsd} &gt;&gt; {sim.output_path}.out
 </details>
 </dd>
 <dt id="atooms.simulation.observers.store"><code class="name flex">
-<span>def <span class="ident">store</span></span>(<span>sim, what, db)</span>
+<span>def <span class="ident">store</span></span>(<span>sim, what, data=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Store generic attributes of simulation <code>sim</code> in the dictonary <code>db</code>.</p>
+<div class="desc"><p>Store generic attributes of simulation <code>sim</code> in the dictonary <code>data</code>.</p>
 <p><code>what</code> tells the function what to write and must be a list of either:</p>
 <ul>
 <li>
@@ -731,9 +748,9 @@ conserved energy</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def store(sim, what, db):
+<pre><code class="python">def store(sim, what, data=None):
     &#34;&#34;&#34;
-    Store generic attributes of simulation `sim` in the dictonary `db`.
+    Store generic attributes of simulation `sim` in the dictonary `data`.
 
     `what` tells the function what to write and must be a list of either:
 
@@ -753,20 +770,31 @@ conserved energy</p>
     rmsd
     conserved energy
     &#34;&#34;&#34;
-    # TODO: allow list?
-    # If the dict is empty fill it
-    if len(db) == 0:
-        for attribute in what:
-            db[attribute] = []
-
+    if data is None:
+        if not hasattr(sim, &#39;data&#39;):
+            sim.data = {}
+        data = sim.data
+    
     # Define callbacks
     names, callbacks = _setup_callbacks(what)
 
+    # If the dict is empty fill it
+    if len(data) == 0:
+        for name in names:
+            data[name] = []
+
     # Extract the requested attribute
     for name, callback in zip(names, callbacks):
-        db[name].append(callback(sim))
+        from atooms.core.utils import tipify
+        if callable(callback):
+            data[name].append(callback(sim))
+        else:
+            # This is a string to be formatted with the simulation variables.
+            # Then we get it back with its guessed type.
+            val = tipify(callback.format(simulation=sim))
+            data[name].append(val)
 
-    return db</code></pre>
+    return data</code></pre>
 </details>
 </dd>
 <dt id="atooms.simulation.observers.target"><code class="name flex">
@@ -1077,8 +1105,14 @@ conserved energy</p>
 
     # Extract the requested attribute
     values = []
-    for callback in callbacks:
-        values.append(callback(sim))
+    for name, callback in zip(names, callbacks):
+        from atooms.core.utils import tipify
+        if callable(callback):
+            values.append(callback(sim))
+        else:
+            # This is a string to be formatted with the simulation variables.
+            # Then we get it back with its guessed type.
+            values.append(callback.format(simulation=sim))
 
     # Header
     if sim.current_step == 0:

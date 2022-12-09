@@ -216,7 +216,7 @@ class TrajectoryXYZ(TrajectoryBase):
             # Passing a scalar will trigger an error (gotcha: even
             # when casting numpy array to list, the elements remain of
             # numpy type and this function gets called! (4% slowdown)
-            if arr.dtype == &#39;float&#39;:
+            if arr.dtype.str[1] == &#39;f&#39;:  # this matches both float32 and float64
                 _fmt = _fmt_float
             else:
                 _fmt = _fmt_any
@@ -319,8 +319,6 @@ class TrajectoryXYZ(TrajectoryBase):
             # The comment line contains self descriptive fields
             # Remove spaces around : or = and replace = by :
             data = re.sub(r&#39;\s*[=:]\s*&#39;, &#39;:&#39;, data)
-            # Remove spurious dangling commas at the end of vectors
-            data = re.sub(r&#39;,\s([a-zA-Z])&#39;, &#39; \\1&#39;, data)
             # Tolerate spaces between entries of vectors
             data = re.sub(r&#39;\s*,\s*&#39;, &#39;,&#39;, data)
 
@@ -689,7 +687,7 @@ comma-separated entries (no space).</p></div>
             # Passing a scalar will trigger an error (gotcha: even
             # when casting numpy array to list, the elements remain of
             # numpy type and this function gets called! (4% slowdown)
-            if arr.dtype == &#39;float&#39;:
+            if arr.dtype.str[1] == &#39;f&#39;:  # this matches both float32 and float64
                 _fmt = _fmt_float
             else:
                 _fmt = _fmt_any
@@ -792,8 +790,6 @@ comma-separated entries (no space).</p></div>
             # The comment line contains self descriptive fields
             # Remove spaces around : or = and replace = by :
             data = re.sub(r&#39;\s*[=:]\s*&#39;, &#39;:&#39;, data)
-            # Remove spurious dangling commas at the end of vectors
-            data = re.sub(r&#39;,\s([a-zA-Z])&#39;, &#39; \\1&#39;, data)
             # Tolerate spaces between entries of vectors
             data = re.sub(r&#39;\s*,\s*&#39;, &#39;,&#39;, data)
 

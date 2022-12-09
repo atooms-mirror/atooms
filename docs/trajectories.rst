@@ -17,21 +17,23 @@ Trajectory formats
 
 ::
 
-    Available trajectory formats:
-    - dynamo       : [R ] DynamO trajectory format (https://www.dynamomd.com/index.php/tutorial3)
-    - exyz         : [RW] Extended XYZ layout (https://github.com/libAtoms/extxyz)
-    - folderlammps : [R ] Multi-file layout LAMMPS format.
-    - gsd          : [RW] Glotzer group's binary GSD format for HOOMD (https://glotzerlab.engin.umich.edu/hoomd-blue/)
-    - hdf5         : [RW] In-house trajectory layout in HDF5 format.
-    - hoomd        : [RW] HOOMD format
-    - lammps       : [RW] LAMMPS format (https://docs.lammps.org/dump.html)
-    - neighbors    : [RW] Neighbors trajectory format
-    - pdb          : [RW] PDB format (https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))
-    - ram          : [RW] Store trajectory in RAM
-    - rumd         : [RW] RUMD trajectory format (https://rumd.org)
-    - simplexyz    : [RW] Simple implementation of the xyz layout (https://en.wikipedia.org/wiki/XYZ_file_format)
-    - superrumd    : [R ] SuperTrajectory for RUMD format
-    - xyz          : [RW] XYZ format with metadata support (https://en.wikipedia.org/wiki/XYZ_file_format)
+    Python 3.8.10 (default, Jun 22 2022, 20:18:18) 
+    [GCC 9.4.0] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    available trajectory formats:
+     - csv          : [RW] ...no description...
+     - dynamo       : [R ] DynamO trajectory format (https://www.dynamomd.com/index.php/tutorial3)
+     - exyz         : [RW] Extended XYZ layout (https://github.com/libAtoms/extxyz)
+     - folderlammps : [R ] Multi-file layout LAMMPS format.
+     - hoomd        : [RW] HOOMD format
+     - lammps       : [RW] LAMMPS format (https://docs.lammps.org/dump.html)
+     - neighbors    : [RW] Neighbors trajectory format
+     - pdb          : [RW] PDB format (https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))
+     - ram          : [RW] Store trajectory in RAM
+     - rumd         : [RW] RUMD trajectory format (https://rumd.org)
+     - simplexyz    : [RW] Simple implementation of the xyz layout (https://en.wikipedia.org/wiki/XYZ_file_format)
+     - superrumd    : [R ] SuperTrajectory for RUMD format
+     - xyz          : [RW] XYZ format with metadata support (https://en.wikipedia.org/wiki/XYZ_file_format)
 
 Custom trajectory formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,11 +70,11 @@ We add a ``charge`` property to each particle and then instruct the trajectory t
 
 ::
 
-    3
-    step:0 columns:position,charge dt:1 cell:10.0,10.0,10.0 
-    0.000000 0.000000 0.000000 -1.0
-    0.000000 0.000000 0.000000 -1.0
-    0.000000 0.000000 0.000000 -1.0
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-awMOMl", line 8, in <module>
+        with TrajectoryXYZ('test.xyz', 'w', fields=['position', 'charge']) as th:
+    NameError: name 'TrajectoryXYZ' is not defined
 
 The ``fields`` list can contain any particle property, even those defined dynamically at run time, such as the ``charge`` variable above which is not a predefined particle property!. When reading back the trajectory, the ``charge`` property is automatically recognized and added to the particle. 
 
@@ -84,7 +86,11 @@ The ``fields`` list can contain any particle property, even those defined dynami
 
 ::
 
-    -1.0
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-PBZ372", line 1, in <module>
+        with TrajectoryXYZ('test.xyz') as th:
+    NameError: name 'TrajectoryXYZ' is not defined
 
 Conversion between trajectory formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -105,6 +111,14 @@ The ``convert()`` function wraps the conversion in a more convenient interface
 
     from atooms.trajectory import convert
     convert(TrajectoryXYZ('test.xyz'), TrajectoryLAMMPS, 'test.lammps')
+
+::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-n4S0ix", line 1, in <module>
+        from atooms.trajectory import convert
+    ImportError: cannot import name 'convert' from 'atooms.trajectory' (/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/trajectory/__init__.py)
 
 There are several optional parameters that allows to customize the trajectory output, see the function signature for more details.
 
@@ -142,7 +156,6 @@ Then we add the callback to the trajectory and provide the cell side (here L=10 
 
 ::
 
-    [10. 10. 10.]
     [10. 10. 10.]
 
 Extend trajectory classes

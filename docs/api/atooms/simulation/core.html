@@ -277,7 +277,6 @@ class Simulation(object):
         with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
             fh.write(&#39;%d&#39; % self.current_step)
 
-
     def read_checkpoint(self):
         &#34;&#34;&#34;
         Read the checkpoint to restart a simulation.
@@ -312,7 +311,6 @@ class Simulation(object):
                     # Trajectory may not store the interaction,
                     # thermostat, barostat, so we must preserve it
                     self.system.update(t[0])
-
 
     @property
     def rmsd(self):
@@ -383,11 +381,14 @@ class Simulation(object):
                     pass
                 self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
-        # Report
+        # Report        
         _report(self._info_start())
         _report(self._info_backend())
         _report(self._info_observers())
-        _report(str(self.system))
+        try:
+            _report(str(self.system))
+        except:
+            _log.warn(&#39;issues reporting system; this is mostly harmless but check client code&#39;)
         _report(str(self.backend))
 
         # Read checkpoint if we restart
@@ -708,7 +709,6 @@ other paths are defined based on it and on its base_path.</p></div>
         with open(self.output_path + &#39;.chk.step&#39;, &#39;w&#39;) as fh:
             fh.write(&#39;%d&#39; % self.current_step)
 
-
     def read_checkpoint(self):
         &#34;&#34;&#34;
         Read the checkpoint to restart a simulation.
@@ -743,7 +743,6 @@ other paths are defined based on it and on its base_path.</p></div>
                     # Trajectory may not store the interaction,
                     # thermostat, barostat, so we must preserve it
                     self.system.update(t[0])
-
 
     @property
     def rmsd(self):
@@ -814,11 +813,14 @@ other paths are defined based on it and on its base_path.</p></div>
                     pass
                 self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
-        # Report
+        # Report        
         _report(self._info_start())
         _report(self._info_backend())
         _report(self._info_observers())
-        _report(str(self.system))
+        try:
+            _report(str(self.system))
+        except:
+            _log.warn(&#39;issues reporting system; this is mostly harmless but check client code&#39;)
         _report(str(self.backend))
 
         # Read checkpoint if we restart
@@ -1200,11 +1202,14 @@ gracefully.</p></div>
                 pass
             self.add(flush, Scheduler((self.current_step + self.steps) // min_iters))
 
-    # Report
+    # Report        
     _report(self._info_start())
     _report(self._info_backend())
     _report(self._info_observers())
-    _report(str(self.system))
+    try:
+        _report(str(self.system))
+    except:
+        _log.warn(&#39;issues reporting system; this is mostly harmless but check client code&#39;)
     _report(str(self.backend))
 
     # Read checkpoint if we restart

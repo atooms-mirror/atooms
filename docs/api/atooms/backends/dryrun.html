@@ -109,6 +109,9 @@ class System(object):
         for p in self.particle:
             p.velocity *= -1.0
 
+    def dump(self, clear=False):
+        pass
+
     def update(self, other, full=False, exclude=None, only=None):
         for key in other.__dict__:
             if exclude is not None or only is not None:
@@ -385,6 +388,9 @@ def rmsd(self):
         for p in self.particle:
             p.velocity *= -1.0
 
+    def dump(self, clear=False):
+        pass
+
     def update(self, other, full=False, exclude=None, only=None):
         for key in other.__dict__:
             if exclude is not None or only is not None:
@@ -427,6 +433,19 @@ def temperature(self):
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="atooms.backends.dryrun.System.dump"><code class="name flex">
+<span>def <span class="ident">dump</span></span>(<span>self, clear=False)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dump(self, clear=False):
+    pass</code></pre>
+</details>
+</dd>
 <dt id="atooms.backends.dryrun.System.kinetic_energy"><code class="name flex">
 <span>def <span class="ident">kinetic_energy</span></span>(<span>self, per_particle=False, normed=False)</span>
 </code></dt>
@@ -637,6 +656,7 @@ def temperature(self):
 <h4><code><a title="atooms.backends.dryrun.System" href="#atooms.backends.dryrun.System">System</a></code></h4>
 <ul class="two-column">
 <li><code><a title="atooms.backends.dryrun.System.density" href="#atooms.backends.dryrun.System.density">density</a></code></li>
+<li><code><a title="atooms.backends.dryrun.System.dump" href="#atooms.backends.dryrun.System.dump">dump</a></code></li>
 <li><code><a title="atooms.backends.dryrun.System.kinetic_energy" href="#atooms.backends.dryrun.System.kinetic_energy">kinetic_energy</a></code></li>
 <li><code><a title="atooms.backends.dryrun.System.potential_energy" href="#atooms.backends.dryrun.System.potential_energy">potential_energy</a></code></li>
 <li><code><a title="atooms.backends.dryrun.System.scale_velocities" href="#atooms.backends.dryrun.System.scale_velocities">scale_velocities</a></code></li>

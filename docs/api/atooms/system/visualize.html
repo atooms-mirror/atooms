@@ -74,7 +74,7 @@ def show_3dmol(particle, cell=None, radius=1.0, palette=None):
     return view
 
 
-def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, show=False, outfile=None):
+def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, show=False, now=False, outfile=None):
     &#34;&#34;&#34;
     Make a snapshot of the `particle`s in the `cell` and save the
     image in `outfile`. The image is returned for further
@@ -82,7 +82,8 @@ def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, sh
     &#34;&#34;&#34;
     import matplotlib.pyplot as plt
     from .particle import distinct_species
-
+    if now:
+        show = True
     if output_file is not None:
         outfile = output_file
     color_db = [&#39;b&#39;, &#39;r&#39;, &#39;g&#39;, &#39;y&#39;]
@@ -100,11 +101,13 @@ def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, sh
         ax.add_artist(c)
     if outfile is not None:
         fig.savefig(outfile, bbox_inches=&#39;tight&#39;)
+    # TODO: show should be True by default
     if show:
         plt.show()
     return fig
 
 
+# TODO: radius not working
 def show_ovito(particle, cell, output_file=None, color=&#39;species&#39;,
                radius=0.35, viewport=None, callback=None, tmpdir=None,
                camera_dir=(0, 1, 0), camera_pos=(0, -10, 0),
@@ -266,7 +269,7 @@ def show_ovito(particle, cell, output_file=None, color=&#39;species&#39;,
 </details>
 </dd>
 <dt id="atooms.system.visualize.show_matplotlib"><code class="name flex">
-<span>def <span class="ident">show_matplotlib</span></span>(<span>particle, cell, output_file=None, linewidth=3, alpha=0.3, show=False, outfile=None)</span>
+<span>def <span class="ident">show_matplotlib</span></span>(<span>particle, cell, output_file=None, linewidth=3, alpha=0.3, show=False, now=False, outfile=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Make a snapshot of the <code>particle</code>s in the <code>cell</code> and save the
@@ -276,7 +279,7 @@ customization or visualization in jupyer notebooks.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, show=False, outfile=None):
+<pre><code class="python">def show_matplotlib(particle, cell, output_file=None, linewidth=3, alpha=0.3, show=False, now=False, outfile=None):
     &#34;&#34;&#34;
     Make a snapshot of the `particle`s in the `cell` and save the
     image in `outfile`. The image is returned for further
@@ -284,7 +287,8 @@ customization or visualization in jupyer notebooks.</p></div>
     &#34;&#34;&#34;
     import matplotlib.pyplot as plt
     from .particle import distinct_species
-
+    if now:
+        show = True
     if output_file is not None:
         outfile = output_file
     color_db = [&#39;b&#39;, &#39;r&#39;, &#39;g&#39;, &#39;y&#39;]
@@ -302,6 +306,7 @@ customization or visualization in jupyer notebooks.</p></div>
         ax.add_artist(c)
     if outfile is not None:
         fig.savefig(outfile, bbox_inches=&#39;tight&#39;)
+    # TODO: show should be True by default
     if show:
         plt.show()
     return fig</code></pre>

@@ -132,7 +132,7 @@ class Particle(object):
         Assign the velocity to particle according to a Maxwell-Boltzmann
         distribution at temperature `T`.
         &#34;&#34;&#34;
-        for i in len(range(self.velocity)):
+        for i in range(len(self.velocity)):
             self.velocity[i] = random.gauss(0, numpy.sqrt(T / self.mass))
 
     @property
@@ -925,7 +925,7 @@ of the set.</p></div>
         Assign the velocity to particle according to a Maxwell-Boltzmann
         distribution at temperature `T`.
         &#34;&#34;&#34;
-        for i in len(range(self.velocity)):
+        for i in range(len(self.velocity)):
             self.velocity[i] = random.gauss(0, numpy.sqrt(T / self.mass))
 
     @property
@@ -1043,7 +1043,7 @@ distribution at temperature <code>T</code>.</p></div>
     Assign the velocity to particle according to a Maxwell-Boltzmann
     distribution at temperature `T`.
     &#34;&#34;&#34;
-    for i in len(range(self.velocity)):
+    for i in range(len(self.velocity)):
         self.velocity[i] = random.gauss(0, numpy.sqrt(T / self.mass))</code></pre>
 </details>
 </dd>

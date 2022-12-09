@@ -4,13 +4,13 @@
 Simulations
 -----------
 
-atooms provides a generic interface that abstracts out most of the common tasks of particle-based simulations. The actual simulation is performed by a simulation backend, which exposes a minimal but consistent interface. This enables one to develop complex simulation frameworks (e.g., [parallel tempering](`https://framagit.org/atooms/parallel_tempering <https://framagit.org/atooms/parallel_tempering>`_)) that are essentially decoupled from the underlying simulation code.
+The atooms' interface abstracts out most of the common tasks of particle-based simulations. The actual simulation is performed by a simulation "backend", which exposes a minimal but consistent interface. This enables one to develop complex simulation frameworks (e.g., `parallel tempering <https://framagit.org/atooms/parallel_tempering>`_) that are essentially decoupled from the underlying simulation code.
 
-A **Simulation** is a high-level class that encapsulates some common tasks and provides a consistent interface to the user, while **backend** classes actually make the system evolve. Here, we implement a minimal backend to run a simulation.
+A **Simulation** is a high-level class that encapsulates some common tasks, like regularly storing data on files, and provides a consistent interface to the user, while **backend** classes actually make the system evolve. Here, we implement a minimal backend to run a simulation.
 
 At a very minimum, a backend is a class that provides 
 
-- a **system** instance variable, which should (mostly) behave like ``atooms.system.System``.
+- a **system** instance variable, which should (mostly) behave like ``atooms.system.System``
 
 - a **run()** method, which evolves the system for a prescribed number of steps (passed as argument)
 
@@ -57,47 +57,46 @@ We set up a bare-bones simulation backend building on the native System class
 
 ::
 
+    Python 3.8.10 (default, Jun 22 2022, 20:18:18) 
+    [GCC 9.4.0] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
     # 
-    # atooms simulation via <__main__.BareBonesBackend object at 0x7ff54d0527f0>
+    # atooms simulation via <__main__.BareBonesBackend object at 0x7f5419e2f3d0>
     # 
-    # version: 1.9.1+1.5.0-132-gfe9bc7-dirty (2019-04-12)
-    # atooms version: 1.9.1+1.5.0-132-gfe9bc7-dirty (2019-04-12)
-    # simulation started on: 2019-05-17 at 17:36
+    # version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # atooms version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # simulation started on: 2022-12-09 at 22:59
     # output path: None
-    # backend: <__main__.BareBonesBackend object at 0x7ff54d0527f0>
+    # backend: <class '__main__.BareBonesBackend'>
     # 
     # target target_steps: 10
     # 
     # 
-    # starting at step: 0
-    # 
+    # <__main__.BareBonesBackend object at 0x7f5419e2f3d0>
     # simulation ended successfully: reached target steps 10
     # 
     # final steps: 10
     # final rmsd: 0.00
     # wall time [s]: 0.00
     # average TSP [s/step/particle]: nan
-    # simulation ended on: 2019-05-17 at 17:36
+    # simulation ended on: 2022-12-09 at 22:59
+    python.el: native completion setup loaded
 
 Simple random walk
 ~~~~~~~~~~~~~~~~~~
 
-We implement a simple random walk in 3d. This requires adding code to the backend ``run()`` method to actually move the particles around.
+We implement a simple random walk in 3d. This requires adding code to the backend ``run()`` method to actually move the particles around. The code won't be very fast! See below `Faster backends`_.
 
 We start by building an empty system. Then we add a few particles and place them at random in a cube. Finally, we write a backend that displaces each particle randomly over a cube of prescribed side.
 
 .. code:: python
 
     import numpy
-    from atooms.system import System
-
-    # There are no particles at the beginning
-    system = System()
-    assert len(system.particle) == 0
-
-    # Add particles
-    from atooms.system.particle import Particle
     from random import random
+    from atooms.system import System
+    from atooms.system.particle import Particle
+
+    system = System()
     L = 10
     for i in range(1000):
         p = Particle(position=[L * random(), L * random(), L * random()])
@@ -116,7 +115,10 @@ We start by building an empty system. Then we add a few particles and place them
                     dr *= self.delta
                     p.position += dr
 
-The Simulation class provides a callback mechanism to allow execution of arbitrary code during the simulation. This can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
+Adding callbacks to log while the simulation is running
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Simulation class allows to execute of arbitrary code during the simulation via "callbacks". This mechanism can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
 
 Here we measure the mean square displacement (MSD) of the particles to make sure that the system displays a regular diffusive behavior :math:`MSD \sim t`
 
@@ -145,7 +147,6 @@ Here we measure the mean square displacement (MSD) of the particles to make sure
     time = sorted(msd_db.keys())
     msd = [msd_db[t] for t in time]
 
-    print(time, msd)
     import matplotlib.pyplot as plt
     plt.cla()
     plt.plot(time, msd, '-o')
@@ -153,8 +154,259 @@ Here we measure the mean square displacement (MSD) of the particles to make sure
     plt.ylabel("MSD")
     plt.savefig('msd.png')
 
+::
+
+    # 
+    # atooms simulation via <__main__.RandomWalk object at 0x7f5413a679a0>
+    # 
+    # version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # atooms version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # simulation started on: 2022-12-09 at 22:59
+    # output path: None
+    # backend: <class '__main__.RandomWalk'>
+    # 
+    # writer cbk: interval=10 calls=None
+    # target target_steps: 50
+    # 
+    # system composed by N=1000 particles
+    # with chemical composition C={'A': 1000}
+    # with chemical concentration x={'A': 1.0}
+    # 
+    # <__main__.RandomWalk object at 0x7f5413a679a0>
+    # simulation ended successfully: reached target steps 50
+    # 
+    # final steps: 50
+    # final rmsd: 0.00
+    # wall time [s]: 0.13
+    # average TSP [s/step/particle]: 2.57e-06
+    # simulation ended on: 2022-12-09 at 22:59
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-PexjMP", line 24, in <module>
+        import matplotlib.pyplot as plt
+    ModuleNotFoundError: No module named 'matplotlib'
+
 The MSD as a function of time should look linear.
 .. image:: msd.png
+
+Fine-tuning the scheduler
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Calling a callback can be done at regular intervals during the simulation or according to a custom schedule defined by a ``Scheduler``. Here we consider the ``simulation.write_trajectory()`` callback, which writes the system state in a trajectory file
+
+.. code:: python
+
+    from atooms.trajectory import TrajectoryXYZ
+    from atooms.simulation import write_trajectory
+
+    simulation = Simulation(RandomWalk(system))
+    trajectory = TrajectoryXYZ('/tmp/trajectory.xyz', 'w')
+    # Write every 10 steps
+    simulation.add(write_trajectory, Scheduler(10), trajectory=trajectory)
+
+::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-wiiu0P", line 7, in <module>
+        simulation.add(write_trajectory, Scheduler(10), trajectory=trajectory)
+    NameError: name 'Scheduler' is not defined
+
+Here are a few options of the Scheduler:
+
+- ``interval``: notify at a fixed steps interval (default)
+
+- ``calls``: fixed number of calls to the callback
+
+- ``steps``: list of steps at which the callback will be called
+
+- ``block``: as steps, but the callback will be called periodically
+
+- ``seconds``: notify every ``seconds``
+
+One useful application of the Scheduler is writing frames in a trajectory at exponentialy spaced intervals. Here the
+
+.. code:: python
+
+    trajectory_exp = TrajectoryXYZ('/tmp/trajectory_exp.xyz', 'w')
+    simulation.add(write_trajectory, Scheduler(block=[0, 1, 2, 4, 8, 16]), trajectory=trajectory_exp)
+    simulation.run(32)
+    trajectory.close()
+    trajectory_exp.close()
+
+::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-fZYwES", line 2, in <module>
+        simulation.add(write_trajectory, Scheduler(block=[0, 1, 2, 4, 8, 16]), trajectory=trajectory_exp)
+    NameError: name 'Scheduler' is not defined
+
+Now we will have two trajectories, one with regular and the other with exponentially spaced blocks of frames
+
+.. code:: python
+
+    with TrajectoryXYZ('/tmp/trajectory.xyz') as th, \
+         TrajectoryXYZ('/tmp/trajectory_exp.xyz') as th_exp:
+        print('Regular:', th.steps)
+        print('Exponential:', th_exp.steps)
+
+::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-uyVh6W", line 1, in <module>
+        with TrajectoryXYZ('/tmp/trajectory.xyz') as th, \
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/trajectory/xyz.py", line 174, in __init__
+        self._setup_index()
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/trajectory/xyz.py", line 242, in _setup_index
+        assert len(self._index_frame) > 0, 'empty file {}'.format(self._file)
+    AssertionError: empty file <_io.TextIOWrapper name='/tmp/trajectory.xyz' mode='r' encoding='UTF-8'>
+
+Computing statistical averages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``simulation.store()`` callback allows you to store data in a dictionary while the simulation is running. Here are a few ways to use it to perform some statistical analysis.
+
+The ``store`` callback accepts an array of arguments to store. They can be string matching a few predefined attributes (such as ``steps``, the current number of steps carried out by the backend) or a general attribute of the ``simulation`` instance (such as ``system.particle[0].position[0]``, the x-coordinate of the first particle of the system).
+
+.. code:: python
+
+    import numpy
+    from atooms.simulation import store
+
+    simulation = Simulation(RandomWalk(system))
+    simulation.add(store, 1, ['steps', 'system.particle[0].position[0]'])
+
+By default, after running the simulation, the data will be stored in the ``simulation.data`` dictionary and you can use it for further analysis
+
+.. code:: python
+
+    import numpy
+    simulation.run(10)
+    print(numpy.mean(simulation.data['system.particle[0].position[0]']))
+
+::
+
+    # 
+    # atooms simulation via <__main__.RandomWalk object at 0x7f54137c9b50>
+    # 
+    # version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # atooms version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # simulation started on: 2022-12-09 at 22:59
+    # output path: None
+    # backend: <class '__main__.RandomWalk'>
+    # 
+    # writer store: interval=1 calls=None
+    # target target_steps: 10
+    # 
+    # system composed by N=1000 particles
+    # with chemical composition C={'A': 1000}
+    # with chemical concentration x={'A': 1.0}
+    # 
+    # <__main__.RandomWalk object at 0x7f54137c9b50>
+    # ERROR simulation failed
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-n4b5F5", line 2, in <module>
+        simulation.run(10)
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/simulation/core.py", line 384, in run
+        self._notify(self._non_targeters)
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/simulation/core.py", line 200, in _notify
+        callback(self, *args, **kwargs)
+    TypeError: store() missing 1 required positional argument: 'db'
+
+You can call any function taking as first argument the simulation instance and collect the results in the ``simulation.data`` dictionary like this
+
+.. code:: python
+
+    simulation = Simulation(RandomWalk(system))
+    simulation.add(store, 1, ['steps', ('x_1', lambda sim: sim.system.particle[1].position[0])])
+    simulation.run(10)
+
+::
+
+    # 
+    # atooms simulation via <__main__.RandomWalk object at 0x7f541385dd00>
+    # 
+    # version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # atooms version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # simulation started on: 2022-12-09 at 22:59
+    # output path: None
+    # backend: <class '__main__.RandomWalk'>
+    # 
+    # writer store: interval=1 calls=None
+    # target target_steps: 10
+    # 
+    # system composed by N=1000 particles
+    # with chemical composition C={'A': 1000}
+    # with chemical concentration x={'A': 1.0}
+    # 
+    # <__main__.RandomWalk object at 0x7f541385dd00>
+    # ERROR simulation failed
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-5U7SFa", line 3, in <module>
+        simulation.run(10)
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/simulation/core.py", line 384, in run
+        self._notify(self._non_targeters)
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/simulation/core.py", line 200, in _notify
+        callback(self, *args, **kwargs)
+    TypeError: store() missing 1 required positional argument: 'db'
+
+Faster backends
+~~~~~~~~~~~~~~~
+
+Moving particles using the ``Particle`` object interface is expressive but computationally very slow, since it forces us to operate one particle at a time. We can write a more efficient backend by getting a "view" of the system's coordinates and operating on the vectorially or passing them to backends written in compiled languages (even just in time).
+
+.. code:: python
+
+    import numpy
+    from atooms.system import System
+
+    # Create a system with 10 particles
+    system = System(N=10)
+
+    class FastRandomWalk(object):
+
+        def __init__(self, system, delta=1.0):
+            self.system = system
+            self.delta = delta
+
+        def run(self, steps):
+            # Get a view on the particles' position
+            pos = self.system.view("position")
+            for i in range(steps):
+                dr = (numpy.random(pos.shape) - 0.5) * self.delta
+                # Operate on array in-place
+                pos += dr
+
+It is crucial to operate on the ``pos`` array in-place: this way the positions of the ``Particle`` objects will remain in sync with those of the ``pos`` array.
+
+The viewed array can be cast in C-order (default) or F-order using the ``order`` parameter
+
+.. code:: python
+
+    system.view("position", order='C')  # default
+    system.view("position", order='F')
+
+You can get a view of any system property by providing a "fully qualified" attribute
+
+.. code:: python
+
+    assert system.view("cell.side") == system.cell.side
+
+::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+In particular, for particles' attributes you can use this syntax
+
+.. code:: python
+
+    assert numpy.all(system.view("particle.position") == system.view("pos"))
 
 Molecular dynamics with LAMMPS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -162,9 +414,9 @@ Molecular dynamics with LAMMPS
 Atooms provides a simulation backend for ``LAMMPS``, an efficient and feature-rich molecular dynamics simulation package.
 The backend accepts a string variable containing regular LAMMPS commands and initial configuration to start the simulation. The latter can be provided in any of the following forms:
 
-- a System object
+- a ``System`` object
 
-- a Trajectory object
+- a ``Trajectory`` object
 
 - the path to an xyz trajectory
 
@@ -174,11 +426,14 @@ Here we we use the first configuration of an existing trajectory for a Lennard-J
 
 .. code:: python
 
-    import atooms.trajectory as trj
-    from atooms.backends.lammps import LAMMPS
-
     import os
-    system = trj.TrajectoryXYZ('../../data/lj_N1000_rho1.0.xyz')[0]
+    import atooms.trajectory as trj
+    from atooms.backends import lammps
+
+    # You can change it so that it points to the LAMMPS executable
+    lammps.lammps_command = 'lmp'
+
+    system = trj.TrajectoryXYZ('data/lj_N1000_rho1.0.xyz')[0]
     cmd = """
     pair_style      lj/cut 2.5
     pair_coeff      1 1 1.0 1.0  2.5
@@ -188,8 +443,20 @@ Here we we use the first configuration of an existing trajectory for a Lennard-J
     """
     backend = LAMMPS(system, cmd)
 
-We now wrap the backend in a simulation instance. This way we can rely on atooms to write thermodynamic data and configurations to disk during the simulation: we just add the ``write_config()`` and ``write_thermo()`` functions as observers to the simulations.
-You can add your own functions as observers to perform arbitrary manipulations on the system during the simulation. Keep in mind that calling these functions causes some overhead, so avoid calling them at too short intervals.
+::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-xHFxLW", line 8, in <module>
+        system = trj.TrajectoryXYZ('data/lj_N1000_rho1.0.xyz')[0]
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/trajectory/xyz.py", line 157, in __init__
+        super(TrajectoryXYZ, self).__init__(filename, mode)
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/trajectory/base.py", line 166, in __init__
+        raise IOError('trajectory file %s does not exist' % self.filename)
+    OSError: trajectory file data/lj_N1000_rho1.0.xyz does not exist
+
+We now wrap the backend in a simulation instance. This way we can rely on atooms to write thermodynamic data and configurations to disk during the simulation: we just add the ``write_config()`` and ``write_thermo()`` callbacks to the simulation.
+You can add your own functions as callbacks to perform arbitrary manipulations on the system during the simulation. Keep in mind that calling these functions causes some overhead, so avoid calling them at too short intervals.
 
 .. code:: python
 
@@ -198,13 +465,13 @@ You can add your own functions as observers to perform arbitrary manipulations o
     from atooms.simulation.observers import write_thermo, write_config
 
     # We create the simulation instance and set the output path
-    sim = Simulation(backend, output_path='lammps.xyz')
+    sim = Simulation(backend, output_path='/tmp/lammps.xyz')
     # Just store a reference to the trajectory class you want to use
     sim.trajectory_class = trj.TrajectoryXYZ
     # Write configurations every 500 steps in xyz format
     sim.add(write_config, 500)
-    # Write thermodynamic properties every 500 steps
-    sim.add(write_thermo, 500)
+    # Store thermodynamic properties every 10 steps
+    sim.add(store, 100, ['steps', 'potential energy per particle', 'temperature'])
 
 We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
 
@@ -213,43 +480,66 @@ We add a thermostat to keep the system temperature at T=2.0 and run the simulati
     backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=0.1)
     sim.run(10000)
 
+::
+
+    # 
+    # atooms simulation via <__main__.BareBonesBackend object at 0x7f5419e2f3d0>
+    # 
+    # version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # atooms version: 3.12.0+3.11.0-4-g5b914e (2022-10-30)
+    # simulation started on: 2022-12-09 at 22:59
+    # output path: /tmp/lammps.xyz
+    # backend: <class '__main__.BareBonesBackend'>
+    # 
+    # writer store: interval=100 calls=None
+    # writer write_trajectory: interval=500 calls=None
+    # target target_steps: 10000
+    # 
+    # in contact with a thermostat at T=2.0
+    # 
+    # <__main__.BareBonesBackend object at 0x7f5419e2f3d0>
+    # ERROR simulation failed
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-JbadiO", line 2, in <module>
+        sim.run(10000)
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/simulation/core.py", line 384, in run
+        self._notify(self._non_targeters)
+      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/simulation/core.py", line 200, in _notify
+        callback(self, *args, **kwargs)
+    TypeError: store() missing 1 required positional argument: 'db'
+
 Note that we use atooms ``Thermostat`` object here: the backend will take care of adding appropriate commands to the LAMMPS script.
 
 We have a quick look at the kinetic temperature as function of time to make sure the thermostat is working
 
-.. code:: gnuplot
-
-    set xl 'Steps'
-    set yl 'Temperature'
-    set border 3
-    set xtics nomirror
-    set ytics nomirror
-    plot 'lammps.xyz.thermo' u 1:2 noti w lp lc rgb 'red' pt 7, 2 noti lc rgb 'black'
-
-.. image:: lammps.png
-
-We can use the `postprocessing <https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/>`_ package to compute the radial distribution function
-
 .. code:: python
 
-    from atooms.postprocessing import api
-    api.gr('lammps.xyz')
+    import matplotlib.pyplot as plt
+    plt.plot(sim.data['steps'], sim.data['temperature'])
+    plt.xlabel('Steps')
+    plt.ylabel('Temperature')
+    plt.savefig('lammps.png')
+    plt.show()
 
-.. code:: gnuplot
+::
 
-    set xl 'r'
-    set yl 'g(r)'
-    set border 3
-    set xtics nomirror
-    set ytics nomirror
-    plot 'lammps.xyz.pp.gr' u 1:2 noti w lp lc rgb 'red' pt 7
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-lHwl7g", line 1, in <module>
+        import matplotlib.pyplot as plt
+    ModuleNotFoundError: No module named 'matplotlib'
 
-.. image:: lammps_gr.png
+.. image:: ./lammps.png
+
+We can then use the `postprocessing <https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/>`_ package to compute the radial distribution function or any other correlation function from the trajectory.
 
 Molecular dynamics simulation with RUMD
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here we pick the last frame of the trajectory, change the density of the system to unity and write this new configuration to a trajectory format suitable for the `RUMD <http://rumd.org>`_ simulation package
+There is native support for an efficient MD molecular dynamics code running entirely on GPU called `RUMD <https://rumd.org>`_, developed by the Glass and Time group in Roskilde. It is optimized for small and medium-size systems.
+
+Here we pick the last frame of the trajectory, change the density of the system to unity and write this new configuration to a trajectory format suitable for RUMD
 
 .. code:: python
 
@@ -261,6 +551,14 @@ Here we pick the last frame of the trajectory, change the density of the system 
     from atooms.trajectory import TrajectoryRUMD
     with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
         trajectory.write(system)
+
+::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-9ylSJL", line 1, in <module>
+        with Trajectory('input.xyz') as trajectory:
+    NameError: name 'Trajectory' is not defined
 
 Now we run a short molecular dynamics simulation with the ``RUMD`` backend, using a Lennard-Jones potential:
 
@@ -276,6 +574,17 @@ Now we run a short molecular dynamics simulation with the ``RUMD`` backend, usin
     sim = Simulation(backend)
     sim.run(1000)
     print('Final temperature and density:', sim.system.temperature, sim.system.density)
+
+::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-hd62Im", line 8
+        sim = Simulation(backend)
+        ^
+    SyntaxError: invalid syntax
+
+A repository of interaction models for simple liquids and glasses is available in the `atooms-models <https://framagit.org/atooms/models>`_ component package. It generates RUMD potentials automatically from standardized json file or Python dictionaries.
 
 Energy minimization with LAMMPS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -305,6 +614,14 @@ is lower than a given ``tolerance``.
     opt = Optimization(bck, tolerance=1e-10)
     opt.run()
 
+::
+
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/tmp/python-jgzPH1", line 2, in <module>
+        from atooms.optimization import Optimization
+    ModuleNotFoundError: No module named 'atooms.optimization'
+
 We check that :math:`W` is lower than the requested tolerance
 
 .. code:: python
@@ -315,4 +632,6 @@ We check that :math:`W` is lower than the requested tolerance
 
 ::
 
-    Energy=-6.8030584, mean square force=3.6e-11
+    Energy=0.0, mean square force=0
+
+Additional optimization algorithms (such as FIRE, l-BFGS, eigenvector-following, ...) are available in `atooms-landscape <https://framagit.org/atooms/landscape>`_ component package.

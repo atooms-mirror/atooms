@@ -2,22 +2,21 @@
 
 * Simulations
 
-atooms provides a generic interface that abstracts out most of the common tasks of particle-based simulations. The actual simulation is performed by a simulation backend, which exposes a minimal but consistent interface. This enables one to develop complex simulation frameworks (e.g., [parallel tempering](https://framagit.org/atooms/parallel_tempering)) that are essentially decoupled from the underlying simulation code.
+The atooms' interface abstracts out most of the common tasks of particle-based simulations. The actual simulation is performed by a simulation "backend", which exposes a minimal but consistent interface. This enables one to develop complex simulation frameworks (e.g., [[https://framagit.org/atooms/parallel_tempering][parallel tempering]]) that are essentially decoupled from the underlying simulation code.
 
-A *Simulation* is a high-level class that encapsulates some common tasks and provides a consistent interface to the user, while *backend* classes actually make the system evolve. Here, we implement a minimal backend to run a simulation.
+A *Simulation* is a high-level class that encapsulates some common tasks, like regularly storing data on files, and provides a consistent interface to the user, while *backend* classes actually make the system evolve. Here, we implement a minimal backend to run a simulation.
 
 At a very minimum, a backend is a class that provides 
 
-- a *system* instance variable, which should (mostly) behave like =atooms.system.System=.
+- a *system* instance variable, which should (mostly) behave like =atooms.system.System=
 - a *run()* method, which evolves the system for a prescribed number of steps (passed as argument)
 
 Optionally, the backend may hold a reference to a trajectory class, which can be used to checkpoint the simulation or to write configurations to a file. This is however not required in a first stage.
-# /Note: before atooms 1.5.0, backends also had to implement a write_checkpoint() method and they were required to hold a reference to Trajectory. Since 1.5.0 this is no longer necessary./
 
 ** A minimal simulation backend
 
 We set up a bare-bones simulation backend building on the native System class
-#+begin_src python :exports both :results output
+#+begin_src python
 from atooms.system import System
 
 class BareBonesBackend(object):
@@ -54,45 +53,39 @@ simulation.run(10)
 #+results:
 #+begin_example
 # 
-# atooms simulation via <__main__.BareBonesBackend object at 0x7ff54d0527f0>
+# atooms simulation via <__main__.BareBonesBackend object at 0x7f00e6d21250>
 # 
-# version: 1.9.1+1.5.0-132-gfe9bc7-dirty (2019-04-12)
-# atooms version: 1.9.1+1.5.0-132-gfe9bc7-dirty (2019-04-12)
-# simulation started on: 2019-05-17 at 17:36
+# version: 3.14.1+3.13.1-dirty (tag Tagger: 3.13.1 2022-12-08)
+# atooms version: 3.14.1+3.13.1-dirty (tag Tagger: 3.13.1 2022-12-08)
+# simulation started on: 2022-12-09 at 20:39
 # output path: None
-# backend: <__main__.BareBonesBackend object at 0x7ff54d0527f0>
+# backend: <class '__main__.BareBonesBackend'>
 # 
 # target target_steps: 10
 # 
 # 
-# starting at step: 0
-# 
+# <__main__.BareBonesBackend object at 0x7f00e6d21250>
 # simulation ended successfully: reached target steps 10
 # 
 # final steps: 10
 # final rmsd: 0.00
 # wall time [s]: 0.00
 # average TSP [s/step/particle]: nan
-# simulation ended on: 2019-05-17 at 17:36
+# simulation ended on: 2022-12-09 at 20:39
 #+end_example
 
 ** Simple random walk
 
-We implement a simple random walk in 3d. This requires adding code to the backend =run()= method to actually move the particles around.
+We implement a simple random walk in 3d. This requires adding code to the backend =run()= method to actually move the particles around. The code won't be very fast! See below [[*Faster backends][how to implement a backend efficiently]].
 
 We start by building an empty system. Then we add a few particles and place them at random in a cube. Finally, we write a backend that displaces each particle randomly over a cube of prescribed side.
-
-#+begin_src python :exports both :results output :session
+#+begin_src python
 import numpy
-from atooms.system import System
-
-# There are no particles at the beginning
-system = System()
-assert len(system.particle) == 0
-
-# Add particles
-from atooms.system.particle import Particle
 from random import random
+from atooms.system import System
+from atooms.system.particle import Particle
+
+system = System()
 L = 10
 for i in range(1000):
     p = Particle(position=[L * random(), L * random(), L * random()])
@@ -114,7 +107,9 @@ class RandomWalk(object):
 
 #+results:
 
-The Simulation class provides a callback mechanism to allow execution of arbitrary code during the simulation. This can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
+** Adding callbacks to log while the simulation is running
+
+The Simulation class allows to execute of arbitrary code during the simulation via "callbacks". This mechanism can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
 
 Here we measure the mean square displacement (MSD) of the particles to make sure that the system displays a regular diffusive behavior $MSD \sim t$
 #+begin_src python :exports both :session :results output
@@ -141,7 +136,6 @@ simulation.run(50)
 time = sorted(msd_db.keys())
 msd = [msd_db[t] for t in time]
 
-print(time, msd)
 import matplotlib.pyplot as plt
 plt.cla()
 plt.plot(time, msd, '-o')
@@ -153,22 +147,148 @@ plt.savefig('msd.png')
 The MSD as a function of time should look linear.
 [[file:msd.png]]
 
+** Fine-tuning the scheduler
+
+Calling a callback can be done at regular intervals during the simulation or according to a custom schedule defined by a =Scheduler=. Here we consider the =simulation.write_trajectory()= callback, which writes the system state in a trajectory file
+#+begin_src python
+from atooms.trajectory import TrajectoryXYZ
+from atooms.simulation import write_trajectory
+
+simulation = Simulation(RandomWalk(system))
+trajectory = TrajectoryXYZ('/tmp/trajectory.xyz', 'w')
+# Write every 10 steps
+simulation.add(write_trajectory, Scheduler(10), trajectory=trajectory)
+#+end_src
+
+#+results:
+
+Here are a few options of the Scheduler:
+
+- =interval=: notify at a fixed steps interval (default)
+- =calls=: fixed number of calls to the callback
+- =steps=: list of steps at which the callback will be called
+- =block=: as steps, but the callback will be called periodically
+- =seconds=: notify every =seconds=
+
+One useful application of the Scheduler is writing frames in a trajectory at exponentialy spaced intervals. Here the
+#+begin_src python
+trajectory_exp = TrajectoryXYZ('/tmp/trajectory_exp.xyz', 'w')
+simulation.add(write_trajectory, Scheduler(block=[0, 1, 2, 4, 8, 16]), trajectory=trajectory_exp)
+simulation.run(32)
+trajectory.close()
+trajectory_exp.close()
+#+end_src
+
+Now we will have two trajectories, one with regular and the other with exponentially spaced blocks of frames
+#+begin_src python
+with TrajectoryXYZ('/tmp/trajectory.xyz') as th, \
+     TrajectoryXYZ('/tmp/trajectory_exp.xyz') as th_exp:
+    print('Regular:', th.steps)
+    print('Exponential:', th_exp.steps)
+#+end_src
+
+#+results:
+#+begin_example
+Regular: [0, 10, 20, 30]
+Exponential: [0, 1, 2, 4, 8, 16, 17, 18, 20, 24, 32]
+#+end_example
+
+** Computing statistical averages
+
+The =simulation.store()= callback allows you to store data in a dictionary while the simulation is running. Here are a few ways to use it to perform some statistical analysis.
+
+The =store= callback accepts an array of arguments to store. They can be string matching a few predefined attributes (such as =steps=, the current number of steps carried out by the backend) or a general attribute of the =simulation= instance (such as =system.particle[0].position[0]=, the x-coordinate of the first particle of the system).
+#+begin_src python
+import numpy
+from atooms.simulation import store
+
+simulation = Simulation(RandomWalk(system))
+simulation.add(store, 1, ['steps', 'system.particle[0].position[0]'])
+#+end_src
+
+#+results:
+
+By default, after running the simulation, the data will be stored in the =simulation.data= dictionary and you can use it for further analysis
+#+begin_src python
+import numpy
+simulation.run(10)
+print(numpy.mean(simulation.data['system.particle[0].position[0]']))
+#+end_src
+
+#+results:
+#+begin_example
+-9.112113813995027
+#+end_example
+
+You can call any function taking as first argument the simulation instance and collect the results in the =simulation.data= dictionary like this
+#+begin_src python
+simulation = Simulation(RandomWalk(system))
+simulation.add(store, 1, ['steps', ('x_1', lambda sim: sim.system.particle[1].position[0])])
+simulation.run(10)
+#+end_src
+
+** Faster backends
+
+Moving particles using the =Particle= object interface is expressive but computationally very slow, since it forces us to operate one particle at a time. We can write a more efficient backend by getting a "view" of the system's coordinates and operating on the vectorially or passing them to backends written in compiled languages (even just in time).
+#+begin_src python
+import numpy
+from atooms.system import System
+
+# Create a system with 10 particles
+system = System(N=10)
+
+class FastRandomWalk(object):
+
+    def __init__(self, system, delta=1.0):
+        self.system = system
+        self.delta = delta
+
+    def run(self, steps):
+        # Get a view on the particles' position
+        pos = self.system.view("position")
+        for i in range(steps):
+            dr = (numpy.random(pos.shape) - 0.5) * self.delta
+            # Operate on array in-place
+            pos += dr
+#+end_src
+
+It is crucial to operate on the =pos= array in-place: this way the positions of the =Particle= objects will remain in sync with those of the =pos= array.
+
+The viewed array can be cast in C-order (default) or F-order using the =order= parameter
+#+begin_src python
+system.view("position", order='C')  # default
+system.view("position", order='F')
+#+end_src
+
+You can get a view of any system property by providing a "fully qualified" attribute
+#+begin_src python
+assert system.view("cell.side") == system.cell.side
+#+end_src
+
+In particular, for particles' attributes you can use this syntax
+#+begin_src python
+assert numpy.all(system.view("particle.position") == system.view("pos"))
+#+end_src
+
 ** Molecular dynamics with LAMMPS
 
 Atooms provides a simulation backend for =LAMMPS=, an efficient and feature-rich molecular dynamics simulation package.
 The backend accepts a string variable containing regular LAMMPS commands and initial configuration to start the simulation. The latter can be provided in any of the following forms:
-- a System object
-- a Trajectory object
+- a =System= object
+- a =Trajectory= object
 - the path to an xyz trajectory
 In the last two cases, the last configuration will be used to start the simulation. 
 
 Here we we use the first configuration of an existing trajectory for a Lennard-Jones fluid
-#+begin_src python :exports both :results output :session
-import atooms.trajectory as trj
-from atooms.backends.lammps import LAMMPS
-
+#+begin_src python
 import os
-system = trj.TrajectoryXYZ('../../data/lj_N1000_rho1.0.xyz')[0]
+import atooms.trajectory as trj
+from atooms.backends import lammps
+
+# You can change it so that it points to the LAMMPS executable
+lammps.lammps_command = 'lmp'
+
+system = trj.TrajectoryXYZ('data/lj_N1000_rho1.0.xyz')[0]
 cmd = """
 pair_style      lj/cut 2.5
 pair_coeff      1 1 1.0 1.0  2.5
@@ -181,27 +301,27 @@ backend = LAMMPS(system, cmd)
 
 #+results:
 
-We now wrap the backend in a simulation instance. This way we can rely on atooms to write thermodynamic data and configurations to disk during the simulation: we just add the =write_config()= and =write_thermo()= functions as observers to the simulations.
-You can add your own functions as observers to perform arbitrary manipulations on the system during the simulation. Keep in mind that calling these functions causes some overhead, so avoid calling them at too short intervals.
-#+begin_src python :exports both :results output :session
+We now wrap the backend in a simulation instance. This way we can rely on atooms to write thermodynamic data and configurations to disk during the simulation: we just add the =write_config()= and =write_thermo()= callbacks to the simulation.
+You can add your own functions as callbacks to perform arbitrary manipulations on the system during the simulation. Keep in mind that calling these functions causes some overhead, so avoid calling them at too short intervals.
+#+begin_src python
 from atooms.simulation import Simulation
 from atooms.system import Thermostat
 from atooms.simulation.observers import write_thermo, write_config
 
 # We create the simulation instance and set the output path
-sim = Simulation(backend, output_path='lammps.xyz')
+sim = Simulation(backend, output_path='/tmp/lammps.xyz')
 # Just store a reference to the trajectory class you want to use
 sim.trajectory_class = trj.TrajectoryXYZ
 # Write configurations every 500 steps in xyz format
 sim.add(write_config, 500)
-# Write thermodynamic properties every 500 steps
-sim.add(write_thermo, 500)
+# Store thermodynamic properties every 10 steps
+sim.add(store, 100, ['steps', 'potential energy per particle', 'temperature'])
 #+end_src
 
 #+results:
 
 We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
-#+begin_src python :exports both :results output :session
+#+begin_src python
 backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=0.1)
 sim.run(10000)
 #+end_src
@@ -211,39 +331,24 @@ sim.run(10000)
 Note that we use atooms =Thermostat= object here: the backend will take care of adding appropriate commands to the LAMMPS script.
 
 We have a quick look at the kinetic temperature as function of time to make sure the thermostat is working
-#+begin_src gnuplot :file lammps.png
-  set xl 'Steps'
-  set yl 'Temperature'
-  set border 3
-  set xtics nomirror
-  set ytics nomirror
-  plot 'lammps.xyz.thermo' u 1:2 noti w lp lc rgb 'red' pt 7, 2 noti lc rgb 'black'
+#+begin_src python
+import matplotlib.pyplot as plt
+plt.plot(sim.data['steps'], sim.data['temperature'])
+plt.xlabel('Steps')
+plt.ylabel('Temperature')
+plt.savefig('lammps.png')
+plt.show()
 #+end_src
 
-#+results:
-[[file:lammps.png]]
+[[./lammps.png]]
 
-We can use the [[https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/][postprocessing]] package to compute the radial distribution function
-#+begin_src python  :exports code
-from atooms.postprocessing import api
-api.gr('lammps.xyz')
-#+end_src
-
-#+begin_src gnuplot :file lammps_gr.png
-set xl 'r'
-set yl 'g(r)'
-set border 3
-set xtics nomirror
-set ytics nomirror
-plot 'lammps.xyz.pp.gr' u 1:2 noti w lp lc rgb 'red' pt 7
-#+end_src
-
-#+results:
-[[file:lammps_gr.png]]
+We can then use the [[https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/][postprocessing]] package to compute the radial distribution function or any other correlation function from the trajectory.
 
 ** Molecular dynamics simulation with RUMD
 
-Here we pick the last frame of the trajectory, change the density of the system to unity and write this new configuration to a trajectory format suitable for the [[http://rumd.org][RUMD]] simulation package
+There is native support for an efficient MD molecular dynamics code running entirely on GPU called [[https://rumd.org][RUMD]], developed by the Glass and Time group in Roskilde. It is optimized for small and medium-size systems.
+
+Here we pick the last frame of the trajectory, change the density of the system to unity and write this new configuration to a trajectory format suitable for RUMD
 #+begin_src python
 with Trajectory('input.xyz') as trajectory:
     system = trajectory[-1]
@@ -269,7 +374,10 @@ sim.run(1000)
 print('Final temperature and density:', sim.system.temperature, sim.system.density)
 #+end_src
 
+A repository of interaction models for simple liquids and glasses is available in the [[https://framagit.org/atooms/models][atooms-models]] component package. It generates RUMD potentials automatically from standardized json file or Python dictionaries.
+ 
 ** Energy minimization with LAMMPS
+
 It is possible to minimize the energy of a system to determine its so-called inherent structure using LAMMPS as a backend. To achieve this, atooms defines an =Optimization= class, which behaves mostly as =Simulation= except that it stops when the mean square total force
 $$
 W=\frac{1}{N}\sum_i |f_i|^2
@@ -302,3 +410,4 @@ print('Energy={}, mean square force={:.2g}'.format(e_final, w_final))
 #+results:
 : Energy=-6.8030584, mean square force=3.6e-11
 
+Additional optimization algorithms (such as FIRE, l-BFGS, eigenvector-following, ...) are available in [[https://framagit.org/atooms/landscape][atooms-landscape]] component package.

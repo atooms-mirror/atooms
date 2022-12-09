@@ -428,12 +428,6 @@ class System(object):
         for p in self.particle:
             p.position[axis] -= L * n / 2
 
-    def view(self, what=None, order=&#39;C&#39;, dtype=None, clear=False, flat=False):
-        &#34;&#34;&#34;
-        Return a view on a system property
-        &#34;&#34;&#34;
-        self.dump(what=what, view=True, order=order, dtype=dtype, clear=clear, flat=flat)
-
     def dump(self, what=None, order=&#39;C&#39;, dtype=None, view=False, clear=False, flat=False):
         &#34;&#34;&#34;
         Return a numpy array with system properties specified by `what`.
@@ -514,6 +508,7 @@ class System(object):
                 # not be updated. It can be fixed by keeping a list of ids
                 # although testing it would bring a overhead.
                 data = self._data[what]
+                # TODO: if order changes, we must transpose the array. This may happen if a trajectory has stored the system in ram with a fortran order and postprocessing asks for a C order array
                 # If we are asking a flat copy we must not flatten the cached array
                 if not view and flat:
                     data = copy.deepcopy(data).flatten(order=order)
@@ -562,6 +557,10 @@ class System(object):
             data = copy.deepcopy(data)
 
         return data
+
+    def view(self, what=None, order=&#39;C&#39;, dtype=None, clear=False, flat=False):
+        &#34;&#34;&#34;Alias of System.get(view=True, *args, **kwargs)&#34;&#34;&#34;
+        return self.dump(what=what, order=order, dtype=dtype, clear=clear, flat=flat, view=True)
 
     def __str__(self):
         from .particle import composition
@@ -1069,12 +1068,6 @@ setting the species as requested. The assignement is random.</p></div>
         for p in self.particle:
             p.position[axis] -= L * n / 2
 
-    def view(self, what=None, order=&#39;C&#39;, dtype=None, clear=False, flat=False):
-        &#34;&#34;&#34;
-        Return a view on a system property
-        &#34;&#34;&#34;
-        self.dump(what=what, view=True, order=order, dtype=dtype, clear=clear, flat=flat)
-
     def dump(self, what=None, order=&#39;C&#39;, dtype=None, view=False, clear=False, flat=False):
         &#34;&#34;&#34;
         Return a numpy array with system properties specified by `what`.
@@ -1155,6 +1148,7 @@ setting the species as requested. The assignement is random.</p></div>
                 # not be updated. It can be fixed by keeping a list of ids
                 # although testing it would bring a overhead.
                 data = self._data[what]
+                # TODO: if order changes, we must transpose the array. This may happen if a trajectory has stored the system in ram with a fortran order and postprocessing asks for a C order array
                 # If we are asking a flat copy we must not flatten the cached array
                 if not view and flat:
                     data = copy.deepcopy(data).flatten(order=order)
@@ -1203,6 +1197,10 @@ setting the species as requested. The assignement is random.</p></div>
             data = copy.deepcopy(data)
 
         return data
+
+    def view(self, what=None, order=&#39;C&#39;, dtype=None, clear=False, flat=False):
+        &#34;&#34;&#34;Alias of System.get(view=True, *args, **kwargs)&#34;&#34;&#34;
+        return self.dump(what=what, order=order, dtype=dtype, clear=clear, flat=flat, view=True)
 
     def __str__(self):
         from .particle import composition
@@ -1685,6 +1683,7 @@ pos = system.dump('pos')
             # not be updated. It can be fixed by keeping a list of ids
             # although testing it would bring a overhead.
             data = self._data[what]
+            # TODO: if order changes, we must transpose the array. This may happen if a trajectory has stored the system in ram with a fortran order and postprocessing asks for a C order array
             # If we are asking a flat copy we must not flatten the cached array
             if not view and flat:
                 data = copy.deepcopy(data).flatten(order=order)
@@ -2085,16 +2084,14 @@ or memory dellocation issues.</p></div>
 <span>def <span class="ident">view</span></span>(<span>self, what=None, order='C', dtype=None, clear=False, flat=False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Return a view on a system property</p></div>
+<div class="desc"><p>Alias of System.get(view=True, <em>args, </em>*kwargs)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def view(self, what=None, order=&#39;C&#39;, dtype=None, clear=False, flat=False):
-    &#34;&#34;&#34;
-    Return a view on a system property
-    &#34;&#34;&#34;
-    self.dump(what=what, view=True, order=order, dtype=dtype, clear=clear, flat=flat)</code></pre>
+    &#34;&#34;&#34;Alias of System.get(view=True, *args, **kwargs)&#34;&#34;&#34;
+    return self.dump(what=what, order=order, dtype=dtype, clear=clear, flat=flat, view=True)</code></pre>
 </details>
 </dd>
 <dt id="atooms.system.system.System.virial"><code class="name flex">

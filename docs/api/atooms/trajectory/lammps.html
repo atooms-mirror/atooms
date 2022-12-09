@@ -90,6 +90,9 @@ def _parse_fz(data, idx, system):
 def _parse_mass(data, idx, system):
     system.particle[idx].mass = float(data)
 
+def _parse_energy(data, idx, system):
+    system.particle[idx].energy = float(data)
+
 class TrajectoryLAMMPS(TrajectoryBase):
 
     &#34;&#34;&#34;
@@ -105,6 +108,7 @@ class TrajectoryLAMMPS(TrajectoryBase):
             &#39;xsu&#39;: _parse_xs, &#39;ysu&#39;: _parse_ys, &#39;zsu&#39;: _parse_zs,
             &#39;vx&#39;: _parse_vx, &#39;vy&#39;: _parse_vy, &#39;vz&#39;: _parse_vz,
             &#39;fx&#39;: _parse_fx, &#39;fy&#39;: _parse_fy, &#39;fz&#39;: _parse_fz,
+            &#39;c_pe&#39;: _parse_energy,
             &#39;type&#39;: _parse_type, &#39;mass&#39;: _parse_mass}
 
     def __init__(self, filename, mode=&#39;r&#39;, single_frame=False,
@@ -441,6 +445,7 @@ class TrajectoryFolderLAMMPS(TrajectoryFolder):
             &#39;xsu&#39;: _parse_xs, &#39;ysu&#39;: _parse_ys, &#39;zsu&#39;: _parse_zs,
             &#39;vx&#39;: _parse_vx, &#39;vy&#39;: _parse_vy, &#39;vz&#39;: _parse_vz,
             &#39;fx&#39;: _parse_fx, &#39;fy&#39;: _parse_fy, &#39;fz&#39;: _parse_fz,
+            &#39;c_pe&#39;: _parse_energy,
             &#39;type&#39;: _parse_type, &#39;mass&#39;: _parse_mass}
 
     def __init__(self, filename, mode=&#39;r&#39;, single_frame=False,

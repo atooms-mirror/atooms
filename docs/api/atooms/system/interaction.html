@@ -100,10 +100,6 @@ class InteractionBase(object):
 
         # Zeroing observables
         ndim, N = position.shape
-        self.energy = None
-        self.virial = None
-        self.stress = None
-        self.forces = None
         if observable == &#39;energy&#39;:
             self.energy = 0.0
         elif observable == &#39;forces&#39; or observable is None:
@@ -329,10 +325,6 @@ class Interaction(InteractionBase):
 
         # Zeroing observables
         ndim, N = position.shape
-        self.energy = None
-        self.virial = None
-        self.stress = None
-        self.forces = None
         if observable == &#39;energy&#39;:
             self.energy = 0.0
         elif observable == &#39;forces&#39; or observable is None:
@@ -390,10 +382,6 @@ specified by the <code><a title="atooms.system.interaction.Interaction.variables
 
     # Zeroing observables
     ndim, N = position.shape
-    self.energy = None
-    self.virial = None
-    self.stress = None
-    self.forces = None
     if observable == &#39;energy&#39;:
         self.energy = 0.0
     elif observable == &#39;forces&#39; or observable is None:

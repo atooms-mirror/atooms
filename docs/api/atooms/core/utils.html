@@ -378,6 +378,8 @@ def tipify(s):
         print type(tipify(&#34;t2&#34;)) is str
         print map(tipify, [&#34;2.0&#34;, &#34;2&#34;])
     &#34;&#34;&#34;
+    if &#39;_&#39; in s:
+        return s
     try:
         return int(s)
     except ValueError:
@@ -978,6 +980,8 @@ print map(tipify, ["2.0", "2"])
         print type(tipify(&#34;t2&#34;)) is str
         print map(tipify, [&#34;2.0&#34;, &#34;2&#34;])
     &#34;&#34;&#34;
+    if &#39;_&#39; in s:
+        return s
     try:
         return int(s)
     except ValueError:

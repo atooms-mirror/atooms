@@ -411,7 +411,7 @@ def store(sim, what, data=None):
     if len(data) == 0:
         for name in names:
             data[name] = []
-    
+
     # Extract the requested attribute
     for name, callback in zip(names, callbacks):
         from atooms.core.utils import tipify
