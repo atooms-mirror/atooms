@@ -72,19 +72,17 @@ class Test(unittest.TestCase):
         self.assertEqual(int(data[0][-1]), 200)
 
     def test_config(self):
+        from atooms.system import System
         from atooms.trajectory import TrajectoryXYZ
         f = '/tmp/test_simulation/config/trajectory.xyz'
 
-        bck = DryRun()
+        bck = DryRun(System(N=1))
         bck.timestep = 0.1
 
-        # Accessing list elements attributes does not work
-        with self.assertRaises(AttributeError):
-            # Mute errors temporarily
-            setup_logging(level=50, update=True)
-            s = Simulation(bck, output_path=f, enable_speedometer=False, steps=100)
-            s.add(write, Scheduler(20), ['system.particle[0].position'], 'output')
-            s.run()
+        # Accessing list elements attributes works
+        s = Simulation(bck, output_path=f, enable_speedometer=False, steps=100)
+        s.add(write, Scheduler(20), ['system.particle[0].position'], 'output')
+        s.run()
 
         # Test generic writer and write_config
         setup_logging(level=40, update=True)

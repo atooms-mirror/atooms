@@ -314,7 +314,7 @@ def _setup_callbacks(what):
         else:
             # Generic simulation attribute
             names.append(attribute)
-            callbacks.append(attrgetter(attribute))
+            callbacks.append('{simulation.' + attribute + '}')
 
     return names, callbacks
 
@@ -357,8 +357,14 @@ def write(sim, what, suffix=None, path=None):
 
     # Extract the requested attribute
     values = []
-    for callback in callbacks:
-        values.append(callback(sim))
+    for name, callback in zip(names, callbacks):
+        from atooms.core.utils import tipify
+        if callable(callback):
+            values.append(callback(sim))
+        else:
+            # This is a string to be formatted with the simulation variables.
+            # Then we get it back with its guessed type.
+            values.append(callback.format(simulation=sim))
 
     # Header
     if sim.current_step == 0:
@@ -371,9 +377,9 @@ def write(sim, what, suffix=None, path=None):
         fh.write(fmt.format(*values))
 
 
-def store(sim, what, db):
+def store(sim, what, data=None):
     """
-    Store generic attributes of simulation `sim` in the dictonary `db`.
+    Store generic attributes of simulation `sim` in the dictonary `data`.
 
     `what` tells the function what to write and must be a list of either:
 
@@ -393,19 +399,31 @@ def store(sim, what, db):
     rmsd
     conserved energy
     """
+    if data is None:
+        if not hasattr(self, 'data'):
+            self.data = {}
+        data = self.data
+    
     # Define callbacks
     names, callbacks = _setup_callbacks(what)
 
     # If the dict is empty fill it
-    if len(db) == 0:
-        for attribute in what:
-            db[attribute] = []
+    if len(data) == 0:
+        for name in names:
+            data[name] = []
     
     # Extract the requested attribute
     for name, callback in zip(names, callbacks):
-        db[name].append(callback(sim))
+        from atooms.core.utils import tipify
+        if callable(callback):
+            data[name].append(callback(sim))
+        else:
+            # This is a string to be formatted with the simulation variables.
+            # Then we get it back with its guessed type.
+            val = tipify(callback.format(simulation=sim))
+            data[name].append(val)
 
-    return db
+    return data
 
 
 # Target callbacks.
