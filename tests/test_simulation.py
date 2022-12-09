@@ -166,6 +166,12 @@ class Test(unittest.TestCase):
         s.add(store, 1, [("steps", lambda sim: sim.current_step)],  db)
         s.run(5)
         self.assertEqual(db["steps"], list(range(6)))
+
+        # Store in simulation data
+        s = Simulation(DryRun())
+        s.add(store, 1, [("steps", lambda sim: sim.current_step)])
+        s.run(5)
+        self.assertEqual(s.data["steps"], list(range(6)))
         
     def test_system(self):
         """

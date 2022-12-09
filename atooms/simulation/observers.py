@@ -400,9 +400,9 @@ def store(sim, what, data=None):
     conserved energy
     """
     if data is None:
-        if not hasattr(self, 'data'):
-            self.data = {}
-        data = self.data
+        if not hasattr(sim, 'data'):
+            sim.data = {}
+        data = sim.data
     
     # Define callbacks
     names, callbacks = _setup_callbacks(what)
