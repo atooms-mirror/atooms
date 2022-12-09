@@ -21,10 +21,7 @@ Particles' positions are stored as numpy arrays, but we can pass a simple list w
 
 ::
 
-    Python 3.8.10 (default, Jun 22 2022, 20:18:18) 
-    [GCC 9.4.0] on linux
-    Type "help", "copyright", "credits" or "license" for more information.
-    [1. 0. 0.] <class 'numpy.ndarray'>
+    [ 1.  0.  0.] <class 'numpy.ndarray'>
 
 Particles can live in an arbitrary number of spatial dimensions
 
@@ -51,7 +48,7 @@ By default, particles have a few more properties such as velocity, chemical spec
 
 ::
 
-    Particle(species=Na, mass=1.0, position=[1. 1. 1.], velocity=[2. 0. 0.], radius=None)
+    Particle(species=Na, mass=1.0, position=[ 1.  1.  1.], velocity=[ 2.  0.  0.], radius=None)
 
 You may want to add physical properties to particles, like charge or whatever. Of course, in python you can do it very easily
 
@@ -79,7 +76,7 @@ You may not need velocities at all (for instance because you are working with Mo
 
 ::
 
-    1.0109937775682067
+    0.944755026085
 
 Doing so will leave a non-zero total momentum, but we can fix it (note that all masses are equal)
 
@@ -92,8 +89,8 @@ Doing so will leave a non-zero total momentum, but we can fix it (note that all 
 
 ::
 
-    [-0.02489158 -0.05049646  0.00014979]
-    [-1.15463195e-17  4.34097203e-17  6.99440506e-18]
+    [-0.03078045  0.05653126  0.01857607]
+    [  1.31006317e-17   7.77156117e-18  -2.07056594e-17]
 
 Boundary conditions
 ~~~~~~~~~~~~~~~~~~~
@@ -109,7 +106,7 @@ To avoid major finite size effects, we enclose particles in a cell with periodic
 
 ::
 
-    [2. 2. 2.] 8.0
+    [ 2.  2.  2.] 8.0
 
 Atooms provides means to fold particles back in the "central" simulation cell, i.e. the one centered at the origin at the reference frame. For simplicity, let us work with particles in 1d.
 
@@ -122,13 +119,7 @@ Atooms provides means to fold particles back in the "central" simulation cell, i
 
 ::
 
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/tmp/python-FjISQM", line 3, in <module>
-        particle.fold(cell)
-      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/system/particle.py", line 95, in fold
-        self.position[:] = _periodic_vector_unfolded(self.position, cell.side)
-    IndexError: too many indices for array: array is 0-dimensional, but 1 were indexed
+    0.0
 
 The particle is now folded back at the origin.
 
@@ -143,7 +134,7 @@ A related method returns the nearest periodic image of a given particle with res
 
 ::
 
-    Particle(species=A, mass=1.0, position=0.55, velocity=[0. 0. 0.], radius=0.5)
+    Particle(species=A, mass=1.0, position=0.55, velocity=[ 0.  0.  0.], radius=0.5)
 
 The System object
 ~~~~~~~~~~~~~~~~~
@@ -163,7 +154,7 @@ Let us build a system with a few particles in a cell and use the system methods 
 
 ::
 
-    1.1999999999999997 1.5000000000000004
+    1.2 1.5
 
 Note that the system temperature is the kinetic one and need not coincide with the one of the thermostat.
 
@@ -176,7 +167,7 @@ Note that the system temperature is the kinetic one and need not coincide with t
 
 ::
 
-    1.5000000000000002 1.0
+    1.5 1.0
 
 Interaction and backends
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -207,26 +198,7 @@ As proof of principle, we compute the interaction energy between two Lennard-Jon
 
 ::
 
-    Traceback (most recent call last):
-      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/backends/lammps.py", line 48, in _get_lammps_version
-        _ = subprocess.check_output(cmd, shell=True,
-      File "/usr/lib/python3.8/subprocess.py", line 415, in check_output
-        return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
-      File "/usr/lib/python3.8/subprocess.py", line 516, in run
-        raise CalledProcessError(retcode, process.args,
-    subprocess.CalledProcessError: Command 'echo | mpirun lammps' returned non-zero exit status 134.
-
-    During handling of the above exception, another exception occurred:
-
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/tmp/python-R17fkG", line 13, in <module>
-        backend = LAMMPS(system, cmd)
-      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/backends/lammps.py", line 158, in __init__
-        self.version = _get_lammps_version()
-      File "/home/coslo/envs/dev/lib/python3.8/site-packages/atooms/backends/lammps.py", line 52, in _get_lammps_version
-        raise ImportError('lammps not installed (command is {})'.format(lammps_command))
-    ImportError: lammps not installed (command is lammps)
+    -0.99999388 -0.99999388
 
 The energy and forces are stored in ``system.interaction.energy`` and ``system.interaction.forces``.
 
@@ -254,7 +226,7 @@ To write the state of the system to a file, we use a ``Trajectory`` class. Traje
 ::
 
     4
-    step:0 columns:species,position dt:1 cell:10.0,10.0,10.0 
+    step:0 columns:id,pos dt:1 cell:10.0,10.0,10.0 
     A 0.000000 0.000000 0.000000
     A 0.000000 0.000000 0.000000
     A 0.000000 0.000000 0.000000
@@ -289,11 +261,11 @@ To get the system back we read the trajectory. Trajectories support iteration an
 
 ::
 
-    [0. 0. 0.] [10. 10. 10.]
-    [0. 0. 0.] [10. 10. 10.]
-    0 [0. 0. 0.]
-    10 [0. 0. 0.]
-    20 [0. 0. 0.]
+    [ 0.  0.  0.] [ 10.  10.  10.]
+    [ 0.  0.  0.] [ 10.  10.  10.]
+    0 [ 0.  0.  0.]
+    10 [ 0.  0.  0.]
+    20 [ 0.  0.  0.]
 
 Particles on a lattice
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -324,7 +296,7 @@ Suppose we want to simulate a system where particles can only be located at disc
 ::
 
     3
-    step:0 columns:species,position dt:1 
+    step:0 columns:id,pos dt:1 
     A 0
     A 1
     A 2
@@ -347,11 +319,5 @@ Everything went fine. However, we have to tweak things a bit when reading the pa
 
         for p in th[0].particle:
             print(p)
-
-::
-
-    Particle(species=A, mass=1.0, position=0, velocity=None, radius=None)
-    Particle(species=A, mass=1.0, position=1, velocity=None, radius=None)
-    Particle(species=A, mass=1.0, position=2, velocity=None, radius=None)
 
 Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.

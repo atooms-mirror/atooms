@@ -141,10 +141,11 @@ plt.cla()
 plt.plot(time, msd, '-o')
 plt.xlabel("t")
 plt.ylabel("MSD")
-plt.savefig('msd.png')
+plt.savefig('msd.png', bbox_inches='tight')
 #+end_src
 
 The MSD as a function of time should look linear.
+
 [[file:msd.png]]
 
 ** Fine-tuning the scheduler
@@ -336,7 +337,7 @@ import matplotlib.pyplot as plt
 plt.plot(sim.data['steps'], sim.data['temperature'])
 plt.xlabel('Steps')
 plt.ylabel('Temperature')
-plt.savefig('lammps.png')
+plt.savefig('lammps.png', bbox_inches='tight')
 plt.show()
 #+end_src
 
@@ -344,7 +345,7 @@ plt.show()
 
 We can then use the [[https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/][postprocessing]] package to compute the radial distribution function or any other correlation function from the trajectory.
 
-** Molecular dynamics simulation with RUMD
+** Molecular dynamics with RUMD
 
 There is native support for an efficient MD molecular dynamics code running entirely on GPU called [[https://rumd.org][RUMD]], developed by the Glass and Time group in Roskilde. It is optimized for small and medium-size systems.
 

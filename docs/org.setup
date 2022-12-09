@@ -6,5 +6,6 @@
 #+select_tags: export
 #+exclude_tags: noexport
 #+options: toc:nil num:nil title:nil author:nil email:nil timestamp:nil h:3 \n:nil @:t ::t |:t ^:{} _:{} *:t tex:t latex:t
+#+property: header-args :eval no-export :mkdirp yes :results verbatim replace
 #+property: header-args:python :exports both :results output :session
 #+property: header-args:gnuplot :exports results
