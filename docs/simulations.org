@@ -1,5 +1,24 @@
 #+setupfile: org.setup
 
+#+begin_src python :results none :exports none :session
+# Internal setup
+import matplotlib.pyplot as plt
+plt.rcParams.update({
+    "font.family": "serif",
+    'font.size': 11.0,
+    'axes.labelsize': 'medium',
+    'xtick.major.pad': 2.0,
+    'ytick.major.pad': 2.0,
+    'xtick.major.size': 4.0,
+    'ytick.major.size': 4.0,
+    'savefig.bbox': 'tight',
+    'savefig.dpi': 180,
+    'axes.spines.right': False,
+    'axes.spines.top': False,
+    'legend.frameon': False,
+})
+#+end_src
+
 * Simulations
 
 The atooms' interface abstracts out most of the common tasks of particle-based simulations. The actual simulation is performed by a simulation "backend", which exposes a minimal but consistent interface. This enables one to develop complex simulation frameworks (e.g., [[https://framagit.org/atooms/parallel_tempering][parallel tempering]]) that are essentially decoupled from the underlying simulation code.
@@ -53,25 +72,25 @@ simulation.run(10)
 #+results:
 #+begin_example
 # 
-# atooms simulation via <__main__.BareBonesBackend object at 0x7f00e6d21250>
+# atooms simulation via <__main__.BareBonesBackend object at 0x7faa6d156910>
 # 
 # version: 3.14.1+3.13.1-dirty (tag Tagger: 3.13.1 2022-12-08)
 # atooms version: 3.14.1+3.13.1-dirty (tag Tagger: 3.13.1 2022-12-08)
-# simulation started on: 2022-12-09 at 20:39
+# simulation started on: 2022-12-10 at 21:32
 # output path: None
 # backend: <class '__main__.BareBonesBackend'>
 # 
 # target target_steps: 10
 # 
 # 
-# <__main__.BareBonesBackend object at 0x7f00e6d21250>
+# <__main__.BareBonesBackend object at 0x7faa6d156910>
 # simulation ended successfully: reached target steps 10
 # 
 # final steps: 10
 # final rmsd: 0.00
 # wall time [s]: 0.00
 # average TSP [s/step/particle]: nan
-# simulation ended on: 2022-12-09 at 20:39
+# simulation ended on: 2022-12-10 at 21:32
 #+end_example
 
 ** Simple random walk
@@ -141,19 +160,20 @@ simulation.run(50)
 # The MSD should increase linearly with time
 time = sorted(msd_db.keys())
 msd = [msd_db[t] for t in time]
+#+end_src
 
+#+results:
+
+The MSD as a function of time should look linear.
+#+begin_src python :prologue "plt.clf()" :epilogue "plt.savefig(image, bbox_inches='tight'); print(image); del image" :results file :var image="msd.png"
 import matplotlib.pyplot as plt
-plt.cla()
 plt.plot(time, msd, '-o')
 plt.xlabel("t")
 plt.ylabel("MSD")
-plt.savefig('msd.png', bbox_inches='tight')
 #+end_src
 
-The MSD as a function of time should look linear.
-
+#+results:
 [[file:msd.png]]
-
 The [[https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/][postprocessing]] component package provides way more options to compute dynamic correlation functions.
 
 ** Fine-tuning the scheduler
@@ -161,7 +181,7 @@ The [[https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/][postprocess
 Calling a callback can be done at regular intervals during the simulation or according to a custom schedule defined by a =Scheduler=. Here we consider the =simulation.write_trajectory()= callback, which writes the system state in a trajectory file
 #+begin_src python
 from atooms.trajectory import TrajectoryXYZ
-from atooms.simulation import write_trajectory
+from atooms.simulation import write_trajectory, Scheduler
 
 simulation = Simulation(RandomWalk(system))
 trajectory = TrajectoryXYZ('/tmp/trajectory.xyz', 'w')
@@ -188,6 +208,8 @@ trajectory.close()
 trajectory_exp.close()
 #+end_src
 
+#+results:
+
 Now we will have two trajectories, one with regular and the other with exponentially spaced blocks of frames
 #+begin_src python
 with TrajectoryXYZ('/tmp/trajectory.xyz') as th, \
@@ -197,10 +219,8 @@ with TrajectoryXYZ('/tmp/trajectory.xyz') as th, \
 #+end_src
 
 #+results:
-#+begin_example
-Regular: [0, 10, 20, 30]
-Exponential: [0, 1, 2, 4, 8, 16, 17, 18, 20, 24, 32]
-#+end_example
+: Regular: [0, 10, 20, 30]
+: Exponential: [0, 1, 2, 4, 8, 16, 17, 18, 20, 24, 32]
 
 ** Compute statistical averages
 
@@ -225,9 +245,7 @@ print(numpy.mean(simulation.data['system.particle[0].position[0]']))
 #+end_src
 
 #+results:
-#+begin_example
--9.112113813995027
-#+end_example
+: 8.788951457142954
 
 You can store the result of any function that takes as first argument the simulation instance. Just add a tuple with a label and the function to the list of properties to store.
 #+begin_src python
@@ -235,6 +253,8 @@ simulation = Simulation(RandomWalk(system))
 simulation.add(store, 1, ['steps', ('x_1', lambda sim: sim.system.particle[1].position[0])])
 simulation.run(10)
 #+end_src
+
+#+results:
 
 ** Faster backends
 
@@ -261,6 +281,8 @@ class FastRandomWalk(object):
             pos += dr
 #+end_src
 
+#+results:
+
 #+attr_rst: :directive note
 #+begin_quote
 Here is the recommended approach:
@@ -276,6 +298,8 @@ system.view("position", order='C')
 system.view("position", order='F')
 #+end_src
 
+#+results:
+
 If $N$ is the number of particles and $d$ is the number of spatial dimensions, then you'll get
 
 - $(N, d)$-dimensional arrays with =order='C'= (default)
@@ -285,13 +309,17 @@ Of course, this option is relevant only for vector attributes like positions and
 
 You can get a view of any system property by providing a "fully qualified" attribute
 #+begin_src python
-assert system.view("cell.side") == system.cell.side
+assert numpy.all(system.view("cell.side") == system.cell.side)
 #+end_src
+
+#+results:
 
 In particular, for particles' attributes you can use this syntax
 #+begin_src python
 assert numpy.all(system.view("particle.position") == system.view("pos"))
 #+end_src
+
+#+results:
 
 ** Molecular dynamics with LAMMPS
 
@@ -305,13 +333,15 @@ In the last two cases, the last configuration will be used to start the simulati
 Here we we use the first configuration of an existing trajectory for a Lennard-Jones fluid
 #+begin_src python
 import os
+from atooms.core.utils import download
 import atooms.trajectory as trj
 from atooms.backends import lammps
 
 # You can change it so that it points to the LAMMPS executable
 lammps.lammps_command = 'lmp'
 
-system = trj.TrajectoryXYZ('data/lj_N1000_rho1.0.xyz')[0]
+download('https://framagit.org/atooms/atooms/raw/master/data/lj_N1000_rho1.0.xyz', "/tmp")
+system = trj.TrajectoryXYZ('/tmp/lj_N1000_rho1.0.xyz')[0]
 cmd = """
 pair_style      lj/cut 2.5
 pair_coeff      1 1 1.0 1.0  2.5
@@ -319,7 +349,7 @@ neighbor        0.3 bin
 neigh_modify    check yes
 timestep        0.002
 """
-backend = LAMMPS(system, cmd)
+backend = lammps.LAMMPS(system, cmd)
 #+end_src
 
 #+results:
@@ -329,15 +359,13 @@ You can add your own functions as callbacks to perform arbitrary manipulations o
 #+begin_src python
 from atooms.simulation import Simulation
 from atooms.system import Thermostat
-from atooms.simulation.observers import write_thermo, write_config
+from atooms.simulation.observers import store, write_config
 
 # We create the simulation instance and set the output path
 sim = Simulation(backend, output_path='/tmp/lammps.xyz')
-# Just store a reference to the trajectory class you want to use
-sim.trajectory_class = trj.TrajectoryXYZ
-# Write configurations every 500 steps in xyz format
-sim.add(write_config, 500)
-# Store thermodynamic properties every 10 steps
+# Write configurations every 1000 steps in xyz format
+sim.add(write_config, 1000, trajectory_class=trj.TrajectoryXYZ)
+# Store thermodynamic properties every 500 steps
 sim.add(store, 100, ['steps', 'potential energy per particle', 'temperature'])
 #+end_src
 
@@ -346,24 +374,20 @@ sim.add(store, 100, ['steps', 'potential energy per particle', 'temperature'])
 We add a thermostat to keep the system temperature at T=2.0 and run the simulations for 10000 steps.
 #+begin_src python
 backend.system.thermostat = Thermostat(temperature=2.0, relaxation_time=0.1)
-sim.run(10000)
+sim.run(4000)
 #+end_src
-
-#+results:
 
 Note that we use atooms =Thermostat= object here: the backend will take care of adding appropriate commands to the LAMMPS script.
 
 We have a quick look at the kinetic temperature as function of time to make sure the thermostat is working
-#+begin_src python
-import matplotlib.pyplot as plt
+#+begin_src python :prologue "import matplotlib.pyplot as plt; plt.clf()" :epilogue "plt.savefig(image, bbox_inches='tight'); print(image); del image" :results file :var image="lammps.png"
 plt.plot(sim.data['steps'], sim.data['temperature'])
 plt.xlabel('Steps')
 plt.ylabel('Temperature')
-plt.savefig('lammps.png', bbox_inches='tight')
-plt.show()
 #+end_src
 
-[[./lammps.png]]
+#+results:
+[[file:lammps.png]]
 
 We can then use the [[https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/][postprocessing]] package to compute the radial distribution function or any other correlation function from the trajectory.
 
@@ -373,18 +397,23 @@ There is native support for an efficient MD molecular dynamics code running enti
 
 Here we pick the last frame of the trajectory, change the density of the system to unity and write this new configuration to a trajectory format suitable for RUMD
 #+begin_src python
-with Trajectory('input.xyz') as trajectory:
+from atooms.trajectory import Trajectory
+
+with Trajectory('/tmp/lj_N1000_rho1.0.xyz') as trajectory:
     system = trajectory[-1]
     system.density = 1.0
-    print('New density:', len(system.particle) / system.cell.volume)
+    print('New density:', round(len(system.particle) / system.cell.volume, 2))
 
 from atooms.trajectory import TrajectoryRUMD
 with TrajectoryRUMD('rescaled.xyz.gz', 'w') as trajectory:
     trajectory.write(system)
 #+end_src
 
+#+results:
+: New density: 1.0
+
 Now we run a short molecular dynamics simulation with the =RUMD= backend, using a Lennard-Jones potential:
-#+begin_src python
+#+begin_src python :eval no
 import rumd
 from atooms.backends.rumd import RUMD
 from atooms.simulation import Simulation
@@ -394,43 +423,6 @@ potential.SetParams(i=0, j=0, Epsilon=1.0, Sigma=1.0, Rcut=2.5)
 backend = RUMD('rescaled.xyz.gz', [potential], integrator='nve'
 sim = Simulation(backend)
 sim.run(1000)
-print('Final temperature and density:', sim.system.temperature, sim.system.density)
 #+end_src
 
 A repository of interaction models for simple liquids and glasses is available in the [[https://framagit.org/atooms/models][atooms-models]] component package. It generates RUMD potentials automatically from standardized json file or Python dictionaries.
- 
-** Energy minimization with LAMMPS
-
-It is possible to minimize the energy of a system to determine its so-called inherent structure using LAMMPS as a backend. To achieve this, atooms defines an =Optimization= class, which behaves mostly as =Simulation= except that it stops when the mean square total force
-$$
-W=\frac{1}{N}\sum_i |f_i|^2
-$$
-is lower than a given =tolerance=.
-#+begin_src python :results output
-from atooms.trajectory import TrajectoryXYZ
-from atooms.optimization import Optimization
-from atooms.backends.lammps import EnergyMinimization
-cmd = """
-pair_style      lj/cut 2.5
-pair_modify     shift yes
-pair_coeff      1 1 1.0 1.0 2.5
-"""
-system = TrajectoryXYZ('../../data/lj_N256_rho1.0.xyz')[0]
-bck = EnergyMinimization(system, cmd)
-opt = Optimization(bck, tolerance=1e-10)
-opt.run()
-#+end_src
-
-#+results:
-
-We check that $W$ is lower than the requested tolerance
-#+begin_src python :results output
-e_final = system.potential_energy(per_particle=True)
-w_final = system.force_norm_square(per_particle=True)
-print('Energy={}, mean square force={:.2g}'.format(e_final, w_final))
-#+end_src
-
-#+results:
-: Energy=-6.8030584, mean square force=3.6e-11
-
-We will find more optimization algorithms (such as FIRE, l-BFGS, eigenvector-following, ...) in [[https://framagit.org/atooms/landscape][atooms-landscape]] component package.

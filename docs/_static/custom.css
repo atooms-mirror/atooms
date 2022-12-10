@@ -31,6 +31,7 @@ img {
     display: block;
     margin-left: auto;
     margin-right: auto;
+    max-width: 70%
 }
 div.highlight-none pre {
     background-color: rgb(255, 255, 255);
@@ -42,3 +43,8 @@ div.sphinxsidebar {
     height: auto;
 }
 }
+div.highlight-none pre {
+    background: #FBFBFBED;
+    color: #868C93;
+}
+
