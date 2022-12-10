@@ -21,7 +21,7 @@ Particles' positions are stored as numpy arrays, but we can pass a simple list w
 
 ::
 
-    [ 1.  0.  0.] <class 'numpy.ndarray'>
+    [1. 0. 0.] <class 'numpy.ndarray'>
 
 Particles can live in an arbitrary number of spatial dimensions
 
@@ -48,7 +48,7 @@ By default, particles have a few more properties such as velocity, chemical spec
 
 ::
 
-    Particle(species=Na, mass=1.0, position=[ 1.  1.  1.], velocity=[ 2.  0.  0.], radius=None)
+    Particle(species=Na, mass=1.0, position=[1. 1. 1.], velocity=[2. 0. 0.], radius=None)
 
 You may want to add physical properties to particles, like charge or whatever. Of course, in python you can do it very easily
 
@@ -76,7 +76,7 @@ You may not need velocities at all (for instance because you are working with Mo
 
 ::
 
-    0.944755026085
+    1.0321912423301094
 
 Doing so will leave a non-zero total momentum, but we can fix it (note that all masses are equal)
 
@@ -89,8 +89,8 @@ Doing so will leave a non-zero total momentum, but we can fix it (note that all 
 
 ::
 
-    [-0.03078045  0.05653126  0.01857607]
-    [  1.31006317e-17   7.77156117e-18  -2.07056594e-17]
+    [ 0.00850876 -0.03610239  0.03461013]
+    [-2.68673972e-17 -4.44089210e-19 -4.26325641e-17]
 
 Boundary conditions
 ~~~~~~~~~~~~~~~~~~~
@@ -106,20 +106,20 @@ To avoid major finite size effects, we enclose particles in a cell with periodic
 
 ::
 
-    [ 2.  2.  2.] 8.0
+    [2. 2. 2.] 8.0
 
 Atooms provides means to fold particles back in the "central" simulation cell, i.e. the one centered at the origin at the reference frame. For simplicity, let us work with particles in 1d.
 
 .. code:: python
 
-    cell = Cell(side=1.0)
-    particle = Particle(position=2.0)  # particle outside the central cell
+    cell = Cell(side=[1.0])
+    particle = Particle(position=[2.0])  # particle outside the central cell
     particle.fold(cell)
     print(particle.position)
 
 ::
 
-    0.0
+    [0.]
 
 The particle is now folded back at the origin.
 
@@ -127,14 +127,14 @@ A related method returns the nearest periodic image of a given particle with res
 
 .. code:: python
 
-    particle_1 = Particle(position=-0.45)
-    particle_2 = Particle(position=+0.45)
+    particle_1 = Particle(position=[-0.45])
+    particle_2 = Particle(position=[+0.45])
     image = particle_1.nearest_image(particle_2, cell, copy=True)
     print(image)
 
 ::
 
-    Particle(species=A, mass=1.0, position=0.55, velocity=[ 0.  0.  0.], radius=0.5)
+    Particle(species=A, mass=1.0, position=[0.55], velocity=[0. 0. 0.], radius=0.5)
 
 The System object
 ~~~~~~~~~~~~~~~~~
@@ -154,7 +154,7 @@ Let us build a system with a few particles in a cell and use the system methods 
 
 ::
 
-    1.2 1.5
+    1.1999999999999997 1.5
 
 Note that the system temperature is the kinetic one and need not coincide with the one of the thermostat.
 
@@ -163,7 +163,7 @@ Note that the system temperature is the kinetic one and need not coincide with t
     from atooms.system import Thermostat
     system.thermostat = Thermostat(temperature=1.0)
     system.temperature = 1.5  # equivalent to system.set_temperature(1.2)
-    print(system.temperature, system.thermostat.temperature)
+    print(round(system.temperature, 2), system.thermostat.temperature)
 
 ::
 
@@ -179,7 +179,9 @@ As proof of principle, we compute the interaction energy between two Lennard-Jon
 .. code:: python
 
     from atooms.system import System, Particle, Cell
-    from atooms.backends.lammps import LAMMPS
+    from atooms.backends import lammps
+
+    lammps.lammps_command = 'lmp'
 
     x = 1.122  # Minimum of the potential
     system = System(particle=[Particle(position=[0.0, 0.0, 0.0]),
@@ -190,7 +192,7 @@ As proof of principle, we compute the interaction energy between two Lennard-Jon
     pair_coeff      1 1 1.0 1.0  2.5
     """
     # The backend will add an interaction to the system
-    backend = LAMMPS(system, cmd)
+    backend =  lammps.LAMMPS(system, cmd)
 
     # Compute and get the potential energy
     # The cache option allows to get the potential energy without recalculating it
@@ -211,8 +213,8 @@ To write the state of the system to a file, we use a ``Trajectory`` class. Traje
 
     from atooms.trajectory import TrajectoryXYZ
 
-    system = System(particle=[Particle() for i in range(4)],
-                    cell=Cell([10.0, 10.0, 10.0]))
+    system = System(N=4)
+    system.cell = Cell([10.0, 10.0, 10.0])
 
     # Open the trajectory in write mode and write the state of the system
     # at step 0
@@ -226,15 +228,15 @@ To write the state of the system to a file, we use a ``Trajectory`` class. Traje
 ::
 
     4
-    step:0 columns:id,pos dt:1 cell:10.0,10.0,10.0 
-    A 0.000000 0.000000 0.000000
-    A 0.000000 0.000000 0.000000
-    A 0.000000 0.000000 0.000000
-    A 0.000000 0.000000 0.000000
+    step:0 columns:species,position dt:1 cell:10.0,10.0,10.0 
+    A 0.250000 0.250000 -0.250000
+    A 0.250000 -0.250000 0.250000
+    A -0.250000 -0.250000 -0.250000
+    A 0.250000 0.250000 0.250000
 
 Note that trajectories are file-like objects: they must be opened and closed, preferably using the ``with`` syntax.
 
-Of course, we can write multiple frames by calling ``write()`` repeatedly.
+We can write multiple frames by calling ``write()`` repeatedly.
 
 .. code:: python
 
@@ -261,11 +263,11 @@ To get the system back we read the trajectory. Trajectories support iteration an
 
 ::
 
-    [ 0.  0.  0.] [ 10.  10.  10.]
-    [ 0.  0.  0.] [ 10.  10.  10.]
-    0 [ 0.  0.  0.]
-    10 [ 0.  0.  0.]
-    20 [ 0.  0.  0.]
+    [0. 0. 0.] [10. 10. 10.]
+    [0. 0. 0.] [10. 10. 10.]
+    0 [0. 0. 0.]
+    10 [0. 0. 0.]
+    20 [0. 0. 0.]
 
 Particles on a lattice
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -296,7 +298,7 @@ Suppose we want to simulate a system where particles can only be located at disc
 ::
 
     3
-    step:0 columns:id,pos dt:1 
+    step:0 columns:species,position dt:1 
     A 0
     A 1
     A 2
@@ -319,5 +321,11 @@ Everything went fine. However, we have to tweak things a bit when reading the pa
 
         for p in th[0].particle:
             print(p)
+
+::
+
+    Particle(species=A, mass=1.0, position=0, velocity=None, radius=None)
+    Particle(species=A, mass=1.0, position=1, velocity=None, radius=None)
+    Particle(species=A, mass=1.0, position=2, velocity=None, radius=None)
 
 Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.
