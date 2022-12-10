@@ -1,0 +1,1052 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>atooms.trajectory.hdf5 API documentation</title>
+<meta name="description" content="HDF5 trajectory format." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>atooms.trajectory.hdf5</code></h1>
+</header>
+<section id="section-intro">
+<p>HDF5 trajectory format.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># This file is part of atooms
+# Copyright 2010-2017, Daniele Coslovich
+
+&#34;&#34;&#34;HDF5 trajectory format.&#34;&#34;&#34;
+
+import numpy
+import h5py
+import logging
+import warnings
+
+from .base import TrajectoryBase
+from atooms.core import ndim
+from atooms.system import System
+from atooms.system.particle import Particle
+from atooms.system.cell import Cell
+from atooms.system.interaction import Interaction
+
+_log = logging.getLogger(__name__)
+
+
+class _CutOff(object):
+
+    def __init__(self, scheme, radius):
+        self.scheme = scheme
+        self.radius = radius
+        self.rcutsq = radius**2
+        self.radius_mid = radius
+        self.radius_mid_sq = radius**2
+
+
+class _PairPotential(object):
+
+    interacting_bodies = 2
+
+    def __init__(self, func, params, species, cutoff=None,
+                 npoints=20000):
+        self.func = func
+        self.params = params
+        self.species = species
+        self.cutoff = cutoff
+        self.npoints = npoints
+
+
+#  Helper functions and classes
+
+class _SafeFile(h5py.File):
+    # TODO: decorate hdf5 class so that error messages contain the path of the offending file
+    def create_group_safe(self, group):
+        # TODO: recursively create all h5 groups that do not exist?
+        # TODO: redefine create_group unless this is a serious performace issue?
+        if group not in self:
+            self.create_group(group)
+
+def _get_cached_list_h5(fh, h5g, data):
+    &#34;&#34;&#34; Replace |data| with read data in group |h5g| only if data is None &#34;&#34;&#34;
+    if data is None:
+        try:
+            data = [entry[0] for entry in fh[h5g].values()]
+        except:
+            data = []
+    return data
+
+def _write_datasets(fh, group, datasets):
+    &#34;&#34;&#34;Write several data sets stored in datasets dict in group of fh&#34;&#34;&#34;
+    for name, dataset in datasets.items():
+        fh[group + name] = dataset
+
+def add_interaction_hdf5(finp, ff):
+    &#34;&#34;&#34;Add interaction to hdf5 file&#34;&#34;&#34;
+    import os
+    import glob
+
+    pid = os.getpid()
+    f_ref = &#39;/tmp/cnv_%s.h5&#39; % pid
+    # TODO: we can cache a ref file if ff is the same
+    os.system(&#39;system.x -n 2 -f %s %s 1&gt;/dev/null 2&gt;/dev/null&#39; % (ff, f_ref))
+    ref = h5py.File(f_ref, &#39;r&#39;)
+    fout = finp + &#39;.bak&#39;
+
+    # Add interaction
+    os.system(&#39;/bin/cp %s %s&#39; % (finp, fout))
+    h5 = h5py.File(fout, &#39;r+&#39;)
+    # Make sure interaction does not exist
+    try:
+        del h5[&#39;initialstate/interaction&#39;]
+    except:
+        pass
+    h5.copy(ref[&#39;initialstate/interaction&#39;], &#39;initialstate/interaction&#39;)
+
+    # Final cleanup
+    h5.close()
+    os.remove(finp)
+    os.rename(fout, finp)
+    ref.close()
+    for f in glob.glob(f_ref + &#39;*&#39;):
+        os.remove(f)
+
+
+class TrajectoryHDF5(TrajectoryBase):
+
+    &#34;&#34;&#34;In-house trajectory layout in HDF5 format.&#34;&#34;&#34;
+
+    suffix = &#39;h5&#39;
+
+    def __init__(self, filename, mode=&#39;r+&#39;):
+        super(TrajectoryHDF5, self).__init__(filename, mode)
+
+        self.general_info = {}
+        self._grandcanonical = False
+        self._system = None
+        # TODO: move this to write mode
+        self.variables = [&#39;particle.position&#39;, &#39;particle.velocity&#39;]
+        if self.mode == &#39;r&#39; or self.mode == &#39;r+&#39;:
+            self._file = h5py.File(self.filename, mode)
+            # gather general info on file
+            for entry in self._file[&#39;/&#39;]:
+                if type(self._file[entry]) == h5py.Dataset:
+                    self.general_info[entry] = self._file[entry]
+
+        elif self.mode == &#39;w&#39; or self.mode == &#39;r+&#39; or self.mode == &#34;w-&#34;:
+            self._file = _SafeFile(self.filename, self.mode)
+
+        else:
+            raise ValueError(&#39;Specify mode (r/w) for file %s (invalid: %s)&#39; % (self.filename, self.mode))
+
+    def read_steps(self):
+        return [d[0] for d in self._file[&#39;trajectory/realtime/stepindex&#39;].values()]
+
+    def read_len(self):
+        return len(self._file[&#39;trajectory/realtime/stepindex&#39;])
+
+    def close(self):
+        try:
+            self._file.close()
+        except ValueError:
+            _log.error(&#39;file %s already closed&#39;, self.filename)
+            raise
+
+    def read_timestep(self):
+        try:
+            return self._file[&#39;trajectory/realtime/timestep&#39;][0]
+        except:
+            _log.warning(&#39;no time step in file %s, set to 1&#39;, self.filename)
+            return 1.0
+
+    def write_timestep(self, value):
+        self._file.create_group_safe(&#39;/trajectory&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime&#39;)
+        self._file[&#39;trajectory/realtime/timestep&#39;] = [value]
+
+    def read_block_size(self):
+        try:
+            return self._file[&#39;trajectory/realtime/block_period&#39;][0]
+        except:
+            return None
+
+    def write_block_size(self, value):
+        self._file.create_group_safe(&#39;/trajectory&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime&#39;)
+        self._file[&#39;trajectory/realtime/block_period&#39;] = [value]
+
+    def write_init(self, system):
+        from atooms.system.particle import distinct_species
+        self._file.create_group_safe(&#39;/initialstate&#39;)
+        self._file[&#39;DIMENSIONS&#39;] = [3]
+        self._file[&#39;NAME_SYS&#39;] = [b&#39;Unknown&#39;]
+        self._file[&#39;VERSION_TRJ&#39;] = [b&#39;1.2&#39;]
+        self._file[&#39;VERSION_MD&#39;] = [b&#39;X.X.X&#39;]
+
+        # Particles
+        group = &#39;/initialstate/particle/&#39;
+        if system.particle is not None:
+            self._file.create_group_safe(group)
+            particle = system.particle
+            species = distinct_species(particle)
+            particle_h5 = {&#39;number_of_species&#39;: [len(species)],
+                           &#39;number_of_particles&#39;: [len(particle)],
+                           &#39;identity&#39;: [species.index(p.species)+1 for p in particle],
+                           &#39;element&#39;: [str(p.species) for p in particle],
+                           &#39;mass&#39;: [p.mass for p in particle],
+                           &#39;radius&#39;: [p.radius for p in particle],
+                           &#39;position&#39;: [p.position for p in particle],
+                           &#39;velocity&#39;: [p.velocity for p in particle],
+                           }
+            _write_datasets(self._file, group, particle_h5)
+
+        # Cell
+        group = &#39;/initialstate/cell/&#39;
+        if system.cell is not None:
+            self._file.create_group_safe(group)
+            self._file[group + &#39;sidebox&#39;] = system.cell.side
+
+        # Thermostat
+        group = &#39;/initialstate/thermostat/&#39;
+        if system.thermostat is not None:
+            self._file.create_group_safe(group)
+            self._file[group + &#39;temperature&#39;] = system.thermostat.temperature
+            self._file[group + &#39;type&#39;] = system.thermostat.name
+            self._file[group + &#39;mass&#39;] = system.thermostat.mass
+            self._file[group + &#39;collision_period&#39;] = system.thermostat.collision_period
+
+        # Interaction
+        if system.interaction is not None:
+            if type(system.interaction) is list:
+                raise TypeError(&#39;cannot handle more than one interaction&#39;)
+            self.write_interaction([system.interaction])
+
+    def write_interaction(self, interaction):
+        rgr = &#39;/initialstate/interaction/&#39;
+        self._file.create_group_safe(&#39;/initialstate/&#39;)
+        # If the group exisist we delete it. This does not actual clear space in h5 file.
+        # We could do it on a dataset basis via require_dataset, or visit the group and delete everything.
+        try:
+            del self._file[&#39;/initialstate/interaction/&#39;]
+        except:
+            pass
+        self._file.create_group_safe(&#39;/initialstate/interaction/&#39;)
+        self._file[rgr + &#39;number_of_interactions&#39;] = [len(interaction)]
+        for i, term in enumerate(interaction):
+            igr = rgr + &#39;/interaction_%d/&#39; % (i+1)
+            # Numbering is fortran style for backward compatibility
+            self._file.create_group_safe(igr)
+            self._file[igr + &#39;interaction_type&#39;] = [term.name.encode()]
+            self._file[igr + &#39;number_of_potentials&#39;] = [len(term.potential)]
+            for j, phi in enumerate(term.potential):
+                pgr = igr + &#39;/potential_%d/&#39; % (j+1)
+                self._file.create_group_safe(pgr)
+                self._file[pgr + &#39;potential&#39;] = [str(phi).encode()]
+                self._file[pgr + &#39;interacting_bodies&#39;] = [phi.interacting_bodies]
+                self._file[pgr + &#39;interacting_species&#39;] = phi.species
+                self._file[pgr + &#39;parameters_number&#39;] = [len(phi.params)]
+                self._file[pgr + &#39;parameters_name&#39;] = [_ for _ in sorted(phi.params.keys())]
+                self._file[pgr + &#39;parameters&#39;] = [phi.params[k] for k in sorted(phi.params.keys())]
+                self._file[pgr + &#39;cutoff_scheme&#39;] = [phi.cutoff.scheme.encode()]
+                self._file[pgr + &#39;cutoff_radius&#39;] = [phi.cutoff.radius]
+                self._file[pgr + &#39;lookup_points&#39;] = [phi.npoints]
+
+    def write_system(self, system, step):
+        variables = self.variables
+
+        self._file.create_group_safe(&#39;/trajectory&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime/stepindex&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime/sampleindex&#39;)
+
+        frame = len(self.steps) + 1
+        csample = &#39;/sample_%7.7i&#39; % frame
+
+        try:
+            self._file[&#39;/trajectory/realtime/stepindex&#39; + csample] = [step]
+            self._file[&#39;/trajectory/realtime/sampleindex&#39; + csample] = [frame]
+        except RuntimeError:
+            _log.error(&#39;error when writing step %s sample %s to file %s&#39;, step, frame, self.filename)
+            raise
+
+        if system.particle is not None:
+            self._file.create_group_safe(&#39;/trajectory/particle&#39;)
+            if &#39;particle.position&#39; in variables:
+                self._file.create_group_safe(&#39;/trajectory/particle/position&#39;)
+                self._file[&#39;/trajectory/particle/position&#39; + csample] = [p.position for p in system.particle]
+            if &#39;particle.velocity&#39; in variables:
+                self._file[&#39;/trajectory/particle/velocity&#39; + csample] = [p.velocity for p in system.particle]
+                self._file.create_group_safe(&#39;/trajectory/particle/velocity&#39;)
+            if &#39;particle.radius&#39; in variables:
+                self._file.create_group_safe(&#39;/trajectory/particle/radius&#39;)
+                self._file[&#39;/trajectory/particle/radius&#39; + csample] = [p.radius for p in system.particle]
+            if &#39;particle.species&#39; in variables:
+                self._file.create_group_safe(&#39;/trajectory/particle/species&#39;)
+                data = [&#39;%-3s&#39; % p.species for p in system.particle]
+                self._file[&#39;/trajectory/particle/species&#39; + csample] = [_.encode() for _ in data]
+                from atooms.system.particle import distinct_species
+                ids = distinct_species(system.particle)
+                self._file[&#39;/trajectory/particle/ids&#39; + csample] = [1+ids.index(p.species) for p in system.particle]
+
+        if system.cell is not None:
+            self._file.create_group_safe(&#39;/trajectory/cell&#39;)
+            self._file.create_group_safe(&#39;/trajectory/cell/sidebox&#39;)
+            self._file[&#39;/trajectory/cell/sidebox&#39; + csample] = system.cell.side
+
+    def read_init(self):
+        # read particles
+        group = self._file[&#39;/initialstate/particle&#39;]
+        n = self._file[&#39;/initialstate/particle/number_of_particles&#39;][0]
+        rad = None
+        for entry in group:
+            # TODO: refactor this
+            if entry == &#39;element&#39;:
+                spe = group[entry][:]
+            if entry == &#39;mass&#39;:
+                mas = group[entry][:]
+            if entry == &#39;position&#39;:
+                pos = group[entry][:]
+            if entry == &#39;velocity&#39;:
+                vel = group[entry][:]
+            if entry == &#39;radius&#39;:
+                rad = group[entry][:]
+        if rad is not None:
+            particle = [Particle(species=spe[i].decode().strip(), mass=mas[i],
+                                 position=pos[i, :], velocity=vel[i, :],
+                                 radius=rad[i]) for i in range(n)]
+        else:
+            particle = [Particle(species=spe[i].decode().strip(), mass=mas[i],
+                                 position=pos[i, :], velocity=vel[i, :])
+                        for i in range(n)]
+
+        # read cell
+        group = self._file[&#39;/initialstate/cell&#39;]
+        for entry in group:
+            if entry == &#39;sidebox&#39;:
+                sidebox = group[entry][:]
+        cell = Cell(sidebox)
+
+        # read interaction
+        interaction = self.read_interaction()
+
+        # build system
+        self._system = System(particle, cell, interaction)
+
+        return self._system
+
+    def read_interaction(self):
+        # read interaction terms
+        if &#39;interaction&#39; not in self._file[&#39;/initialstate&#39;]:
+            return None
+
+        n = self._file[&#39;/initialstate/interaction/number_of_interactions&#39;][0]
+        if n &gt; 1:
+            warnings.warn(&#39;can only read one interaction term&#39;)
+
+        i = 0
+        g = &#39;/initialstate/interaction/interaction_%d/&#39; % (i+1)
+        np = self._file[g + &#39;number_of_potentials&#39;][0]
+        name = self._file[g + &#39;interaction_type&#39;][0].decode()
+        potentials = []
+        for j in range(np):
+            sg = self._file[g + &#39;potential_%d/&#39; % (j+1)]
+            # params = {k:v for k, v in zip(sg[&#39;parameters_name&#39;][:], sg[&#39;parameters&#39;][:])}
+            # make it compatible with 2.6
+            params = {}
+            for k, v in zip(sg[&#39;parameters_name&#39;][:], sg[&#39;parameters&#39;][:]):
+                params[k] = v
+            p = _PairPotential(sg[&#39;potential&#39;][0].decode(), params,
+                               sg[&#39;interacting_species&#39;][:],
+                               _CutOff(sg[&#39;cutoff_scheme&#39;][0].decode(),
+                                       sg[&#39;cutoff_radius&#39;][0]))
+            if &#39;lookup_points&#39; in sg:
+                p.npoints = sg[&#39;lookup_points&#39;]
+
+            potentials.append(p)
+        interaction = Interaction()
+        interaction.potential = potentials
+        interaction.name = name
+        return interaction
+
+    def read_system(self, frame):
+        # TODO: refactor reading particle variables
+        # TODO: removing variables in read_system() is pointless, it should be done before
+        # We must increase frame by 1 if we iterate over frames with len().
+        # This is some convention to be fixed once and for all
+        # TODO: read cell on the fly NPT
+        keys = list(self._file[&#39;/trajectory/realtime/stepindex&#39;].keys())
+        csample = &#39;/&#39; + keys[frame]
+        # read particles
+        group = self._file[&#39;/trajectory/particle&#39;]
+        pos = group[&#39;position&#39; + csample][:]
+
+        if &#39;position_unfolded&#39; in group:
+            # fix for unfolded positions that were not written at the first step
+            # should be fixed once and for all in md.x
+            if frame == 0:
+                pos_unf = self._file[&#39;/initialstate/particle/position&#39;][:]
+            else:
+                pos_unf = group[&#39;position_unfolded&#39; + csample][:]
+            if &#39;particle.position_unfolded&#39; not in self.variables:
+                self.variables.append(&#39;particle.position_unfolded&#39;)
+
+        if &#39;velocity&#39; in group and len(group[&#39;velocity&#39;]) &gt; 0:
+            vel = group[&#39;velocity&#39; + csample][:]
+        else:
+            vel = numpy.zeros((len(pos), ndim))
+            if &#39;particle.velocity&#39; not in self.variables:
+                self.variables.remove(&#39;particle.velocity&#39;)
+
+        # Dynamic properties
+        p = []
+        for r, v in zip(pos, vel):
+            p.append(Particle(position=numpy.array(r, dtype=&#39;float64&#39;),
+                              velocity=numpy.array(v, dtype=&#39;float64&#39;)))
+
+        # Static properties
+        # TODO: optimize, this takes quite some additional time, almost x2
+        for pi, po in zip(p, self._system.particle):
+            pi.mass = po.mass
+            pi.species = po.species
+            pi.radius = po.radius
+
+        # Try update radii. This must be done after setting defaults.
+        try:
+            r = group[&#39;radius&#39; + csample][:]
+            for i, pi in enumerate(p):
+                pi.radius = r[i]
+            if &#39;particle.radius&#39; not in self.variables:
+                self.variables.append(&#39;particle.radius&#39;)
+        except KeyError:
+            if &#39;particle.radius&#39; in self.variables:
+                self.variables.remove(&#39;particle.radius&#39;)
+
+        # Try update species. This must be done after setting defaults.
+        try:
+            spe = group[&#39;species&#39; + csample][:]
+            for i, pi in enumerate(p):
+                pi.species = spe[i].decode().strip()
+            if &#39;particle.species&#39; not in self.variables:
+                self.variables.append(&#39;particle.species&#39;)
+        except KeyError:
+            if &#39;particle.species&#39; in self.variables:
+                self.variables.remove(&#39;particle.species&#39;)
+
+        # Read cell
+        group = self._file[&#39;/trajectory/cell&#39;]
+        side = group[&#39;sidebox&#39; + csample][:]
+        # This fixes an issue with some hdf5 trajectories that stored
+        # cell as (1,3) array
+        if len(side.shape) == 2:
+            side = side[0]
+        self._system.cell.side = side
+
+        # Read also interaction.
+        has_int = True
+        try:
+            group = self._file[&#39;/trajectory/interaction&#39;]
+        except:
+            has_int = False
+
+        if has_int:
+            self._system.interaction.total_energy = group[&#39;energy&#39; + csample][0]
+            self._system.interaction.total_virial = group[&#39;virial&#39; + csample][0]
+            self._system.interaction.total_stress = group[&#39;stress&#39; + csample][:]
+
+        return System(p, self._system.cell, self._system.interaction)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="atooms.trajectory.hdf5.add_interaction_hdf5"><code class="name flex">
+<span>def <span class="ident">add_interaction_hdf5</span></span>(<span>finp, ff)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add interaction to hdf5 file</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_interaction_hdf5(finp, ff):
+    &#34;&#34;&#34;Add interaction to hdf5 file&#34;&#34;&#34;
+    import os
+    import glob
+
+    pid = os.getpid()
+    f_ref = &#39;/tmp/cnv_%s.h5&#39; % pid
+    # TODO: we can cache a ref file if ff is the same
+    os.system(&#39;system.x -n 2 -f %s %s 1&gt;/dev/null 2&gt;/dev/null&#39; % (ff, f_ref))
+    ref = h5py.File(f_ref, &#39;r&#39;)
+    fout = finp + &#39;.bak&#39;
+
+    # Add interaction
+    os.system(&#39;/bin/cp %s %s&#39; % (finp, fout))
+    h5 = h5py.File(fout, &#39;r+&#39;)
+    # Make sure interaction does not exist
+    try:
+        del h5[&#39;initialstate/interaction&#39;]
+    except:
+        pass
+    h5.copy(ref[&#39;initialstate/interaction&#39;], &#39;initialstate/interaction&#39;)
+
+    # Final cleanup
+    h5.close()
+    os.remove(finp)
+    os.rename(fout, finp)
+    ref.close()
+    for f in glob.glob(f_ref + &#39;*&#39;):
+        os.remove(f)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="atooms.trajectory.hdf5.TrajectoryHDF5"><code class="flex name class">
+<span>class <span class="ident">TrajectoryHDF5</span></span>
+<span>(</span><span>filename, mode='r+')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>In-house trajectory layout in HDF5 format.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TrajectoryHDF5(TrajectoryBase):
+
+    &#34;&#34;&#34;In-house trajectory layout in HDF5 format.&#34;&#34;&#34;
+
+    suffix = &#39;h5&#39;
+
+    def __init__(self, filename, mode=&#39;r+&#39;):
+        super(TrajectoryHDF5, self).__init__(filename, mode)
+
+        self.general_info = {}
+        self._grandcanonical = False
+        self._system = None
+        # TODO: move this to write mode
+        self.variables = [&#39;particle.position&#39;, &#39;particle.velocity&#39;]
+        if self.mode == &#39;r&#39; or self.mode == &#39;r+&#39;:
+            self._file = h5py.File(self.filename, mode)
+            # gather general info on file
+            for entry in self._file[&#39;/&#39;]:
+                if type(self._file[entry]) == h5py.Dataset:
+                    self.general_info[entry] = self._file[entry]
+
+        elif self.mode == &#39;w&#39; or self.mode == &#39;r+&#39; or self.mode == &#34;w-&#34;:
+            self._file = _SafeFile(self.filename, self.mode)
+
+        else:
+            raise ValueError(&#39;Specify mode (r/w) for file %s (invalid: %s)&#39; % (self.filename, self.mode))
+
+    def read_steps(self):
+        return [d[0] for d in self._file[&#39;trajectory/realtime/stepindex&#39;].values()]
+
+    def read_len(self):
+        return len(self._file[&#39;trajectory/realtime/stepindex&#39;])
+
+    def close(self):
+        try:
+            self._file.close()
+        except ValueError:
+            _log.error(&#39;file %s already closed&#39;, self.filename)
+            raise
+
+    def read_timestep(self):
+        try:
+            return self._file[&#39;trajectory/realtime/timestep&#39;][0]
+        except:
+            _log.warning(&#39;no time step in file %s, set to 1&#39;, self.filename)
+            return 1.0
+
+    def write_timestep(self, value):
+        self._file.create_group_safe(&#39;/trajectory&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime&#39;)
+        self._file[&#39;trajectory/realtime/timestep&#39;] = [value]
+
+    def read_block_size(self):
+        try:
+            return self._file[&#39;trajectory/realtime/block_period&#39;][0]
+        except:
+            return None
+
+    def write_block_size(self, value):
+        self._file.create_group_safe(&#39;/trajectory&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime&#39;)
+        self._file[&#39;trajectory/realtime/block_period&#39;] = [value]
+
+    def write_init(self, system):
+        from atooms.system.particle import distinct_species
+        self._file.create_group_safe(&#39;/initialstate&#39;)
+        self._file[&#39;DIMENSIONS&#39;] = [3]
+        self._file[&#39;NAME_SYS&#39;] = [b&#39;Unknown&#39;]
+        self._file[&#39;VERSION_TRJ&#39;] = [b&#39;1.2&#39;]
+        self._file[&#39;VERSION_MD&#39;] = [b&#39;X.X.X&#39;]
+
+        # Particles
+        group = &#39;/initialstate/particle/&#39;
+        if system.particle is not None:
+            self._file.create_group_safe(group)
+            particle = system.particle
+            species = distinct_species(particle)
+            particle_h5 = {&#39;number_of_species&#39;: [len(species)],
+                           &#39;number_of_particles&#39;: [len(particle)],
+                           &#39;identity&#39;: [species.index(p.species)+1 for p in particle],
+                           &#39;element&#39;: [str(p.species) for p in particle],
+                           &#39;mass&#39;: [p.mass for p in particle],
+                           &#39;radius&#39;: [p.radius for p in particle],
+                           &#39;position&#39;: [p.position for p in particle],
+                           &#39;velocity&#39;: [p.velocity for p in particle],
+                           }
+            _write_datasets(self._file, group, particle_h5)
+
+        # Cell
+        group = &#39;/initialstate/cell/&#39;
+        if system.cell is not None:
+            self._file.create_group_safe(group)
+            self._file[group + &#39;sidebox&#39;] = system.cell.side
+
+        # Thermostat
+        group = &#39;/initialstate/thermostat/&#39;
+        if system.thermostat is not None:
+            self._file.create_group_safe(group)
+            self._file[group + &#39;temperature&#39;] = system.thermostat.temperature
+            self._file[group + &#39;type&#39;] = system.thermostat.name
+            self._file[group + &#39;mass&#39;] = system.thermostat.mass
+            self._file[group + &#39;collision_period&#39;] = system.thermostat.collision_period
+
+        # Interaction
+        if system.interaction is not None:
+            if type(system.interaction) is list:
+                raise TypeError(&#39;cannot handle more than one interaction&#39;)
+            self.write_interaction([system.interaction])
+
+    def write_interaction(self, interaction):
+        rgr = &#39;/initialstate/interaction/&#39;
+        self._file.create_group_safe(&#39;/initialstate/&#39;)
+        # If the group exisist we delete it. This does not actual clear space in h5 file.
+        # We could do it on a dataset basis via require_dataset, or visit the group and delete everything.
+        try:
+            del self._file[&#39;/initialstate/interaction/&#39;]
+        except:
+            pass
+        self._file.create_group_safe(&#39;/initialstate/interaction/&#39;)
+        self._file[rgr + &#39;number_of_interactions&#39;] = [len(interaction)]
+        for i, term in enumerate(interaction):
+            igr = rgr + &#39;/interaction_%d/&#39; % (i+1)
+            # Numbering is fortran style for backward compatibility
+            self._file.create_group_safe(igr)
+            self._file[igr + &#39;interaction_type&#39;] = [term.name.encode()]
+            self._file[igr + &#39;number_of_potentials&#39;] = [len(term.potential)]
+            for j, phi in enumerate(term.potential):
+                pgr = igr + &#39;/potential_%d/&#39; % (j+1)
+                self._file.create_group_safe(pgr)
+                self._file[pgr + &#39;potential&#39;] = [str(phi).encode()]
+                self._file[pgr + &#39;interacting_bodies&#39;] = [phi.interacting_bodies]
+                self._file[pgr + &#39;interacting_species&#39;] = phi.species
+                self._file[pgr + &#39;parameters_number&#39;] = [len(phi.params)]
+                self._file[pgr + &#39;parameters_name&#39;] = [_ for _ in sorted(phi.params.keys())]
+                self._file[pgr + &#39;parameters&#39;] = [phi.params[k] for k in sorted(phi.params.keys())]
+                self._file[pgr + &#39;cutoff_scheme&#39;] = [phi.cutoff.scheme.encode()]
+                self._file[pgr + &#39;cutoff_radius&#39;] = [phi.cutoff.radius]
+                self._file[pgr + &#39;lookup_points&#39;] = [phi.npoints]
+
+    def write_system(self, system, step):
+        variables = self.variables
+
+        self._file.create_group_safe(&#39;/trajectory&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime/stepindex&#39;)
+        self._file.create_group_safe(&#39;/trajectory/realtime/sampleindex&#39;)
+
+        frame = len(self.steps) + 1
+        csample = &#39;/sample_%7.7i&#39; % frame
+
+        try:
+            self._file[&#39;/trajectory/realtime/stepindex&#39; + csample] = [step]
+            self._file[&#39;/trajectory/realtime/sampleindex&#39; + csample] = [frame]
+        except RuntimeError:
+            _log.error(&#39;error when writing step %s sample %s to file %s&#39;, step, frame, self.filename)
+            raise
+
+        if system.particle is not None:
+            self._file.create_group_safe(&#39;/trajectory/particle&#39;)
+            if &#39;particle.position&#39; in variables:
+                self._file.create_group_safe(&#39;/trajectory/particle/position&#39;)
+                self._file[&#39;/trajectory/particle/position&#39; + csample] = [p.position for p in system.particle]
+            if &#39;particle.velocity&#39; in variables:
+                self._file[&#39;/trajectory/particle/velocity&#39; + csample] = [p.velocity for p in system.particle]
+                self._file.create_group_safe(&#39;/trajectory/particle/velocity&#39;)
+            if &#39;particle.radius&#39; in variables:
+                self._file.create_group_safe(&#39;/trajectory/particle/radius&#39;)
+                self._file[&#39;/trajectory/particle/radius&#39; + csample] = [p.radius for p in system.particle]
+            if &#39;particle.species&#39; in variables:
+                self._file.create_group_safe(&#39;/trajectory/particle/species&#39;)
+                data = [&#39;%-3s&#39; % p.species for p in system.particle]
+                self._file[&#39;/trajectory/particle/species&#39; + csample] = [_.encode() for _ in data]
+                from atooms.system.particle import distinct_species
+                ids = distinct_species(system.particle)
+                self._file[&#39;/trajectory/particle/ids&#39; + csample] = [1+ids.index(p.species) for p in system.particle]
+
+        if system.cell is not None:
+            self._file.create_group_safe(&#39;/trajectory/cell&#39;)
+            self._file.create_group_safe(&#39;/trajectory/cell/sidebox&#39;)
+            self._file[&#39;/trajectory/cell/sidebox&#39; + csample] = system.cell.side
+
+    def read_init(self):
+        # read particles
+        group = self._file[&#39;/initialstate/particle&#39;]
+        n = self._file[&#39;/initialstate/particle/number_of_particles&#39;][0]
+        rad = None
+        for entry in group:
+            # TODO: refactor this
+            if entry == &#39;element&#39;:
+                spe = group[entry][:]
+            if entry == &#39;mass&#39;:
+                mas = group[entry][:]
+            if entry == &#39;position&#39;:
+                pos = group[entry][:]
+            if entry == &#39;velocity&#39;:
+                vel = group[entry][:]
+            if entry == &#39;radius&#39;:
+                rad = group[entry][:]
+        if rad is not None:
+            particle = [Particle(species=spe[i].decode().strip(), mass=mas[i],
+                                 position=pos[i, :], velocity=vel[i, :],
+                                 radius=rad[i]) for i in range(n)]
+        else:
+            particle = [Particle(species=spe[i].decode().strip(), mass=mas[i],
+                                 position=pos[i, :], velocity=vel[i, :])
+                        for i in range(n)]
+
+        # read cell
+        group = self._file[&#39;/initialstate/cell&#39;]
+        for entry in group:
+            if entry == &#39;sidebox&#39;:
+                sidebox = group[entry][:]
+        cell = Cell(sidebox)
+
+        # read interaction
+        interaction = self.read_interaction()
+
+        # build system
+        self._system = System(particle, cell, interaction)
+
+        return self._system
+
+    def read_interaction(self):
+        # read interaction terms
+        if &#39;interaction&#39; not in self._file[&#39;/initialstate&#39;]:
+            return None
+
+        n = self._file[&#39;/initialstate/interaction/number_of_interactions&#39;][0]
+        if n &gt; 1:
+            warnings.warn(&#39;can only read one interaction term&#39;)
+
+        i = 0
+        g = &#39;/initialstate/interaction/interaction_%d/&#39; % (i+1)
+        np = self._file[g + &#39;number_of_potentials&#39;][0]
+        name = self._file[g + &#39;interaction_type&#39;][0].decode()
+        potentials = []
+        for j in range(np):
+            sg = self._file[g + &#39;potential_%d/&#39; % (j+1)]
+            # params = {k:v for k, v in zip(sg[&#39;parameters_name&#39;][:], sg[&#39;parameters&#39;][:])}
+            # make it compatible with 2.6
+            params = {}
+            for k, v in zip(sg[&#39;parameters_name&#39;][:], sg[&#39;parameters&#39;][:]):
+                params[k] = v
+            p = _PairPotential(sg[&#39;potential&#39;][0].decode(), params,
+                               sg[&#39;interacting_species&#39;][:],
+                               _CutOff(sg[&#39;cutoff_scheme&#39;][0].decode(),
+                                       sg[&#39;cutoff_radius&#39;][0]))
+            if &#39;lookup_points&#39; in sg:
+                p.npoints = sg[&#39;lookup_points&#39;]
+
+            potentials.append(p)
+        interaction = Interaction()
+        interaction.potential = potentials
+        interaction.name = name
+        return interaction
+
+    def read_system(self, frame):
+        # TODO: refactor reading particle variables
+        # TODO: removing variables in read_system() is pointless, it should be done before
+        # We must increase frame by 1 if we iterate over frames with len().
+        # This is some convention to be fixed once and for all
+        # TODO: read cell on the fly NPT
+        keys = list(self._file[&#39;/trajectory/realtime/stepindex&#39;].keys())
+        csample = &#39;/&#39; + keys[frame]
+        # read particles
+        group = self._file[&#39;/trajectory/particle&#39;]
+        pos = group[&#39;position&#39; + csample][:]
+
+        if &#39;position_unfolded&#39; in group:
+            # fix for unfolded positions that were not written at the first step
+            # should be fixed once and for all in md.x
+            if frame == 0:
+                pos_unf = self._file[&#39;/initialstate/particle/position&#39;][:]
+            else:
+                pos_unf = group[&#39;position_unfolded&#39; + csample][:]
+            if &#39;particle.position_unfolded&#39; not in self.variables:
+                self.variables.append(&#39;particle.position_unfolded&#39;)
+
+        if &#39;velocity&#39; in group and len(group[&#39;velocity&#39;]) &gt; 0:
+            vel = group[&#39;velocity&#39; + csample][:]
+        else:
+            vel = numpy.zeros((len(pos), ndim))
+            if &#39;particle.velocity&#39; not in self.variables:
+                self.variables.remove(&#39;particle.velocity&#39;)
+
+        # Dynamic properties
+        p = []
+        for r, v in zip(pos, vel):
+            p.append(Particle(position=numpy.array(r, dtype=&#39;float64&#39;),
+                              velocity=numpy.array(v, dtype=&#39;float64&#39;)))
+
+        # Static properties
+        # TODO: optimize, this takes quite some additional time, almost x2
+        for pi, po in zip(p, self._system.particle):
+            pi.mass = po.mass
+            pi.species = po.species
+            pi.radius = po.radius
+
+        # Try update radii. This must be done after setting defaults.
+        try:
+            r = group[&#39;radius&#39; + csample][:]
+            for i, pi in enumerate(p):
+                pi.radius = r[i]
+            if &#39;particle.radius&#39; not in self.variables:
+                self.variables.append(&#39;particle.radius&#39;)
+        except KeyError:
+            if &#39;particle.radius&#39; in self.variables:
+                self.variables.remove(&#39;particle.radius&#39;)
+
+        # Try update species. This must be done after setting defaults.
+        try:
+            spe = group[&#39;species&#39; + csample][:]
+            for i, pi in enumerate(p):
+                pi.species = spe[i].decode().strip()
+            if &#39;particle.species&#39; not in self.variables:
+                self.variables.append(&#39;particle.species&#39;)
+        except KeyError:
+            if &#39;particle.species&#39; in self.variables:
+                self.variables.remove(&#39;particle.species&#39;)
+
+        # Read cell
+        group = self._file[&#39;/trajectory/cell&#39;]
+        side = group[&#39;sidebox&#39; + csample][:]
+        # This fixes an issue with some hdf5 trajectories that stored
+        # cell as (1,3) array
+        if len(side.shape) == 2:
+            side = side[0]
+        self._system.cell.side = side
+
+        # Read also interaction.
+        has_int = True
+        try:
+            group = self._file[&#39;/trajectory/interaction&#39;]
+        except:
+            has_int = False
+
+        if has_int:
+            self._system.interaction.total_energy = group[&#39;energy&#39; + csample][0]
+            self._system.interaction.total_virial = group[&#39;virial&#39; + csample][0]
+            self._system.interaction.total_stress = group[&#39;stress&#39; + csample][:]
+
+        return System(p, self._system.cell, self._system.interaction)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="atooms.trajectory.modes.TrajectoryModes" href="modes.html#atooms.trajectory.modes.TrajectoryModes">TrajectoryModes</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="atooms.trajectory.hdf5.TrajectoryHDF5.suffix"><code class="name">var <span class="ident">suffix</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="atooms.trajectory.hdf5.TrajectoryHDF5.read_interaction"><code class="name flex">
+<span>def <span class="ident">read_interaction</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_interaction(self):
+    # read interaction terms
+    if &#39;interaction&#39; not in self._file[&#39;/initialstate&#39;]:
+        return None
+
+    n = self._file[&#39;/initialstate/interaction/number_of_interactions&#39;][0]
+    if n &gt; 1:
+        warnings.warn(&#39;can only read one interaction term&#39;)
+
+    i = 0
+    g = &#39;/initialstate/interaction/interaction_%d/&#39; % (i+1)
+    np = self._file[g + &#39;number_of_potentials&#39;][0]
+    name = self._file[g + &#39;interaction_type&#39;][0].decode()
+    potentials = []
+    for j in range(np):
+        sg = self._file[g + &#39;potential_%d/&#39; % (j+1)]
+        # params = {k:v for k, v in zip(sg[&#39;parameters_name&#39;][:], sg[&#39;parameters&#39;][:])}
+        # make it compatible with 2.6
+        params = {}
+        for k, v in zip(sg[&#39;parameters_name&#39;][:], sg[&#39;parameters&#39;][:]):
+            params[k] = v
+        p = _PairPotential(sg[&#39;potential&#39;][0].decode(), params,
+                           sg[&#39;interacting_species&#39;][:],
+                           _CutOff(sg[&#39;cutoff_scheme&#39;][0].decode(),
+                                   sg[&#39;cutoff_radius&#39;][0]))
+        if &#39;lookup_points&#39; in sg:
+            p.npoints = sg[&#39;lookup_points&#39;]
+
+        potentials.append(p)
+    interaction = Interaction()
+    interaction.potential = potentials
+    interaction.name = name
+    return interaction</code></pre>
+</details>
+</dd>
+<dt id="atooms.trajectory.hdf5.TrajectoryHDF5.write_interaction"><code class="name flex">
+<span>def <span class="ident">write_interaction</span></span>(<span>self, interaction)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_interaction(self, interaction):
+    rgr = &#39;/initialstate/interaction/&#39;
+    self._file.create_group_safe(&#39;/initialstate/&#39;)
+    # If the group exisist we delete it. This does not actual clear space in h5 file.
+    # We could do it on a dataset basis via require_dataset, or visit the group and delete everything.
+    try:
+        del self._file[&#39;/initialstate/interaction/&#39;]
+    except:
+        pass
+    self._file.create_group_safe(&#39;/initialstate/interaction/&#39;)
+    self._file[rgr + &#39;number_of_interactions&#39;] = [len(interaction)]
+    for i, term in enumerate(interaction):
+        igr = rgr + &#39;/interaction_%d/&#39; % (i+1)
+        # Numbering is fortran style for backward compatibility
+        self._file.create_group_safe(igr)
+        self._file[igr + &#39;interaction_type&#39;] = [term.name.encode()]
+        self._file[igr + &#39;number_of_potentials&#39;] = [len(term.potential)]
+        for j, phi in enumerate(term.potential):
+            pgr = igr + &#39;/potential_%d/&#39; % (j+1)
+            self._file.create_group_safe(pgr)
+            self._file[pgr + &#39;potential&#39;] = [str(phi).encode()]
+            self._file[pgr + &#39;interacting_bodies&#39;] = [phi.interacting_bodies]
+            self._file[pgr + &#39;interacting_species&#39;] = phi.species
+            self._file[pgr + &#39;parameters_number&#39;] = [len(phi.params)]
+            self._file[pgr + &#39;parameters_name&#39;] = [_ for _ in sorted(phi.params.keys())]
+            self._file[pgr + &#39;parameters&#39;] = [phi.params[k] for k in sorted(phi.params.keys())]
+            self._file[pgr + &#39;cutoff_scheme&#39;] = [phi.cutoff.scheme.encode()]
+            self._file[pgr + &#39;cutoff_radius&#39;] = [phi.cutoff.radius]
+            self._file[pgr + &#39;lookup_points&#39;] = [phi.npoints]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="atooms.trajectory.base.TrajectoryBase" href="base.html#atooms.trajectory.base.TrajectoryBase">TrajectoryBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.add_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.add_callback">add_callback</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.append" href="base.html#atooms.trajectory.base.TrajectoryBase.append">append</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.block_size">block_size</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.cache" href="base.html#atooms.trajectory.base.TrajectoryBase.cache">cache</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.callbacks" href="base.html#atooms.trajectory.base.TrajectoryBase.callbacks">callbacks</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.close" href="base.html#atooms.trajectory.base.TrajectoryBase.close">close</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.copy" href="base.html#atooms.trajectory.base.TrajectoryBase.copy">copy</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.grandcanonical" href="base.html#atooms.trajectory.base.TrajectoryBase.grandcanonical">grandcanonical</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.metadata" href="base.html#atooms.trajectory.base.TrajectoryBase.metadata">metadata</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.mode" href="base.html#atooms.trajectory.base.TrajectoryBase.mode">mode</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.precision" href="base.html#atooms.trajectory.base.TrajectoryBase.precision">precision</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read" href="base.html#atooms.trajectory.base.TrajectoryBase.read">read</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.read_block_size">read_block_size</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_init" href="base.html#atooms.trajectory.base.TrajectoryBase.read_init">read_init</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_len" href="base.html#atooms.trajectory.base.TrajectoryBase.read_len">read_len</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_steps" href="base.html#atooms.trajectory.base.TrajectoryBase.read_steps">read_steps</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_system" href="base.html#atooms.trajectory.base.TrajectoryBase.read_system">read_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.read_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.read_timestep">read_timestep</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.register_callback" href="base.html#atooms.trajectory.base.TrajectoryBase.register_callback">register_callback</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.thesaurus" href="base.html#atooms.trajectory.base.TrajectoryBase.thesaurus">thesaurus</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.times" href="base.html#atooms.trajectory.base.TrajectoryBase.times">times</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.total_time" href="base.html#atooms.trajectory.base.TrajectoryBase.total_time">total_time</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write" href="base.html#atooms.trajectory.base.TrajectoryBase.write">write</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_block_size" href="base.html#atooms.trajectory.base.TrajectoryBase.write_block_size">write_block_size</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_init" href="base.html#atooms.trajectory.base.TrajectoryBase.write_init">write_init</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_system" href="base.html#atooms.trajectory.base.TrajectoryBase.write_system">write_system</a></code></li>
+<li><code><a title="atooms.trajectory.base.TrajectoryBase.write_timestep" href="base.html#atooms.trajectory.base.TrajectoryBase.write_timestep">write_timestep</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="atooms.trajectory" href="index.html">atooms.trajectory</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="atooms.trajectory.hdf5.add_interaction_hdf5" href="#atooms.trajectory.hdf5.add_interaction_hdf5">add_interaction_hdf5</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5" href="#atooms.trajectory.hdf5.TrajectoryHDF5">TrajectoryHDF5</a></code></h4>
+<ul class="">
+<li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.read_interaction" href="#atooms.trajectory.hdf5.TrajectoryHDF5.read_interaction">read_interaction</a></code></li>
+<li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.suffix" href="#atooms.trajectory.hdf5.TrajectoryHDF5.suffix">suffix</a></code></li>
+<li><code><a title="atooms.trajectory.hdf5.TrajectoryHDF5.write_interaction" href="#atooms.trajectory.hdf5.TrajectoryHDF5.write_interaction">write_interaction</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

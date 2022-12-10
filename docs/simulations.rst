@@ -111,12 +111,22 @@ We start by building an empty system. Then we add a few particles and place them
                     dr *= self.delta
                     p.position += dr
 
-Adding callbacks to log while the simulation is running
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Adding callbacks
+~~~~~~~~~~~~~~~~
 
-The Simulation class allows to execute of arbitrary code during the simulation via "callbacks". This mechanism can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
+The Simulation class allows you to execute of arbitrary code during the simulation via "callbacks". They can be used for instance to
 
-Here we measure the mean square displacement (MSD) of the particles to make sure that the system displays a regular diffusive behavior :math:`MSD \sim t`
+- store simulation data
+
+- write logs or particle configurations to trajectory files
+
+- perform on-the-fly calculations of the system properties
+
+- define custom conditions to stop the simulation
+
+Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
+
+As an example, we measure the mean square displacement (MSD) of the particles to make sure that the system displays a regular diffusive behavior :math:`MSD \sim t`
 
 .. code:: python
 
@@ -153,6 +163,8 @@ Here we measure the mean square displacement (MSD) of the particles to make sure
 The MSD as a function of time should look linear.
 
 .. image:: msd.png
+
+The `postprocessing <https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/>`_ component package provides way more options to compute dynamic correlation functions.
 
 Fine-tuning the scheduler
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -205,8 +217,8 @@ Now we will have two trajectories, one with regular and the other with exponenti
     Regular: [0, 10, 20, 30]
     Exponential: [0, 1, 2, 4, 8, 16, 17, 18, 20, 24, 32]
 
-Computing statistical averages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compute statistical averages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``simulation.store()`` callback allows you to store data in a dictionary while the simulation is running. Here are a few ways to use it to perform some statistical analysis.
 
@@ -232,7 +244,7 @@ By default, after running the simulation, the data will be stored in the ``simul
 
     -9.112113813995027
 
-You can call any function taking as first argument the simulation instance and collect the results in the ``simulation.data`` dictionary like this
+You can store the result of any function that takes as first argument the simulation instance. Just add a tuple with a label and the function to the list of properties to store.
 
 .. code:: python
 
@@ -243,7 +255,7 @@ You can call any function taking as first argument the simulation instance and c
 Faster backends
 ~~~~~~~~~~~~~~~
 
-Moving particles using the ``Particle`` object interface is expressive but computationally very slow, since it forces us to operate one particle at a time. We can write a more efficient backend by getting a "view" of the system's coordinates and operating on the vectorially or passing them to backends written in compiled languages (even just in time).
+Moving particles using the ``Particle`` object interface is expressive but computationally very slow, since it forces us to operate one particle at a time. We can write a more efficient backend by getting a "view" of the system's coordinates as a numpy array and operating on it vectorially. You can also pass the viewed arrays to backends written in compiled languages (even just in time).
 
 .. code:: python
 
@@ -267,14 +279,32 @@ Moving particles using the ``Particle`` object interface is expressive but compu
                 # Operate on array in-place
                 pos += dr
 
-It is crucial to operate on the ``pos`` array in-place: this way the positions of the ``Particle`` objects will remain in sync with those of the ``pos`` array.
+.. note::
+
+    Here is the recommended approach:
+
+    - get a view of the arrays you need **once** at the beginning of ``run()``
+
+    - if possible, operate on those arrays **in-place**
+
+    - if you make copies of the arrays, update the viewed arrays at the end of ``run()``
+
+    This way the attributes of the ``Particle`` objects will remain in sync with viewed arrays
 
 The viewed array can be cast in C-order (default) or F-order using the ``order`` parameter
 
 .. code:: python
 
-    system.view("position", order='C')  # default
+    system.view("position", order='C')
     system.view("position", order='F')
+
+If :math:`N` is the number of particles and :math:`d` is the number of spatial dimensions, then you'll get
+
+- $(N, d)$-dimensional arrays with ``order``'C'= (default)
+
+- $(d, N)$-dimensional arrays with ``order``'F'=
+
+Of course, this option is relevant only for vector attributes like positions and velocities.
 
 You can get a view of any system property by providing a "fully qualified" attribute
 
@@ -440,4 +470,4 @@ We check that :math:`W` is lower than the requested tolerance
 
     Energy=-6.8030584, mean square force=3.6e-11
 
-Additional optimization algorithms (such as FIRE, l-BFGS, eigenvector-following, ...) are available in `atooms-landscape <https://framagit.org/atooms/landscape>`_ component package.
+We will find more optimization algorithms (such as FIRE, l-BFGS, eigenvector-following, ...) in `atooms-landscape <https://framagit.org/atooms/landscape>`_ component package.

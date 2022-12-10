@@ -107,11 +107,17 @@ class RandomWalk(object):
 
 #+results:
 
-** Adding callbacks to log while the simulation is running
+** Adding callbacks
 
-The Simulation class allows to execute of arbitrary code during the simulation via "callbacks". This mechanism can be used to write logs or particle configurations to file, or to perform on-the-fly calculations of the system properties. Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
+The Simulation class allows you to execute of arbitrary code during the simulation via "callbacks". They can be used for instance to
+- store simulation data
+- write logs or particle configurations to trajectory files
+- perform on-the-fly calculations of the system properties
+- define custom conditions to stop the simulation
 
-Here we measure the mean square displacement (MSD) of the particles to make sure that the system displays a regular diffusive behavior $MSD \sim t$
+Callbacks are plain function that accept the simulation object as first argument. They are called at prescribed intervals during the simulation.
+
+As an example, we measure the mean square displacement (MSD) of the particles to make sure that the system displays a regular diffusive behavior $MSD \sim t$
 #+begin_src python :exports both :session :results output
 from atooms.simulation import Simulation
 simulation = Simulation(RandomWalk(system))
@@ -147,6 +153,8 @@ plt.savefig('msd.png', bbox_inches='tight')
 The MSD as a function of time should look linear.
 
 [[file:msd.png]]
+
+The [[https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/][postprocessing]] component package provides way more options to compute dynamic correlation functions.
 
 ** Fine-tuning the scheduler
 
@@ -194,7 +202,7 @@ Regular: [0, 10, 20, 30]
 Exponential: [0, 1, 2, 4, 8, 16, 17, 18, 20, 24, 32]
 #+end_example
 
-** Computing statistical averages
+** Compute statistical averages
 
 The =simulation.store()= callback allows you to store data in a dictionary while the simulation is running. Here are a few ways to use it to perform some statistical analysis.
 
@@ -221,7 +229,7 @@ print(numpy.mean(simulation.data['system.particle[0].position[0]']))
 -9.112113813995027
 #+end_example
 
-You can call any function taking as first argument the simulation instance and collect the results in the =simulation.data= dictionary like this
+You can store the result of any function that takes as first argument the simulation instance. Just add a tuple with a label and the function to the list of properties to store.
 #+begin_src python
 simulation = Simulation(RandomWalk(system))
 simulation.add(store, 1, ['steps', ('x_1', lambda sim: sim.system.particle[1].position[0])])
@@ -230,7 +238,7 @@ simulation.run(10)
 
 ** Faster backends
 
-Moving particles using the =Particle= object interface is expressive but computationally very slow, since it forces us to operate one particle at a time. We can write a more efficient backend by getting a "view" of the system's coordinates and operating on the vectorially or passing them to backends written in compiled languages (even just in time).
+Moving particles using the =Particle= object interface is expressive but computationally very slow, since it forces us to operate one particle at a time. We can write a more efficient backend by getting a "view" of the system's coordinates as a numpy array and operating on it vectorially. You can also pass the viewed arrays to backends written in compiled languages (even just in time).
 #+begin_src python
 import numpy
 from atooms.system import System
@@ -253,13 +261,27 @@ class FastRandomWalk(object):
             pos += dr
 #+end_src
 
-It is crucial to operate on the =pos= array in-place: this way the positions of the =Particle= objects will remain in sync with those of the =pos= array.
+#+attr_rst: :directive note
+#+begin_quote
+Here is the recommended approach:
+- get a view of the arrays you need *once* at the beginning of =run()=
+- if possible, operate on those arrays *in-place*
+- if you make copies of the arrays, update the viewed arrays at the end of =run()=
+This way the attributes of the =Particle= objects will remain in sync with viewed arrays
+#+end_quote
 
 The viewed array can be cast in C-order (default) or F-order using the =order= parameter
 #+begin_src python
-system.view("position", order='C')  # default
+system.view("position", order='C')
 system.view("position", order='F')
 #+end_src
+
+If $N$ is the number of particles and $d$ is the number of spatial dimensions, then you'll get
+
+- $(N, d)$-dimensional arrays with =order='C'= (default)
+- $(d, N)$-dimensional arrays with =order='F'=
+
+Of course, this option is relevant only for vector attributes like positions and velocities.
 
 You can get a view of any system property by providing a "fully qualified" attribute
 #+begin_src python
@@ -411,4 +433,4 @@ print('Energy={}, mean square force={:.2g}'.format(e_final, w_final))
 #+results:
 : Energy=-6.8030584, mean square force=3.6e-11
 
-Additional optimization algorithms (such as FIRE, l-BFGS, eigenvector-following, ...) are available in [[https://framagit.org/atooms/landscape][atooms-landscape]] component package.
+We will find more optimization algorithms (such as FIRE, l-BFGS, eigenvector-following, ...) in [[https://framagit.org/atooms/landscape][atooms-landscape]] component package.
