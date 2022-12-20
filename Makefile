@@ -17,9 +17,9 @@ test:	version
 docs:
 	rm -rf docs/api
 	pdoc -o docs/api --force --html --skip-errors $(PROJECT)
-	emacs docs/basics.org --batch -l ~/.emacs.d/init.el -l ~/.emacs.d/config.el -f org-rst-export-to-rst --kill
-	emacs docs/simulations.org --batch -l ~/.emacs.d/init.el -l ~/.emacs.d/config.el  -f org-rst-export-to-rst --kill
-	emacs docs/trajectories.org --batch -l ~/.emacs.d/init.el -l ~/.emacs.d/config.el -f org-rst-export-to-rst --kill
+	emacs --batch -l ~/.emacs.d/init.el -l ~/.emacs.d/config.el --file=docs/basics.org -f org-rst-export-to-rst --kill
+	emacs --batch -l ~/.emacs.d/init.el -l ~/.emacs.d/config.el --file=docs/simulations.org -f org-rst-export-to-rst --kill
+	emacs --batch -l ~/.emacs.d/init.el -l ~/.emacs.d/config.el --file=docs/trajectories.org -f org-rst-export-to-rst --kill
 	make -C docs/ html
 	orgnb.py docs/*.org
 
