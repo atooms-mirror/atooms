@@ -376,14 +376,14 @@ sim.run(4000)
 Note that we use atooms =Thermostat= object here: the backend will take care of adding appropriate commands to the LAMMPS script.
 
 We have a quick look at the kinetic temperature as function of time to make sure the thermostat is working
-#+begin_src python :var figname="image.png" :results value file :prologue "import matplotlib.pyplot as plt" :epilogue "plt.savefig(f'{figname}', bbox_inches='tight'); plt.clf(); f'{figname}'"
+#+begin_src python :var figname="lammps.png" :results value file :prologue "import matplotlib.pyplot as plt" :epilogue "plt.savefig(f'{figname}', bbox_inches='tight'); plt.clf(); f'{figname}'"
 plt.plot(sim.data['steps'], sim.data['temperature'])
 plt.xlabel('Steps')
 plt.ylabel('Temperature')
 #+end_src
 
 #+results:
-[[file:image.png]]
+[[file:lammps.png]]
 
 We can then use the [[https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/][postprocessing]] package to compute the radial distribution function or any other correlation function from the trajectory.
 
