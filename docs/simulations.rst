@@ -391,7 +391,7 @@ We have a quick look at the kinetic temperature as function of time to make sure
     plt.xlabel('Steps')
     plt.ylabel('Temperature')
 
-.. image:: image.png
+.. image:: lammps.png
 
 We can then use the `postprocessing <https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/>`_ package to compute the radial distribution function or any other correlation function from the trajectory.
 
