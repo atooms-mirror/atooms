@@ -37,6 +37,7 @@ We set up a bare-bones simulation backend building on the native System class
     # The backend is created and wrapped by a simulation object.
     # Here we first call the run() method then run_until()
     from atooms.simulation import Simulation
+    from atooms.simulation.core import _log as logger
     backend = BareBonesBackend()
     simulation = Simulation(backend)
     simulation.run(10)
@@ -49,34 +50,35 @@ We set up a bare-bones simulation backend building on the native System class
     simulation.run(20)
     assert simulation.current_step == 30  
 
-    # Increase verbosity to see a meaningful log
+    # Set up verbose logging to see a meaningful log
     from atooms.core.utils import setup_logging
-    setup_logging(level=20)
+    setup_logging(level=20, update=True)
     simulation = Simulation(backend)
-    simulation.run(10)  
+    simulation.run(10)
+    setup_logging(level=40, update=True)
 
 ::
 
     # 
-    # atooms simulation via <__main__.BareBonesBackend object at 0x7faa6d156910>
+    # atooms simulation via <__main__.BareBonesBackend object at 0x7f6f4f8e1430>
     # 
-    # version: 3.14.1+3.13.1-dirty (tag Tagger: 3.13.1 2022-12-08)
-    # atooms version: 3.14.1+3.13.1-dirty (tag Tagger: 3.13.1 2022-12-08)
-    # simulation started on: 2022-12-10 at 21:32
+    # version: 3.14.1+3.14.1-7-g7ec3c6-dirty (2022-12-10)
+    # atooms version: 3.14.1+3.14.1-7-g7ec3c6-dirty (2022-12-10)
+    # simulation started on: 2022-12-21 at 11:04
     # output path: None
     # backend: <class '__main__.BareBonesBackend'>
     # 
     # target target_steps: 10
     # 
     # 
-    # <__main__.BareBonesBackend object at 0x7faa6d156910>
+    # <__main__.BareBonesBackend object at 0x7f6f4f8e1430>
     # simulation ended successfully: reached target steps 10
     # 
     # final steps: 10
     # final rmsd: 0.00
     # wall time [s]: 0.00
     # average TSP [s/step/particle]: nan
-    # simulation ended on: 2022-12-10 at 21:32
+    # simulation ended on: 2022-12-21 at 11:04
 
 Simple random walk
 ~~~~~~~~~~~~~~~~~~
@@ -242,7 +244,8 @@ By default, after running the simulation, the data will be stored in the ``simul
 
 ::
 
-    8.788951457142954
+    2.493414801026613
+
 
 You can store the result of any function that takes as first argument the simulation instance. Just add a tuple with a label and the function to the list of properties to store.
 
@@ -388,7 +391,7 @@ We have a quick look at the kinetic temperature as function of time to make sure
     plt.xlabel('Steps')
     plt.ylabel('Temperature')
 
-.. image:: lammps.png
+.. image:: image.png
 
 We can then use the `postprocessing <https://gitlab.info-ufr.univ-montp2.fr/atooms/postprocessing/>`_ package to compute the radial distribution function or any other correlation function from the trajectory.
 
@@ -415,6 +418,7 @@ Here we pick the last frame of the trajectory, change the density of the system 
 ::
 
     New density: 1.0
+
 
 Now we run a short molecular dynamics simulation with the ``RUMD`` backend, using a Lennard-Jones potential:
 

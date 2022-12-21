@@ -1,5 +1,15 @@
 #+setupfile: org.setup
 
+#+name: fix_path
+#+begin_src python :exports none :results output
+# This allows execution from the docs/ directory
+import sys
+if '../' not in sys.path:
+    sys.path.insert(0, '../')
+#+end_src
+
+#+results: fix_path
+
 * Trajectories
 ** Trajectory formats
 =atooms= supports several trajectory formats, most of them in read and write mode
@@ -11,21 +21,22 @@ print(formats())
 
 #+results:
 #+begin_example
-Available trajectory formats:
-- dynamo       : [R ] DynamO trajectory format (https://www.dynamomd.com/index.php/tutorial3)
-- exyz         : [RW] Extended XYZ layout (https://github.com/libAtoms/extxyz)
-- folderlammps : [R ] Multi-file layout LAMMPS format.
-- gsd          : [RW] Glotzer group's binary GSD format for HOOMD (https://glotzerlab.engin.umich.edu/hoomd-blue/)
-- hdf5         : [RW] In-house trajectory layout in HDF5 format.
-- hoomd        : [RW] HOOMD format
-- lammps       : [RW] LAMMPS format (https://docs.lammps.org/dump.html)
-- neighbors    : [RW] Neighbors trajectory format
-- pdb          : [RW] PDB format (https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))
-- ram          : [RW] Store trajectory in RAM
-- rumd         : [RW] RUMD trajectory format (https://rumd.org)
-- simplexyz    : [RW] Simple implementation of the xyz layout (https://en.wikipedia.org/wiki/XYZ_file_format)
-- superrumd    : [R ] SuperTrajectory for RUMD format
-- xyz          : [RW] XYZ format with metadata support (https://en.wikipedia.org/wiki/XYZ_file_format)
+available trajectory formats:
+ - csv          : [RW] ...no description...
+ - dynamo       : [R ] DynamO trajectory format (https://www.dynamomd.com/index.php/tutorial3)
+ - exyz         : [RW] Extended XYZ layout (https://github.com/libAtoms/extxyz)
+ - folderlammps : [R ] Multi-file layout LAMMPS format.
+ - gsd          : [RW] Glotzer group's binary GSD format for HOOMD (https://glotzerlab.engin.umich.edu/hoomd-blue/)
+ - hdf5         : [RW] In-house trajectory layout in HDF5 format.
+ - hoomd        : [RW] HOOMD format
+ - lammps       : [RW] LAMMPS format (https://docs.lammps.org/dump.html)
+ - neighbors    : [RW] Neighbors trajectory format
+ - pdb          : [RW] PDB format (https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))
+ - ram          : [RW] Store trajectory in RAM
+ - rumd         : [RW] RUMD trajectory format (https://rumd.org)
+ - simplexyz    : [RW] Simple implementation of the xyz layout (https://en.wikipedia.org/wiki/XYZ_file_format)
+ - superrumd    : [R ] SuperTrajectory for RUMD format
+ - xyz          : [RW] XYZ format with metadata support (https://en.wikipedia.org/wiki/XYZ_file_format)
 #+end_example
 
 ** Custom trajectory formats 
@@ -36,13 +47,15 @@ It is easy to add new trajectory formats by subclassing existing trajectory clas
 trj.py convert output.xyz output.abc
 #+end_src
 
+#+results:
+
 Remember to add an empty =__init__.py= file at the root of =atooms_plugins=. Actually, the =atooms_plugins= package can be put anywhere in your =PYTHONPATH=.
 
 ** Custom trajectory output
 We can customize the format of trajectory files using the =fields= variable. It contains a list of the particle properties to be written to the trajectory. For this simple example we use again the xyz trajectory format.
 
 We add a =charge= property to each particle and then instruct the trajectory to write it along with the position
-#+begin_src python :exports both :results output :session
+#+begin_src python
 from atooms.system import System, Cell, Particle
 system = System(particle=[Particle() for i in range(3)],
 		cell=Cell([10.0, 10.0, 10.0]))
@@ -65,7 +78,7 @@ with open('test.xyz') as fh:
 : 0.000000 0.000000 0.000000 -1.0
 
 The =fields= list can contain any particle property, even those defined dynamically at run time, such as the =charge= variable above which is not a predefined particle property!. When reading back the trajectory, the =charge= property is automatically recognized and added to the particle. 
-#+begin_src python :exports both :results output :session
+#+begin_src python
 with TrajectoryXYZ('test.xyz') as th:
   system = th[0]
   print(system.particle[0].charge)
@@ -76,7 +89,7 @@ with TrajectoryXYZ('test.xyz') as th:
 
 ** Conversion between trajectory formats
 Atooms provides means to convert between trajectory various formats. At a very basic level, this requires opening the original trajectory for reading and the new one for writing using the desired trajectory class. Here we convert an xyz trajectory in a format suitable for the LAMMPS package
-#+begin_src python :exports both :results none :session
+#+begin_src python
 from atooms.trajectory import TrajectoryLAMMPS
 with TrajectoryXYZ('test.xyz') as th_inp,\
      TrajectoryLAMMPS('test.lammps', 'w') as th_out:
@@ -87,10 +100,13 @@ with TrajectoryXYZ('test.xyz') as th_inp,\
 #+results:
 
 The =convert()= function wraps the conversion in a more convenient interface
-#+begin_src python :exports both :results output :session
+#+begin_src python
 from atooms.trajectory import convert
 convert(TrajectoryXYZ('test.xyz'), TrajectoryLAMMPS, 'test.lammps')
 #+end_src
+
+#+results:
+
 There are several optional parameters that allows to customize the trajectory output, see the function signature for more details.
 
 Finally, the =trj.py= script installed by atooms allows to quickly convert trajectories on the command-line, which is actually the most frequent use case
@@ -107,7 +123,7 @@ Although the script will do its best to guess the appropriate trajectory formats
 "Callbacks" are functions used to modify the properties of a trajectory on the fly. They accept a =System= instance as first positional argument, along with optional extra positional and keyword arguments, and return a modified =System=.
 
 As an example, suppose your trajectory did not provide any information about the cell side. You can add the information dynamically to all =System= objects read from the trajectory using the following callback
-#+begin_src python :exports both :results none :session
+#+begin_src python
 from atooms.system import Cell
 def fix_missing_cell(system, side):
     system.cell = Cell(side)
@@ -115,7 +131,7 @@ def fix_missing_cell(system, side):
 #+end_src
 
 Then we add the callback to the trajectory and provide the cell side (here L=10 along each dimensions) as argument. Reading the trajectory is then done as usual.
-#+begin_src python :exports both :results output :session
+#+begin_src python
 from atooms.trajectory import TrajectoryXYZ
 with TrajectoryXYZ('test.xyz') as th:
     th.add_callback(fix_missing_cell, [10., 10., 10.])
@@ -125,13 +141,13 @@ with TrajectoryXYZ('test.xyz') as th:
 
 #+results:
 : [10. 10. 10.]
-: [10. 10. 10.]
+
 ** Extend trajectory classes
 
 Suppose you have a trajectory that looks almost like xyz, but differs in some way. You may want to customize the xyz trajectory format, so that your code can process the trajectory without manual intervention.
 
 For instance, your xyz file is =test.xyz= but the cell side information is stored in a separate file =test.xyz.cell=. We can proceed as before
-#+begin_src python :exports both :results none :session
+#+begin_src python
 from atooms.system import Cell
 
 file_inp = 'test.xyz'
@@ -144,8 +160,10 @@ with TrajectoryXYZ(file_inp) as th:
     th.add_callback(fix_missing_cell, side)
 #+end_src
 
+#+results:
+
 As a more permanent solution, you can define your own custom trajectory by subclassing =TrajectoryXYZ=. First, parse the cell information during the initialization stage (=read_init()=).
-#+begin_src python :exports both :results none :session
+#+begin_src python
 from atooms.system import Cell
 from atooms.trajectory import TrajectoryXYZ
 
@@ -157,12 +175,16 @@ class TrajectoryCustomXYZ(TrajectoryXYZ):
             self._side = [float(L) for L in fh.read().split()]
 #+end_src
 
+#+results:
+
 Then modify the =read_sample()= method, which reads a given frame of the trajectory.
-#+begin_src python :exports both :results none :session
+#+begin_src python
     def read_sample(self, frame):
         system = super().read_sample()
         system.cell = Cell(self._side)
         return system
 #+end_src
+
+#+results:
 
 Here we have assumed that the cell side is the same for all frames. The code would have to be adjusted to the more general case of a fluctuating cell.

@@ -23,6 +23,7 @@ Particles' positions are stored as numpy arrays, but we can pass a simple list w
 
     [1. 0. 0.] <class 'numpy.ndarray'>
 
+
 Particles can live in an arbitrary number of spatial dimensions
 
 .. code:: python
@@ -33,6 +34,7 @@ Particles can live in an arbitrary number of spatial dimensions
 ::
 
     5
+
 
 By default, particles have a few more properties such as velocity, chemical species, mass and radius. They can all be altered at will or even set to None.
 
@@ -49,6 +51,7 @@ By default, particles have a few more properties such as velocity, chemical spec
 ::
 
     Particle(species=Na, mass=1.0, position=[1. 1. 1.], velocity=[2. 0. 0.], radius=None)
+
 
 You may want to add physical properties to particles, like charge or whatever. Of course, in python you can do it very easily
 
@@ -76,7 +79,8 @@ You may not need velocities at all (for instance because you are working with Mo
 
 ::
 
-    1.0321912423301094
+    0.9978434233794155
+
 
 Doing so will leave a non-zero total momentum, but we can fix it (note that all masses are equal)
 
@@ -89,8 +93,8 @@ Doing so will leave a non-zero total momentum, but we can fix it (note that all 
 
 ::
 
-    [ 0.00850876 -0.03610239  0.03461013]
-    [-2.68673972e-17 -4.44089210e-19 -4.26325641e-17]
+    [ 0.00927695  0.0473026  -0.02404831]
+    [3.39450690e-17 5.55111512e-17 3.35287353e-17]
 
 Boundary conditions
 ~~~~~~~~~~~~~~~~~~~
@@ -108,6 +112,7 @@ To avoid major finite size effects, we enclose particles in a cell with periodic
 
     [2. 2. 2.] 8.0
 
+
 Atooms provides means to fold particles back in the "central" simulation cell, i.e. the one centered at the origin at the reference frame. For simplicity, let us work with particles in 1d.
 
 .. code:: python
@@ -120,6 +125,7 @@ Atooms provides means to fold particles back in the "central" simulation cell, i
 ::
 
     [0.]
+
 
 The particle is now folded back at the origin.
 
@@ -154,7 +160,8 @@ Let us build a system with a few particles in a cell and use the system methods 
 
 ::
 
-    1.1999999999999997 1.5
+    1.1999999999999997 1.4999999999999998
+
 
 Note that the system temperature is the kinetic one and need not coincide with the one of the thermostat.
 
@@ -202,6 +209,7 @@ As proof of principle, we compute the interaction energy between two Lennard-Jon
 
     -0.99999388 -0.99999388
 
+
 The energy and forces are stored in ``system.interaction.energy`` and ``system.interaction.forces``.
 
 Trajectory files
@@ -229,10 +237,11 @@ To write the state of the system to a file, we use a ``Trajectory`` class. Traje
 
     4
     step:0 columns:species,position dt:1 cell:10.0,10.0,10.0 
-    A 0.250000 0.250000 -0.250000
+    A -0.250000 0.250000 -0.250000
+    A -0.250000 0.250000 0.250000
     A 0.250000 -0.250000 0.250000
-    A -0.250000 -0.250000 -0.250000
     A 0.250000 0.250000 0.250000
+
 
 Note that trajectories are file-like objects: they must be opened and closed, preferably using the ``with`` syntax.
 
@@ -263,11 +272,11 @@ To get the system back we read the trajectory. Trajectories support iteration an
 
 ::
 
-    [0. 0. 0.] [10. 10. 10.]
-    [0. 0. 0.] [10. 10. 10.]
-    0 [0. 0. 0.]
-    10 [0. 0. 0.]
-    20 [0. 0. 0.]
+    [-0.25  0.25 -0.25] [10. 10. 10.]
+    [-0.25  0.25 -0.25] [10. 10. 10.]
+    0 [-0.25  0.25 -0.25]
+    10 [-0.25  0.25 -0.25]
+    20 [-0.25  0.25 -0.25]
 
 Particles on a lattice
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -303,6 +312,7 @@ Suppose we want to simulate a system where particles can only be located at disc
     A 1
     A 2
 
+
 Everything went fine. However, we have to tweak things a bit when reading the particles back, to avoid positions being transformed to arrays of floats instead of integers. This can be done with the help of a callback that transforms the system accordingly as we read the trajectory.
 
 .. code:: python
@@ -327,5 +337,6 @@ Everything went fine. However, we have to tweak things a bit when reading the pa
     Particle(species=A, mass=1.0, position=0, velocity=None, radius=None)
     Particle(species=A, mass=1.0, position=1, velocity=None, radius=None)
     Particle(species=A, mass=1.0, position=2, velocity=None, radius=None)
+
 
 Our particles have now integer coordinates. Note that, on passing, we have set to None velocities and radii as they are not relevant in this case.

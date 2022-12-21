@@ -566,7 +566,7 @@ class System(object):
         from .particle import composition
         txt = &#39;&#39;
         if self.particle:
-            txt += &#39;system composed by N={0} particles\n&#39;.format(len(self.particle))
+            txt += &#39;system composed of N={0} particles\n&#39;.format(len(self.particle))
             txt += &#39;with chemical composition C={}\n&#39;.format(self.composition)
             txt += &#39;with chemical concentration x={}\n&#39;.format(self.concentration)
         if self.cell:
@@ -1206,7 +1206,7 @@ setting the species as requested. The assignement is random.</p></div>
         from .particle import composition
         txt = &#39;&#39;
         if self.particle:
-            txt += &#39;system composed by N={0} particles\n&#39;.format(len(self.particle))
+            txt += &#39;system composed of N={0} particles\n&#39;.format(len(self.particle))
             txt += &#39;with chemical composition C={}\n&#39;.format(self.composition)
             txt += &#39;with chemical concentration x={}\n&#39;.format(self.concentration)
         if self.cell:

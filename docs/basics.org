@@ -1,5 +1,13 @@
 #+setupfile: org.setup
 
+#+name: fix_path
+#+begin_src python :exports none :results output
+# This allows execution from the docs/ directory
+import sys
+if '../' not in sys.path:
+    sys.path.insert(0, '../')
+#+end_src
+
 * Basics
 
 Atooms provides a high-level interface to the main objects of particle-based simulations. It mostly focuses on classical molecular dynamics and Monte Carlo simulations, but it is not limited to that. It can be used to simulate and analyze lattice models such as TASEP or kinetically constrained models.
@@ -42,7 +50,7 @@ print(particle)
 : Particle(species=Na, mass=1.0, position=[1. 1. 1.], velocity=[2. 0. 0.], radius=None)
 
 You may want to add physical properties to particles, like charge or whatever. Of course, in python you can do it very easily
-#+begin_src python :exports both :results none :session
+#+begin_src python
 particle.charge = -1.0
 #+end_src
 
@@ -65,7 +73,7 @@ print(T)
 #+end_src
 
 #+results:
-: 1.0321912423301094
+: 0.9978434233794155
 
 Doing so will leave a non-zero total momentum, but we can fix it (note that all masses are equal)
 #+begin_src python
@@ -76,8 +84,8 @@ print(cm_velocity(particle))
 #+end_src
 
 #+results:
-: [ 0.00850876 -0.03610239  0.03461013]
-: [-2.68673972e-17 -4.44089210e-19 -4.26325641e-17]
+: [ 0.00927695  0.0473026  -0.02404831]
+: [3.39450690e-17 5.55111512e-17 3.35287353e-17]
 
 ** Boundary conditions
 
@@ -131,7 +139,7 @@ print(system.density, system.temperature)
 #+end_src
 
 #+results:
-: 1.1999999999999997 1.5
+: 1.1999999999999997 1.4999999999999998
 
 Note that the system temperature is the kinetic one and need not coincide with the one of the thermostat.
 #+begin_src python
@@ -149,7 +157,7 @@ print(round(system.temperature, 2), system.thermostat.temperature)
 Classical particles interact with each other via a potential $u(\{r_i\})$, where $\{r_i\}$ is the set of particles' coordinates. Atooms relies on third-party efficient *backends* written in C, Fortran or CUDA to actually compute the interaction between the particles. Here we will use the LAMMPS backend, see Molecular dynamics ith LAMMPS for further details. It accepts a string variable that defines the interaction potential using the LAMMPS syntax, see https://lammps.sandia.gov/doc/pair_style.html, and stores a reference to the system object of which we want to compute the energy.
 
 As proof of principle, we compute the interaction energy between two Lennard-Jones particles
-#+begin_src python :session no
+#+begin_src python
 from atooms.system import System, Particle, Cell
 from atooms.backends import lammps
 
@@ -198,9 +206,9 @@ with open('test.xyz') as fh:
 #+results:
 : 4
 : step:0 columns:species,position dt:1 cell:10.0,10.0,10.0 
-: A 0.250000 0.250000 -0.250000
+: A -0.250000 0.250000 -0.250000
+: A -0.250000 0.250000 0.250000
 : A 0.250000 -0.250000 0.250000
-: A -0.250000 -0.250000 -0.250000
 : A 0.250000 0.250000 0.250000
 
 Note that trajectories are file-like objects: they must be opened and closed, preferably using the =with= syntax.
@@ -231,11 +239,11 @@ with TrajectoryXYZ('test.xyz') as th:
 #+end_src
 
 #+results:
-: [0. 0. 0.] [10. 10. 10.]
-: [0. 0. 0.] [10. 10. 10.]
-: 0 [0. 0. 0.]
-: 10 [0. 0. 0.]
-: 20 [0. 0. 0.]
+: [-0.25  0.25 -0.25] [10. 10. 10.]
+: [-0.25  0.25 -0.25] [10. 10. 10.]
+: 0 [-0.25  0.25 -0.25]
+: 10 [-0.25  0.25 -0.25]
+: 20 [-0.25  0.25 -0.25]
 
 ** Particles on a lattice
 
